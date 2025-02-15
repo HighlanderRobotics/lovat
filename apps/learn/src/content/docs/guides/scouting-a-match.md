@@ -1,0 +1,37 @@
+---
+title: Scouting a Match
+description: A guide in my new Starlight docs site.
+---
+
+## The Game Screen
+
+In the top right of your screen, you can see the time elapsed, the game stage (Pre-match, Autonomous, or Teleop), and the team you are scouting. In the upper left, indicate if the robot is pre-loaded with a coral. Now select one of four starting positions for the robot. Immediately as the match starts, tap the play button.
+
+### Autonomous
+
+Click the large purple rectangle when the robot you are scouting exits from its starting position.
+
+If the robot shoots an algae at the net, click the tall green rectangle in the middle of the screen, and indicate if it scores or fails. To score an algae in the processor, use the green button to the right of the net.
+
+Use the yellow buttons on the right side when the robot intakes a piece.
+
+If the robot interacts with the reef, select the position closest to the robot's location. Then, choose the level on which the coral was scored or select take algae. You can use the buttons on the left side of the screen to drop coral and algae, or undo any mistakes.
+
+### Teleop
+
+During this phase of the match, there will always be buttons to pick up or drop coral and algae on the left side of the screen. Beneath, use the shield icon if the robot performs a defensive action. A defensive action is whenever the robot moves with the intent to pin, hit, block, or slow another robot, including if the attempt is not successful. You can also press the conveyor belt icon if the robot feeds an algae to a teammate.
+
+Like in auto, you can score Algae in the net in the center or the processor to the right. To score a coral, choose the button with the corresponding level.
+
+### Post Match
+
+After the match you will answer some questions about the robot in the match.
+Robot Role should represent what the robot did for the majority of the match. Offense and defense will likely be the most common. Select immobile only if the robot doesn't move for most of the match.
+Driver Ability is an estimate of how well the robot's drivers controlled the robot, in your opinion. 1 is the worst, and 5 is best.
+Barge Result represents the robot's barge result. Be sure to pay attention to shallow versus deep cages.
+The next questions are about the robot's mechanical ability. Algae pickup and coral pickup are about how the robot is able to pick up game pieces. Knocks algae refers to if the robot is able to remove algae from the reef by hitting the reef in some way.
+Optionally, you can add a note about the team's performance in the match. You can include information such as a notably good/bad human player or something done very well.
+
+## Uploading data
+
+After you submit your report, a QR code will appear with your data. An indicator will appear below the QR code if your data uploads successfully. If it does, tap "done" and continue on to scout the next match. If the indicator says "Upload failed", usually due to bad connection, your data will still be saved. Click done and [upload it later](/guides/uploading-past-data/).

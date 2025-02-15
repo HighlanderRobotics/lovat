@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "^0.30.3",
+    "@fontsource/roboto": "^5.1.1",
     "astro": "^5.0.2",
     "sharp": "^0.32.5"
   }
