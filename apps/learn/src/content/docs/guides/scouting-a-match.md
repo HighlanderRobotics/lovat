@@ -7,6 +7,8 @@ description: A guide in my new Starlight docs site.
 
 In the top right of your screen, you can see the time elapsed, the game stage (Pre-match, Autonomous, or Teleop), and the team you are scouting. In the upper left, indicate if the robot is pre-loaded with a coral. Now select one of four starting positions for the robot. Immediately as the match starts, tap the play button.
 
+![Lovat Collection during pre-match](/src/assets/pre-match.png)
+
 ### Autonomous
 
 Click the large purple rectangle when the robot you are scouting exits from its starting position.
@@ -17,11 +19,15 @@ Use the yellow buttons on the right side when the robot intakes a piece.
 
 If the robot interacts with the reef, select the position closest to the robot's location. Then, choose the level on which the coral was scored or select take algae. You can use the buttons on the left side of the screen to drop coral and algae, or undo any mistakes.
 
+![Lovat Collection during Auto](/src/assets/auto-coral.png)
+
 ### Teleop
 
 During this phase of the match, there will always be buttons to pick up or drop coral and algae on the left side of the screen. Beneath, use the shield icon if the robot performs a defensive action. A defensive action is whenever the robot moves with the intent to pin, hit, block, or slow another robot, including if the attempt is not successful. You can also press the conveyor belt icon if the robot feeds an algae to a teammate.
 
 Like in auto, you can score Algae in the net in the center or the processor to the right. To score a coral, choose the button with the corresponding level.
+
+![Lovat Collection during Teleop](/src/assets/teleop-nopiece.png)
 
 ### Post Match
 

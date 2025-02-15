@@ -14,3 +14,5 @@ You can also set which tournament you are at, which is important for match and s
 ## Reset App and Delete Settings
 
 This setting will delete all of your saved settings and reset the app to its initial state.
+
+![Lovat Dashboard settings (not scouting lead)](/src/assets/settings.png)
