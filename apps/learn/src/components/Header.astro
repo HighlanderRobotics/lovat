@@ -4,7 +4,7 @@ import type { Props } from '@astrojs/starlight/props';
 import { Icon } from '@astrojs/starlight/components';
 import Search from "@astrojs/starlight/components/Search.astro";
 import SiteTitle from "@astrojs/starlight/components/SiteTitle.astro";
-
+import Logo from "../assets/logo.png"
 // import config from '../../config';
 
 // import HeaderLinks from "./HeaderLinks.astro";
@@ -12,7 +12,7 @@ import SiteTitle from "@astrojs/starlight/components/SiteTitle.astro";
 
 <div class="header">
   <a href="https://frc8033.com/" target="_blank">
-		<img src="/assets/img/logo.png" alt="8033" />
+		<img src={Logo.src} alt="8033" />
 	</a>
 	<a class="main-title" href="/">Lovat</a>
 		<div class="actions expanded">
