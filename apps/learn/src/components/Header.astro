@@ -11,14 +11,14 @@ import Logo from "../assets/logo.png"
 ---
 
 <div class="header">
-  <a href="https://frc8033.com/" target="_blank">
-		<img src={Logo.src} alt="8033" />
-	</a>
-	<a class="main-title" href="/">Lovat</a>
-		<div class="actions expanded">
-			<!-- <HeaderLinks {...Astro.props} /> -->
-      <Search {...Astro.props} />
-		</div>
+  <div class="actions expanded">
+	<a href="https://frc8033.com/" target="_blank">
+	  <img src={Logo.src} alt="8033" />
+    </a>
+	  <!-- <HeaderLinks {...Astro.props} /> -->
+  	  <Search {...Astro.props}/>
+	</div>
+  <a class="main-title" href="/">Lovat</a>		
 </div>
 
 <style>
@@ -47,7 +47,7 @@ import Logo from "../assets/logo.png"
 	.actions {
 		display: flex;
 		align-items: center;
-		gap: 15px;
+		gap: 100px;
 	}
 
 	.main-title {
