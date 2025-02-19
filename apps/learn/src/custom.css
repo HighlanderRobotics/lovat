@@ -352,7 +352,8 @@ nav.sidebar a[aria-current="page"]:focus {
   }
   .right-sidebar {
     top: var(--sl-nav-height);
-    border-color: var(--sl-color-hairline);
+    /* border-color: var(--sl-color-hairline); */
+    border-width: 0px;
     padding-top: 0;
     height: calc(100vh - var(--sl-nav-height));
   }
@@ -430,6 +431,10 @@ mobile-starlight-toc nav .dropdown a[aria-current="true"] {
   .main-frame > div > .main-pane {
     min-width: 0;
   }
+}
+
+.content-panel {
+  border-width: 0px !important;
 }
 
 /**
