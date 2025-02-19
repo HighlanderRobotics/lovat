@@ -12,13 +12,12 @@ import Logo from "../assets/logo.png"
 
 <div class="header">
   <div class="actions expanded">
-	<a href="https://frc8033.com/" target="_blank">
-	  <img src={Logo.src} alt="8033" />
-    </a>
-	  <!-- <HeaderLinks {...Astro.props} /> -->
-  	  <Search {...Astro.props}/>
-	</div>
-  <a class="main-title" href="/">Lovat</a>		
+  <a href="https://frc8033.com/" target="_blank">
+	<img src={Logo.src} alt="8033" />
+  </a>
+  <a class="main-title" href="/">Lovat</a>
+    <Search {...Astro.props}/>
+  </div>		
 </div>
 
 <style>
@@ -44,10 +43,12 @@ import Logo from "../assets/logo.png"
 		height: 65px;
 	}
 
+
 	.actions {
 		padding-top: 0.25%;
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 100px;
 	}
 
@@ -57,11 +58,8 @@ import Logo from "../assets/logo.png"
 		font-style: normal;
 		font-weight: 500;
 		line-height: normal;
-		position: absolute;
-		top: 50%;
-		left: 50%;
 		text-decoration: none;
-		transform: translate(-50%, -50%);
+		transform: translateY(-5%);;
 	}
 
 	.menu-button {
