@@ -364,30 +364,28 @@ nav.sidebar a[aria-current="page"]:focus {
 .right-sidebar-panel h2 {
   /* Margin to align with main sidebar */
   margin-top: 0.625rem;
-  font-weight: 600;
-  color: var(--color-text-dimmed);
-  text-transform: uppercase;
-  font-family: var(--__sl-font-mono);
-  font-size: var(--sl-text-code-sm);
-  line-height: 1.4;
-  letter-spacing: -0.5px;
+  font-weight: 500;
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-sm);
+  letter-spacing: 0.25px;
 }
 
 .right-sidebar-panel a {
   --pad-inline: 0px;
 }
 .right-sidebar-panel a {
-  color: var(--color-text-dimmed);
+  color: var(--sl-color-gray-2);
+  font-weight: 400;
 }
 .right-sidebar-panel a:hover {
-  color: var(--sl-color-text);
+  color: var(--sl-color-text-accent);
 }
 .right-sidebar-panel a[aria-current="true"],
 .right-sidebar-panel a[aria-current="true"]:hover,
 .right-sidebar-panel a[aria-current="true"]:focus {
   background-color: transparent;
-  color: var(--sl-color-text);
-  font-weight: normal;
+  color: var(--color-text-highlight);
+  font-weight: 500;
 }
 /* Mobile nav */
 mobile-starlight-toc nav {
