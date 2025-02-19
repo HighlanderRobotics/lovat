@@ -21,7 +21,7 @@
 
   /* --tsdoc-key-margin-right: 0.25rem; */
 
-  /* --search-button-height: 2.25rem; */
+  --search-button-height: 2.25rem;
 
   /* --color-transition: 0.25s ease; */
 
@@ -198,7 +198,7 @@ body > .page > header a.site-title img {
 }
 /* Search button */
 body > .page > header button[data-open-modal] {
-  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  border-radius: var(--border-radius);
   border-color: var(--sl-color-hairline);
   height: var(--search-button-height);
   padding-inline-start: 10px;
