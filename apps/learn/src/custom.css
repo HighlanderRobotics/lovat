@@ -159,14 +159,12 @@ h1,
 h2,
 h3 {
   font-family: var(--__sl-font-headings);
-  letter-spacing: -1px;
   font-weight: 500;
 }
 h4,
 h5,
 h6 {
   font-family: var(--__sl-font-headings);
-  letter-spacing: -0.5px;
   font-weight: 500;
 }
 
@@ -313,11 +311,9 @@ nav.sidebar a.large:hover {
   color: var(--sl-color-text-accent);
 }
 nav.sidebar ul.top-level > li > details > summary .group-label > span {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-family: var(--__sl-font-mono);
-  font-size: var(--sl-text-code-sm);
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  font-size: var(--sl-text-sm);
   color: var(--sl-color-white);
 }
 nav.sidebar summary svg.caret {
