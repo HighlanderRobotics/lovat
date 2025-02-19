@@ -380,13 +380,7 @@ nav.sidebar a[aria-current="page"]:focus {
 .right-sidebar-panel a:hover {
   color: var(--sl-color-text-accent);
 }
-.right-sidebar-panel a[aria-current="true"],
-.right-sidebar-panel a[aria-current="true"]:hover,
-.right-sidebar-panel a[aria-current="true"]:focus {
-  background-color: transparent;
-  color: var(--color-text-highlight);
-  font-weight: 500;
-}
+
 /* Mobile nav */
 mobile-starlight-toc nav {
   backdrop-filter: blur(8px);
