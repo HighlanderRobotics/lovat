@@ -1,6 +1,6 @@
 ---
 title: Exporting Data
-description: This guide explains Lovat Dahsboard's "Export CSV" feature. 
+description: Everything about Lovat Dashboard's "Export CSV" feature. 
 ---
 
 Scouting leads can export a tournament's data as CSV to be used for analysis. Data can be exported by match or by scout report. To export data, go to the settings page, select a tournament, and click “Export CSV”.

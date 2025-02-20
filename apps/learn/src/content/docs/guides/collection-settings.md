@@ -1,6 +1,6 @@
 --- 
 title: Lovat Collection Settings
-description: This guide explains all the settings in Lovat Collection.
+description: All of Lovat Collection's settings and how to use them.
 ---
 
 Open settings by tapping the gear icon on the home screen.

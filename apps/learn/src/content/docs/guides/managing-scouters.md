@@ -1,6 +1,6 @@
 ---
 title: Managing Scouters
-description: This guide explains the ways that scouting leads can manage their scouters.
+description: Lovat Dashboard's scouting management features for scouting leads and how to use them.
 ---
 
 ## Scouter List

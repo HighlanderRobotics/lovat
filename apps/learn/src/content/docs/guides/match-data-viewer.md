@@ -1,6 +1,6 @@
 ---
 title: Match Data Viewer
-description: This guide explains Lovat Dashboard's match data viewer page.
+description: Everything about Lovat Dashboard's match data viewer page.
 ---
 
 The match data viewer gives scouting leads additional data about each scout report. It also allows you to delete scout reports. This is accessed by holding down on a specific team number from the Match Schedule page, choosing "View report data", and selecting a scouter. 

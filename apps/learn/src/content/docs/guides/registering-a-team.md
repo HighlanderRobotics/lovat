@@ -1,6 +1,6 @@
 ---
 title: Registering a Team on Lovat Dashboard
-description: This guide explains how to register a team on Lovat Dashboard.
+description: Getting your team started on Lovat Dashboard.
 ---
 
 To start, [download Lovat&nbsp;Dashboard](https://lovat.app/dashboard/download). You will then be prompted to make an account. Using this account, you can sign in on different devices and have your settings saved.

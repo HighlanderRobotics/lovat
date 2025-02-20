@@ -1,6 +1,6 @@
 ---
 title: Match Predictor Page
-description: This guide explains the calculations involved with Lovat Dahsboard's match predictor page.
+description: All about the calculations involved with Lovat Dahsboard's match predictor page.
 ---
 
 The Match Predictor page can be accessed by clicking on the brain icon on a match from the Match Schedules page. It displays estimated scores, roles and other information about the match, as well as an estimated percent chance of each alliance winning the match. 

@@ -1,6 +1,6 @@
 ---
 title: Scouting Leads Settings
-description: This guide explains the scouting lead specific settings in Loavt Dashboard.
+description: How to use Lovat Dashboard's scouting lead settings.
 ---
 
 ![Scouting Lead Settings](/src/assets/lead-settings.png)

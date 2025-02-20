@@ -1,6 +1,6 @@
 ---
 title: Lovat Dashboard Settings
-description: This explains Lovat Dahsboard settings. Scouting lead specific settings are explained seperately. 
+description: Lovat Dashboard's settings. Scouting lead only settings are explained seperately. 
 ---
 
 ## Data Sourcing

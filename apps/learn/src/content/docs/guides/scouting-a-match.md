@@ -1,6 +1,6 @@
 ---
 title: Scouting a Match
-description: This guide explains the process of scouting a match on Loavat Collection.
+description: Everything you need to scout a match in Lovat Collection.
 ---
 
 ## The Game Screen
