@@ -93,8 +93,8 @@
   /* --sl-color-backdrop-overlay: hsla(var(--hue), var(--sat), 14%, 50%); */
 }
 /* Light mode colors. */
-/* :root[data-theme="light"] {
-  --sl-color-accent-low: hsl(198, 39%, 84%);
+:root[data-theme="light"] {
+  /* --sl-color-accent-low: hsl(198, 39%, 84%);
   --sl-color-accent: hsl(198, 39%, 51%);
   --sl-color-accent-high: hsl(198, 39%, 27%);
   --sl-color-white: hsl(var(--hue), var(--sat), 14%);
@@ -146,7 +146,44 @@
 
   --dialog-background-color: hsl(0, 0%, 97%, 0.93);
   --sl-color-backdrop-overlay: hsla(var(--hue), var(--sat), 14%, 3%);
-} */
+  
+  */
+
+  --victory-purple: #b59aff;
+  --light-gray: #424242;
+  --danger: #b13b3b;
+  --secondary-container: #292929;
+  --background: #1f1f1f;
+  --on-background: #e0e0e0;
+
+  --sl-color-accent-low: #350868;
+  --sl-color-accent: #b59aff;
+  --sl-color-accent-high: #b59aff;
+  --sl-color-white: #ffffff;
+  /* --sl-color-gray-1: #0000ff; */
+  --sl-color-gray-2: #b8b8b8;
+  /*--sl-color-gray-3: #0000ff; */
+  /* --sl-color-gray-4: #0000ff; */
+  --sl-color-gray-5: #424242;
+  --sl-color-gray-6: #292929;
+  --sl-color-black: #1f1f1f;
+  --sl-color-black-alpha: hsla(var(--hue), var(--sat), 14%, 80%);
+
+  --sl-color-text-accent: #b59aff;
+
+  --sl-color-bg-sidebar: var(--sl-color-bg);
+
+  --divider-color: var(--sl-color-gray-5);
+  --list-marker-color: var(--sl-color-gray-4);
+
+  --sl-color-border-code: var(--sl-color-gray-5);
+
+  --sl-color-hairline: var(--sl-color-gray-5);
+
+  --sl-color-bg-nav: var(--sl-color-black-alpha);
+
+  --sl-color-text: var(--sl-color-gray-2);
+}
 
 body {
   -webkit-font-smoothing: auto;
