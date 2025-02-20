@@ -2,6 +2,8 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
+import svelte from "@astrojs/svelte";
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [
@@ -22,12 +24,17 @@ export default defineConfig({
               label: "Scouting Leads Settings",
               slug: "guides/scouting-leads-settings",
             },
+            {
+              label: "Alliance Page",
+              slug: "guides/alliance-page",
+            },
           ],
         },
         {
           label: "Lovat Collection",
           items: [
             // Each item here is one entry in the navigation menu.
+            { label: "Getting Started", slug: "guides/collection-onboarding" },
             { label: "Scouting a Match", slug: "guides/scouting-a-match" },
             {
               label: "Uploading Past Data",
@@ -47,5 +54,6 @@ export default defineConfig({
         "./src/custom.css",
       ],
     }),
+    svelte(),
   ],
 });
