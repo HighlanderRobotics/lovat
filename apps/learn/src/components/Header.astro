@@ -11,7 +11,12 @@ import Logo from "../assets/logo.png"
 ---
 
 <div class="header">
-  <div class="actions expanded">
+  <div class="logo-page-small">
+	<a href="https://frc8033.com/" target="_blank">
+	  <img src={Logo.src} alt="8033" />
+	</a>
+  </div>
+  <div class="actions">
     <div class="logo">
       <a href="https://frc8033.com/" target="_blank">
 	    <img src={Logo.src} alt="8033" />
@@ -67,6 +72,16 @@ import Logo from "../assets/logo.png"
 		text-decoration: none;
 	}
 
+
+	.logo-page-small {
+		appearance: none;
+		border: none;
+		background-color: transparent;
+		cursor: pointer;
+		display: none;
+		pointer-events: none;
+	}
+
 	.menu-button {
 		appearance: none;
 		border: none;
@@ -84,6 +99,12 @@ import Logo from "../assets/logo.png"
 	@media (max-width: 900px) {
 		.menu-button {
 			display: block;
+		}
+
+		.logo-page-small {
+			display: block;
+			pointer-events: initial;
+			transform: translateY(10%);
 		}
 
 		.actions {
