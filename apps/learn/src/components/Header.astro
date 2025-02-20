@@ -12,10 +12,12 @@ import Logo from "../assets/logo.png"
 
 <div class="header">
   <div class="actions expanded">
-  <a href="https://frc8033.com/" target="_blank">
-	<img src={Logo.src} alt="8033" />
-  </a>
-  <a class="main-title" href="https://lovat.app">Lovat</a>
+    <div class="logo">
+      <a href="https://frc8033.com/" target="_blank">
+	    <img src={Logo.src} alt="8033" />
+      </a>
+    </div>
+    <a class="main-title" href="https://lovat.app">Lovat</a>
     <Search {...Astro.props}/>
   </div>		
 </div>
@@ -44,6 +46,9 @@ import Logo from "../assets/logo.png"
 		height: 65px;
 	}
 
+	.logo {
+	  width: 352px;
+	}
 
 	.actions {
 		/* padding-top: 0.25%; */
