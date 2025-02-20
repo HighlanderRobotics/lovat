@@ -453,6 +453,10 @@ mobile-starlight-toc nav .dropdown a {
 mobile-starlight-toc nav .dropdown a[aria-current="true"] {
   font-weight: 500;
 }
+.mobile-preferences {
+  display: none;
+  pointer-events: none;
+}
 
 /**
  * Content
