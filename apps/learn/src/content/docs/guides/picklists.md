@@ -42,5 +42,5 @@ For example:
 | Field standard dev                    | 3                                     | 2                                    | 1                                     |
 | Plug into formula, multiply by weight | $ {\frac{12-5}{3}} \times 0.3 = 2.33$ | $ {\frac{5-4}{2}} \times 0.4 = 0.15$ | $ {\frac{4-7}{1} \times 0.5} = -1.5 $ |
 
-Then add these terms to get an index of 0.98: 2.33 + .15 +(-1.5) = 0.98.
+Then add these terms to get an index of $ 2.33 + .15 +(-1.5) = 0.98 $.
 One can then compare these indexes to generate a picklist.
