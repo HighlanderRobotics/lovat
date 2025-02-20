@@ -11,6 +11,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Lovat Guide",
+      favicon: "/favicon.png",
       sidebar: [
         {
           label: "Lovat Dashboard",
