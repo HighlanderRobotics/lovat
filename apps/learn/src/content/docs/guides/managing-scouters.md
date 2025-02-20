@@ -1,6 +1,6 @@
 ---
 title: Managing Scouters
-description: A guide in my new Starlight docs site.
+description: Lovat Dashboard's scouting management features for scouting leads and how to use them.
 ---
 
 ## Scouter List

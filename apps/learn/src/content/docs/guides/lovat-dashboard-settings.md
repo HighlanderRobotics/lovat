@@ -1,6 +1,6 @@
 ---
 title: Lovat Dashboard Settings
-description: A guide in my new Starlight docs site.
+description: Lovat Dashboard's settings. Scouting lead only settings are explained seperately. 
 ---
 
 ## Data Sourcing

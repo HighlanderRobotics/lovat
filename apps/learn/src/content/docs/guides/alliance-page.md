@@ -1,6 +1,6 @@
 ---
 title: Alliance Page and Auto Path Visualizer
-description: A guide. 
+description: Lovat Dashboard's Alliance page and its Auto Path visualizer
 ---
 
 To access the alliance page, click either the red or blue side of a match from the match schedule page. Here, you will see predicted statistics for the alliance, including predicted teleop and auto scores. You can also click a team number to go to their Team Lookup page for more specific data. 

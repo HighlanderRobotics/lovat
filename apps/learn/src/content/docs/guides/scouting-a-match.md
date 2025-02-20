@@ -1,6 +1,6 @@
 ---
 title: Scouting a Match
-description: A guide in my new Starlight docs site.
+description: Everything you need to scout a match in Lovat Collection.
 ---
 
 ## The Game Screen

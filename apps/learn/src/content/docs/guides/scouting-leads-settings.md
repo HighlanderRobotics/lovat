@@ -1,6 +1,6 @@
 ---
 title: Scouting Leads Settings
-description: A guide in my new Starlight docs site.
+description: How to use Lovat Dashboard's scouting lead settings.
 ---
 
 ![Scouting Lead Settings](/src/assets/lead-settings.png)
