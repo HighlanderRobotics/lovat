@@ -3,11 +3,17 @@ title: Scouting a Match
 description: Everything you need to scout a match in Lovat Collection.
 ---
 
+import Phone from "../../../components/Phone.astro";
+import preMatch from "../../../assets/pre-match.png";
+import autoCoral from "../../../assets/auto-coral.png";
+import teleop from "../../../assets/teleop-nopiece.png";
+
 ## The Game Screen
 
 In the top right of your screen, you can see the time elapsed, the game stage (Pre-match, Autonomous, or Teleop), and the team you are scouting. In the upper left, indicate if the robot is pre-loaded with a coral. Now select one of four starting positions for the robot. Immediately as the match starts, tap the play button.
 
-![Lovat Collection during pre-match](/src/assets/pre-match.png)
+<!-- ![Lovat Collection during pre-match](/src/assets/pre-match.png) -->
+<Phone src={preMatch} alt="Phone" orientation="landscape-left" />
 
 ### Autonomous
 
@@ -19,7 +25,8 @@ Use the yellow buttons on the right side when the robot intakes a piece.
 
 If the robot interacts with the reef, select the position closest to the robot's location. Then, choose the level on which the coral was scored or select take algae. You can use the buttons on the left side of the screen to drop coral and algae, or undo any mistakes.
 
-![Lovat Collection during Auto](/src/assets/auto-coral.png)
+<!-- ![Lovat Collection during Auto](/src/assets/auto-coral.png) -->
+<Phone src={autoCoral} alt="Phone" orientation="landscape-left" />
 
 ### Teleop
 
@@ -27,7 +34,8 @@ During this phase of the match, there will always be buttons to pick up or drop 
 
 Like in auto, you can score Algae in the net in the center or the processor to the right. To score a coral, choose the button with the corresponding level.
 
-![Lovat Collection during Teleop](/src/assets/teleop-nopiece.png)
+<!-- ![Lovat Collection during Teleop](/src/assets/teleop-nopiece.png) -->
+<Phone src={teleop} alt="Phone" orientation="landscape-left" />
 
 ### Post Match
 

@@ -3,6 +3,9 @@ title: Lovat Dashboard Settings
 description: Lovat Dashboard's settings. Scouting lead only settings are explained seperately. 
 ---
 
+import Phone from "../../../components/Phone.astro";
+import dashboardSettings from "../../../assets/settings.png";
+
 ## Data Sourcing
 
 The Use Data from Teams setting will be used when creating the statistics you see. You can select only your team, all teams, or a specific selection of any number of teams.
@@ -15,4 +18,5 @@ You can also set which tournament you are at, which is important for match and s
 
 This setting will delete all of your saved settings and reset the app to its initial state.
 
-![Lovat Dashboard settings (not scouting lead)](/src/assets/settings.png)
+<!-- ![Lovat Dashboard settings (not scouting lead)](/src/assets/settings.png) -->
+<Phone src={dashboardSettings} alt="Phone" orientation="portrait" />
