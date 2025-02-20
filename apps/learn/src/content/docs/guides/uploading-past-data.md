@@ -1,6 +1,6 @@
 ---
 title: Uploading Past Data
-description: A guide in my new Starlight docs site.
+description: This guide explains how to upload data from past matches in Lovat Collection.
 ---
 
 After finishing a match, there will be a button to upload the data you scouted to the database. It should say Uploaded. If the indicator reads Upload Failed, due to lack of internet or similar issues, you can have a teammate with internet upload the match.

@@ -1,6 +1,6 @@
 ---
 title: Scouting Leads Settings
-description: A guide in my new Starlight docs site.
+description: This guide explains the scouting lead specific settings in Loavt Dashboard.
 ---
 
 ![Scouting Lead Settings](/src/assets/lead-settings.png)

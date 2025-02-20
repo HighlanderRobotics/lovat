@@ -1,6 +1,6 @@
 ---
 title: Managing Scouters
-description: A guide in my new Starlight docs site.
+description: This guide explains the ways that scouting leads can manage their scouters.
 ---
 
 ## Scouter List

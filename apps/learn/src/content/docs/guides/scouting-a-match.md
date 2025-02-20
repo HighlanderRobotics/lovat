@@ -1,6 +1,6 @@
 ---
 title: Scouting a Match
-description: A guide in my new Starlight docs site.
+description: This guide explains the process of scouting a match on Loavat Collection.
 ---
 
 ## The Game Screen

@@ -1,6 +1,6 @@
 ---
 title: Using  Picklists
-description: A guide.
+description: This guide explains Lovat Dahsboard's picklists feature and the calculations involved with it.
 ---
 
 ### Creating and Viewing Picklists
