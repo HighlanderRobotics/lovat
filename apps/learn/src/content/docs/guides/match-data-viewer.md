@@ -1,0 +1,14 @@
+---
+title: Match Data Viewer
+description: A guide.
+---
+
+The match data viewer gives scouting leads additional data about each scout report. It also allows you to delete scout reports. This is accessed by holding down on a specific team number from the Match Schedule page, choosing "View report data", and selecting a scouter. 
+
+From here, you can see the reported data, either as a page of statistics or a timeline of the reported actions. You can also tap the trash can icon in the top right to delete the scout report you are viewing.  
+
+On the overview tab, you can view the auto path recorded, the robot's total score, and all of the information entered by the scouter. 
+
+The timeline tab shows you when every action was entered by the scouter. 
+
+![Match Data Viewer Page](/src/assets/match-data-viewer.jpg) ![Match Data Viewer Page](/src/assets/timeline.jpg)
