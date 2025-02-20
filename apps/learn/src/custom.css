@@ -478,15 +478,6 @@ dialog[aria-label="Search"]::backdrop {
   }
 }
 
-/**
- * Ask AI dailog
- */
-.mantine-Modal-content {
-  box-shadow: var(--sl-shadow-lg);
-}
-.mantine-Overlay-root {
-  opacity: 1;
-  background-color: var(--sl-color-backdrop-overlay);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+.MathJax > svg {
+  display: inline-block;
 }
