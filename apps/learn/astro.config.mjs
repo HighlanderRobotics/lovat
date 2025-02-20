@@ -3,6 +3,8 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
 import svelte from "@astrojs/svelte";
+import remarkMath from "remark-math";
+import rehypeMathJaxSvg from "rehype-mathjax/svg";
 
 // https://astro.build/config
 export default defineConfig({
@@ -18,6 +20,10 @@ export default defineConfig({
               label: "Managing Scouters",
               slug: "guides/managing-scouters",
             },
+            {
+              label: "Match Data Viewer",
+              slug: "guides/match-data-viewer",
+            },
             { label: "Exporting Data", slug: "guides/exporting-data" },
             { label: "Settings", slug: "guides/lovat-dashboard-settings" },
             {
@@ -27,6 +33,14 @@ export default defineConfig({
             {
               label: "Alliance Page",
               slug: "guides/alliance-page",
+            },
+            {
+              label: "Match Predictor",
+              slug: "guides/match-predictor",
+            },
+            {
+              label: "Picklists",
+              slug: "guides/picklists",
             },
           ],
         },
@@ -39,6 +53,10 @@ export default defineConfig({
             {
               label: "Uploading Past Data",
               slug: "guides/uploading-past-data",
+            },
+            {
+              label: "Settings",
+              slug: "guides/collection-settings",
             },
           ],
         },
@@ -56,4 +74,8 @@ export default defineConfig({
     }),
     svelte(),
   ],
+  markdown: {
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [rehypeMathJaxSvg],
+  },
 });
