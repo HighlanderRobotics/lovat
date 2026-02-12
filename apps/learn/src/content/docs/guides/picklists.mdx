@@ -21,13 +21,18 @@ These are the metrics used in picklists. Each one can be assigned a weight befor
 - Auto points
 - Teleop points
 - Driver ability
-- Barge result
-- L1 Coral
-- L2 Coral
-- L3 Coral
-- L4 Coral
-- Coral pick-ups
-- Feeds
+- Endgame climb result
+- Auto climb result
+- Defense effectiveness
+- Contact defense time
+- Camping defense time
+- Total defensive time
+- Total fuel throughput
+- Total fuel fed
+- Feeding rate
+- Scoring rate
+- Estimated successful fuel rate
+- Estimated total fuel scored
 
 #### Picklist Procedure
 
@@ -35,12 +40,12 @@ We [standardize](https://en.wikipedia.org/wiki/Standard_score#:~:text=This%20pro
 
 For example:
 
-|                                       | # Coral L4 (weight 0.4)               | # Coral L3 (weight 0.3)              | Avg. Barge points (weight 0.5)        |
-| ------------------------------------- | ------------------------------------- | ------------------------------------ | ------------------------------------- |
-| Team's avg                            | 12                                    | 5                                    | 4                                     |
-| Field avg                             | 5                                     | 4                                    | 7                                     |
-| Field standard dev                    | 3                                     | 2                                    | 1                                     |
-| Plug into formula, multiply by weight | $ {\frac{12-5}{3}} \times 0.3 = 2.33$ | $ {\frac{5-4}{2}} \times 0.4 = 0.15$ | $ {\frac{4-7}{1} \times 0.5} = -1.5 $ |
+|                                       | # Teleop points (weight 0.4)              | # Driver ability (weight 0.3)        | Total fuel fed (weight 0.1)            |
+| ------------------------------------- | ----------------------------------------- | ------------------------------------ | -------------------------------------- |
+| Team's avg                            | 150                                       | 5                                    | 12                                     |
+| Field avg                             | 112                                       | 4                                    | 83                                     |
+| Field standard dev                    | 30                                        | 2                                    | 50                                     |
+| Plug into formula, multiply by weight | $ {\frac{150-112}{30}} \times 0.4 = 0.51$ | $ {\frac{5-4}{2}} \times 0.3 = 0.15$ | $ {\frac{4-7}{1} \times 0.1} = -0.14 $ |
 
-Then add these terms to get an index of $ 2.33 + .15 +(-1.5) = 0.98 $.
+Then add these terms to get an index of $ 0.51 + 0.15 +(-0.14) = 0.52 $.
 One can then compare these indexes to generate a picklist.
