@@ -3,7 +3,6 @@ title: Scouting a Match
 description: Everything you need to scout a match in Lovat Collection.
 ---
 
-
 import Phone from "../../../components/Phone.astro";
 
 import preMatch from "../../../assets/pre-match-2026.png";
@@ -11,6 +10,17 @@ import autoAllianceZone from "../../../assets/auto-alliance-zone-2026.png";
 import autoNeutral from "../../../assets/auto-neutral-2026.png";
 import teleop from "../../../assets/teleop-2026.png";
 
+<iframe
+  style="aspect-ratio:16/9;border-radius:12px;overflow:hidden;"
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/LYKE8soFBJ8?si=012S6umWLe_0TE0y"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allowfullscreen
+></iframe>
 
 ## The Game Screen
 
@@ -36,9 +46,13 @@ If the robot intakes from the outpost or outtakes fuel to the corral, tap the ye
 
 If the robot intakes from the depot, click the yellow intake icon on the bottom right.
 
-If the robot climbs during auto, click the purple rectangle on the right side of the screen. 
+If the robot climbs during auto, click the purple rectangle on the right side of the screen.
 
-<Phone src={autoAllianceZone} alt="auto alliance zone" orientation="landscape-left" />
+<Phone
+  src={autoAllianceZone}
+  alt="auto alliance zone"
+  orientation="landscape-left"
+/>
 
 If the robot crosses into the neutral zone, tap the corresponding purple button for where it crossed. Make sure to pay attention to whether the robot crossed near the hub or the bump.
 
@@ -105,7 +119,7 @@ Select every option that corresponds to a role the robot did for a significant p
 
 #### Accuracy
 
-This only appears if you recorded the robot scoring during the match. 
+This only appears if you recorded the robot scoring during the match.
 Select one of the following options.
 
 **90-100%**: Between 90% and 100% accuracy
@@ -122,7 +136,7 @@ Select one of the following options.
 
 #### Feeder Type
 
-Select each of the following options you observed the robot doing during the match. 
+Select each of the following options you observed the robot doing during the match.
 
 **Continuous**: The robot feeds fuel continuously without stopping.
 
@@ -132,10 +146,11 @@ Select each of the following options you observed the robot doing during the mat
 
 #### Defense Effectiveness
 
-This only appears if 
+This only appears if
+
 - The "Defending" robot role is selected, OR
 - You recorded the robot as defending (including camping) during the match
-Select one of the following options. 
+  Select one of the following options.
 
 **Great**: The robot's defense was exceptional and highly disruptive.
 
@@ -177,7 +192,7 @@ Select one of the following options.
 
 #### Endgame Climb
 
-This only appears if you clicked the endgame climb box during the match. Select one of the following options. 
+This only appears if you clicked the endgame climb box during the match. Select one of the following options.
 
 **L3**: The robot successfully climbed to Level 3.
 
@@ -189,7 +204,7 @@ This only appears if you clicked the endgame climb box during the match. Select 
 
 #### Beached
 
-Select one, none, or both of the following options. 
+Select one, none, or both of the following options.
 
 **On Fuel**: The robot got beached on fuel.
 
@@ -197,7 +212,7 @@ Select one, none, or both of the following options.
 
 #### Driver Ability
 
-Select one of the following options. 
+Select one of the following options.
 
 **Exceptional**: Impressively precise and efficient. Evades defense with little time lost and thinks ahead.
 
@@ -211,7 +226,7 @@ Select one of the following options.
 
 #### Scores While Moving
 
-Select one of the following options. 
+Select one of the following options.
 
 **No**: The robot does not score while moving.
 
@@ -252,4 +267,3 @@ After submitting your report, the app will attempt to upload data automatically 
 If the upload fails, your data is still saved locally. A QR code will appear that can be scanned by a scouting lead using Lovat Dashboard, or you can upload the data later from the history page.
 
 Once the upload succeeds, tap **Done** and continue scouting your next assigned match.
-
