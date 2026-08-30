@@ -36,3 +36,14 @@ The tracked Collection `.env.production` contains one key, `EXPO_PUBLIC_API_URL`
 - git-filter-repo: `a40bce548d2c`
 - Gitleaks: `8.30.1`
 - actionlint: `1.7.12`
+
+## Rewritten default-branch heads
+
+| App | Rewritten SHA |
+|---|---|
+| Server | `642572cc141c7c30ebb4f13cd5d94584249159d2` |
+| Dashboard | `d1df79005341e06f41568429c31efc3ebc8ea65d` |
+| Collection | `128e7089493d70945b7a35d44938ceecc2f57655` |
+| Website | `bf14364927f9dac47dadbd0f0ec4d368c40f2893` |
+
+Each rewritten branch retained its original commit count and exposes the recorded original tree at its new `apps/*` path. Tag counts equal the original remote tag count plus the planned archival tags. All rewritten mirrors passed `git fsck --full`; the repeated Gitleaks scan produced the same reviewed findings as the frozen mirrors and no new finding.
