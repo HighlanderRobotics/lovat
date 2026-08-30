@@ -1,16 +1,19 @@
-# scouting_dashboard_app
+# Lovat Dashboard
 
-A new Flutter project.
+The Dashboard is Lovat's Flutter client for analysis, match review, scouting management, predictions, and picklists. It targets web, iOS, Android, and desktop platforms.
 
-## Getting Started
+Return to the [monorepo README](../../README.md).
 
-This project is a starting point for a Flutter application.
+## Commands
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter analyze
+dart format --output=none --set-exit-if-changed .
+flutter run -d chrome
+flutter build web
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The app consumes the authenticated Lovat Server API. `packages/chips_input` is an app-local path dependency. Application test coverage is currently limited.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+At the migration baseline, Flutter 3.35.4 analysis reports one informational lint and `flutter pub get` rewrites five lockfile entries. These pre-existing toolchain issues are documented in `../../docs/migration/baseline-before.md` and must not be hidden by migration changes.
