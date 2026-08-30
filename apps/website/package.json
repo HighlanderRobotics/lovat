@@ -1,0 +1,44 @@
+{
+	"name": "lovat-website",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "prettier --plugin-search-dir . --check . && eslint .",
+		"format": "prettier --plugin-search-dir . --write ."
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-netlify": "^4.0.0",
+		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@types/gtag.js": "^0.0.18",
+		"@types/qrcode": "^1.5.2",
+		"@types/ua-parser-js": "^0.7.37",
+		"@typescript-eslint/eslint-plugin": "^8.0.0",
+		"@typescript-eslint/parser": "^8.0.0",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-svelte": "^3.0.0",
+		"prettier": "^3.0.0",
+		"prettier-plugin-svelte": "^3.0.0",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"tslib": "^2.4.1",
+		"typescript": "^5.0.0",
+		"vite": "^5.0.0",
+		"vite-imagetools": "^5.0.8"
+	},
+	"type": "module",
+	"dependencies": {
+		"@tanstack/svelte-query": "^5.66.11",
+		"magnolia-ui-svelte": "github:highlanderrobotics/magnolia-ui-svelte#production",
+		"qrcode": "^1.5.3",
+		"ua-parser-js": "^1.0.36",
+		"zod": "^3.22.4"
+	}
+}
