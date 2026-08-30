@@ -1,0 +1,31 @@
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!apps/collection/.env.production
+
+# JavaScript and Expo
+node_modules/
+npm-debug.log*
+.expo/
+web-build/
+
+# Flutter and Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# Build output
+build/
+dist/
+
+# Local migration scratch space
+.migration-work/
