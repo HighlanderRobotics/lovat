@@ -1,0 +1,49 @@
+import { Response } from "express";
+import prismaClient from "../../prismaClient.js";
+import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
+
+export const deleteUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    if (req.tokenType === "apiKey") {
+      res
+        .status(403)
+        .json({ error: "This action cannot be performed using an API key" });
+      return;
+    }
+
+    const checkScoutingLead = await prismaClient.user.findMany({
+      where: {
+        teamNumber: req.user.teamNumber,
+        role: "SCOUTING_LEAD",
+      },
+    });
+
+    if (req.user.role === "SCOUTING_LEAD" && checkScoutingLead.length === 1) {
+      res
+        .status(400)
+        .send("Cannot delete the only scouting lead for the given team");
+      return;
+    } else if (
+      req.user.role === "SCOUTING_LEAD" &&
+      checkScoutingLead.length === 1
+    ) {
+      res
+        .status(400)
+        .send("Cannot delete the only scouting lead for the given team");
+      return;
+    } else {
+      await prismaClient.user.delete({
+        where: {
+          id: req.user.id,
+        },
+      });
+      res.status(200).send("User deleted");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+};

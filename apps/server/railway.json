@@ -1,0 +1,45 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "sleep 3 && npm run build",
+    "buildEnvironment": "V3"
+  },
+  "deploy": {
+    "runtime": "V2",
+    "numReplicas": 1,
+    "startCommand": "sleep 3 && export DATABASE_URL=$DATABASE_PRIVATE_URL && npm start",
+    "preDeployCommand": [
+      "sleep 3 && DATABASE_URL=$DATABASE_PRIVATE_URL npx prisma db push && npx prisma generate"
+    ],
+    "sleepApplication": false,
+    "useLegacyStacker": false,
+    "multiRegionConfig": {
+      "us-west2": {
+        "numReplicas": 1
+      }
+    },
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 20,
+    "healthcheckPath": "/status",
+    "healthcheckTimeout": 1000
+  },
+
+  "environments": {
+    "staging": {
+      "deploy": {
+        "limitOverride": {
+          "containers": {
+            "cpu": 2,
+            "memoryBytes": 2147483648
+          }
+        },
+        "multiRegionConfig": {
+          "us-west2": {
+            "numReplicas": 1
+          }
+        }
+      }
+    }
+  }
+}
