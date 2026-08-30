@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Collection",
+    "slug": "lovat-collection",
+    "version": "26.0.5",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1f1f1f"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "icon": "./assets/icon.png",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.frc8033.lovatcollection",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#350868",
+        "monochromeImage": "./assets/monochrome-icon.png"
+      },
+      "package": "com.frc8033.lovatcollection",
+      "versionCode": 18
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#1f1f1f"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a03e1f3b-bb81-4bb1-9961-2ec813f82b94"
+      },
+      "router": {
+        "origin": false
+      }
+    },
+    "owner": "highlander-robotics",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT_UP"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 35
+          }
+        }
+      ]
+    ],
+    "scheme": "lovat-collection"
+  }
+}
