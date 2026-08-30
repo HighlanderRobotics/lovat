@@ -1,0 +1,322 @@
+import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/pages/raw_scout_report.dart';
+import 'package:scouting_dashboard_app/reusable/emphasized_container.dart';
+import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/team_lookup/get_notes.dart';
+import 'package:scouting_dashboard_app/reusable/page_body.dart';
+import 'package:scouting_dashboard_app/reusable/push_widget_extension.dart';
+import 'package:scouting_dashboard_app/reusable/scrollable_page_body.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_indicator.dart';
+import 'package:skeletons_forked/skeletons_forked.dart';
+
+class TeamLookupNotesTab extends StatelessWidget {
+  const TeamLookupNotesTab({super.key, required this.team});
+
+  final int team;
+
+  @override
+  Widget build(BuildContext context) {
+    return StaleRefreshBuilder(
+      query: lovatAPI.notesQuery(team),
+      builder: (context, result) {
+        final data = result.data;
+        final error = result.error;
+        final refetch = result.refetch;
+        if (data != null) {
+          final sortedNotes = [
+            ...data.where((e) => e.type == NoteType.breakDescription),
+            ...data.where((e) => e.type != NoteType.breakDescription),
+          ];
+          return Stack(
+            children: [
+              sortedNotes.isEmpty
+                  ? SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 100),
+                          Image.asset(
+                            'assets/images/no-notes-${Theme.of(context).brightness.name}.png',
+                            width: 250,
+                          ),
+                          Text(
+                            "No notes on $team",
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ScrollablePageBody(
+                      children: [
+                        NotesList(
+                          notes: sortedNotes
+                              .map(
+                                (note) => NoteWidget(
+                                  note,
+                                  onEdit: refetch,
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                    ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: StaleRefreshIndicator.result(result),
+              ),
+            ],
+          );
+        }
+
+        if (error != null) {
+          return FriendlyErrorView.result(result);
+        }
+
+        return PageBody(
+          bottom: false,
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          child: SkeletonListView(
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: SkeletonAvatar(
+                style: SkeletonAvatarStyle(
+                  borderRadius: BorderRadius.circular(10),
+                  randomHeight: true,
+                  minHeight: 74,
+                  maxHeight: 160,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class BreakDescriptionsPage extends StatelessWidget {
+  const BreakDescriptionsPage({super.key, required this.breakDescriptions});
+
+  final List<NoteWidget> breakDescriptions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Robot Breaks"),
+      ),
+      body: ScrollablePageBody(
+          children: [NotesList(notes: breakDescriptions, showWarning: false)]),
+    );
+  }
+}
+
+class RobotBrokeBox extends StatelessWidget {
+  const RobotBrokeBox({super.key, required this.breakDescriptions});
+
+  final List<NoteWidget> breakDescriptions;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = HSLColor.fromColor(Colors.amber)
+        .withSaturation(1)
+        .withLightness(0.2)
+        .toColor();
+
+    final foregroundColor = HSLColor.fromColor(Colors.amber)
+        .withSaturation(1)
+        .withLightness(0.8)
+        .toColor();
+
+    const double iconSize = 24;
+
+    final String description =
+        "View ${breakDescriptions.length} ${breakDescriptions.length > 1 ? "reports" : "report"}";
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushWidget(
+            BreakDescriptionsPage(breakDescriptions: breakDescriptions));
+      },
+      child: EmphasizedContainer(
+        color: backgroundColor,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              spacing: 10,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  color: foregroundColor,
+                  size: iconSize,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Robot broke",
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          color: foregroundColor, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      description,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium!
+                          .copyWith(color: foregroundColor.withAlpha(225)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Icon(Icons.chevron_right, color: foregroundColor)
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class NotesList extends StatelessWidget {
+  const NotesList({Key? key, required this.notes, this.showWarning = true})
+      : super(key: key);
+
+  final List<NoteWidget> notes;
+  final bool showWarning;
+  @override
+  Widget build(BuildContext context) {
+    final List<NoteWidget> notes =
+        this.notes.where((e) => e.note.type == NoteType.note).toList();
+    final List<NoteWidget> breakDescriptions = this
+        .notes
+        .where((e) => e.note.type == NoteType.breakDescription)
+        .toList();
+
+    return Column(
+      spacing: 15,
+      children: [
+        ...breakDescriptions.isEmpty || !showWarning
+            ? []
+            : [RobotBrokeBox(breakDescriptions: breakDescriptions)],
+        ...notes.isEmpty ? [] : notes,
+        ...!showWarning
+            ? breakDescriptions.map((e) => NoteWidget(
+                  e.note,
+                  foregroundColor: HSLColor.fromColor(Colors.amber)
+                      .withSaturation(1)
+                      .withLightness(0.8)
+                      .toColor(),
+                  backgroundColor: HSLColor.fromColor(Colors.amber)
+                      .withSaturation(1)
+                      .withLightness(0.2)
+                      .toColor(),
+                ))
+            : [],
+      ],
+    );
+  }
+}
+
+class NoteWidget extends StatelessWidget {
+  const NoteWidget(
+    this.note, {
+    Key? key,
+    this.foregroundColor,
+    this.backgroundColor,
+    this.onEdit,
+  }) : super(key: key);
+
+  final Note note;
+  final dynamic Function()? onEdit;
+
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color:
+            backgroundColor ?? Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
+                    note.type == NoteType.breakDescription
+                        ? "Robot broke in ${note.matchIdentity.getLocalizedDescription(abbreviateName: true)}"
+                        : note.matchIdentity.getLocalizedDescription(),
+                    style: Theme.of(context).textTheme.titleMedium!.merge(
+                          TextStyle(
+                            color: foregroundColor ??
+                                Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
+                          ),
+                        ),
+                  ),
+                ),
+                if (note.uuid != null) ...[
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pushWidget(
+                        NotesEditor(
+                          uuid: note.uuid!,
+                          initialNotes: note.body,
+                          onSubmitted: () => onEdit?.call(),
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: foregroundColor ??
+                          Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ],
+            ),
+            Text(
+              note.body,
+              style: Theme.of(context).textTheme.bodyMedium!.merge(
+                    TextStyle(
+                      color: foregroundColor ??
+                          Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+            ),
+            if (note.author != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                note.author!,
+                style: Theme.of(context).textTheme.bodyMedium!.merge(
+                      TextStyle(
+                        color: foregroundColor?.withValues(alpha: 0.85) ??
+                            Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer
+                                .withValues(alpha: 0.7),
+                      ),
+                    ),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+}

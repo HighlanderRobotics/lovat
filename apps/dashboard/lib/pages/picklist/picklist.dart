@@ -1,0 +1,469 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/constants.dart';
+import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/pages/picklist/edit_picklist_flags.dart';
+import 'package:scouting_dashboard_app/pages/picklist/picklist_models.dart';
+import 'package:scouting_dashboard_app/reusable/download_file.dart';
+import 'package:scouting_dashboard_app/reusable/flag_models.dart';
+import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/picklists/get_picklist_analysis.dart';
+import 'package:scouting_dashboard_app/reusable/page_body.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_indicator.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:skeletons_forked/skeletons_forked.dart';
+
+class MyPicklistPage extends StatefulWidget {
+  const MyPicklistPage({super.key});
+
+  @override
+  State<MyPicklistPage> createState() => _MyPicklistPageState();
+}
+
+class _MyPicklistPageState extends State<MyPicklistPage> {
+  // Key is recreated to force PicklistView to fully reload.
+  Key picklistViewKey = UniqueKey();
+
+  void _reloadPicklist() {
+    setState(() {
+      picklistViewKey = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ConfiguredPicklist picklist = (ModalRoute.of(context)!.settings.arguments
+        as Map<String, dynamic>)['picklist'];
+
+    Future<void> Function() onChanged = (ModalRoute.of(context)!
+        .settings
+        .arguments as Map<String, dynamic>)['onChanged'];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(picklist.title),
+        actions: [
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: const ListTile(
+                  title: Text("Edit"),
+                  leading: Icon(Icons.edit_outlined),
+                ),
+                onTap: () {
+                  Navigator.of(context).pushNamed("/edit_picklist", arguments: {
+                    'picklist': picklist,
+                    'onChanged': () async {
+                      await onChanged();
+                      _reloadPicklist();
+                    }
+                  });
+                },
+              ),
+              PopupMenuItem(
+                child: const ListTile(
+                  title: Text("Share with team"),
+                  leading: Icon(Icons.upload_outlined),
+                ),
+                onTap: () async {
+                  final scaffoldMessengeState = ScaffoldMessenger.of(context);
+                  final themeData = Theme.of(context);
+
+                  try {
+                    scaffoldMessengeState.showSnackBar(
+                      const SnackBar(
+                        content: Text("Uploading..."),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+
+                    await picklist.upload();
+
+                    scaffoldMessengeState.hideCurrentSnackBar();
+
+                    scaffoldMessengeState.showSnackBar(
+                      const SnackBar(
+                        content: Text("Successfully uploaded picklist."),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } catch (error) {
+                    debugPrint((error as TypeError).stackTrace.toString());
+
+                    scaffoldMessengeState.hideCurrentSnackBar();
+
+                    scaffoldMessengeState.showSnackBar(SnackBar(
+                      content: Text(
+                        "Error uploading picklist: $error",
+                        style: TextStyle(
+                          color: themeData.colorScheme.onErrorContainer,
+                        ),
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: themeData.colorScheme.errorContainer,
+                    ));
+                  }
+                },
+              ),
+              PopupMenuItem(
+                child: const ListTile(
+                  title: Text("Export CSV"),
+                  leading: Icon(Icons.download_outlined),
+                ),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => PicklistExportDrawer(
+                      picklistTitle: picklist.title,
+                      weights: picklist.weights,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: PageBody(
+        padding: EdgeInsets.zero,
+        bottom: false,
+        child: PicklistView(
+          key: picklistViewKey,
+          picklist: picklist,
+        ),
+      ),
+    );
+  }
+}
+
+class PicklistView extends StatefulWidget {
+  const PicklistView({super.key, required this.picklist});
+
+  final ConfiguredPicklist picklist;
+
+  @override
+  State<PicklistView> createState() => _PicklistViewState();
+}
+
+class _PicklistViewState extends State<PicklistView> {
+  List<FlagConfiguration>? flags;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlags();
+  }
+
+  Future<void> _loadFlags() async {
+    final fetchedFlags = await getPicklistFlags();
+    if (mounted) setState(() => flags = fetchedFlags);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (flags == null) {
+      return SkeletonListView(
+        itemBuilder: (context, index) => SkeletonListTile(),
+      );
+    }
+
+    final flagPaths = flags!.map((e) => e.type.path).toList();
+
+    return StaleRefreshBuilder(
+      query: lovatAPI.picklistAnalysisQuery(flagPaths, widget.picklist.weights),
+      builder: (context, result) {
+        final data = result.data;
+        if (result.hasError && data == null) {
+          return FriendlyErrorView.result(result);
+        }
+
+        if (data == null) {
+          return SkeletonListView(
+            itemBuilder: (context, index) => SkeletonListTile(),
+          );
+        }
+
+        return Stack(
+          children: [
+            ListView(
+              children: data
+                  .map((teamData) => ListTile(
+                        title: Text(teamData.teamNumber.toString()),
+                        contentPadding:
+                            const EdgeInsets.only(left: 16, right: 4),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FlagRow(
+                              flags!,
+                              Map.fromEntries(
+                                teamData.flags
+                                    .map((e) => MapEntry(e.type, e.result)),
+                              ),
+                              teamData.teamNumber,
+                              onEdit: _loadFlags,
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                    "/picklist_team_breakdown",
+                                    arguments: {
+                                      'team': teamData.teamNumber,
+                                      'breakdown': teamData.zScoresWeighted,
+                                      'unweighted': teamData.zScoresUnweighted,
+                                      'picklistTitle':
+                                          widget.picklist.meta.title,
+                                    });
+                              },
+                              icon: Icon(
+                                Icons.balance,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                              tooltip: "View ${teamData.teamNumber}'s z-scores",
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pushNamed("/team_lookup", arguments: {
+                                  'team': teamData.teamNumber,
+                                });
+                              },
+                              icon: Icon(
+                                Icons.arrow_right,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                              tooltip:
+                                  "Open team lookup for ${teamData.teamNumber}",
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: StaleRefreshIndicator.result(result),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class FlagRow extends StatelessWidget {
+  const FlagRow(this.flagConfigurations, this.data, this.team,
+      {this.onEdit, super.key});
+
+  final List<FlagConfiguration> flagConfigurations;
+  final Map<String, dynamic> data;
+  final int team;
+  final dynamic Function()? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    int i = -1;
+
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.of(context).pushNamed(
+          '/edit_picklist_flags',
+          arguments: EditPicklistFlagsArgs(
+            initialFlags: flagConfigurations,
+            initialFlagValues: data,
+            team: team,
+          ),
+        );
+        if (onEdit != null) onEdit!();
+      },
+      child: Row(
+        children: flagConfigurations.isEmpty
+            ? [
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(7),
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.add),
+                  ),
+                )
+              ]
+            : flagConfigurations
+                .map((flag) {
+                  i += 1;
+
+                  return Hero(
+                      tag: '$team-${flag.type.path}-$i',
+                      child: flag.getWidget(context, data[flag.type.path]));
+                })
+                .toList()
+                .withSpaceBetween(width: 10),
+      ),
+    );
+  }
+}
+
+Widget tbaRankBadge(int team) {
+  return SizedBox(
+    height: 30,
+    width: 30,
+    child: Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3F51B5),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Center(
+        child: FutureBuilder(
+            future: getRank(team),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                debugPrint(snapshot.error.toString());
+                return const Icon(Icons.error);
+              }
+
+              if (snapshot.connectionState != ConnectionState.done) {
+                return SkeletonAvatar(
+                  style: SkeletonAvatarStyle(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                );
+              }
+
+              return Text(
+                snapshot.data == null ? "-" : snapshot.data.toString(),
+              );
+            }),
+      ),
+    ),
+  );
+}
+
+Future<int?> getRank(int team) async {
+  final sharedPrefs = await SharedPreferences.getInstance();
+
+  final authority = (await getServerAuthority())!;
+  final tournamentKey = sharedPrefs.getString("tournament");
+
+  final response =
+      await http.get(Uri.http(authority, '/API/manager/getRankOfTeam', {
+    'teamKey': "frc$team",
+    'tournamentKey': tournamentKey,
+  }));
+
+  if (response.statusCode != 200) {
+    throw "${response.statusCode} ${response.reasonPhrase}: ${response.body}";
+  }
+
+  return int.tryParse(response.body);
+}
+
+class PicklistExportDrawer extends StatefulWidget {
+  const PicklistExportDrawer({
+    super.key,
+    required this.picklistTitle,
+    required this.weights,
+  });
+
+  final String picklistTitle;
+  final List<PicklistWeight> weights;
+
+  @override
+  State<PicklistExportDrawer> createState() => _PicklistExportDrawerState();
+}
+
+class _PicklistExportDrawerState extends State<PicklistExportDrawer> {
+  String? errorMessage;
+
+  Future<void> export() async {
+    try {
+      final tournament = await Tournament.getCurrent();
+      if (tournament == null) {
+        setState(() {
+          errorMessage = "No tournament selected";
+        });
+        return;
+      }
+
+      final flags = await getPicklistFlags();
+      final csv = await lovatAPI.getPicklistCSV(
+        flags: flags,
+        weights: widget.weights,
+      );
+
+      final csvFile = XFile.fromData(
+        utf8.encode(csv),
+        mimeType: "text/csv",
+      );
+
+      if (!mounted) return;
+
+      if (kIsWeb) {
+        await downloadFile(
+          "${widget.picklistTitle}.csv",
+          await csvFile.readAsBytes(),
+          "text/csv",
+        );
+        if (!mounted) return;
+      } else {
+        Share.shareXFiles([csvFile], subject: widget.picklistTitle);
+      }
+
+      Navigator.of(context).pop();
+    } on LovatAPIException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+      setState(() {
+        errorMessage = "Failed to export data";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    export();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (errorMessage != null) {
+      return FriendlyErrorView(errorMessage: errorMessage, onRetry: export);
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "Exporting data...",
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

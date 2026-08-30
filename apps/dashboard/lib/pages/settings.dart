@@ -1,0 +1,1652 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:scouting_dashboard_app/constants.dart';
+import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/pages/onboarding/onboarding_page.dart';
+import 'package:scouting_dashboard_app/reusable/emphasized_container.dart';
+import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/inset_picker.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/delete_account.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/edit_team_email.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_analysts.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_csv_export.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_team_code.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournaments.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_user_profile.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/source_data/source_teams.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/source_data/source_tournaments.dart';
+import 'package:scouting_dashboard_app/reusable/download_file.dart';
+import 'package:scouting_dashboard_app/reusable/models/user_profile.dart';
+import 'package:scouting_dashboard_app/reusable/navigation_drawer.dart';
+import 'package:scouting_dashboard_app/reusable/page_body.dart';
+import 'package:scouting_dashboard_app/reusable/push_widget_extension.dart';
+import 'package:scouting_dashboard_app/reusable/scrollable_page_body.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
+import 'package:scouting_dashboard_app/reusable/tournament_key_picker.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skeletons_forked/skeletons_forked.dart';
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  Tournament? selectedTournament;
+
+  Future<void> load() async {
+    final tournament = await Tournament.getCurrent();
+
+    setState(() {
+      selectedTournament = tournament;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Settings"),
+        actions: const [CodeViewerButton()],
+      ),
+      drawer: const GlobalNavigationDrawer(),
+      body: ScrollablePageBody(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Use data from teams",
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 7),
+              const TeamSourceSelector(),
+              const SizedBox(height: 28),
+              Text(
+                "Use data from tournaments",
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 7),
+              const TournamentSourceSelector(),
+              const SizedBox(height: 28),
+              TournamentKeyPicker(
+                decoration: const InputDecoration(
+                  filled: true,
+                  labelText: "At tournament",
+                ),
+                onChanged: (tournament) {
+                  setState(() {
+                    selectedTournament = tournament;
+                  });
+                },
+              ),
+              if (lovatAPI.getCachedUserProfile()?.role ==
+                      UserRole.scoutingLead &&
+                  selectedTournament != null) ...[
+                const SizedBox(height: 14),
+                FilledButton.tonalIcon(
+                  onPressed: () {
+                    Navigator.of(context).pushWidget(const DataExportPage());
+                  },
+                  icon: const Icon(Icons.download_outlined),
+                  label: const Text("Export CSV"),
+                ),
+              ],
+              if (lovatAPI.getCachedUserProfile()?.role ==
+                  UserRole.scoutingLead)
+                const EmailBox(),
+              const AnalystsBox(),
+              const SizedBox(height: 40),
+              const ResetAppButton(),
+              if (lovatAPI.baseUrl != kProductionBaseUrl) ...[
+                const SizedBox(height: 20),
+                customApiConfig(context)
+              ],
+              versionText(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  SizedBox versionText() {
+    return SizedBox(
+      height: 42,
+      child: Center(
+        child: FutureBuilder(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) => snapshot.hasData
+                ? Text(
+                    "Version ${snapshot.data!.version} • Build ${snapshot.data!.buildNumber}",
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFFB8B8B8),
+                        ),
+                    textAlign: TextAlign.center,
+                  )
+                : Container()),
+      ),
+    );
+  }
+
+  EmphasizedContainer customApiConfig(BuildContext context) {
+    return EmphasizedContainer(
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // const SizedBox(width: 7),
+        Text(
+          "URL",
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        Text(
+          lovatAPI.baseUrl,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 10),
+        FilledButton(
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+
+            await prefs.setString('api_base_url', kProductionBaseUrl);
+
+            lovatAPI.baseUrl = kProductionBaseUrl;
+
+            if (mounted && context.mounted) {
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil("/loading", (route) => false);
+            }
+          },
+          style: const ButtonStyle(visualDensity: VisualDensity.compact),
+          child: const Text("Use production"),
+        ),
+      ],
+    ));
+  }
+}
+
+class TeamSourceSelector extends StatefulWidget {
+  const TeamSourceSelector({super.key});
+
+  @override
+  State<TeamSourceSelector> createState() => _TeamSourceSelectorState();
+}
+
+class _TeamSourceSelectorState extends State<TeamSourceSelector> {
+  SourceTeamSettingsMode? mode;
+  List<int>? teams;
+  int? thisTeamNumber;
+  bool thisTeamLoaded = false;
+
+  bool get isLoading => mode == null || !thisTeamLoaded;
+  String? errorMessage;
+
+  Future<void> load() async {
+    try {
+      final sourceTeamSettings = await lovatAPI.getSourceTeamSettings();
+
+      setState(() {
+        mode = sourceTeamSettings.mode;
+        teams = sourceTeamSettings.teams;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load source teams";
+      });
+    }
+
+    final cachedProfile = lovatAPI.getCachedUserProfile();
+    if (cachedProfile != null && !thisTeamLoaded) {
+      setState(() {
+        thisTeamNumber = cachedProfile.team?.number;
+        thisTeamLoaded = true;
+      });
+    }
+
+    try {
+      final profile = await lovatAPI.getUserProfile();
+      final thisTeamNumber = profile.team?.number;
+
+      setState(() {
+        this.thisTeamNumber = thisTeamNumber;
+        thisTeamLoaded = true;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load profile";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading && errorMessage == null) {
+      return const SkeletonAvatar(
+        style: SkeletonAvatarStyle(
+          width: 200,
+          height: 48,
+          borderRadius: BorderRadius.all(Radius.circular(50)),
+        ),
+      );
+    }
+
+    if (isLoading && errorMessage != null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(50),
+        ),
+        height: 48,
+        child: Center(
+          child: MediumErrorMessage(message: errorMessage),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<SourceTeamSettingsMode>(
+          segments: [
+            if (thisTeamNumber != null)
+              ButtonSegment(
+                value: SourceTeamSettingsMode.thisTeam,
+                label: Text(thisTeamNumber.toString()),
+              ),
+            const ButtonSegment(
+              value: SourceTeamSettingsMode.allTeams,
+              label: Text("All"),
+            ),
+            ButtonSegment(
+              value: SourceTeamSettingsMode.specificTeams,
+              label: Text(
+                teams == null
+                    ? "Choose..."
+                    : "${teams!.length} team${teams!.length == 1 ? "" : "s"}",
+              ),
+            ),
+          ],
+          multiSelectionEnabled: false,
+          emptySelectionAllowed: true,
+          selected: {mode!},
+          onSelectionChanged: (newMode) {
+            final tappedMode = newMode.firstOrNull ?? mode;
+
+            if (tappedMode != SourceTeamSettingsMode.specificTeams) {
+              setState(() {
+                mode = null;
+                teams = null;
+              });
+
+              (() async {
+                try {
+                  await lovatAPI.setSourceTeams(tappedMode!);
+                  QueryCache.clearAll();
+                  lovatAPI.cache.clear();
+                  await load();
+                } catch (e) {
+                  setState(() {
+                    errorMessage = "Failed to save source team settings";
+                  });
+                }
+              })();
+            } else {
+              Navigator.of(context).pushNamed(
+                "/specific_source_teams",
+                arguments: SpecificSourceTeamsArguments(
+                  initialTeams: teams,
+                  submitText: "Save",
+                  onSubmit: (teams) async {
+                    final teamNumbers = teams.map((e) => e.number).toList();
+                    final navigator = Navigator.of(context);
+
+                    setState(() {
+                      mode = SourceTeamSettingsMode.specificTeams;
+                      this.teams = teamNumbers;
+                    });
+
+                    try {
+                      await lovatAPI.setSourceTeams(
+                        SourceTeamSettingsMode.specificTeams,
+                        teams: teamNumbers,
+                      );
+                      QueryCache.clearAll();
+                      lovatAPI.cache.clear();
+                      await load();
+                      navigator.popUntil(
+                        (route) => route.settings.name == "/settings",
+                      );
+                    } catch (e) {
+                      setState(() {
+                        errorMessage = "Failed to save source team settings";
+                      });
+                    }
+                  },
+                ),
+              );
+            }
+          },
+        ),
+        if (errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: MediumErrorMessage(message: errorMessage),
+          ),
+      ],
+    );
+  }
+}
+
+extension FirstOrNull<T> on Set<T> {
+  T? get firstOrNull => isEmpty ? null : first;
+}
+
+// Instead of a button group, it has a container that displays the current value ("2023 Chezy Champs" or "18 tournaments") with a button to change it (new page)
+class TournamentSourceSelector extends StatefulWidget {
+  const TournamentSourceSelector({super.key});
+
+  @override
+  State<TournamentSourceSelector> createState() =>
+      _TournamentSourceSelectorState();
+}
+
+class _TournamentSourceSelectorState extends State<TournamentSourceSelector> {
+  List<Tournament>? tournaments;
+  List<String>? selectedTournamentKeys;
+  List<Tournament>? get selectedTournaments => tournaments
+      ?.where(
+        (element) => selectedTournamentKeys!.contains(element.key),
+      )
+      .toList();
+
+  String? errorMessage;
+
+  String? get currentTournamentText {
+    if (selectedTournaments == null) return null;
+
+    if (selectedTournaments!.isEmpty) return "None";
+
+    if (selectedTournaments!.length == 1) {
+      return selectedTournaments!.first.localized;
+    }
+
+    return "${selectedTournaments!.length} tournaments";
+  }
+
+  bool get isLoading => tournaments == null || selectedTournamentKeys == null;
+
+  Future<void> load() async {
+    try {
+      final partialTournaments = await lovatAPI.getTournaments();
+
+      setState(() {
+        tournaments = partialTournaments.tournaments;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load tournaments";
+      });
+    }
+
+    try {
+      final selectedTournamentKeys = await lovatAPI.getSourceTournamentKeys();
+
+      setState(() {
+        this.selectedTournamentKeys = selectedTournamentKeys;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load selected tournaments";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading && errorMessage == null) {
+      return const SkeletonAvatar(
+        style: SkeletonAvatarStyle(
+          height: 60,
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+      );
+    }
+
+    if (isLoading && errorMessage != null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        height: 60,
+        child: Center(
+          child: MediumErrorMessage(message: errorMessage),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      height: 60,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Text(
+                currentTournamentText!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushWidget(
+                  TournamentSourceSelectorSettingsPage(
+                    onSubmit: () async {
+                      await load();
+                    },
+                  ),
+                );
+              },
+              child: const Text("Change"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// List of tournaments, select multiple, search, select all/deselect all, submit
+class TournamentSourceSelectorSettingsPage extends StatefulWidget {
+  const TournamentSourceSelectorSettingsPage({
+    super.key,
+    this.onSubmit,
+  });
+
+  final dynamic Function()? onSubmit;
+
+  @override
+  State<TournamentSourceSelectorSettingsPage> createState() =>
+      _TournamentSourceSelectorSettingsPageState();
+}
+
+class _TournamentSourceSelectorSettingsPageState
+    extends State<TournamentSourceSelectorSettingsPage> {
+  List<Tournament>? tournaments;
+  List<String>? selectedTournamentKeys;
+
+  String? errorMessage;
+
+  bool get isLoading => tournaments == null || selectedTournamentKeys == null;
+
+  bool isSubmitLoading = false;
+
+  String filterText = "";
+  List<Tournament>? get filteredTournaments => tournaments
+      ?.where((element) =>
+          element.localized.toLowerCase().contains(filterText.toLowerCase()))
+      .toList();
+
+  Future<void> load() async {
+    try {
+      final partialTournaments = await lovatAPI.getTournaments();
+
+      setState(() {
+        tournaments = partialTournaments.tournaments;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load tournaments";
+      });
+    }
+
+    try {
+      final selectedTournamentKeys = await lovatAPI.getSourceTournamentKeys();
+
+      setState(() {
+        this.selectedTournamentKeys = selectedTournamentKeys;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load selected tournaments";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  void onSelectionChanged(List<String> newSelectedTournamentKeys) {
+    setState(() {
+      selectedTournamentKeys = newSelectedTournamentKeys;
+    });
+  }
+
+  void selectAll() {
+    setState(() {
+      selectedTournamentKeys = tournaments!.map((e) => e.key).toList();
+    });
+  }
+
+  bool get isAllSelected =>
+      selectedTournamentKeys?.length == tournaments?.length;
+
+  void deselectAll() {
+    setState(() {
+      selectedTournamentKeys = [];
+    });
+  }
+
+  Future<void> onSubmit() async {
+    setState(() {
+      isSubmitLoading = true;
+    });
+
+    final navigatorState = Navigator.of(context);
+
+    try {
+      await lovatAPI.setSourceTournamentKeys(selectedTournamentKeys!);
+      QueryCache.clearAll();
+      lovatAPI.cache.clear();
+      widget.onSubmit?.call();
+      navigatorState.pop();
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to save source tournament settings";
+      });
+    } finally {
+      setState(() {
+        isSubmitLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget body;
+
+    if (isLoading && errorMessage == null) {
+      body = SkeletonListView(
+        itemBuilder: (context, index) => SkeletonListTile(),
+      );
+    } else if (isLoading && errorMessage != null) {
+      body = FriendlyErrorView(errorMessage: errorMessage, onRetry: load);
+    } else {
+      body = ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        children: [
+          if (filteredTournaments!.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text("No tournaments"),
+            )
+          else
+            for (final tournament in filteredTournaments!)
+              CheckboxListTile(
+                value: selectedTournamentKeys!.contains(tournament.key),
+                onChanged: (value) {
+                  if (value!) {
+                    setState(() {
+                      selectedTournamentKeys!.add(tournament.key);
+                    });
+                  } else {
+                    setState(() {
+                      selectedTournamentKeys!.remove(tournament.key);
+                    });
+                  }
+                },
+                title: Text(tournament.localized),
+              ),
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+          title: const Text("Select tournaments"),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(80),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        filterText = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      filled: true,
+                      labelText: "Search",
+                    ),
+                  ),
+                ),
+                if (isSubmitLoading) const LinearProgressIndicator(),
+              ],
+            ),
+          )),
+      body: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          body,
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.tonal(
+                    onPressed: isSubmitLoading || isLoading
+                        ? null
+                        : isAllSelected
+                            ? deselectAll
+                            : selectAll,
+                    child: Text(isAllSelected ? "Deselect all" : "Select all"),
+                  ),
+                  FilledButton(
+                    onPressed: isSubmitLoading || isLoading ? null : onSubmit,
+                    child: const Text("Save"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DataExportDrawer extends StatefulWidget {
+  const DataExportDrawer(this.exportMode, this.exportFilter, {super.key});
+
+  final CSVExportFormat exportMode;
+  final CSVExportFilter exportFilter;
+
+  @override
+  State<DataExportDrawer> createState() => _DataExportDrawerState();
+}
+
+class _DataExportDrawerState extends State<DataExportDrawer> {
+  String? errorMessage;
+
+  Future<void> export() async {
+    try {
+      final tournament = await Tournament.getCurrent();
+      if (tournament == null) {
+        setState(() {
+          errorMessage = "No tournament selected";
+        });
+        return;
+      }
+      final csv = await lovatAPI.getCSVExport(
+          tournament, widget.exportMode, widget.exportFilter);
+
+      final csvFile = XFile.fromData(
+        utf8.encode(csv),
+        mimeType: "text/csv",
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (kIsWeb) {
+        await downloadFile(
+          "${tournament.localized} data.csv",
+          await csvFile.readAsBytes(),
+          "text/csv",
+        );
+
+        if (!mounted) {
+          return;
+        }
+      } else {
+        Share.shareXFiles([csvFile], subject: "${tournament.localized} data");
+      }
+
+      Navigator.of(context).pop();
+    } on LovatAPIException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+
+      setState(() {
+        errorMessage = "Failed to export data";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    export();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (errorMessage != null) {
+      return FriendlyErrorView(errorMessage: errorMessage, onRetry: export);
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "Exporting data...",
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AnalystsBox extends StatefulWidget {
+  const AnalystsBox({super.key});
+
+  @override
+  State<AnalystsBox> createState() => _AnalystsBoxState();
+}
+
+class _AnalystsBoxState extends State<AnalystsBox> {
+  List<Analyst>? analysts;
+  bool loaded = false;
+  String? errorMessage;
+
+  Future<void> load() async {
+    try {
+      final analysts = await lovatAPI.getAnalysts();
+
+      setState(() {
+        this.analysts = analysts;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load analysts";
+      });
+    } finally {
+      setState(() {
+        loaded = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  String? get currentAnalystsText {
+    if (analysts == null) return null;
+
+    if (analysts!.isEmpty) return "Nobody to promote";
+
+    if (analysts!.length == 1) {
+      return analysts!.first.name;
+    }
+
+    return "${analysts!.length} analysts";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loaded && errorMessage == null) {
+      return const SkeletonAvatar(
+        style: SkeletonAvatarStyle(
+          width: 200,
+          height: 60,
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+      );
+    }
+
+    if (!loaded && errorMessage != null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        height: 60,
+        child: Center(
+          child: MediumErrorMessage(message: errorMessage),
+        ),
+      );
+    }
+
+    if (loaded && analysts == null) {
+      return Container();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 28),
+        Text(
+          "Promote analysts",
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const SizedBox(height: 7),
+        Container(
+          height: 60,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    currentAnalystsText!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushWidget(AnalystPromotionPage(
+                      onSubmit: () {
+                        load();
+                      },
+                    ));
+                  },
+                  child: const Text("Manage"),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: MediumErrorMessage(message: errorMessage),
+          ),
+      ],
+    );
+  }
+}
+
+class EmailBox extends StatefulWidget {
+  const EmailBox({super.key});
+
+  @override
+  State<EmailBox> createState() => _EmailBoxState();
+}
+
+class _EmailBoxState extends State<EmailBox> {
+  String? email;
+  bool loaded = false;
+  String? errorMessage;
+
+  Future<void> load() async {
+    try {
+      final email = await lovatAPI.getTeamEmail();
+
+      setState(() {
+        this.email = email;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load email";
+      });
+    } finally {
+      setState(() {
+        loaded = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loaded && errorMessage == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 28),
+          Text(
+            "Team email",
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 7),
+          const SkeletonAvatar(
+            style: SkeletonAvatarStyle(
+              width: 200,
+              height: 60,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (!loaded && errorMessage != null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        height: 60,
+        child: Center(
+          child: MediumErrorMessage(message: errorMessage),
+        ),
+      );
+    }
+
+    if (loaded && email == null) {
+      return Container();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 28),
+        Text(
+          "Team email",
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const SizedBox(height: 7),
+        Container(
+          height: 60,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    email!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => ChangeEmailDialog(onAdd: load),
+                    );
+                  },
+                  child: const Text("Change"),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: MediumErrorMessage(message: errorMessage),
+          ),
+      ],
+    );
+  }
+}
+
+class AnalystPromotionPage extends StatefulWidget {
+  const AnalystPromotionPage({super.key, this.onSubmit});
+
+  final dynamic Function()? onSubmit;
+
+  @override
+  State<AnalystPromotionPage> createState() => _AnalystPromotionPageState();
+}
+
+class _AnalystPromotionPageState extends State<AnalystPromotionPage> {
+  List<Analyst>? analysts;
+  String? errorMessage;
+  bool submitting = false;
+
+  Future<void> load() async {
+    try {
+      final analysts = await lovatAPI.getAnalysts();
+
+      setState(() {
+        this.analysts = analysts;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = "Failed to load analysts";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget body;
+
+    if (analysts == null && errorMessage == null) {
+      body = SkeletonListView(
+        itemBuilder: (context, index) => SkeletonListTile(),
+      );
+    } else if (analysts == null && errorMessage != null) {
+      body = FriendlyErrorView(errorMessage: errorMessage, onRetry: load);
+    } else if (analysts!.isEmpty) {
+      body = const Padding(
+        padding: EdgeInsets.all(12),
+        child: Center(
+          child: Text("No analysts to promote"),
+        ),
+      );
+    } else {
+      body = ListView(
+        children: [
+          for (final analyst in analysts!)
+            ListTile(
+              title: Text(analyst.name),
+              subtitle: Text(analyst.email),
+              trailing: ElevatedButton(
+                onPressed: () async {
+                  setState(() {
+                    submitting = true;
+                    errorMessage = null;
+                  });
+
+                  try {
+                    await analyst.promote();
+                    await load();
+                    widget.onSubmit?.call();
+                  } catch (e) {
+                    setState(() {
+                      errorMessage = "Failed to promote analyst";
+                    });
+                  } finally {
+                    setState(() {
+                      submitting = false;
+                    });
+                  }
+                },
+                child: const Text("Promote"),
+              ),
+            )
+        ],
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Promote analysts"),
+        bottom: submitting
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(5),
+                child: LinearProgressIndicator(),
+              )
+            : null,
+      ),
+      body: body,
+    );
+  }
+}
+
+class MediumErrorMessage extends StatelessWidget {
+  const MediumErrorMessage({
+    super.key,
+    required this.message,
+  });
+
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.error,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        Text(
+          message!,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+          ),
+        ),
+      ].withSpaceBetween(width: 5),
+    );
+  }
+}
+
+class ResetAppButton extends StatelessWidget {
+  const ResetAppButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (context) => const DeleteConfigurationDialog(),
+          barrierDismissible: false,
+        );
+      },
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => Theme.of(context).colorScheme.error),
+        foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => Theme.of(context).colorScheme.onError),
+      ),
+      child: const Text("Reset app and delete settings"),
+    );
+  }
+}
+
+class DeleteConfigurationDialog extends StatefulWidget {
+  const DeleteConfigurationDialog({
+    super.key,
+  });
+
+  @override
+  State<DeleteConfigurationDialog> createState() =>
+      _DeleteConfigurationDialogState();
+}
+
+class _DeleteConfigurationDialogState extends State<DeleteConfigurationDialog> {
+  bool willDeleteAccount = false;
+  bool loading = false;
+  String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Delete configuration?"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+              "If you continue, you will erase all the data this app has saved and reset it to how it came when you first installed it. If you so choose, you can also delete your account."),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Checkbox(
+                value: willDeleteAccount,
+                onChanged: (value) {
+                  setState(() {
+                    willDeleteAccount = value!;
+                  });
+                },
+              ),
+              const Text("Delete my account"),
+            ],
+          ),
+          if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: MediumErrorMessage(message: errorMessage),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: loading
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: loading
+              ? null
+              : () async {
+                  setState(() {
+                    loading = true;
+                    errorMessage = null;
+                  });
+
+                  final navigatorState = Navigator.of(context);
+
+                  try {
+                    if (willDeleteAccount) {
+                      await lovatAPI.deleteAccount();
+                    }
+
+                    final prefs = await SharedPreferences.getInstance();
+
+                    QueryCache.clearAll();
+                    await prefs.clear();
+                    if (kIsWeb) {
+                      // Logout redirects the browser to Auth0, then back to our origin
+                      // Keep loading state and don't navigate - the redirect reloads the app
+                      final origin = Uri.base.origin;
+                      auth0Web.logout(returnToUrl: origin);
+                      // Keep dialog open with loading spinner until redirect happens
+                      // (don't await - logout triggers redirect, no meaningful return)
+                      return;
+                    } else {
+                      await auth0.credentialsManager.clearCredentials();
+                    }
+
+                    navigatorState.pushNamedAndRemoveUntil(
+                        "/loading", (route) => false);
+                  } catch (e) {
+                    setState(() {
+                      errorMessage = "Failed to delete configuration";
+                      loading = false;
+                    });
+                    return;
+                  }
+                  setState(() {
+                    loading = false;
+                  });
+                },
+          style: ButtonStyle(
+            elevation: WidgetStateProperty.all(0),
+            backgroundColor: WidgetStateProperty.resolveWith(
+                (states) => Theme.of(context).colorScheme.error),
+            foregroundColor: WidgetStateProperty.resolveWith(
+                (states) => Theme.of(context).colorScheme.onError),
+          ),
+          child: const Text("Delete"),
+        ),
+      ],
+    );
+  }
+}
+
+class CodeViewerButton extends StatefulWidget {
+  const CodeViewerButton({super.key});
+
+  @override
+  State<CodeViewerButton> createState() => _CodeViewerButtonState();
+}
+
+class _CodeViewerButtonState extends State<CodeViewerButton> {
+  String? code;
+
+  Future<void> load() async {
+    final scaffoldMessengerState = ScaffoldMessenger.of(context);
+    final themeData = Theme.of(context);
+
+    try {
+      final code = await lovatAPI.getTeamCode();
+
+      setState(() {
+        this.code = code;
+      });
+    } catch (e) {
+      scaffoldMessengerState.showSnackBar(SnackBar(
+        content: Text(
+          "Error getting team code: $e",
+          style: TextStyle(
+            color: themeData.colorScheme.onErrorContainer,
+          ),
+        ),
+        backgroundColor: themeData.colorScheme.errorContainer,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (code == null) {
+      return const SizedBox();
+    }
+
+    return IconButton(
+      onPressed: () {
+        Navigator.of(context).pushWidget(
+          CodeViewerPage(
+            code: code!,
+          ),
+        );
+      },
+      icon: const Icon(Icons.pin),
+      tooltip: "View team code",
+    );
+  }
+}
+
+class CodeViewerPage extends StatelessWidget {
+  const CodeViewerPage({super.key, required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Team code"),
+      ),
+      body: ScrollablePageBody(children: [
+        Column(children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    code,
+                    style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(width: 7),
+                  IconButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: code));
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Copied to clipboard"),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.copy),
+                    tooltip: "Copy to clipboard",
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    iconSize: 28,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          Text(
+            "Share this code with your team members to allow them to join.",
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ]),
+      ]),
+    );
+  }
+}
+
+class DataExportPage extends StatefulWidget {
+  const DataExportPage({super.key});
+
+  @override
+  State<DataExportPage> createState() => _DataExportPageState();
+}
+
+class _DataExportPageState extends State<DataExportPage> {
+  Tournament? tournament;
+  String? errorText;
+
+  CSVExportFormat? exportFormat;
+  CSVExportFilter? exportFilter;
+
+  void loadData() async {
+    Tournament? tournament = await Tournament.getCurrent();
+
+    if (tournament == null) {
+      setState(() {
+        errorText = 'No tournament selected';
+      });
+    } else {
+      setState(() {
+        this.tournament = tournament;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Widget body(BuildContext context) {
+    if (errorText != null) {
+      return FriendlyErrorView(errorMessage: errorText, onRetry: loadData);
+    }
+
+    return PageBody(
+        child: Stack(
+      children: [
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 56),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Download a file containing data collected at ${tournament?.localized ?? 'your tournament'}, by all teams in your data set.",
+                ),
+                InsetPicker(
+                  CSVExportFormat.values,
+                  titleBuilder: (mode) => mode.localizedDescription,
+                  descriptionBuilder: (mode) => mode.longLocalizedDescription,
+                  selectedItem: exportFormat,
+                  onChanged: (value) => setState(() => exportFormat = value),
+                ),
+                InsetPicker(
+                  CSVExportFilter.values,
+                  titleBuilder: (mode) => mode.localizedDescription,
+                  descriptionBuilder: (mode) => mode.longLocalizedDescription,
+                  selectedItem: exportFilter,
+                  onChanged: (value) => setState(() => exportFilter = value),
+                ),
+              ].withSpaceBetween(height: 14),
+            ),
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Spacer(),
+            FilledButton.icon(
+              onPressed: exportFormat == null || exportFilter == null
+                  ? null
+                  : () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) =>
+                            DataExportDrawer(exportFormat!, exportFilter!),
+                      );
+                    },
+              icon: const Icon(Icons.download),
+              label: const Text("Export"),
+            ),
+          ],
+        )
+      ],
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("CSV Export")),
+      body: body(context),
+    );
+  }
+}
+
+class ChangeEmailDialog extends StatefulWidget {
+  const ChangeEmailDialog({
+    super.key,
+    this.onAdd,
+  });
+
+  final Function()? onAdd;
+
+  @override
+  State<ChangeEmailDialog> createState() => _ChangeEmailDialogState();
+}
+
+class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
+  String email = '';
+  bool submitting = false;
+  bool submitted = false;
+  String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    if (submitted) {
+      return AlertDialog(
+        title: const Text("Check the team's inbox"),
+        content: const Text(
+            "We've sent an email to your team with a link to verify that it belongs to your team."),
+        actions: [
+          TextButton(
+              child: const Text("Close"),
+              onPressed: () => Navigator.of(context).pop())
+        ],
+      );
+    } else {
+      return AlertDialog(
+        title: const Text("Change email"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: "New Email",
+                filled: true,
+                errorText: error,
+              ),
+              textCapitalization: TextCapitalization.none,
+              keyboardType: TextInputType.emailAddress,
+              onChanged: (value) {
+                setState(() {
+                  email = value;
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: submitting
+                ? null
+                : () {
+                    Navigator.of(context).pop();
+                  },
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            onPressed: submitting || email.isEmpty
+                ? null
+                : () async {
+                    setState(() {
+                      submitting = true;
+                      error = null;
+                    });
+
+                    try {
+                      await lovatAPI.editTeamEmail(email);
+                      widget.onAdd?.call();
+                      setState(() {
+                        submitting = false;
+                        submitted = true;
+                      });
+                    } on LovatAPIException catch (e) {
+                      setState(() {
+                        error = e.message;
+                        submitting = false;
+                      });
+                    } catch (_) {
+                      setState(() {
+                        error = "Failed to update email";
+                        submitting = false;
+                      });
+                    }
+                  },
+            child: submitting
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text("Update"),
+          ),
+        ],
+      );
+    }
+  }
+}

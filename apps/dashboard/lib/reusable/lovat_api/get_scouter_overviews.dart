@@ -1,0 +1,95 @@
+import 'dart:convert';
+
+import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/models/scout_schedule.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
+
+extension ScouterOverviewsQuery on LovatAPI {
+  CachedQuery<List<ScouterOverview>> scouterOverviewsQuery(
+      {bool archivedScouters = false}) {
+    const path = '/v1/manager/scouterspage';
+    return CachedQuery(
+      queryKey: ['scouterOverviews', archivedScouters],
+      label: 'scouter overviews',
+      queryFn: () async {
+        final tournament = await Tournament.getCurrent();
+
+        final response = await get(
+          path,
+          query: {
+            if (tournament != null) 'tournamentKey': tournament.key,
+            'archived': archivedScouters.toString(),
+          },
+        );
+
+        if (response?.statusCode != 200) {
+          try {
+            throw LovatAPIException(jsonDecode(response!.body)['displayError']);
+          } on LovatAPIException {
+            rethrow;
+          } catch (_) {
+            throw Exception('Failed to get scouter overviews');
+          }
+        }
+
+        final json = jsonDecode(response!.body) as List<dynamic>;
+
+        return json
+            .map((e) => ScouterOverview.fromJson(e, archived: archivedScouters))
+            .toList();
+      },
+      cacheReader: () {
+        final tournamentKey = Tournament.currentSync?.key;
+        return getCachedData(
+          path,
+          query: {
+            if (tournamentKey != null) 'tournamentKey': tournamentKey,
+            'archived': archivedScouters.toString(),
+          },
+          parser: (json) => (json as List<dynamic>)
+              .map((e) =>
+                  ScouterOverview.fromJson(e, archived: archivedScouters))
+              .toList(),
+        );
+      },
+      cacheTimestampReader: () {
+        final tournamentKey = Tournament.currentSync?.key;
+        return getCachedTimestamp(
+          path,
+          query: {
+            if (tournamentKey != null) 'tournamentKey': tournamentKey,
+            'archived': archivedScouters.toString(),
+          },
+        );
+      },
+    );
+  }
+}
+
+class ScouterOverview {
+  const ScouterOverview({
+    required this.totalMatches,
+    required this.missedMatches,
+    required this.scout,
+    this.archived,
+  });
+
+  final int totalMatches;
+  final int missedMatches;
+  final Scout scout;
+  final bool? archived;
+
+  factory ScouterOverview.fromJson(Map<String, dynamic> json,
+      {bool? archived}) {
+    return ScouterOverview(
+      archived: archived,
+      totalMatches: json['matchesScouted'],
+      missedMatches: json['missedMatches'] ?? 0,
+      scout: Scout(
+        id: json['scouterUuid'],
+        name: json['scouterName'],
+      ),
+    );
+  }
+}

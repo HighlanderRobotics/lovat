@@ -1,0 +1,725 @@
+import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/pages/archived_scouters.dart';
+
+import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/archive_scouter.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_scout_reports_by_scouter.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/get_scouter_overviews.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/scouter.dart';
+import 'package:scouting_dashboard_app/reusable/models/scout_schedule.dart';
+import 'package:scouting_dashboard_app/reusable/navigation_drawer.dart';
+import 'package:scouting_dashboard_app/reusable/page_body.dart';
+import 'package:scouting_dashboard_app/reusable/push_widget_extension.dart';
+import 'package:scouting_dashboard_app/reusable/scrollable_page_body.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_indicator.dart';
+import 'package:skeletons_forked/skeletons_forked.dart';
+
+class ScoutersPage extends StatefulWidget {
+  const ScoutersPage({super.key});
+
+  @override
+  State<ScoutersPage> createState() => _ScoutersPageState();
+}
+
+class _ScoutersPageState extends State<ScoutersPage> {
+  String filterText = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return StaleRefreshBuilder(
+      query: lovatAPI.scouterOverviewsQuery(),
+      builder: (context, result) {
+        final scouterOverviews = result.data;
+        final tournament = Tournament.currentSync;
+
+        Widget body = SkeletonListView(
+          itemBuilder: (context, index) => SkeletonListTile(),
+        );
+        final List<ScouterOverview>? filteredScouters;
+        if (scouterOverviews != null) {
+          filteredScouters = scouterOverviews
+              .where((scout) => scout.scout.name
+                  .toLowerCase()
+                  .contains(filterText.toLowerCase()))
+              .toList();
+        } else {
+          filteredScouters = [];
+        }
+
+        if (scouterOverviews != null) {
+          if (scouterOverviews.isEmpty) {
+            body = PageBody(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset("assets/images/no_scouters.png", width: 250),
+                  const SizedBox(height: 8),
+                  Text(
+                    "No scouters found",
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "Tap + to create one.",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  )
+                ],
+              ),
+            );
+          } else if (filteredScouters.isEmpty) {
+            body = PageBody(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset("assets/images/no_scouters.png", width: 250),
+                  const SizedBox(height: 8),
+                  Text(
+                    "No results found",
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                ],
+              ),
+            );
+          } else {
+            body = ScrollablePageBody(
+              padding: EdgeInsets.zero,
+              children: filteredScouters
+                  .map(
+                    (scouterOverview) => ListTile(
+                      leading: Monogram(
+                        scouterOverview.scout.name.isNotEmpty
+                            ? scouterOverview.scout.name
+                                .substring(0, 1)
+                                .toUpperCase()
+                            : "",
+                      ),
+                      title: Text(scouterOverview.scout.name),
+                      subtitle: Text(tournament == null
+                          ? "${scouterOverview.totalMatches} match${scouterOverview.totalMatches == 1 ? '' : 'es'} scouted"
+                          : "${scouterOverview.totalMatches} match${scouterOverview.totalMatches == 1 ? '' : 'es'} scouted, ${scouterOverview.missedMatches} missed"),
+                      trailing: const Icon(Icons.arrow_right),
+                      onTap: () {
+                        Navigator.of(context).pushWidget(
+                          ScouterDetailsPage(
+                            scouterOverview: scouterOverview,
+                            onChanged: () => result.refetch(),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                  .toList(),
+            );
+          }
+        }
+
+        if (result.hasError && scouterOverviews == null) {
+          body = FriendlyErrorView.result(result);
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Scouters"),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pushWidget(ArchivedScoutersPage(
+                      onChanged: () => result.refetch(),
+                    ));
+                  },
+                  icon: const Icon(Icons.access_time),
+                  tooltip: "View archived scouters")
+            ],
+            bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(84),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        onChanged: (text) {
+                          setState(() {
+                            filterText = text;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          filled: true,
+                          labelText: "Search",
+                        ),
+                        autofocus: false,
+                      ),
+                    ),
+                    StaleRefreshIndicator.result(result),
+                  ],
+                )),
+          ),
+          drawer: const GlobalNavigationDrawer(),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) =>
+                    AddScouterDialog(onAdd: (name) => result.refetch()),
+              );
+            },
+            child: const Icon(Icons.add),
+          ),
+          body: body,
+        );
+      },
+    );
+  }
+}
+
+class Monogram extends StatelessWidget {
+  const Monogram(
+    this.text, {
+    super.key,
+  });
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: 40,
+        width: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Theme.of(context).colorScheme.primaryContainer,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+          ),
+        ));
+  }
+}
+
+class AddScouterDialog extends StatefulWidget {
+  const AddScouterDialog({
+    super.key,
+    this.onAdd,
+    this.initialText = "",
+  });
+
+  final Function(String name)? onAdd;
+  final String initialText;
+
+  @override
+  State<AddScouterDialog> createState() => _AddScouterDialogState();
+}
+
+class _AddScouterDialogState extends State<AddScouterDialog> {
+  late final TextEditingController textEditingController;
+
+  String name = '';
+  bool submitting = false;
+  String? error;
+
+  @override
+  void initState() {
+    debugPrint(widget.initialText);
+    super.initState();
+    textEditingController = TextEditingController(text: widget.initialText);
+    name = widget.initialText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Add Scouter"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: textEditingController,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: "Name",
+              filled: true,
+              errorText: error,
+            ),
+            textCapitalization: TextCapitalization.words,
+            onChanged: (value) {
+              setState(() {
+                name = value;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: submitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: submitting || name.isEmpty
+              ? null
+              : () async {
+                  setState(() {
+                    submitting = true;
+                    error = null;
+                  });
+
+                  final navigatorState = Navigator.of(context);
+
+                  try {
+                    final Scout scouter = await lovatAPI.addScouter(name);
+                    await widget.onAdd?.call(name);
+                    navigatorState.pop(scouter);
+                  } on LovatAPIException catch (e) {
+                    setState(() {
+                      error = e.message;
+                      submitting = false;
+                    });
+                  } catch (_) {
+                    setState(() {
+                      error = "Failed to add scouter";
+                      submitting = false;
+                    });
+                  }
+                },
+          child: submitting
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text("Add"),
+        ),
+      ],
+    );
+  }
+}
+
+class ScouterDetailsPage extends StatefulWidget {
+  const ScouterDetailsPage({
+    super.key,
+    required this.scouterOverview,
+    this.onChanged,
+  });
+
+  final ScouterOverview scouterOverview;
+  final Function()? onChanged;
+
+  @override
+  State<ScouterDetailsPage> createState() => _ScouterDetailsPageState();
+}
+
+class _ScouterDetailsPageState extends State<ScouterDetailsPage> {
+  late String name;
+
+  List<ScouterPageMinimalScoutReportInfo>? reports;
+  Tournament? selectedTournament;
+  String? error;
+
+  Future<void> fetchData() async {
+    try {
+      setState(() {
+        reports = null;
+        error = null;
+      });
+
+      final selectedTournament = await Tournament.getCurrent();
+      final data = await lovatAPI
+          .getScoutReportsByScouter(widget.scouterOverview.scout.id);
+
+      setState(() {
+        this.selectedTournament = selectedTournament;
+        reports = data;
+      });
+    } on LovatAPIException catch (e) {
+      setState(() {
+        error = e.message;
+      });
+    } catch (_) {
+      setState(() {
+        error = "Failed to load scout reports";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    name = widget.scouterOverview.scout.name;
+    fetchData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget body = SkeletonListView(
+      itemBuilder: (context, index) => SkeletonListTile(),
+    );
+
+    if (reports != null) {
+      body = ScrollablePageBody(
+        padding: EdgeInsets.zero,
+        children: reports!
+            .map(
+              (report) => ListTile(
+                title: Text(
+                  "${report.teamNumber} in ${report.matchIdentity.getLocalizedDescription(includeTournament: selectedTournament == null)}",
+                ),
+                trailing: const Icon(Icons.arrow_right),
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    '/raw_scout_report',
+                    arguments: {
+                      'uuid': report.reportId,
+                      'teamNumber': report.teamNumber,
+                      'matchIdentity': report.matchIdentity,
+                      'scoutName': name,
+                      'onDeleted': () {
+                        fetchData();
+                      },
+                    },
+                  );
+                },
+              ),
+            )
+            .toList(),
+      );
+
+      if (reports!.isEmpty) {
+        body = PageBody(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset("assets/images/no-notes-dark.png", width: 250),
+              const SizedBox(height: 8),
+              Text(
+                "No reports found",
+                style: Theme.of(context).textTheme.headlineMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                "$name does not have any data recorded${selectedTournament == null ? '' : ' at ${selectedTournament!.localized}'}.",
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              )
+            ],
+          ),
+        );
+      }
+    }
+
+    if (error != null) {
+      body = FriendlyErrorView(errorMessage: error, onRetry: fetchData);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name),
+        actions: [menu(context)],
+      ),
+      body: body,
+    );
+  }
+
+  MenuAnchor menu(BuildContext context) {
+    return MenuAnchor(
+      alignmentOffset: const Offset(-80, 0),
+      menuChildren: widget.scouterOverview.archived ?? false
+          ? [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.delete_outlined),
+                child: const Text("Delete"),
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    builder: (context) => DeleteScouterDialog(
+                        scouter: widget.scouterOverview.scout,
+                        onDeleted: () => {
+                              widget.onChanged?.call(),
+                              Navigator.of(context).pop(),
+                            }),
+                  );
+                },
+              ),
+              MenuItemButton(
+                  leadingIcon: const Icon(Icons.unarchive_outlined),
+                  child: const Text("Unarchive"),
+                  onPressed: () async {
+                    final navigatorState = Navigator.of(context);
+                    final scaffoldMessengerState =
+                        ScaffoldMessenger.of(context);
+                    try {
+                      await lovatAPI
+                          .unarchiveScouter(widget.scouterOverview.scout.id);
+
+                      navigatorState.pop();
+                      widget.onChanged?.call();
+                    } on LovatAPIException catch (e) {
+                      scaffoldMessengerState.showSnackBar(SnackBar(
+                        content:
+                            Text("Failed to unarchive scouter: ${e.message}"),
+                        behavior: SnackBarBehavior.floating,
+                      ));
+                    } catch (_) {
+                      scaffoldMessengerState.showSnackBar(const SnackBar(
+                        content: Text("Failed to unarchive scouter"),
+                        behavior: SnackBarBehavior.floating,
+                      ));
+                    }
+                  })
+            ]
+          : [
+              MenuItemButton(
+                leadingIcon: const Icon(Icons.edit_outlined),
+                child: const Text("Rename"),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => RenameScouterDialog(
+                      scouter: widget.scouterOverview.scout,
+                      onRenamed: (newName) {
+                        setState(() {
+                          name = newName;
+                        });
+
+                        widget.onChanged?.call();
+                      },
+                    ),
+                  );
+                },
+              ),
+              MenuItemButton(
+                  leadingIcon: const Icon(Icons.delete_outlined),
+                  child: const Text("Archive"),
+                  onPressed: () async {
+                    final navigatorState = Navigator.of(context);
+                    final scaffoldMessengerState =
+                        ScaffoldMessenger.of(context);
+                    try {
+                      await lovatAPI
+                          .archiveScouter(widget.scouterOverview.scout.id);
+
+                      navigatorState.pop();
+                      widget.onChanged!();
+                    } on LovatAPIException catch (e) {
+                      scaffoldMessengerState.showSnackBar(SnackBar(
+                        content:
+                            Text("Failed to archive scouter: ${e.message}"),
+                        behavior: SnackBarBehavior.floating,
+                      ));
+                    } catch (_) {
+                      debugPrint(_.toString());
+                      scaffoldMessengerState.showSnackBar(const SnackBar(
+                        content: Text("Failed to archive scouter"),
+                        behavior: SnackBarBehavior.floating,
+                      ));
+                    }
+                  }),
+            ],
+      builder: (context, controller, child) => IconButton(
+        onPressed: () {
+          controller.isOpen ? controller.close() : controller.open();
+        },
+        icon: const Icon(Icons.more_vert),
+      ),
+    );
+  }
+}
+
+class RenameScouterDialog extends StatefulWidget {
+  const RenameScouterDialog({
+    super.key,
+    required this.scouter,
+    this.onRenamed,
+  });
+
+  final Scout scouter;
+  final Function(String newName)? onRenamed;
+
+  @override
+  State<RenameScouterDialog> createState() => _RenameScouterDialogState();
+}
+
+class _RenameScouterDialogState extends State<RenameScouterDialog> {
+  String name = '';
+  bool submitting = false;
+  String? error;
+
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = TextEditingController(text: widget.scouter.name);
+    name = widget.scouter.name;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Rename Scouter"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: "Name",
+              filled: true,
+              errorText: error,
+            ),
+            textCapitalization: TextCapitalization.words,
+            onChanged: (value) {
+              setState(() {
+                name = value;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: submitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: submitting || name.isEmpty
+              ? null
+              : () async {
+                  setState(() {
+                    submitting = true;
+                    error = null;
+                  });
+
+                  final navigatorState = Navigator.of(context);
+
+                  try {
+                    await lovatAPI.renameScouter(widget.scouter.id, name);
+                    widget.onRenamed?.call(name);
+                    navigatorState.pop();
+                  } on LovatAPIException catch (e) {
+                    setState(() {
+                      error = e.message;
+                      submitting = false;
+                    });
+                  } catch (_) {
+                    setState(() {
+                      error = "Failed to rename scouter";
+                      submitting = false;
+                    });
+                  }
+                },
+          child: submitting
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text("Rename"),
+        ),
+      ],
+    );
+  }
+}
+
+class DeleteScouterDialog extends StatefulWidget {
+  const DeleteScouterDialog({
+    super.key,
+    required this.scouter,
+    this.onDeleted,
+  });
+
+  final Scout scouter;
+  final Function()? onDeleted;
+
+  @override
+  State<DeleteScouterDialog> createState() => _DeleteScouterDialogState();
+}
+
+class _DeleteScouterDialogState extends State<DeleteScouterDialog> {
+  bool submitting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Delete Scouter"),
+      content: const Text(
+          "Are you sure you want to delete this scouter? This will delete all of their reports."),
+      actions: [
+        TextButton(
+          onPressed: submitting
+              ? null
+              : () {
+                  Navigator.of(context).pop();
+                },
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: submitting
+              ? null
+              : () async {
+                  setState(() {
+                    submitting = true;
+                  });
+
+                  final navigatorState = Navigator.of(context);
+                  final scaffoldMessengerState = ScaffoldMessenger.of(context);
+
+                  try {
+                    await lovatAPI.deleteScouter(widget.scouter.id);
+                    widget.onDeleted?.call();
+                    navigatorState.pop();
+                  } on LovatAPIException catch (e) {
+                    scaffoldMessengerState.showSnackBar(SnackBar(
+                      content: Text("Failed to delete scouter: ${e.message}"),
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                  } catch (_) {
+                    scaffoldMessengerState.showSnackBar(const SnackBar(
+                      content: Text("Failed to delete scouter"),
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                  }
+                },
+          child: submitting
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text("Delete"),
+        ),
+      ],
+    );
+  }
+}
