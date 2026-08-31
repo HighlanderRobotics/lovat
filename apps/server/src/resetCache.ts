@@ -1,4 +1,24 @@
-import { resetCache } from "./lib/clearCache.js";
+import { loadEnvironmentFile } from "./lib/loadEnvironmentFile.js";
 
-await resetCache();
-process.exit(0);
+loadEnvironmentFile();
+
+const [
+  { resetCache },
+  { default: prismaClient },
+  { closeRedis, connectRedis },
+] = await Promise.all([
+  import("./lib/clearCache.js"),
+  import("./prismaClient.js"),
+  import("./redisClient.js"),
+]);
+
+try {
+  await connectRedis();
+  await resetCache();
+} finally {
+  try {
+    await prismaClient.$disconnect();
+  } finally {
+    await closeRedis();
+  }
+}

@@ -96,3 +96,19 @@ test("reset removes only namespaced keys", async () => {
     ["foreign:session", "keep"],
   ]);
 });
+
+test("namespaces reject Redis glob metacharacters", () => {
+  const redis = new InMemoryRedis();
+
+  for (const prefix of [
+    "lovat:*:",
+    "lovat:?:",
+    "lovat:[test]:",
+    String.raw`lovat:\test:`,
+  ]) {
+    assert.throws(
+      () => createNamespacedKv(redis, prefix),
+      /cannot contain Redis glob characters/,
+    );
+  }
+});

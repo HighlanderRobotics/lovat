@@ -29,6 +29,10 @@ export const createNamespacedKv = (
   redis: RedisKeyValueClient,
   keyPrefix: string,
 ): NamespacedKv => {
+  if (["*", "?", "[", "]", "\\"].some((char) => keyPrefix.includes(char))) {
+    throw new Error("Redis key prefix cannot contain Redis glob characters");
+  }
+
   const namespacedKey = (key: string): string => `${keyPrefix}${key}`;
 
   const set = async (key: string, data: string): Promise<unknown> => {

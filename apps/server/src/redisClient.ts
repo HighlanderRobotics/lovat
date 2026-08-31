@@ -4,13 +4,7 @@ import { createNamespacedKv } from "./lib/namespacedKv.js";
 const DEFAULT_KEY_PREFIX = "lovat:";
 
 const getKeyPrefix = (): string => {
-  const prefix = process.env.REDIS_KEY_PREFIX?.trim() || DEFAULT_KEY_PREFIX;
-
-  if (/[*?\[\]]/.test(prefix)) {
-    throw new Error("REDIS_KEY_PREFIX cannot contain Redis glob characters");
-  }
-
-  return prefix;
+  return process.env.REDIS_KEY_PREFIX?.trim() || DEFAULT_KEY_PREFIX;
 };
 
 const redisClient = createClient({ url: process.env.REDIS_URL }).on(
@@ -18,6 +12,12 @@ const redisClient = createClient({ url: process.env.REDIS_URL }).on(
   (err) => console.log("Redis Client Error", err),
 );
 
-await redisClient.connect();
-
 export const kv = createNamespacedKv(redisClient, getKeyPrefix());
+
+export const connectRedis = async (): Promise<void> => {
+  if (!redisClient.isOpen) await redisClient.connect();
+};
+
+export const closeRedis = async (): Promise<void> => {
+  if (redisClient.isOpen) await redisClient.close();
+};

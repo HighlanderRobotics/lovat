@@ -1,10 +1,14 @@
 import prismaClient from "../prismaClient.js";
 import { kv } from "../redisClient.js";
+import { resetCacheState } from "./resetCacheState.js";
 
 export const resetCache = async (): Promise<void> => {
-  await prismaClient.cachedAnalysis.deleteMany();
-
-  const deletedRedisKeys = await kv.reset();
+  const deletedRedisKeys = await resetCacheState({
+    resetRedis: () => kv.reset(),
+    deleteMetadata: async () => {
+      await prismaClient.cachedAnalysis.deleteMany();
+    },
+  });
 
   console.log(`Lovat cache reset (${deletedRedisKeys} Redis keys deleted)`);
 };

@@ -27,6 +27,8 @@ The example configuration uses Redis logical database 1 and prefixes every key w
 npm run cache:reset
 ```
 
+The reset scans the Lovat namespace twice around metadata deletion. This prevents a successful reset from leaving an untracked cache entry when a request writes during the operation. Stop the server first when practical; a failed reset should be retried after correcting the reported error.
+
 ## Checks
 
 ```bash
