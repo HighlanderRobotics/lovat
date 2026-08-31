@@ -10,7 +10,7 @@ No provider change is authorized by this document alone. Every external change r
 - [x] Protect `main` with the stable CI gate and pull-request review.
 - [ ] Recreate or transfer required GitHub secrets without recording values here.
 - [ ] Cut over Railway Server staging with repository root `apps/server`.
-- [ ] Validate the Dashboard build-only dry run before enabling production deployment.
+- [x] Validate the Dashboard build-only dry run before enabling production deployment.
 - [ ] Cut over Netlify Dashboard with artifact `apps/dashboard/build/web`.
 - [ ] Validate Netlify Website preview with base directory `apps/website`.
 - [ ] Validate EAS Collection with project root `apps/collection`.
@@ -28,6 +28,7 @@ No provider change is authorized by this document alone. Every external change r
 - Required branch-protection check: `Monorepo CI` with strict branch freshness
 - Pull requests require one approval, stale approvals are dismissed, and conversations must be resolved
 - Force pushes and branch deletion are disabled; administrators retain cutover bypass access
+- Dashboard build-only dry run: [run 33354523319](https://github.com/HighlanderRobotics/lovat/actions/runs/33354523319), web and APK builds passed and artifacts uploaded; production deploy skipped
 
 ## Railway Server
 
