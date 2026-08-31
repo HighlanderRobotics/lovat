@@ -7,6 +7,7 @@ No provider change is authorized by this document alone. Every external change r
 - [x] Attach the approved GitHub repository and confirm its existing visibility.
 - [x] Push reviewed `main` and namespaced tags.
 - [x] Observe the stable CI gate before configuring required checks.
+- [x] Protect `main` with the stable CI gate and pull-request review.
 - [ ] Recreate or transfer required GitHub secrets without recording values here.
 - [ ] Cut over Railway Server staging with repository root `apps/server`.
 - [ ] Validate the Dashboard build-only dry run before enabling production deployment.
@@ -24,7 +25,9 @@ No provider change is authorized by this document alone. Every external change r
 - Published migration tags: 30 namespaced source, branch-tip, and release tags
 - First-push Actions result: run registration was delayed while the empty repository established its default branch and workflows
 - Stable CI run: [CI #1](https://github.com/HighlanderRobotics/lovat/actions/runs/33354066844), all six jobs passed
-- Candidate required check: `Monorepo CI`
+- Required branch-protection check: `Monorepo CI` with strict branch freshness
+- Pull requests require one approval, stale approvals are dismissed, and conversations must be resolved
+- Force pushes and branch deletion are disabled; administrators retain cutover bypass access
 
 ## Railway Server
 
