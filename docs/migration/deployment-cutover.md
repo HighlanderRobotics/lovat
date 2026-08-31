@@ -19,3 +19,28 @@ No provider change is authorized by this document alone. Every external change r
 ## Evidence
 
 Not yet recorded.
+
+## Railway Server
+
+- Configure the existing service with repository root `apps/server`.
+- Reconfirm provider-managed environment variables without copying values into Git.
+- Preserve the `/status` health check and current Prisma build and pre-deploy behavior.
+- Validate staging first with health, authentication, analysis, cache, and disposable report checks.
+
+## Netlify Dashboard
+
+- Preserve `NETLIFY_AUTH_TOKEN` and `NETLIFY_SITE_ID` as repository secrets.
+- Run the manual build-only workflow before creating or pushing `production`.
+- Confirm the next build number exceeds `dashboard-pre-monorepo-production`.
+- Promote an accepted `main` commit to `production`; the workflow commits its version bump to `production` with `[skip ci]`.
+- Merge or cherry-pick that version-only commit back to `main` before the next release so branches do not drift.
+
+## Netlify Website
+
+- Set base directory to `apps/website`, build command to `npm run build`, and publish directory to `build` relative to that base.
+- Reconfirm all private environment variables in Netlify without exposing values.
+
+## EAS Collection
+
+- Reconnect with project root `apps/collection`.
+- Preserve owner, project ID, bundle identifier, Android package, profiles, and signing credentials.

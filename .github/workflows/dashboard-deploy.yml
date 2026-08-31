@@ -1,0 +1,149 @@
+name: Dashboard build and deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [production]
+    paths:
+      - 'apps/dashboard/**'
+      - '.github/workflows/dashboard-deploy.yml'
+
+concurrency:
+  group: dashboard-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    name: Build-only dry run
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.35.4
+      - name: Install dependencies
+        working-directory: apps/dashboard
+        run: flutter pub get
+      - name: Build web
+        working-directory: apps/dashboard
+        run: flutter build web --release
+      - name: Build APK
+        working-directory: apps/dashboard
+        run: flutter build apk --release
+      - name: Upload dry-run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-dry-run-${{ github.sha }}
+          path: |
+            apps/dashboard/build/web
+            apps/dashboard/build/app/outputs/flutter-apk/app-release.apk
+
+  production:
+    name: Production deploy
+    if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.35.4
+      - name: Install dependencies
+        working-directory: apps/dashboard
+        run: flutter pub get
+      - name: Extract version
+        id: version
+        working-directory: apps/dashboard
+        run: |
+          current_version=$(grep 'version:' pubspec.yaml | cut -d+ -f1 | cut -d: -f2 | xargs)
+          current_build=$(grep 'version:' pubspec.yaml | cut -d+ -f2)
+          new_build=$((current_build + 1))
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "new_build=$new_build" >> "$GITHUB_OUTPUT"
+      - name: Update version
+        working-directory: apps/dashboard
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.current_version }}
+          NEW_BUILD: ${{ steps.version.outputs.new_build }}
+        run: |
+          sed -i "s/version: .*/version: $CURRENT_VERSION+$NEW_BUILD/" pubspec.yaml
+      - name: Build web
+        working-directory: apps/dashboard
+        run: flutter build web --release
+      - name: Build APK
+        working-directory: apps/dashboard
+        run: flutter build apk --release
+      - name: Generate Dashboard changelog
+        id: changelog
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.current_version }}
+          NEW_BUILD: ${{ steps.version.outputs.new_build }}
+        run: |
+          last_tag=$(git describe --tags --match 'dashboard-v*' --abbrev=0 2>/dev/null || true)
+          if [[ -n "$last_tag" ]]; then
+            changes=$(git log "$last_tag"..HEAD --pretty=format:'- %s' -20 -- apps/dashboard)
+          else
+            changes=$(git log HEAD --pretty=format:'- %s' -20 -- apps/dashboard)
+          fi
+          {
+            echo "# Dashboard $CURRENT_VERSION+$NEW_BUILD"
+            echo
+            echo "## Changes"
+            echo "$changes"
+          } > changelog.md
+          echo 'file=changelog.md' >> "$GITHUB_OUTPUT"
+      - name: Commit version
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.current_version }}
+          NEW_BUILD: ${{ steps.version.outputs.new_build }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add apps/dashboard/pubspec.yaml
+          git commit -m "chore(dashboard): bump version to $CURRENT_VERSION+$NEW_BUILD [skip ci]"
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './apps/dashboard/build/web'
+          production-branch: production
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: 'Dashboard ${{ steps.version.outputs.current_version }}+${{ steps.version.outputs.new_build }}'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5
+      - name: Push version commit
+        run: git push origin HEAD:production
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ steps.version.outputs.current_version }}
+          NEW_BUILD: ${{ steps.version.outputs.new_build }}
+          CHANGELOG_FILE: ${{ steps.changelog.outputs.file }}
+        run: |
+          target_tag="dashboard-v$CURRENT_VERSION"
+          apk_path='apps/dashboard/build/app/outputs/flutter-apk/app-release.apk'
+          apk_name='app-release.apk'
+          if gh release view "$target_tag" >/dev/null 2>&1; then
+            gh release delete-asset "$target_tag" "$apk_name" --yes 2>/dev/null || true
+            gh release edit "$target_tag" \
+              --title "Dashboard $CURRENT_VERSION+$NEW_BUILD" \
+              --notes-file "$CHANGELOG_FILE" \
+              --draft
+            gh release upload "$target_tag" "$apk_path#$apk_name"
+          else
+            gh release create "$target_tag" "$apk_path#$apk_name" \
+              --target "$(git rev-parse HEAD)" \
+              --title "Dashboard $CURRENT_VERSION+$NEW_BUILD" \
+              --notes-file "$CHANGELOG_FILE" \
+              --draft
+          fi
