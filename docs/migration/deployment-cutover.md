@@ -6,7 +6,7 @@ No provider change is authorized by this document alone. Every external change r
 
 - [x] Attach the approved GitHub repository and confirm its existing visibility.
 - [x] Push reviewed `main` and namespaced tags.
-- [ ] Observe the stable CI gate before configuring required checks.
+- [x] Observe the stable CI gate before configuring required checks.
 - [ ] Recreate or transfer required GitHub secrets without recording values here.
 - [ ] Cut over Railway Server staging with repository root `apps/server`.
 - [ ] Validate the Dashboard build-only dry run before enabling production deployment.
@@ -22,8 +22,9 @@ No provider change is authorized by this document alone. Every external change r
 - Visibility observed after publication: public (unchanged during migration)
 - First published `main`: `7eb4b80c2befbdfc5230dc6d756e296eea884d25`
 - Published migration tags: 30 namespaced source, branch-tip, and release tags
-- First-push Actions result: no run was created while the empty repository established its default branch and workflows
-- Stable CI run: pending the next `main` push
+- First-push Actions result: run registration was delayed while the empty repository established its default branch and workflows
+- Stable CI run: [CI #1](https://github.com/HighlanderRobotics/lovat/actions/runs/33354066844), all six jobs passed
+- Candidate required check: `Monorepo CI`
 
 ## Railway Server
 
