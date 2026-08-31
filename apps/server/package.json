@@ -7,7 +7,8 @@
     "dev": "NODE_ENV=development tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js --omit=dev",
-    "test": "tsc",
+    "cache:reset": "tsx src/resetCache.ts",
+    "test": "npm run build && node --test dist/test/*.test.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
