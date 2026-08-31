@@ -4,8 +4,8 @@ No provider change is authorized by this document alone. Every external change r
 
 ## Pending items
 
-- [ ] Attach or create the approved GitHub repository and confirm visibility.
-- [ ] Push reviewed `main` and namespaced tags.
+- [x] Attach the approved GitHub repository and confirm its existing visibility.
+- [x] Push reviewed `main` and namespaced tags.
 - [ ] Observe the stable CI gate before configuring required checks.
 - [ ] Recreate or transfer required GitHub secrets without recording values here.
 - [ ] Cut over Railway Server staging with repository root `apps/server`.
@@ -18,7 +18,12 @@ No provider change is authorized by this document alone. Every external change r
 
 ## Evidence
 
-Not yet recorded.
+- Repository: <https://github.com/HighlanderRobotics/lovat>
+- Visibility observed after publication: public (unchanged during migration)
+- First published `main`: `7eb4b80c2befbdfc5230dc6d756e296eea884d25`
+- Published migration tags: 30 namespaced source, branch-tip, and release tags
+- First-push Actions result: no run was created while the empty repository established its default branch and workflows
+- Stable CI run: pending the next `main` push
 
 ## Railway Server
 
