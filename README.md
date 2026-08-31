@@ -57,6 +57,18 @@ Several applications require environment files or external services for full run
 
 Read [`AGENTS.md`](AGENTS.md) and the nearest app-local `AGENTS.md` before editing. Keep changes within the app that owns the behavior. Update all affected producers and consumers together when a shared contract changes.
 
+## Linear MCP
+
+This repository configures Linear as a project-scoped MCP server for Codex. Authentication is stored per user and is never committed.
+
+After cloning the repository, trust the project when Codex prompts you, then authenticate:
+
+```bash
+codex mcp login linear
+```
+
+Run `codex mcp get linear` to verify the server configuration, or use `/mcp` inside an interactive Codex session. Start a new Codex session if one was already open when you authenticated.
+
 ## Deployment
 
 - Server: Railway, repository root `apps/server`.

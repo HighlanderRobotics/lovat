@@ -1,0 +1,4 @@
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"
+auth = "oauth"
+default_tools_approval_mode = "writes"
