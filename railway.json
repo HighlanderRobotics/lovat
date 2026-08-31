@@ -3,7 +3,8 @@
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "sleep 3 && npm run build",
-    "buildEnvironment": "V3"
+    "buildEnvironment": "V3",
+    "root": "your-subfolder-name"
   },
   "deploy": {
     "runtime": "V2",
