@@ -21,6 +21,14 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+The example configuration uses Redis logical database 1 and prefixes every key with `lovat:local:`. Keep both settings isolated from other applications. To remove only Lovat-owned cache entries, run:
+
+```bash
+npm run cache:reset
+```
+
+The reset scans the Lovat namespace twice around metadata deletion. This prevents a successful reset from leaving an untracked cache entry when a request writes during the operation. Stop the server first when practical; a failed reset should be retried after correcting the reported error.
+
 ## Checks
 
 ```bash
@@ -29,7 +37,7 @@ npm test
 npm run lint
 ```
 
-`npm test` currently verifies TypeScript compilation rather than behavioral coverage.
+`npm test` compiles the server and runs its behavioral tests.
 
 ## Optional database restore
 

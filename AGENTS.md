@@ -37,7 +37,7 @@ The aggregate script assumes app dependencies are already installed and intentio
 
 ## Current limitations
 
-- Server tests compile TypeScript but do not provide behavioral coverage.
+- Server behavioral coverage is currently limited to Redis namespacing and scoped reset behavior.
 - Collection Android and web have tracked pre-existing issues.
 - Dashboard analysis has one baseline informational failure and little test coverage.
 - Website check and formatting commands fail at the migration baseline; production build needs private environment configuration.
