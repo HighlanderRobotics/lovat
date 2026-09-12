@@ -1,7 +1,7 @@
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
 import { matchPredictionLogic } from "./matchPredictionLogic.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 import { alliancePage } from "./alliancePage.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";

@@ -9,7 +9,7 @@ import {
   IntakeType,
   Beached,
   FieldTraversal,
-} from "@prisma/client";
+} from "@lovat/db";
 import prismaClient from "../../prismaClient.js";
 import { DataSourceRule } from "./dataSourceRule.js";
 //add cooperation

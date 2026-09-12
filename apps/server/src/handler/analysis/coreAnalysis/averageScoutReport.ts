@@ -6,7 +6,7 @@ import {
   metricToEvent,
   minActionDuration,
 } from "../analysisConstants.js";
-import { AutoClimb, User } from "@prisma/client";
+import { AutoClimb, User } from "@lovat/db";
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 

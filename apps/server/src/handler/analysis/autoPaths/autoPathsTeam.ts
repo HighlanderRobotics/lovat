@@ -10,7 +10,7 @@ import {
   dataSourceRuleSchema,
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 interface AutoPosition {
   location: number;

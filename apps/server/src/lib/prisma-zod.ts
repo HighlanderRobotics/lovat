@@ -7,7 +7,7 @@ import {
 // Ensure this module's Zod instance has .openapi
 extendZodWithOpenApi(z);
 
-// Enums (mirrored from prisma/schema.prisma)
+// Enums (mirrored from packages/db/prisma/schema.prisma)
 export const PositionSchema = z.enum([
   "LEFT_TRENCH",
   "LEFT_BUMP",

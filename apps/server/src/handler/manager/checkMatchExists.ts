@@ -2,7 +2,7 @@ import z from "zod";
 import { addTournamentMatches } from "./addTournamentMatches.js";
 import { Request, Response } from "express";
 import prismaClient from "../../prismaClient.js";
-import { MatchType } from "@prisma/client";
+import { MatchType } from "@lovat/db";
 
 export const checkMatchExists = async (
   req: Request,

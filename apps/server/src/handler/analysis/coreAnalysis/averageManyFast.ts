@@ -8,7 +8,7 @@ import {
   allTournaments,
   accuracyToPercentage,
 } from "../analysisConstants.js";
-import { EndgameClimb, AutoClimb, Prisma, Event, $Enums } from "@prisma/client";
+import { EndgameClimb, AutoClimb, Prisma, Event, $Enums } from "@lovat/db";
 import { weightedTourAvgLeft } from "./arrayAndAverageTeams.js";
 import z from "zod";
 import {
@@ -16,7 +16,7 @@ import {
   dataSourceRuleSchema,
 } from "../dataSourceRule.js";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 export interface ArrayFilter<T> {
   notIn?: T[];

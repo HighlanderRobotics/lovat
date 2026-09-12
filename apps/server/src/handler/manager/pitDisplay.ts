@@ -4,7 +4,7 @@ import z from "zod";
 import axios from "axios";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { matchPredictionLogic } from "../analysis/predictions/matchPredictionLogic.js";
-import { MatchType } from "@prisma/client";
+import { MatchType } from "@lovat/db";
 import { MatchEnumToAbrivation } from "./managerConstants.js";
 
 export const pitDisplay = async (

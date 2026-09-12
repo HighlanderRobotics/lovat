@@ -19,6 +19,8 @@ cp .env.example .env
 npm run dev
 ```
 
+`npm ci` also installs and builds the local `@lovat/db` package from its own lockfile. Keep the full monorepo checkout available. `npm run build` regenerates its client before compiling the server.
+
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
 ## Checks
@@ -41,3 +43,9 @@ pg_restore -d "postgresql://YOUR_LOCAL_CONNECTION" /path/to/backup.dump \
 ```
 
 Never restore a dump into an unverified database or commit a dump to this repository.
+
+## Database and deployment
+
+The canonical schema and migrations are in [`packages/db`](../../packages/db). Prisma is pinned to 7.10.0. Run `npm run db:seed` explicitly from this app when needed; seeding is not automatic.
+
+Railway must use the repository root and `Dockerfile.server` so the shared package is included. See the [shared package deployment checklist](../../packages/db/README.md) before enabling migrations.

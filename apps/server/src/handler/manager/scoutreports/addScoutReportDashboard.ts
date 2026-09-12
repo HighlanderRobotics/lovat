@@ -19,7 +19,7 @@ import {
   FieldTraversal,
   ClimbPosition,
   ClimbSide,
-} from "@prisma/client";
+} from "@lovat/db";
 import { invalidateCache } from "../../../lib/clearCache.js";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import {

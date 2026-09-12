@@ -1,0 +1,44 @@
+{
+  "name": "@lovat/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "prisma",
+    "prisma.config.ts"
+  ],
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "npm run generate && tsc",
+    "postinstall": "npm run build",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "test:integration": "node --test test/database.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.20.0 <23 || >=24"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.0",
+    "@prisma/adapter-pg": "7.10.0",
+    "dotenv": "16.6.1",
+    "pg": "8.16.3"
+  },
+  "devDependencies": {
+    "prisma": "7.10.0",
+    "typescript": "5.9.3",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0"
+  }
+}

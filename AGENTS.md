@@ -10,7 +10,7 @@ This repository contains four independently buildable applications under `apps/`
 - `apps/dashboard`: Flutter analysis and scouting-management client.
 - `apps/collection`: Expo and React Native scouting client.
 - `apps/website`: SvelteKit public site and operational routes.
-- `packages`: reserved; no shared runtime package exists.
+- `packages/db`: shared Prisma schema, migrations, generated types, and PostgreSQL client; consumed by Server and intended for the separate Support backend.
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.
 

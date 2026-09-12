@@ -17,7 +17,7 @@ import {
   ClimbPosition,
   ClimbSide,
   EndgameClimb,
-} from "@prisma/client";
+} from "@lovat/db";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
 

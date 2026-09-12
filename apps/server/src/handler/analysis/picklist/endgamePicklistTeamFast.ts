@@ -1,4 +1,4 @@
-import { EndgameClimb, Prisma } from "@prisma/client";
+import { EndgameClimb, Prisma } from "@lovat/db";
 import prismaClient from "../../../prismaClient.js";
 import { defaultEndgamePoints, endgameToPoints } from "../analysisConstants.js";
 
