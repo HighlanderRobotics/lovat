@@ -17,7 +17,7 @@ npm ci
 npm run build
 ```
 
-Installation generates and compiles the client without database credentials or database access. Server `npm ci` installs this package from its own lockfile, and server builds rebuild it. Other consumers must arrange the same package install/build before compilation; do not run multiple installs against this directory concurrently.
+Run `npm run build` after standalone installation to generate and compile the client; it needs no database credentials or database access. The package deliberately has no install hook: npm may execute local dependency hooks before their tools are installed. Server `npm ci` explicitly installs this package from its own lockfile and then builds it; server builds also rebuild it. Other consumers must arrange the same package install/build before compilation; do not run multiple installs against this directory concurrently.
 
 ```ts
 import { db, UserRole } from "@lovat/db";

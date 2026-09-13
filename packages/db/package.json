@@ -19,7 +19,6 @@
   "scripts": {
     "generate": "prisma generate",
     "build": "npm run generate && tsc",
-    "postinstall": "npm run build",
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
