@@ -90,7 +90,10 @@ jobs:
           LOVAT_DB_TEST: "1"
         run: |
           npm run db:validate
-          npx --no-install prisma db push
+          npm run db:deploy
+          npm run db:status
+          npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+          node --test test/migrations.test.mjs
           npm run test:integration
       - name: Build server deployment image
         working-directory: .
