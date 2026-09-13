@@ -39,6 +39,6 @@
 		"magnolia-ui-svelte": "github:highlanderrobotics/magnolia-ui-svelte#production",
 		"qrcode": "^1.5.3",
 		"ua-parser-js": "^1.0.36",
-		"zod": "^3.22.4"
+		"zod": "^4.6.1"
 	}
 }
