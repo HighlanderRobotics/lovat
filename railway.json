@@ -14,7 +14,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "DATABASE_URL=$DATABASE_PRIVATE_URL npm start",
+    "startCommand": "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; exec npm start'",
     "sleepApplication": false,
     "useLegacyStacker": false,
     "multiRegionConfig": {
