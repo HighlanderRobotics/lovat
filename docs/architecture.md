@@ -29,4 +29,4 @@ Reports are associated with the scouter's source team. Analysis may expose own-t
 
 ## Repository boundaries
 
-No shared runtime package exists. `packages/` is reserved for a separately approved package design. Applications must not import source files across `apps/*` boundaries.
+`packages/db` owns the Prisma schema, migration history, generated types, and PostgreSQL client. Server consumes `@lovat/db` through a local package dependency. The separate Support backend is its next intended consumer. Each service owns its own connection pool and authorization; sharing models does not grant access to another team’s records. Browser and mobile clients continue to use APIs. Applications must not import source files across `apps/*` boundaries. See [database setup and deployment](../packages/db/README.md).

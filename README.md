@@ -71,7 +71,7 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 
 ## Deployment
 
-- Server: Railway, repository root `apps/server`.
+- Server: Railway, repository root `/`, Dockerfile `Dockerfile.server` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
 - Dashboard: Netlify web deployment and GitHub Actions Android artifact.
 - Collection: EAS, project root `apps/collection`.
 - Website: Netlify, base directory `apps/website`.

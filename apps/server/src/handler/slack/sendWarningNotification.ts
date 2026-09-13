@@ -1,7 +1,7 @@
 // Require the Node Slack SDK package (github.com/slackapi/node-slack-sdk)
 import { WebClient } from "@slack/web-api";
 import prismaClient from "../../prismaClient.js";
-import { TeamMatchData, WarningType } from "@prisma/client";
+import { TeamMatchData, WarningType } from "@lovat/db";
 
 // WebClient instantiates a client that can call API methods
 // When using Bolt, youxcan use either `app.client` or the `client` passed to listeners.

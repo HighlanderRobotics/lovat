@@ -2,7 +2,7 @@ import z from "zod";
 import { Metric } from "../analysisConstants.js";
 import { arrayAndAverageTeams } from "../coreAnalysis/arrayAndAverageTeams.js";
 import { runAnalysis } from "../analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 const config = {
   argsSchema: z.object({

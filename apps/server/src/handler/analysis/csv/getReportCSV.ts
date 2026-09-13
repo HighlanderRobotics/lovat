@@ -15,7 +15,7 @@ import {
   ClimbSide,
   FeederType,
   IntakeType,
-} from "@prisma/client";
+} from "@lovat/db";
 import { autoEnd, endgameToPoints, Metric } from "../analysisConstants.js";
 import { z } from "zod";
 import {

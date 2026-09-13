@@ -2,7 +2,7 @@ import z from "zod";
 import { MetricsBreakdown } from "../analysisConstants.js";
 import { nonEventMetric, NonEventMetricResult } from "./nonEventMetric.js";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 const argsSchema = z.object({ team: z.number() });
 const returnSchema = z.object({ mainRoles: z.array(z.string()) });

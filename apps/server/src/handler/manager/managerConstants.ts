@@ -6,7 +6,7 @@ import {
   EndgameClimb,
   AutoClimb,
   FeederType,
-} from "@prisma/client";
+} from "@lovat/db";
 
 const EventActionMap: Record<number, EventAction> = {
   0: EventAction.START_SCORING,

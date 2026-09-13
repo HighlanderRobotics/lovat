@@ -1,5 +1,5 @@
 # Shared packages
 
-This directory is reserved for code that must be consumed by more than one Lovat application, such as versioned API contracts or season definitions.
+- [`@lovat/db`](db): canonical Prisma schema, migration history, generated types, and PostgreSQL client. Server consumes it today; the separate Support backend will consume it when implemented.
 
-The monorepo migration does not create a shared runtime package. Add one only with an approved design that identifies its consumers, ownership, compatibility policy, and tests.
+Each package owns its lockfile. Applications consume the built package through a local `file:` dependency, without cross-app source imports or a root workspace.

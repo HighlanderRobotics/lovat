@@ -6,7 +6,7 @@ import {
   Metric,
   metricToEvent,
 } from "../analysisConstants.js";
-import { Event, Prisma, ScoutReport } from "@prisma/client";
+import { Event, Prisma, ScoutReport } from "@lovat/db";
 import {
   dataSourceRuleSchema,
   dataSourceRuleToPrismaFilter,
@@ -59,7 +59,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
   },
   calculateAnalysis: async (
     args: z.infer<typeof argsSchema>,
-    ctx: { user: import("@prisma/client").User },
+    ctx: { user: import("@lovat/db").User },
   ) => {
     const { teams, metric } = args;
     try {
@@ -563,7 +563,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
 };
 
 export const arrayAndAverageTeams = async (
-  user: import("@prisma/client").User,
+  user: import("@lovat/db").User,
   args: z.infer<typeof argsSchema>,
 ) => runAnalysis(config, user, args);
 

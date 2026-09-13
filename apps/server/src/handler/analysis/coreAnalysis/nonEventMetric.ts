@@ -1,5 +1,5 @@
 import prismaClient from "../../../prismaClient.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 import {
   breakdownNeg,
   breakdownPos,

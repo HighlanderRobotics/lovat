@@ -26,6 +26,10 @@ jobs:
           filters: |
             server:
               - 'apps/server/**'
+              - 'packages/db/**'
+              - 'Dockerfile.server'
+              - '.dockerignore'
+              - 'railway.json'
               - '.github/workflows/ci.yml'
             dashboard:
               - 'apps/dashboard/**'
@@ -46,6 +50,20 @@ jobs:
 
   server:
     name: Server
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lovat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
     runs-on: ubuntu-latest
@@ -58,11 +76,28 @@ jobs:
         with:
           node-version: 22.20.0
           cache: npm
-          cache-dependency-path: apps/server/package-lock.json
+          cache-dependency-path: |
+            apps/server/package-lock.json
+            packages/db/package-lock.json
       - run: npm ci
       - run: npm run build
       - run: npm run lint
       - run: npm test
+      - name: Test shared database against disposable PostgreSQL
+        working-directory: packages/db
+        env:
+          DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+          LOVAT_DB_TEST: "1"
+        run: |
+          npm run db:validate
+          npm run db:deploy
+          npm run db:status
+          npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+          node --test test/migrations.test.mjs
+          npm run test:integration
+      - name: Build server deployment image
+        working-directory: .
+        run: docker build -f Dockerfile.server -t lovat-server:ci .
 
   collection:
     name: Collection
