@@ -53,7 +53,7 @@ This branch removes the automatic `db push` predeploy command and does not autom
 3. Validate the plan on staging, including retained data and server behavior.
 4. Configure exactly one release job to run `npm --prefix packages/db run db:deploy` from the repository root with the intended database URL. Support and server replicas must not each run migrations.
 
-Railway must use repository root `/` and `Dockerfile.server` so both directories are available. The image installs both lockfiles, generates Prisma during the build, and starts from `/app/apps/server` using `dist/src/server.js`. Keep the Prisma CLI installed in the migration job. `railway.json` supplies the existing private database URL at runtime. No hosting settings or databases were changed by this branch.
+Railway must use repository root `/` and `Dockerfile.server` so both directories are available. The image installs both lockfiles, generates Prisma during the build, and starts from `/app/apps/server` using `dist/src/server.js`. Keep the Prisma CLI installed in the migration job. `railway.json` supplies the existing private database URL at runtime. Set the Railway service’s Root Directory to `/` in the dashboard as well; `railway.json` cannot expand a build context already restricted to `/apps/server`. Clear inherited build commands and the old `db push` pre-deploy command. These settings have been applied to the PR #16 server preview; production settings and databases remain unchanged. After changing the root directory, use a fresh source build if a redeploy retains the old snapshot.
 
 ## Integration checks
 
