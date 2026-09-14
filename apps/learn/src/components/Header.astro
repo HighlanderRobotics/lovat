@@ -1,0 +1,135 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+
+import { Icon } from '@astrojs/starlight/components';
+import Search from "@astrojs/starlight/components/Search.astro";
+import SiteTitle from "@astrojs/starlight/components/SiteTitle.astro";
+import Logo from "../assets/logo.png"
+// import config from '../../config';
+
+// import HeaderLinks from "./HeaderLinks.astro";
+---
+
+<div class="header">
+  <div class="logo-page-small">
+	<a href="https://frc8033.com/" target="_blank">
+	  <img src={Logo.src} alt="8033" />
+	</a>
+  </div>
+  <div class="actions">
+    <div class="logo">
+      <a href="https://frc8033.com/" target="_blank">
+	    <img src={Logo.src} alt="8033" />
+      </a>
+    </div>
+    <a class="main-title" href="https://lovat.app">Lovat</a>
+    <Search {...Astro.props}/>
+  </div>		
+</div>
+
+<style>
+	img {
+		width: 93px;
+		height: 27px;
+		transform: translateY(10%);
+	}
+
+	nav {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
+		align-items: center;
+		position: sticky;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 50;
+
+		padding: 16px;
+
+		background-color: var(--background);
+		height: 65px;
+	}
+
+	.logo {
+	  width: 352px;
+	}
+
+	.actions {
+		/* padding-top: 0.25%; */
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		transform: translateY(5%);
+	}
+
+	.main-title {
+		color: var(--victory-purple);
+		font-size: 30px;
+		font-style: normal;
+		font-weight: 500;
+		line-height: normal;
+		text-decoration: none;
+	}
+
+
+	.logo-page-small {
+		appearance: none;
+		border: none;
+		background-color: transparent;
+		cursor: pointer;
+		display: none;
+		pointer-events: none;
+	}
+
+	.menu-button {
+		appearance: none;
+		border: none;
+		background-color: transparent;
+		cursor: pointer;
+
+		display: none;
+
+		position: absolute;
+		right: 15px;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	@media (max-width: 900px) {
+		.menu-button {
+			display: block;
+		}
+
+		.logo-page-small {
+			display: block;
+			pointer-events: initial;
+			transform: translateY(10%);
+		}
+
+		.actions {
+			position: fixed;
+			left: 0;
+			right: 0;
+			top: 0;
+
+			flex-direction: column;
+			gap: 5px;
+			align-items: start;
+			background-color: var(--background);
+			padding: 10px;
+			margin-top: 65px;
+
+			visibility: hidden;
+			opacity: 0%;
+			transition: 0.2s;
+			transform: translateY(-10%);
+		}
+
+		.actions.expanded {
+			opacity: 100%;
+			visibility: visible;
+			transform: translateY(0%);
+		}
+	}
+</style>

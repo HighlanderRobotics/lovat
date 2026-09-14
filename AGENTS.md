@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains four independently buildable applications under `apps/`. Root instructions apply everywhere. Read the nearest app-local `AGENTS.md` before editing an application.
+This repository contains independently buildable applications under `apps/`. Root instructions apply everywhere. Read the nearest app-local `AGENTS.md` before editing an application.
 
 ## Repository map
 
@@ -10,6 +10,7 @@ This repository contains four independently buildable applications under `apps/`
 - `apps/dashboard`: Flutter analysis and scouting-management client.
 - `apps/collection`: Expo and React Native scouting client.
 - `apps/website`: SvelteKit public site and operational routes.
+- `apps/learn`: Astro/Starlight user guides for Dashboard and Collection.
 - `packages/db`: shared Prisma schema, migrations, generated types, and PostgreSQL client; consumed by Server and intended for the separate Support backend.
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.

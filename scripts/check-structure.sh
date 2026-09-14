@@ -19,6 +19,10 @@ required_paths=(
   apps/website/package.json
   apps/website/README.md
   apps/website/AGENTS.md
+  apps/learn/package.json
+  apps/learn/package-lock.json
+  apps/learn/README.md
+  apps/learn/AGENTS.md
   packages/README.md
   packages/db/package.json
   packages/db/package-lock.json

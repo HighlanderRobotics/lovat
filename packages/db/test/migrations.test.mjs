@@ -22,7 +22,7 @@ const names = [
 const sql = await Promise.all(
   names.map((name) =>
     readFile(
-      new URL(`../prisma/migrations/${name}/migration.sql`, import.meta.url),
+      new URL(`../prisma/migrations_backup/${name}/migration.sql`, import.meta.url),
       "utf8",
     ),
   ),

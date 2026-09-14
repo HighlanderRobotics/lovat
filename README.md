@@ -10,6 +10,7 @@ Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Comp
 | [`apps/server`](apps/server) | API, authentication, storage, imports, caching, and analysis | Node.js, Express, TypeScript, Prisma, PostgreSQL, Redis |
 | [`apps/dashboard`](apps/dashboard) | Analysis, scouting management, predictions, and picklists | Flutter and Dart |
 | [`apps/website`](apps/website) | Public site and selected operational routes | SvelteKit and TypeScript |
+| [`apps/learn`](apps/learn) | User guides for Dashboard and Collection | Astro, Starlight, MDX, Svelte |
 
 ## Data flow
 
@@ -31,6 +32,7 @@ See [`docs/architecture.md`](docs/architecture.md) for boundaries and cross-appl
 - Collection: Node.js 24.6.0 and Expo/EAS tooling.
 - Dashboard: Flutter; CI versions are documented in its local instructions.
 - Website: Node.js 20.19.6.
+- Learn: Node.js 22 and npm.
 - macOS and Xcode are required for local iOS builds.
 
 Each application retains its own lockfile. Install dependencies inside the application directory.
@@ -49,6 +51,7 @@ cd apps/server && npm run dev
 cd apps/collection && npm start
 cd apps/dashboard && flutter run -d chrome
 cd apps/website && npm run dev
+cd apps/learn && npm run dev
 ```
 
 Several applications require environment files or external services for full runtime behavior. Copy only committed `.env.example` files and never commit credentials.
@@ -76,6 +79,8 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 - Collection: EAS, project root `apps/collection`.
 - Website: Netlify, base directory `apps/website`.
 
+- Learn: static site; base directory `apps/learn`, build `npm run build`, output `dist`.
+
 ## History
 
-This repository combines four formerly separate repositories. Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
+This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
