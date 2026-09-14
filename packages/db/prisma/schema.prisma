@@ -248,8 +248,10 @@ model SupportTicket {
   body String
   source TicketSource
 
+  requesterName String
   requesterId String?
   requesterEmail String
+  requesterTeam Int
   requester User?      @relation(fields: [requesterId], references: [id], onDelete: SetNull)
 
   linearIssue String?
