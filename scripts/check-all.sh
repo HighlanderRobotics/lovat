@@ -36,11 +36,17 @@ check_website() {
   npm run check && npm run lint && npm run build
 }
 
+check_learn() {
+  cd "$repo_root/apps/learn" || return
+  npm run build
+}
+
 run_group "Structure" "$repo_root/scripts/check-structure.sh"
 run_group "Server" check_server
 run_group "Collection" check_collection
 run_group "Dashboard" check_dashboard
 run_group "Website" check_website
+run_group "Learn" check_learn
 
 if (( failures > 0 )); then
   echo "$failures check group(s) failed. Compare with docs/migration/baseline-before.md." >&2

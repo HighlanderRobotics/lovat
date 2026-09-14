@@ -7,6 +7,8 @@
 - Dashboard consumes the authenticated API for analysis, scouting management, predictions, and picklists.
 - Website serves public pages and selected Slack, contact, verification, and operational routes.
 
+- Learn serves static user guides for Dashboard and Collection.
+
 ## Primary data flow
 
 Collection submits a report to Server. Server validates the event sequence and identity, writes durable rows to PostgreSQL, computes analysis, and caches reusable results in Redis. Dashboard reads the resulting API views. The Blue Alliance supplies external schedules and results.
@@ -17,7 +19,7 @@ The system integrates with PostgreSQL, Redis, Auth0, The Blue Alliance, Slack, R
 
 ## Cross-application contracts
 
-Compatibility-sensitive contracts include report JSON and event tuples, HTTP routes and response shapes, authentication headers, deep links, application versions, and season-specific enums and metrics. Search all four apps before changing one of these contracts and update every affected producer and consumer together.
+Compatibility-sensitive contracts include report JSON and event tuples, HTTP routes and response shapes, authentication headers, deep links, application versions, and season-specific enums and metrics. Search all applications before changing one of these contracts and update every affected producer and consumer together.
 
 ## Season changes
 
