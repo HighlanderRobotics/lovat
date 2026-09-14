@@ -1,15 +1,20 @@
 {
-  "name": "support",
-  "module": "index.ts",
-  "type": "module",
+  "name": "lovat-support",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "build": "tsc",
+    "start": "bun run src/server.ts"
   },
   "dependencies": {
+    "@lovat/db": "file:../../packages/db",
+    "dotenv": "^17.4.2",
     "hono": "^4.13.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "^4.23.13",
+    "typescript": "5.9.3"
   }
 }
