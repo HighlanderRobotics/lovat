@@ -1,11 +1,32 @@
 version: 2
 updates:
+  # Discover manifests throughout the monorepo, including nested packages.
+  # Zero disables routine version PRs; security update PRs remain enabled.
   - package-ecosystem: npm
     directories:
-      - /apps/server
-      - /packages/db
-      - /apps/collection
-      - /apps/website
-      - /apps/learn
+      - "/**"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: pub
+    directories:
+      - "/**"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  # Gradle security alerts also require dependency-graph submission.
+  - package-ecosystem: gradle
+    directory: "/apps/dashboard/android"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  # CocoaPods and Docker security updates are not supported by Dependabot.
