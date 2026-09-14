@@ -18,6 +18,7 @@ jobs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       collection: ${{ steps.filter.outputs.collection }}
       website: ${{ steps.filter.outputs.website }}
+      learn: ${{ steps.filter.outputs.learn }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -36,6 +37,9 @@ jobs:
               - '.github/workflows/ci.yml'
             collection:
               - 'apps/collection/**'
+              - '.github/workflows/ci.yml'
+            learn:
+              - 'apps/learn/**'
               - '.github/workflows/ci.yml'
             website:
               - 'apps/website/**'
@@ -136,16 +140,35 @@ jobs:
       - run: flutter --version
       - run: dart format --output=none --set-exit-if-changed .
 
+  learn:
+    name: Learn
+    needs: changes
+    if: ${{ needs.changes.outputs.learn == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/learn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/learn/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
   gate:
     name: Monorepo CI
     if: ${{ always() }}
-    needs: [changes, structure, server, collection, dashboard-format]
+    needs: [changes, structure, server, collection, dashboard-format, learn]
     runs-on: ubuntu-latest
     env:
       CHANGES_RESULT: ${{ needs.changes.result }}
       STRUCTURE_RESULT: ${{ needs.structure.result }}
       SERVER_RESULT: ${{ needs.server.result }}
       COLLECTION_RESULT: ${{ needs.collection.result }}
+      LEARN_RESULT: ${{ needs.learn.result }}
       DASHBOARD_RESULT: ${{ needs.dashboard-format.result }}
     steps:
       - name: Require applicable jobs
@@ -155,7 +178,8 @@ jobs:
             "$STRUCTURE_RESULT" \
             "$SERVER_RESULT" \
             "$COLLECTION_RESULT" \
-            "$DASHBOARD_RESULT"; do
+            "$DASHBOARD_RESULT" \
+            "$LEARN_RESULT"; do
             case "$result" in
               success|skipped) ;;
               *) echo "Required job result: $result" >&2; exit 1 ;;
