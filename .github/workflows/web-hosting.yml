@@ -20,13 +20,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build production image without secrets
-        run: docker build --build-arg LOVAT_API_BASE=https://preview-api.invalid -t lovat-web:test apps/${{ matrix.app }}
+        run: docker build --build-arg LOVAT_API_BASE=https://preview-api.invalid --build-arg LOVAT_WEBSITE_URL=https://preview-website.invalid --build-arg PUBLIC_WEBSITE_URL=https://preview-website.invalid -t lovat-web:test apps/${{ matrix.app }}
+      - name: Analyze Dashboard with the deployment SDK
+        if: matrix.app == 'dashboard'
+        continue-on-error: true # Existing analyzer baseline is documented in AGENTS.md.
+        run: |
+          docker build --target build --build-arg LOVAT_API_BASE=https://preview-api.invalid --build-arg LOVAT_WEBSITE_URL=https://preview-website.invalid -t lovat-dashboard-build:test apps/dashboard
+          docker run --rm lovat-dashboard-build:test flutter analyze
       - name: Start production image
-        run: docker run -d --name web -p 8080:8080 -e ORIGIN=http://localhost:8080 lovat-web:test
+        run: docker run -d --name web -p 8080:8080 -e ORIGIN=http://localhost:8080 -e PUBLIC_LEARN_URL=https://preview-learn.invalid -e PUBLIC_DASHBOARD_URL=https://preview-dashboard.invalid -e PUBLIC_WEBSITE_URL=https://preview-website.invalid lovat-web:test
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Verify HTTP behavior
+        env:
+          EXPECTED_LEARN_URL: https://preview-learn.invalid
+          EXPECTED_DASHBOARD_URL: https://preview-dashboard.invalid
+          EXPECTED_WEBSITE_URL: https://preview-website.invalid
         run: node scripts/test-web-hosting.mjs ${{ matrix.app }} http://localhost:8080
       - name: Container logs
         if: always()

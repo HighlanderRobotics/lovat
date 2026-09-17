@@ -1875,7 +1875,7 @@ class _LostTeamCodeSheetState extends State<LostTeamCodeSheet> {
     return TextButton(
       onPressed: () async {
         launchUrl(
-          Uri.parse("https://lovat.app/support"),
+          Uri.parse("$websiteBaseUrl/support"),
           mode: LaunchMode.externalApplication,
         );
       },
@@ -2422,7 +2422,7 @@ class TeamVerificationPage extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             Text(
-              "Please wait while we verify your team. We'll send updates to $teamEmail. If we don't verify you soon, get help at https://lovat.app/support/.",
+              "Please wait while we verify your team. We'll send updates to $teamEmail. If we don't verify you soon, get help at $websiteBaseUrl/support/.",
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium!

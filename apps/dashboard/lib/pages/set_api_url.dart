@@ -49,7 +49,7 @@ class _SetAPIUrlPageState extends State<SetAPIUrlPage> {
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             Text(
-              "Lovat Dashboard will send API requests to ${Uri.parse(widget.apiBaseUrl).host}. You can reset it to production in settings.",
+              "Lovat Dashboard will send API requests to ${Uri.parse(widget.apiBaseUrl).host}. You can reset it to the default server in settings.",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             FilledButton(

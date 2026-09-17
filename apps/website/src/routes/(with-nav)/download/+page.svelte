@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dashboardUrl } from '$lib/siteUrls';
 	import { Button } from 'magnolia-ui-svelte';
 </script>
 
@@ -27,7 +28,7 @@
 					<Button element="a" href="/dashboard/download">Download</Button>
 					<p class="alternative">
 						<span class="or">or</span>
-						<a href="https://dashboard.lovat.app">use web version</a>
+						<a href={dashboardUrl()}>use web version</a>
 					</p>
 				</div>
 			</div>

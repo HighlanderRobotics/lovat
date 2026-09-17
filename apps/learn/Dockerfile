@@ -3,7 +3,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+ARG PUBLIC_WEBSITE_URL
+ENV PUBLIC_WEBSITE_URL=$PUBLIC_WEBSITE_URL
+RUN test -n "$PUBLIC_WEBSITE_URL" && npm run build
 
 FROM caddy:2.10.2-alpine
 COPY Caddyfile /etc/caddy/Caddyfile

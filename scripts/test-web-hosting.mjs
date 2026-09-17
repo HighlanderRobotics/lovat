@@ -3,7 +3,7 @@ import { setTimeout } from 'node:timers/promises';
 
 const [app, base] = process.argv.slice(2);
 assert(['learn', 'dashboard', 'website'].includes(app), 'Expected app and base URL');
-const get = (path, options) => fetch(new URL(path, base), options);
+const get = (path, options) => fetch(new URL(path, base), { signal: AbortSignal.timeout(10000), ...options });
 for (let attempt = 0; ; attempt++) {
   try {
     assert.equal((await get('/healthz')).status, 200);
@@ -19,7 +19,17 @@ if (app === 'learn') {
   assert.equal(root.headers.get('location'), '/guides/welcome/');
   const guide = await get('/guides/welcome/');
   assert.equal(guide.status, 200);
-  assert.match(await guide.text(), /<html/);
+  const html = await guide.text();
+  assert.match(html, /<html/);
+  if (process.env.EXPECTED_WEBSITE_URL) {
+    const expected = process.env.EXPECTED_WEBSITE_URL;
+    assert(html.includes(`${expected}/contact`), 'Learn contact link must use preview Website');
+    const registration = await (await get('/guides/registering-a-team/')).text();
+    assert(registration.includes(`${expected}/dashboard/download`), 'MDX download link must use preview Website');
+    for (const page of [html, registration]) {
+      assert(!/href=["']https:\/\/(?:www\.)?lovat\.app(?:[\/"'])/.test(page), 'Learn links must not escape to production');
+    }
+  }
   assert.equal((await get('/nonexistent-guide')).status, 404);
 } else if (app === 'dashboard') {
   const root = await get('/');
@@ -38,6 +48,20 @@ if (app === 'learn') {
   const root = await get('/');
   assert.equal(root.status, 200);
   assert.match(root.headers.get('cache-control'), /no-store/);
+  if (process.env.EXPECTED_LEARN_URL) {
+    for (const [path, guide] of [['/dashboard', 'welcome'], ['/collection', 'scouting-a-match'], ['/scouting-lead', 'registering-a-team']]) {
+      const redirect = await get(path, { redirect: 'manual', headers: { accept: 'text/html' } });
+      assert.equal(redirect.status, 301);
+      assert.equal(redirect.headers.get('location'), `${process.env.EXPECTED_LEARN_URL}/guides/${guide}`);
+    }
+    const html = await root.text();
+    assert(html.includes(`${process.env.EXPECTED_LEARN_URL}/guides/welcome`));
+    const download = await (await get('/download')).text();
+    assert(download.includes(process.env.EXPECTED_DASHBOARD_URL));
+    for (const page of [html, download]) {
+      assert(!/href=["']https:\/\/(?:learn|dashboard)\.lovat\.app/.test(page), 'Website links must not escape to production');
+    }
+  }
   // The contact form's existing bot trap validates POST/redirect behavior without sending a message.
   const form = (origin) => get('/contact', {
     method: 'POST', redirect: 'manual',
