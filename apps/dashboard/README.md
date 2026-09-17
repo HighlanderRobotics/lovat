@@ -17,3 +17,7 @@ flutter build web
 The app consumes the authenticated Lovat Server API. `packages/chips_input` is an app-local path dependency. Application test coverage is currently limited.
 
 At the migration baseline, Flutter 3.35.4 analysis reports one informational lint and `flutter pub get` rewrites five lockfile entries. These pre-existing toolchain issues are documented in `../../docs/migration/baseline-before.md` and must not be hidden by migration changes.
+
+## Railway hosting
+
+See [Railway web hosting](../../docs/railway-web-hosting.md) for app-local Docker builds, PR environment variables, validation, and cutover.

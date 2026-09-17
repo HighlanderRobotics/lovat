@@ -1,0 +1,33 @@
+name: Web hosting images
+on:
+  pull_request:
+    paths:
+      - 'apps/website/**'
+      - 'apps/learn/**'
+      - 'apps/dashboard/**'
+      - '.github/workflows/web-hosting.yml'
+      - 'scripts/test-web-hosting.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [learn, dashboard, website]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image without secrets
+        run: docker build --build-arg LOVAT_API_BASE=https://preview-api.invalid -t lovat-web:test apps/${{ matrix.app }}
+      - name: Start production image
+        run: docker run -d --name web -p 8080:8080 -e ORIGIN=http://localhost:8080 lovat-web:test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify HTTP behavior
+        run: node scripts/test-web-hosting.mjs ${{ matrix.app }} http://localhost:8080
+      - name: Container logs
+        if: always()
+        run: docker logs web

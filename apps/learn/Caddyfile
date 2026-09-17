@@ -1,0 +1,23 @@
+{
+ admin off
+ auto_https off
+}
+:{$PORT:8080} {
+ root * /srv
+ encode zstd gzip
+ respond /healthz "ok" 200
+ redir / /guides/welcome/ 302
+ header Cache-Control "public, max-age=0, s-maxage=60"
+ handle /_astro/* {
+  header Cache-Control "public, max-age=31536000, immutable"
+  file_server
+ }
+ handle {
+  file_server
+ }
+ handle_errors {
+  header Cache-Control "no-store"
+  rewrite * /404.html
+  file_server
+ }
+}
