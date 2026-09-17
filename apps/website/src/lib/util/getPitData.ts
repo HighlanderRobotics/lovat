@@ -1,3 +1,4 @@
+import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { type PitDisplayData, pitDisplayResponseSchema } from './pitDataType';
 
@@ -8,6 +9,9 @@ export const getPitData = async (
 	topTeamCount: number,
 	teamsAboveCount: number
 ) => {
+	if (!env.LOVAT_API_BASE) {
+		throw error(503, 'Server integration is not configured');
+	}
 	const response = await fetch(
 		`${env.LOVAT_API_BASE}/v1/analysis/pitdisplay?team=${encodeURIComponent(
 			team

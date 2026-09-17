@@ -41,7 +41,7 @@ if (app === 'learn') {
   // The contact form's existing bot trap validates POST/redirect behavior without sending a message.
   const form = (origin) => get('/contact', {
     method: 'POST', redirect: 'manual',
-    headers: { origin, 'content-type': 'application/x-www-form-urlencoded' },
+    headers: { origin, accept: 'text/html', 'content-type': 'application/x-www-form-urlencoded' },
     body: 'name=Hosting+test&email=test%40example.invalid&team=8033&message=Test',
   });
   assert.equal((await form(new URL(base).origin)).status, 303);

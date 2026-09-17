@@ -1,7 +1,11 @@
+import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { createHmac } from 'crypto';
 
 export async function sendSignedRequest(path: string, method: string, body: string) {
+	if (!env.LOVAT_SIGNING_KEY || !env.LOVAT_API_BASE) {
+		throw error(503, 'Server integration is not configured');
+	}
 	const timestamp = Math.floor(Date.now() / 1000);
 	const signature = createHmac('sha256', env.LOVAT_SIGNING_KEY)
 		.update(

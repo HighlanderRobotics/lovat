@@ -5,7 +5,9 @@
 :{$PORT:8080} {
  root * /srv
  encode zstd gzip
- respond /healthz "ok" 200
+ handle /healthz {
+  respond "ok" 200
+ }
  redir / /guides/welcome/ 302
  header Cache-Control "public, max-age=0, s-maxage=60"
  handle /_astro/* {

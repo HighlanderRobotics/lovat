@@ -32,6 +32,10 @@ export const POST: RequestHandler = async (event) => {
 
 	const baseString = `v0:${requestTimestamp}:${await textRequest.text()}`;
 
+	if (!env.SLACK_SIGNING_SECRET) {
+		throw error(503, 'Slack integration is not configured');
+	}
+
 	// Validate signature
 	const hmac = createHmac('sha256', env.SLACK_SIGNING_SECRET);
 	hmac.update(baseString);
