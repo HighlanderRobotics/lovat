@@ -17,7 +17,7 @@ npm run preview
 
 Production server routes require provider-managed values such as `SLACK_SIGNING_SECRET`, `SLACK_WEBHOOK`, `RESEND_KEY`, and `LOVAT_SIGNING_KEY`. Never expose them to browser code or commit them.
 
-The migration baseline records existing Svelte check and formatting failures. A production build also requires its private environment configuration. Netlify must use `apps/website` as the repository base directory.
+The migration baseline records existing Svelte check and formatting failures. Railway builds do not require private environment configuration; provide it at runtime. Netlify must use `apps/website` as the repository base directory.
 
 ## Railway hosting
 

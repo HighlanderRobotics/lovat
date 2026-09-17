@@ -6,4 +6,4 @@
 - Do not commit lockfile drift caused only by switching Flutter versions. The migration baseline documents five such entries.
 - Preserve web, Android, iOS, and desktop behavior unless a change explicitly narrows platform support.
 - Treat API response shapes, Auth0 configuration, deep links, versions, and season metrics as cross-app contracts.
-- Keep Netlify credentials and signing material in provider-managed environments.
+- Keep hosting credentials and signing material in provider-managed environments.

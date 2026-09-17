@@ -128,7 +128,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_DASHBOARD_PRODUCTION_TOKEN }}
         run: |
           npm install --global @railway/cli@4.35.0
-          railway up apps/dashboard --path-as-root --service dashboard --environment production --ci
+          railway up --service dashboard --environment production --ci
       - name: Push version commit
         run: git push origin HEAD:production
       - name: Create or update draft release
