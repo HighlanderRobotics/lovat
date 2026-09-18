@@ -48,4 +48,22 @@ Never restore a dump into an unverified database or commit a dump to this reposi
 
 The canonical schema and migrations are in [`packages/db`](../../packages/db). Prisma is pinned to 7.10.0. Run `npm run db:seed` explicitly from this app when needed; seeding is not automatic.
 
-Railway must use the repository root and `Dockerfile.server` so the shared package is included. See the [shared package deployment checklist](../../packages/db/README.md) before enabling migrations.
+Railway must use the repository root and `apps/server/Dockerfile` so the shared package is included. See the [shared package deployment checklist](../../packages/db/README.md) before enabling migrations.
+
+### Railway service configuration
+
+Keep **Root Directory** set to `/` so Docker can copy `packages/db`. Set
+**Config File** to `/apps/server/railway.json`; that file selects
+`apps/server/Dockerfile`. Update this Railway setting before deploying the
+relocation commit, since there is no longer a root `railway.json`.
+Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
+
+The Dockerfile-specific `apps/server/Dockerfile.dockerignore` filters the
+repository-root build context. Database migration, startup, environment
+variables, and healthcheck behavior remain defined in the moved config.
+
+Build locally from the repository root:
+
+```sh
+docker build -f apps/server/Dockerfile -t lovat-server .
+```
