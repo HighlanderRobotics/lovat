@@ -33,7 +33,7 @@ Create a separate service from this repository:
 Remove any inherited build/start command overrides from the Server service.
 The Dockerfile builds Prisma and the shared package before installing and
 checking Support. Its dedicated ignore file excludes local secrets and build
-artifacts while including Support, which the root Server ignore file excludes.
+artifacts while including Support and the shared database package.
 
 Set these service variables:
 

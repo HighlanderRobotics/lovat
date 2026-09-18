@@ -1,4 +1,4 @@
-# Overrides the root Server ignore file for this Dockerfile.
+# Filters the repository-root build context for Support.
 **
 !packages/
 !packages/db/

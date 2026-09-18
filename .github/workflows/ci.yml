@@ -28,9 +28,6 @@ jobs:
             server:
               - 'apps/server/**'
               - 'packages/db/**'
-              - 'Dockerfile.server'
-              - '.dockerignore'
-              - 'railway.json'
               - '.github/workflows/ci.yml'
             dashboard:
               - 'apps/dashboard/**'
@@ -101,7 +98,7 @@ jobs:
           npm run test:integration
       - name: Build server deployment image
         working-directory: .
-        run: docker build -f Dockerfile.server -t lovat-server:ci .
+        run: docker build -f apps/server/Dockerfile -t lovat-server:ci .
 
   collection:
     name: Collection
