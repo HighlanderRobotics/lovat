@@ -1,0 +1,9 @@
+node_modules
+build
+dist
+.astro
+.svelte-kit
+.dart_tool
+.env
+.env.*
+.git

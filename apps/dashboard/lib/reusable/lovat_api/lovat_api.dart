@@ -254,4 +254,9 @@ class LovatAPIException implements Exception {
 
 const kProductionBaseUrl = "https://api.lovat.app";
 
-final lovatAPI = LovatAPI(kProductionBaseUrl);
+const kDefaultBaseUrl = String.fromEnvironment(
+  'LOVAT_API_BASE',
+  defaultValue: kProductionBaseUrl,
+);
+
+final lovatAPI = LovatAPI(kDefaultBaseUrl);

@@ -1,4 +1,5 @@
 <script>
+	import { learnUrl } from '$lib/siteUrls';
 	import { onNavigate } from '$app/navigation';
 	import { Button, DensityProvider, Icon } from 'magnolia-ui-svelte';
 
@@ -30,10 +31,8 @@
 						<MenuButton element="a" href="/scouting-lead">Dashboard for Scouting Leads</MenuButton>
 					</Menu>
 				</MenuWrapper> -->
-				<Button
-					variant="text-only-secondary"
-					element="a"
-					href="https://learn.lovat.app/guides/welcome">Learn</Button
+				<Button variant="text-only-secondary" element="a" href={`${learnUrl()}/guides/welcome`}
+					>Learn</Button
 				>
 				<Button variant="text-only-secondary" element="a" href="/about">About</Button>
 				<Button variant="text-only-secondary" element="a" href="/contact">Contact</Button>

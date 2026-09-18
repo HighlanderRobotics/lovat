@@ -22,7 +22,7 @@ import Logo from "../assets/logo.png"
 	    <img src={Logo.src} alt="8033" />
       </a>
     </div>
-    <a class="main-title" href="https://lovat.app">Lovat</a>
+    <a class="main-title" href={import.meta.env.PUBLIC_WEBSITE_URL || "https://lovat.app"}>Lovat</a>
     <Search {...Astro.props}/>
   </div>		
 </div>
