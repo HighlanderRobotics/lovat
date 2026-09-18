@@ -4,7 +4,7 @@ export async function createTicket(data: {
   requesterName: string;
   requesterEmail: string;
   requesterId?: string;
-  requesterTeam?: string;
+  requesterTeam?: number | null;
   subject?: string;
   body: string;
   source: TicketSource;

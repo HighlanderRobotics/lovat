@@ -251,7 +251,7 @@ model SupportTicket {
   requesterName String
   requesterId String?
   requesterEmail String
-  requesterTeam Int
+  requesterTeam Int?
   requester User?      @relation(fields: [requesterId], references: [id], onDelete: SetNull)
 
   linearIssue String?

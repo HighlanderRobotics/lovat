@@ -1,6 +1,7 @@
 import type { Actions } from './$types';
 import { error, redirect } from '@sveltejs/kit';
-import { sendSignedRequest } from '../../../lib/util/sendSignedRequest';
+import { sendSignedRequest } from '$lib/util/sendSignedRequest';
+import { env } from '$env/dynamic/private';
 
 export const actions = {
 	default: async ({ request }) => {
@@ -40,9 +41,10 @@ export const actions = {
 		const response = await sendSignedRequest(
 			`/v1/tickets/website`,
 			'POST',
-			JSON.stringify({ body })
+			JSON.stringify(body),
+			env.LOVAT_SUPPORT_BASE
 		);
-		if (response.status === 200) {
+		if (response.ok) {
 			throw redirect(303, '/contact/success');
 		} else {
 			console.log(`Received an error from Slack when attempting to POST to the webhook:

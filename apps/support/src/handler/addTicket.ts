@@ -4,25 +4,35 @@ import { createTicket } from "../services/tickets";
 
 export const addTicket = async (c: Context, source: TicketSource) => {
   const body = await c.req.json();
+  const requesterTeam =
+    body.team == null || String(body.team).trim() === ""
+      ? null
+      : Number(body.team);
+  if (
+    requesterTeam !== null &&
+    (!Number.isInteger(requesterTeam) || requesterTeam <= 0 || requesterTeam > 99999)
+  ) {
+    return c.json({ error: "Invalid team number" }, 400);
+  }
 
   let ticket;
 
   switch (source) {
     case "EMAIL":
     case "WEBSITE":
-      ticket = createTicket({
+      ticket = await createTicket({
         requesterEmail: body.email,
         requesterName: body.name,
-        requesterTeam: body.team,
+        requesterTeam,
         body: body.message,
         source: source,
       });
       break;
     case "DASHBOARD":
-      ticket = createTicket({
+      ticket = await createTicket({
         requesterEmail: body.email,
         requesterName: body.name,
-        requesterTeam: body.team,
+        requesterTeam,
         requesterId: body.id,
         body: body.message,
         source: source,

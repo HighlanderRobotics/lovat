@@ -6,11 +6,11 @@ import { addTicket } from "../handler/addTicket";
 const router = new Hono();
 
 router.post("/website", requireLovatSignature, async (c) => {
-  addTicket(c, TicketSource.WEBSITE);
+  return addTicket(c, TicketSource.WEBSITE);
 });
 
 router.post("/dashboard", requireLovatSignature, async (c) => {
-  addTicket(c, TicketSource.DASHBOARD);
+  return addTicket(c, TicketSource.DASHBOARD);
 });
 
 export default router;
