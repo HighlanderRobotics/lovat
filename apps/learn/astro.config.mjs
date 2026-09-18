@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
 import svelte from "@astrojs/svelte";
+import remarkSiteLinks from "./plugins/remark-site-links.mjs";
 import remarkMath from "remark-math";
 import rehypeMathJaxSvg from "rehype-mathjax/svg";
 
@@ -76,7 +77,7 @@ export default defineConfig({
     svelte(),
   ],
   markdown: {
-    remarkPlugins: [remarkMath],
+    remarkPlugins: [remarkMath, [remarkSiteLinks, { websiteUrl: process.env.PUBLIC_WEBSITE_URL }]],
     rehypePlugins: [rehypeMathJaxSvg],
   },
 });

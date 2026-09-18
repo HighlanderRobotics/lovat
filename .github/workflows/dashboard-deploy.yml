@@ -110,6 +110,7 @@ jobs:
           git add apps/dashboard/pubspec.yaml
           git commit -m "chore(dashboard): bump version to $CURRENT_VERSION+$NEW_BUILD [skip ci]"
       - name: Deploy to Netlify
+        if: ${{ vars.DASHBOARD_HOSTING != 'railway' }}
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './apps/dashboard/build/web'
@@ -121,6 +122,13 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 5
+      - name: Deploy to Railway
+        if: ${{ vars.DASHBOARD_HOSTING == 'railway' }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_DASHBOARD_PRODUCTION_TOKEN }}
+        run: |
+          npm install --global @railway/cli@4.35.0
+          railway up --service dashboard --environment production --ci
       - name: Push version commit
         run: git push origin HEAD:production
       - name: Create or update draft release

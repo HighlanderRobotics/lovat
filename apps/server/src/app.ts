@@ -27,7 +27,13 @@ app.use(
     origin:
       process.env.NODE_ENV === "development"
         ? true // any origin during development (eg. any port on localhost)
-        : /^https:\/\/(.*\.)?lovat\.app$/, // only from lovat.app
+        : [
+            /^https:\/\/(.*\.)?lovat\.app$/,
+            ...(process.env.CORS_ALLOWED_ORIGINS ?? "")
+              .split(",")
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+          ], // Explicit preview origins; never allow every Railway domain.
   }),
 );
 
