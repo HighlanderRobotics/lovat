@@ -27,10 +27,25 @@ Create a separate service from this repository:
 | --- | --- |
 | Branch | `jackshim415/support` |
 | Root Directory | `/` (repository root, required for the shared DB package) |
-| Config File | `/apps/support/railway.json` |
-| Dockerfile | `apps/support/Dockerfile` (set by the config) |
+| Builder | Dockerfile |
+| Dockerfile | `apps/support/Dockerfile` |
+| Start command | `bun run start` |
+| Pre-deploy command | `npm --prefix /app/packages/db run db:deploy` |
+| Healthcheck | `/status`, timeout 120 seconds |
+| Restart policy | On failure, maximum 3 retries |
+| Watch paths | `/apps/support/**`, `/packages/db/**` |
+| Serverless / sleeping | Disabled |
 
-Remove any inherited build/start command overrides from the Server service.
+Set these values on the Support service, replacing any inherited Server settings.
+Railway no longer allows new services to opt into legacy Config as Code. The
+app-local `railway.json` records the equivalent settings for existing legacy
+services, but new services must use service settings or Infrastructure as Code.
+Do not let Support use the repository-root Server config or `/apps/server` root.
+See [Railway configuration migration](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
+
+After changing the root directory, deploy fresh source from GitHub or a clean
+repository-root upload. Redeploying an older snapshot can retain the old,
+restricted source tree.
 The Dockerfile builds Prisma and the shared package before installing and
 checking Support. Its dedicated ignore file excludes local secrets and build
 artifacts while including Support, which the root Server ignore file excludes.
