@@ -1,0 +1,96 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 7 * * 2'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            os: ubuntu-latest
+            build-mode: none
+          - language: javascript-typescript
+            os: ubuntu-latest
+            build-mode: none
+          - language: c-cpp
+            os: ubuntu-latest
+            build-mode: none
+          - language: java-kotlin
+            os: ubuntu-latest
+            build-mode: manual
+          - language: swift
+            os: macos-15
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        if: matrix.build-mode == 'manual'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.35.4
+      - name: Install Dashboard dependencies
+        if: matrix.build-mode == 'manual'
+        working-directory: apps/dashboard
+        run: flutter pub get
+      # CocoaPods dependencies must be installed before CodeQL starts tracing.
+      # Config-only generates Flutter's Xcode settings without compiling Swift.
+      - name: Prepare Apple projects
+        if: matrix.language == 'swift'
+        working-directory: apps/dashboard
+        run: |
+          flutter build ios --config-only --no-codesign --debug
+          flutter build macos --config-only --debug
+          (cd ios && pod install)
+          (cd macos && pod install)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Build Android for Kotlin analysis
+        if: matrix.language == 'java-kotlin'
+        working-directory: apps/dashboard
+        env:
+          # Ensure the compiler runs inside the CodeQL tracing process.
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process
+        run: flutter build apk --debug
+      - name: Build iOS and macOS for Swift analysis
+        if: matrix.language == 'swift'
+        working-directory: apps/dashboard
+        run: |
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO build
+          xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner -configuration Debug CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO build
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
