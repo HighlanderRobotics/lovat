@@ -62,7 +62,9 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.4
+          # iOS already uses FlutterImplicitEngineDelegate (UIScene lifecycle).
+          # Keep the existing SDK for Android/macOS; match the migrated iOS code.
+          flutter-version: ${{ matrix.platform == 'ios' && '3.41.0' || '3.35.4' }}
       - name: Install Dashboard dependencies
         if: matrix.build-mode == 'manual'
         working-directory: apps/dashboard
