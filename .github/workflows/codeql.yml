@@ -80,10 +80,16 @@ jobs:
       - name: Build Android for Kotlin analysis
         if: matrix.language == 'java-kotlin'
         working-directory: apps/dashboard
-        env:
-          # Ensure the compiler runs inside the CodeQL tracing process.
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process
-        run: flutter build apk --debug
+        run: |
+          # Keep both Gradle and Kotlin inside CodeQL's traced process tree.
+          cat >> android/gradle.properties <<'PROPERTIES'
+
+          org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=1G -XX:+HeapDumpOnOutOfMemoryError
+          org.gradle.workers.max=2
+          org.gradle.daemon=false
+          kotlin.compiler.execution.strategy=in-process
+          PROPERTIES
+          flutter build apk --debug --target-platform android-arm64
       - name: Build iOS and macOS for Swift analysis
         if: matrix.language == 'swift'
         working-directory: apps/dashboard
