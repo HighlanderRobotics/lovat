@@ -434,7 +434,9 @@ mobile-starlight-toc nav summary .toggle {
   height: 2rem;
   background-color: transparent;
   color: var(--color-text);
-  transition: border-color, color var(--color-transition);
+  transition:
+    border-color,
+    color var(--color-transition);
 }
 mobile-starlight-toc nav summary .toggle:hover {
   border-color: var(--sl-color-accent);

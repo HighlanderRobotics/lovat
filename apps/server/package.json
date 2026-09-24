@@ -10,6 +10,7 @@
     "test": "tsc",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "postinstall": "npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
     "prebuild": "npm --prefix ../../packages/db run build",
     "db:seed": "tsx src/seed.ts"
