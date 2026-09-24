@@ -13,7 +13,8 @@
 	<div class="content">
 		<h1>Pit display</h1>
 		<p>
-			Watch a live feed of the field and monitor upcoming matches at your tournament in real time, enhanced with data from Lovat.
+			Watch a live feed of the field and monitor upcoming matches at your tournament in real time,
+			enhanced with data from Lovat.
 		</p>
 	</div>
 </section>
@@ -25,13 +26,13 @@
 		<label for="team">Team Number</label>
 		<TextField name="team" id="team" placeholder="8033" required />
 
-        <label for="queueMatchCount">Match buffer to start queueing</label>
+		<label for="queueMatchCount">Match buffer to start queueing</label>
 		<TextField name="queueMatchCount" id="queueMatchCount" placeholder="3" type="number" required />
 
-        <label for="topTeamCount">Top ranked teams to show</label>
+		<label for="topTeamCount">Top ranked teams to show</label>
 		<TextField name="topTeamCount" id="topTeamCount" placeholder="5" type="number" required />
 
-        <label for="teamsAboveCount">Teams above yours to show in rankings</label>
+		<label for="teamsAboveCount">Teams above yours to show in rankings</label>
 		<TextField name="teamsAboveCount" id="teamsAboveCount" placeholder="3" type="number" required />
 
 		<div class="submit">
@@ -86,7 +87,7 @@
 	}
 
 	.submit {
-        margin-top: 20px;
+		margin-top: 20px;
 		margin-left: auto;
 	}
 </style>
