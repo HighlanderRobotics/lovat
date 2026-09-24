@@ -51,6 +51,22 @@ jobs:
             build-mode: manual
     steps:
       - uses: actions/checkout@v4
+      - name: Select result destination
+        id: results
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          upload=always
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            if [ -z "$(git ls-tree --name-only "$BASE_SHA" -- .github/workflows/codeql.yml)" ]; then
+              # The introducing PR must coexist with GitHub's default setup.
+              # Subsequent PRs and all main/scheduled runs upload normally.
+              upload=never
+              echo 'Initial workflow validation: analysis results are saved as artifacts. After merge, switch from default to advanced CodeQL setup.' >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          echo "upload=$upload" >> "$GITHUB_OUTPUT"
       - name: Set up Java
         if: matrix.language == 'java-kotlin'
         uses: actions/setup-java@v4
@@ -117,3 +133,13 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: /language:${{ matrix.language }}${{ matrix.platform && format('/platform:{0}', matrix.platform) || '' }}
+          upload: ${{ steps.results.outputs.upload }}
+          output: ${{ runner.temp }}/codeql-results
+      - name: Save initial scan results
+        if: steps.results.outputs.upload == 'never'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-${{ matrix.language }}${{ matrix.platform && format('-{0}', matrix.platform) || '' }}
+          path: ${{ runner.temp }}/codeql-results/*.sarif
+          if-no-files-found: error
+          retention-days: 7
