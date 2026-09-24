@@ -119,10 +119,28 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
+      - run: npm run ts:check
       - run: npm run build
 
+  dashboard-format:
+    name: Dashboard format
+    needs: changes
+    if: ${{ needs.changes.outputs.dashboard == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.16.2
+      - run: flutter --version
+      - run: dart format --output=none --set-exit-if-changed .
+
   dashboard:
-    name: Dashboard
+    name: Dashboard analyze and build
     needs: changes
     if: ${{ needs.changes.outputs.dashboard == 'true' }}
     runs-on: ubuntu-latest
@@ -137,7 +155,6 @@ jobs:
           flutter-version: 3.35.4
       - run: flutter --version
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter build web --release
 
@@ -159,6 +176,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
+      - run: npm run check
       - run: npm run build
 
   learn:
@@ -184,7 +202,7 @@ jobs:
   gate:
     name: Monorepo CI
     if: ${{ always() }}
-    needs: [changes, structure, server, collection, dashboard, website, learn]
+    needs: [changes, structure, server, collection, dashboard-format, dashboard, website, learn]
     runs-on: ubuntu-latest
     env:
       CHANGES_RESULT: ${{ needs.changes.result }}
@@ -193,6 +211,7 @@ jobs:
       COLLECTION_RESULT: ${{ needs.collection.result }}
       WEBSITE_RESULT: ${{ needs.website.result }}
       LEARN_RESULT: ${{ needs.learn.result }}
+      DASHBOARD_FORMAT_RESULT: ${{ needs.dashboard-format.result }}
       DASHBOARD_RESULT: ${{ needs.dashboard.result }}
     steps:
       - name: Require applicable jobs
@@ -202,6 +221,7 @@ jobs:
             "$STRUCTURE_RESULT" \
             "$SERVER_RESULT" \
             "$COLLECTION_RESULT" \
+            "$DASHBOARD_FORMAT_RESULT" \
             "$DASHBOARD_RESULT" \
             "$WEBSITE_RESULT" \
             "$LEARN_RESULT"; do
