@@ -28,9 +28,6 @@ jobs:
             server:
               - 'apps/server/**'
               - 'packages/db/**'
-              - 'Dockerfile.server'
-              - '.dockerignore'
-              - 'railway.json'
               - '.github/workflows/ci.yml'
             dashboard:
               - 'apps/dashboard/**'
@@ -84,8 +81,9 @@ jobs:
             apps/server/package-lock.json
             packages/db/package-lock.json
       - run: npm ci
-      - run: npm run build
+      - run: npm run format:check
       - run: npm run lint
+      - run: npm run build
       - run: npm test
       - name: Test shared database against disposable PostgreSQL
         working-directory: packages/db
@@ -101,7 +99,7 @@ jobs:
           npm run test:integration
       - name: Build server deployment image
         working-directory: .
-        run: docker build -f Dockerfile.server -t lovat-server:ci .
+        run: docker build -f apps/server/Dockerfile -t lovat-server:ci .
 
   collection:
     name: Collection
@@ -115,13 +113,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24.6.0
           cache: npm
           cache-dependency-path: apps/collection/package-lock.json
       - run: npm ci
-      - run: npm run lint
       - run: npm run format:check
+      - run: npm run lint
       - run: npm run ts:check
+      - run: npm run build
 
   dashboard-format:
     name: Dashboard format
@@ -140,6 +139,46 @@ jobs:
       - run: flutter --version
       - run: dart format --output=none --set-exit-if-changed .
 
+  dashboard:
+    name: Dashboard analyze and build
+    needs: changes
+    if: ${{ needs.changes.outputs.dashboard == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.35.4
+      - run: flutter --version
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter build web --release
+
+  website:
+    name: Website
+    needs: changes
+    if: ${{ needs.changes.outputs.website == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.6
+          cache: npm
+          cache-dependency-path: apps/website/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run check
+      - run: npm run build
+
   learn:
     name: Learn
     needs: changes
@@ -156,20 +195,24 @@ jobs:
           cache: npm
           cache-dependency-path: apps/learn/package-lock.json
       - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
       - run: npm run build
 
   gate:
     name: Monorepo CI
     if: ${{ always() }}
-    needs: [changes, structure, server, collection, dashboard-format, learn]
+    needs: [changes, structure, server, collection, dashboard-format, dashboard, website, learn]
     runs-on: ubuntu-latest
     env:
       CHANGES_RESULT: ${{ needs.changes.result }}
       STRUCTURE_RESULT: ${{ needs.structure.result }}
       SERVER_RESULT: ${{ needs.server.result }}
       COLLECTION_RESULT: ${{ needs.collection.result }}
+      WEBSITE_RESULT: ${{ needs.website.result }}
       LEARN_RESULT: ${{ needs.learn.result }}
-      DASHBOARD_RESULT: ${{ needs.dashboard-format.result }}
+      DASHBOARD_FORMAT_RESULT: ${{ needs.dashboard-format.result }}
+      DASHBOARD_RESULT: ${{ needs.dashboard.result }}
     steps:
       - name: Require applicable jobs
         run: |
@@ -178,7 +221,9 @@ jobs:
             "$STRUCTURE_RESULT" \
             "$SERVER_RESULT" \
             "$COLLECTION_RESULT" \
+            "$DASHBOARD_FORMAT_RESULT" \
             "$DASHBOARD_RESULT" \
+            "$WEBSITE_RESULT" \
             "$LEARN_RESULT"; do
             case "$result" in
               success|skipped) ;;
