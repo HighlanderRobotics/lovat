@@ -65,6 +65,15 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7.4
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' }}
     runs-on: ubuntu-latest
@@ -84,6 +93,8 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run build
+      - run: npm run typecheck
+      - run: npm run typecheck:test
       - run: npm test
       - name: Test shared database against disposable PostgreSQL
         working-directory: packages/db
@@ -97,6 +108,12 @@ jobs:
           npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
           node --test test/migrations.test.mjs
           npm run test:integration
+      - name: Test Server report persistence against disposable services
+        env:
+          DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+          REDIS_URL: redis://127.0.0.1:6379/15
+          LOVAT_DB_TEST: "1"
+        run: npm run test:integration
       - name: Build server deployment image
         working-directory: .
         run: docker build -f apps/server/Dockerfile -t lovat-server:ci .
