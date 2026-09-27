@@ -12,6 +12,27 @@ Return to the [monorepo README](../../README.md).
 
 ## Setup
 
+The automated local setup installs the pinned dependencies, starts isolated
+PostgreSQL and Redis services, creates `.env` when needed, and applies the
+committed Prisma migrations:
+
+```bash
+nvm use
+npm run local:setup
+npm run local:dev
+```
+
+Stop the local services without deleting their data with `npm run local:stop`.
+The managed services use ports `55432` and `56379`, keeping them separate from
+default PostgreSQL and Redis installations. Their data and logs are retained
+under the ignored `.local/server` directory between runs.
+
+The local scripts always connect to these development-only services, even if
+`.env` contains a different database URL. Add optional
+external-integration credentials to `.env` after it is created.
+
+For a manual setup instead:
+
 ```bash
 nvm use
 npm ci

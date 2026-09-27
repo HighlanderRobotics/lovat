@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch src/server.ts",
+    "local:setup": "./local/setup.sh",
+    "local:dev": "./local/start.sh",
+    "local:stop": "./local/stop.sh",
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/src/server.js",
     "test": "tsc",
