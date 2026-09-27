@@ -59,7 +59,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
-    "@vitest/coverage-v8": "3.2.7",
+    "@vitest/coverage-v8": "5.0.2",
     "eslint": "^10.10.0",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.12.0",
@@ -68,7 +68,7 @@
     "tsx": "^4.23.13",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.70.0",
-    "vitest": "3.2.7"
+    "vitest": "5.0.2"
   },
   "engines": {
     "node": "22.20.0"
