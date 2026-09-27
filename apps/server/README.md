@@ -27,11 +27,33 @@ Fill the local `.env` without committing it. PostgreSQL and Redis are required t
 
 ```bash
 npm run build
+npm run typecheck
+npm run typecheck:test
 npm test
+npm run test:coverage
 npm run lint
 ```
 
-`npm test` currently verifies TypeScript compilation rather than behavioral coverage.
+`npm test` runs non-watch Vitest behavior tests. `npm run typecheck` checks
+application types, and `npm run typecheck:test` also checks test and Vitest
+configuration types. `npm run test:coverage` includes untested application
+modules in the coverage report. The fast HTTP suite uses Supertest with a
+synthetic signing key and mocked database lookups, so it does not need
+PostgreSQL, Redis, or external accounts.
+
+The report integration suite uses disposable local PostgreSQL and Redis. After
+deploying the checked-in migrations to a database named `lovat_test`, run:
+
+```bash
+LOVAT_DB_TEST=1 \
+  DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test \
+  REDIS_URL=redis://127.0.0.1:6379/15 \
+  npm run test:integration
+```
+
+The suite refuses non-loopback hosts, a database with another name, or a Redis
+database other than 15. The existing shared database integration tests run
+separately from `packages/db`.
 
 ## Optional database restore
 
