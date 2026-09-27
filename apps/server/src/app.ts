@@ -52,4 +52,4 @@ app.get("/status", (req, res) => {
   res.status(200).send("Server running");
 });
 
-app.get('/version', getVersion)
+app.get("/version", getVersion);

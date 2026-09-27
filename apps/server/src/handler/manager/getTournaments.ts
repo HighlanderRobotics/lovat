@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 
 export const getTournaments = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     let rows = await prismaClient.tournament.findMany({
@@ -222,7 +222,7 @@ export const getTournaments = async (
         },
       });
       teamTournamentKeys = new Set(
-        teamTournaments.map((obj) => obj.tournamentKey)
+        teamTournaments.map((obj) => obj.tournamentKey),
       );
       const presentTeamTournaments = [];
       for (let i = 0; i < rows.length; i++) {

@@ -23,7 +23,11 @@ class BreakdownDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("$team - ${breakdownIdentity.localizedName}"),
+        title: Text(
+          "$team - ${breakdownIdentity.localizedName}",
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: StaleRefreshBuilder(
         query: lovatAPI.breakdownDetailsQuery(team, breakdownIdentity.path),
@@ -50,13 +54,24 @@ class BreakdownDetailsPage extends StatelessWidget {
                             ...segment.matches
                                 .map((match) {
                                   return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(match.matchIdentity
-                                          .getLocalizedDescription(
-                                              abbreviateName: true)),
-                                      Text(match.sourceDescription),
+                                      Expanded(
+                                        child: Text(
+                                          match.matchIdentity
+                                              .getLocalizedDescription(
+                                            abbreviateName: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Flexible(
+                                        child: Text(
+                                          match.sourceDescription,
+                                          textAlign: TextAlign.end,
+                                        ),
+                                      ),
                                     ],
                                   );
                                 })

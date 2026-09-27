@@ -27,11 +27,33 @@ Fill the local `.env` without committing it. PostgreSQL and Redis are required t
 
 ```bash
 npm run build
+npm run typecheck
+npm run typecheck:test
 npm test
+npm run test:coverage
 npm run lint
 ```
 
-`npm test` currently verifies TypeScript compilation rather than behavioral coverage.
+`npm test` runs non-watch Vitest behavior tests. `npm run typecheck` checks
+application types, and `npm run typecheck:test` also checks test and Vitest
+configuration types. `npm run test:coverage` includes untested application
+modules in the coverage report. The fast HTTP suite uses Supertest with a
+synthetic signing key and mocked database lookups, so it does not need
+PostgreSQL, Redis, or external accounts.
+
+The report integration suite uses disposable local PostgreSQL and Redis. After
+deploying the checked-in migrations to a database named `lovat_test`, run:
+
+```bash
+LOVAT_DB_TEST=1 \
+  DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test \
+  REDIS_URL=redis://127.0.0.1:6379/15 \
+  npm run test:integration
+```
+
+The suite refuses non-loopback hosts, a database with another name, or a Redis
+database other than 15. The existing shared database integration tests run
+separately from `packages/db`.
 
 ## Optional database restore
 
@@ -48,4 +70,22 @@ Never restore a dump into an unverified database or commit a dump to this reposi
 
 The canonical schema and migrations are in [`packages/db`](../../packages/db). Prisma is pinned to 7.10.0. Run `npm run db:seed` explicitly from this app when needed; seeding is not automatic.
 
-Railway must use the repository root and `Dockerfile.server` so the shared package is included. See the [shared package deployment checklist](../../packages/db/README.md) before enabling migrations.
+Railway must use the repository root and `apps/server/Dockerfile` so the shared package is included. See the [shared package deployment checklist](../../packages/db/README.md) before enabling migrations.
+
+### Railway service configuration
+
+Keep **Root Directory** set to `/` so Docker can copy `packages/db`. Set
+**Config File** to `/apps/server/railway.json`; that file selects
+`apps/server/Dockerfile`. Update this Railway setting before deploying the
+relocation commit, since there is no longer a root `railway.json`.
+Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
+
+The Dockerfile-specific `apps/server/Dockerfile.dockerignore` filters the
+repository-root build context. Database migration, startup, environment
+variables, and healthcheck behavior remain defined in the moved config.
+
+Build locally from the repository root:
+
+```sh
+docker build -f apps/server/Dockerfile -t lovat-server .
+```

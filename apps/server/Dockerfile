@@ -1,3 +1,4 @@
+# Build from the repository root: docker build -f apps/server/Dockerfile .
 FROM node:22.20.0-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

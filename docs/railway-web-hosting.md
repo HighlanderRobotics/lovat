@@ -1,6 +1,6 @@
 # Railway web hosting
 
-Learn, Dashboard web and Website run as independent services in the existing Lovat Railway project. Use an isolated PR environment before promoting to production. The root railway.json remains owned by API.
+Learn, Dashboard web and Website run as independent services in the existing Lovat Railway project. Use an isolated PR environment before promoting to production. API uses `/apps/server/railway.json` with repository root `/` so its build includes `packages/db`.
 
 | Service | Root directory | Config file (repository absolute) | Health check |
 | --- | --- | --- | --- |

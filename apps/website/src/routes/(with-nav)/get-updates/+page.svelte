@@ -28,7 +28,6 @@
 
 		<label for="team">Team Number <span class="gray">(optional)</span></label>
 		<TextField name="team" id="team" placeholder="8033" />
-
 	</form>
 </section>
 

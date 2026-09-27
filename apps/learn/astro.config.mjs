@@ -77,7 +77,10 @@ export default defineConfig({
     svelte(),
   ],
   markdown: {
-    remarkPlugins: [remarkMath, [remarkSiteLinks, { websiteUrl: process.env.PUBLIC_WEBSITE_URL }]],
+    remarkPlugins: [
+      remarkMath,
+      [remarkSiteLinks, { websiteUrl: process.env.PUBLIC_WEBSITE_URL }],
+    ],
     rehypePlugins: [rehypeMathJaxSvg],
   },
 });
