@@ -420,8 +420,10 @@ describe.sequential("authenticated report access", () => {
       .set("Authorization", `Bearer ${otherLeadToken}`);
     expect(crossTeam.status).toBe(403);
 
-    const apiKey = `lvt-${randomUUID()}`;
-    const keyHash = createHash("sha256").update(apiKey).digest("hex");
+    const apiKey = "lvt-lvt256-delete-fixture";
+    // Precomputed SHA-256 digest for this synthetic API key, matching lookup behavior.
+    const keyHash =
+      "b9097b70e689f08848daea9afd7c4026828ea79a81648703a41eee94f8a1d53c";
     await db.apiKey.create({
       data: { keyHash, name: "Delete test key", userId: leadUserId },
     });
