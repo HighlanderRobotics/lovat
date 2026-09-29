@@ -44,6 +44,8 @@ export const getScoutersOnTeam = async (
     res.status(200).send(rows);
   } catch (error) {
     console.error(error);
-    res.status(500).send({ error: error, displayError: "Error" });
+    res
+      .status(500)
+      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

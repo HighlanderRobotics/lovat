@@ -32,6 +32,6 @@ export const getProfile = async (
     res.status(200).send(row);
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

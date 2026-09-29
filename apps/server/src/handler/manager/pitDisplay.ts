@@ -245,7 +245,7 @@ export const pitDisplay = async (
     res.status(200).send(data);
   } catch (error) {
     console.log(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
 async function matchFormat(

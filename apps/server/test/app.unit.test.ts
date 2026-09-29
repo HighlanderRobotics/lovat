@@ -7,6 +7,15 @@ vi.mock("../src/prismaClient.js", () => ({
   default: {
     team: { findMany: vi.fn().mockResolvedValue([]) },
     tournament: { findMany: vi.fn().mockResolvedValue([]) },
+    registeredTeam: { findUnique: vi.fn().mockResolvedValue({ number: 8033 }) },
+  },
+}));
+
+vi.mock("../src/redisClient.js", () => ({
+  kv: {
+    get: vi.fn().mockResolvedValue(null),
+    setEx: vi.fn().mockResolvedValue("OK"),
+    del: vi.fn().mockResolvedValue(1),
   },
 }));
 
@@ -16,12 +25,14 @@ process.env.LOVAT_SIGNING_KEY = "synthetic-test-signing-key";
 process.env.DOTENV_CONFIG_PATH = "/dev/null";
 process.env.DATABASE_URL =
   "postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test";
+process.env.SLACK_VERIFICATION_KEY = "synthetic-slack-verification-key";
 
 const { app } = await import("../src/app.js");
 const { default: requireLovatSignature } =
   await import("../src/lib/middleware/requireLovatSignature.js");
 const { checkForInvalidEvents, removeOrphanedStartEvents } =
   await import("../src/handler/manager/scoutreports/addScoutReport.js");
+const { kv } = await import("../src/redisClient.js");
 
 describe("Server HTTP routes", () => {
   it("reports a healthy process without starting the background scheduler", async () => {
@@ -36,6 +47,60 @@ describe("Server HTTP routes", () => {
     );
     expect(response.status).toBe(401);
     expect(response.text).toBe("No authorization token provided");
+    expect(response.headers.ratelimit).toBeDefined();
+  });
+
+  it("allows configured browser origins and rejects unrelated origins", async () => {
+    const trusted = await request(app)
+      .get("/status")
+      .set("Origin", "https://dashboard.lovat.app");
+    const untrusted = await request(app)
+      .get("/status")
+      .set("Origin", "https://attacker.invalid");
+    expect(trusted.headers["access-control-allow-origin"]).toBe(
+      "https://dashboard.lovat.app",
+    );
+    expect(untrusted.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("requires Slack's verification token before returning a JSON challenge", async () => {
+    const challenge = "<script>alert(1)</script>";
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const withoutToken = await request(app)
+      .post("/v1/slack/event")
+      .set("x-slack-signature", "v0=synthetic")
+      .set("x-slack-request-timestamp", timestamp)
+      .send({ challenge });
+    expect(withoutToken.status).toBe(401);
+
+    const verified = await request(app)
+      .post("/v1/slack/event")
+      .set("x-slack-signature", "v0=synthetic")
+      .set("x-slack-request-timestamp", timestamp)
+      .send({ token: process.env.SLACK_VERIFICATION_KEY, challenge });
+    expect(verified.status).toBe(200);
+    expect(verified.headers["content-type"]).toContain("application/json");
+    expect(verified.body).toEqual({ challenge });
+  });
+
+  it("creates a one-time Slack OAuth state and rejects unknown states", async () => {
+    const invite = await request(app).get(
+      "/v1/slack-invite?team_code=test-team",
+    );
+    expect(invite.status).toBe(302);
+    const state = new URL(invite.headers.location).searchParams.get("state");
+    expect(state).toMatch(/^[A-Za-z0-9_-]{32}$/);
+    expect(kv.setEx).toHaveBeenCalledWith(
+      `slack:oauth:${state}`,
+      "test-team",
+      600,
+    );
+
+    const callback = await request(app).get(
+      `/v1/slack/add-workspace?code=synthetic&state=${state}`,
+    );
+    expect(callback.status).toBe(400);
+    expect(callback.text).toBe("Invalid or expired OAuth state");
   });
 
   it("rejects malformed report uploads before touching the database", async () => {

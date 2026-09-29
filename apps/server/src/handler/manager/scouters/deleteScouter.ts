@@ -122,6 +122,6 @@ export const deleteScouter = async (
     res.status(200).send("Scouter deleted");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
