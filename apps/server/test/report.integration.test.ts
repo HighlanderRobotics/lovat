@@ -356,6 +356,28 @@ describe.sequential("authenticated report access", () => {
     expect(otherOwn.body.scoutReport.scouterName).toBe("Other test scouter");
   });
 
+  it("hides notes, metrics, and events on analysis routes outside source rules", async () => {
+    const analystToken = await authFixture.signToken!(userId);
+    const routes = [
+      `/v1/analysis/metrics/scoutreport/${otherReportUuid}`,
+      `/v1/analysis/timeline/scoutreport/${otherReportUuid}`,
+    ];
+    for (const route of routes) {
+      const response = await request(app)
+        .get(route)
+        .set("Authorization", `Bearer ${analystToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(route.includes("timeline") ? [] : {});
+    }
+
+    const otherLeadToken = await authFixture.signToken!(otherUserId);
+    const visibleTimeline = await request(app)
+      .get(routes[1])
+      .set("Authorization", `Bearer ${otherLeadToken}`);
+    expect(visibleTimeline.status).toBe(200);
+    expect(visibleTimeline.body).toHaveLength(3);
+  });
+
   it("denies reads when either source allowlist is empty", async () => {
     const token = await authFixture.signToken!(userId);
     const path = `/v1/manager/scoutreports/${reportUuid}`;

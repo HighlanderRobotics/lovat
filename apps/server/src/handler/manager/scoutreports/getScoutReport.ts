@@ -3,10 +3,7 @@ import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import { UserRole } from "@lovat/db";
-import {
-  dataSourceRuleSchema,
-  dataSourceRuleToPrismaFilter,
-} from "../../analysis/dataSourceRule.js";
+import { scoutReportSourceFilter } from "../../analysis/scoutReportSourceFilter.js";
 
 export const getScoutReport = async (
   req: AuthenticatedRequest,
@@ -25,21 +22,10 @@ export const getScoutReport = async (
       res.status(400).send(params);
       return;
     }
-    const sourceTeamRule = dataSourceRuleSchema(z.number()).parse(
-      req.user.teamSourceRule,
-    );
-    const sourceTournamentRule = dataSourceRuleSchema(z.string()).parse(
-      req.user.tournamentSourceRule,
-    );
     const scoutReport = await prismaClient.scoutReport.findFirst({
       where: {
         uuid: params.data.uuid,
-        scouter: {
-          sourceTeamNumber: dataSourceRuleToPrismaFilter(sourceTeamRule),
-        },
-        teamMatchData: {
-          tournamentKey: dataSourceRuleToPrismaFilter(sourceTournamentRule),
-        },
+        ...scoutReportSourceFilter(req.user),
       },
       include: {
         scouter: {
