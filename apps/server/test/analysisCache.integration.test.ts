@@ -153,10 +153,29 @@ describe.sequential(
         }),
       );
 
+      const waitForStoredCache = async (viewerId: string) => {
+        for (let attempt = 0; attempt < 40; attempt++) {
+          const row = await db.cachedAnalysis.findFirst({
+            where: {
+              key: {
+                contains: `analysis:handler:${viewerId}:${fixtureId}:handler`,
+              },
+            },
+            select: { key: true },
+          });
+          if (row && (await kv.get(row.key)) !== null) return row.key;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(`Cache entry for ${viewerId} was not persisted`);
+      };
+
       const first = await request(testApp).get("/analysis");
       expect(first.status).toBe(200);
       expect(first.headers["x-lovat-cache"]).toBe("miss");
       expect(first.body.viewer).toBe(users[0].id);
+
+      // The HTTP response is sent before the handler finishes persisting its cache.
+      await waitForStoredCache(users[0].id);
 
       const repeat = await request(testApp).get("/analysis");
       expect(repeat.headers["x-lovat-cache"]).toBe("hit");
@@ -169,6 +188,7 @@ describe.sequential(
       expect(second.headers["x-lovat-cache"]).toBe("miss");
       expect(second.body.viewer).toBe(users[1].id);
       expect(calculations).toBe(2);
+      await waitForStoredCache(users[1].id);
     });
   },
 );
