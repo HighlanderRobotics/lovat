@@ -1,9 +1,10 @@
+// Imported first so config validation runs before @lovat/db, which constructs
+// its Prisma client and throws when DATABASE_URL is missing.
+import { config } from "./config";
 import { app } from "./app";
-
-const port = Number(process.env.PORT ?? 3000);
 
 export default {
   hostname: "0.0.0.0",
-  port,
+  port: config.port,
   fetch: app.fetch,
 };

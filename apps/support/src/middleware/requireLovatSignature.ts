@@ -1,14 +1,9 @@
 import { Buffer } from "node:buffer";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Context, Next } from "hono";
-
-const LOVAT_SIGNING_KEY = process.env.LOVAT_SIGNING_KEY;
+import { config } from "../config";
 
 export const requireLovatSignature = async (c: Context, next: Next) => {
-  if (!LOVAT_SIGNING_KEY) {
-    throw new Error("LOVAT_SIGNING_KEY is not configured");
-  }
-
   const signature = c.req.header("x-signature");
   const timestampHeader = c.req.header("x-timestamp");
 
@@ -34,7 +29,7 @@ export const requireLovatSignature = async (c: Context, next: Next) => {
     timestamp,
   });
 
-  const generatedSignature = createHmac("sha256", LOVAT_SIGNING_KEY)
+  const generatedSignature = createHmac("sha256", config.lovatSigningKey)
     .update(payload)
     .digest("hex");
 

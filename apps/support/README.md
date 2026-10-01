@@ -11,9 +11,20 @@ npm --prefix packages/db ci
 npm --prefix packages/db run build
 cd apps/support
 bun install --frozen-lockfile
+cp .env.example .env
 # Set DATABASE_URL and LOVAT_SIGNING_KEY in your local .env.
 bun run dev
 ```
+
+`DATABASE_URL` and `LOVAT_SIGNING_KEY` are required. Support shares the Server
+database, so `DATABASE_URL` should match `apps/server/.env`, and
+`LOVAT_SIGNING_KEY` must match the value Website and Dashboard sign with.
+`src/config.ts` loads `.env` from this directory and fails at startup when a
+required variable is missing or `PORT` is not a positive integer. It is
+imported before `@lovat/db`, which builds its Prisma client from
+`DATABASE_URL` and would otherwise fail with a stack trace pointing into
+`packages/db`. Bun also loads `.env` automatically, so the explicit import only
+matters when the working directory differs.
 
 `bun run build` checks TypeScript. `bun run start` runs the service. It listens
 on `0.0.0.0` and `PORT` (default `3000`). `GET /status` is a public liveness
