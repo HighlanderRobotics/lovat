@@ -1,6 +1,6 @@
 import { db, TicketSource, TicketStatus } from "@lovat/db";
 
-export async function createTicket(data: {
+export const createTicket = async (data: {
   requesterName: string;
   requesterEmail: string;
   requesterId?: string;
@@ -8,7 +8,7 @@ export async function createTicket(data: {
   subject?: string;
   body: string;
   source: TicketSource;
-}) {
+}) => {
   return db.supportTicket.create({
     data: {
       requesterName: data.requesterName,
@@ -21,19 +21,19 @@ export async function createTicket(data: {
       source: data.source,
     },
   });
-}
+};
 
-export async function getTicket(id: string) {
+export const getTicket = async (id: string) => {
   return db.supportTicket.findUnique({
     where: { id },
   });
-}
+};
 
-export async function updateTicket(id: string, status: TicketStatus) {
+export const updateTicket = async (id: string, status: TicketStatus) => {
   return db.supportTicket.update({
     where: { id },
     data: {
       status,
     },
   });
-}
+};

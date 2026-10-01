@@ -1,6 +1,7 @@
 import { db, type TicketSource } from "@lovat/db";
 import type { Context } from "hono";
 import { createTicket } from "../services/tickets";
+import { openTicket } from "../services/slack";
 
 export const addTicket = async (c: Context, source: TicketSource) => {
   const body = await c.req.json();
@@ -10,7 +11,9 @@ export const addTicket = async (c: Context, source: TicketSource) => {
       : Number(body.team);
   if (
     requesterTeam !== null &&
-    (!Number.isInteger(requesterTeam) || requesterTeam <= 0 || requesterTeam > 99999)
+    (!Number.isInteger(requesterTeam) ||
+      requesterTeam <= 0 ||
+      requesterTeam > 99999)
   ) {
     return c.json({ error: "Invalid team number" }, 400);
   }
@@ -40,6 +43,8 @@ export const addTicket = async (c: Context, source: TicketSource) => {
       break;
     case "MANUAL":
   }
+
+  openTicket(ticket!);
 
   return c.json(ticket, 201);
 };
