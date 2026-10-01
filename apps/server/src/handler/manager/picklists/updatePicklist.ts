@@ -97,6 +97,6 @@ export const updatePicklist = async (
     res.status(200).send("picklist updated");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

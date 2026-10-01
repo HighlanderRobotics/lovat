@@ -1,9 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
 import compression from "compression";
-import cookieParser from "cookie-parser";
 import cors from "cors";
-import "dotenv/config";
+import rateLimit from "express-rate-limit";
+import "./loadEnv.js";
 
 import { setupExpressErrorHandler } from "posthog-node";
 import { posthog } from "./posthogClient.js";
@@ -16,7 +16,7 @@ import { getVersion } from "./handler/manager/version.js";
 export const app = express();
 
 setupExpressErrorHandler(posthog, app);
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 // Compress responses for clients that advertise support (Accept-Encoding: gzip)
 app.use(compression());
@@ -26,19 +26,20 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "development"
-        ? true // any origin during development (eg. any port on localhost)
+        ? /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
         : [
             /^https:\/\/(.*\.)?lovat\.app$/,
             ...(process.env.CORS_ALLOWED_ORIGINS ?? "")
               .split(",")
               .map((origin) => origin.trim())
-              .filter(Boolean),
+              .filter((origin) =>
+                /^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin),
+              ),
           ], // Explicit preview origins; never allow every Railway domain.
   }),
 );
 
 app.use(bodyParser.json());
-app.use(cookieParser());
 
 app.use(express.static(path.resolve("public")));
 
@@ -46,7 +47,16 @@ app.use(express.static(path.resolve("public")));
 app.use(posthogReporter);
 
 // API entry point
-app.use("/v1", routes); //theo was here
+app.use(
+  "/v1",
+  rateLimit({
+    windowMs: 60 * 1000,
+    limit: 600,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+  }),
+  routes,
+);
 
 app.get("/status", (req, res) => {
   res.status(200).send("Server running");
