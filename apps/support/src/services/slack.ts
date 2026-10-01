@@ -84,10 +84,10 @@ const ticketMessage = (ticket: SupportTicket) => {
             type: "button",
             text: {
               type: "plain_text",
-              text: "View ticket",
+              text: "Respond",
             },
-            action_id: "view_ticket",
-            url: "https://lovat.app",
+            action_id: "respond",
+            url: `mailto:${ticket.requesterEmail ?? "lovat@frc8033.com"}`,
           },
           {
             type: "button",
