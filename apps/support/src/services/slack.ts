@@ -1,4 +1,4 @@
-import { db, type SupportTicket } from "@lovat/db";
+import { db, TicketStatus, type SupportTicket } from "@lovat/db";
 import { WebClient } from "@slack/web-api";
 
 if (!process.env.SLACK_API_KEY) {
@@ -27,10 +27,23 @@ export const openTicket = async (ticket: SupportTicket) => {
 
   return message;
 };
+export const updateTicketSlack = async (ticket: SupportTicket) => {
+  if (!process.env.LOVAT_COMMUNICATIONS_ID) {
+    throw new Error("LOVAT_COMMUNICATIONS_ID is missing");
+  }
+  if (!ticket.slackChannelId || !ticket.slackMessageTs) {
+    return "NO_MESSAGE";
+  }
+  return await slack.chat.update({
+    channel: ticket.slackChannelId,
+    ts: ticket.slackMessageTs,
+    attachments: [ticketMessage(ticket)],
+  });
+};
 
 const ticketMessage = (ticket: SupportTicket) => {
   return {
-    color: "#5865F2",
+    color: ticketStatusToColor[ticket.status],
     blocks: [
       {
         type: "header",
@@ -102,4 +115,11 @@ const ticketMessage = (ticket: SupportTicket) => {
       },
     ],
   };
+};
+
+const ticketStatusToColor: Record<TicketStatus, string> = {
+  OPEN: "#5865F2",
+  NEEDS_REPLY: "#f1f50b",
+  RESOLVED: "#c52222",
+  NO_ACTION_NEEDED: "#2fff00",
 };
