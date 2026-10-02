@@ -23,7 +23,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
-    "test:integration": "node --test test/database.test.mjs"
+    "test:integration": "node --test test/database.test.mjs test/report.test.mjs"
   },
   "engines": {
     "node": ">=22.20.0 <23 || >=24"
