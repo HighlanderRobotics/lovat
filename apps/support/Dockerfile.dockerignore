@@ -1,0 +1,14 @@
+# Overrides the root Server ignore file for this Dockerfile.
+**
+!packages/
+!packages/db/
+!packages/db/**
+!apps/
+!apps/support/
+!apps/support/**
+**/node_modules
+**/dist
+**/src/generated
+**/.env
+**/.env.*
+**/*.log
