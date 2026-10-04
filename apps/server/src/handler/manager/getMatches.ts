@@ -13,6 +13,7 @@ import {
 /**
  * @param params.tournament tournament to pull from
  * @param query.teams optional - limit to matches containing all these teams
+ * @param query.includePractice optional - include practice matches, defaults to false
  *
  * @returns list of matches organized by number and type, with data for teams/scouts/external reports
  */
@@ -30,10 +31,15 @@ export const getMatches = async (
       .object({
         tournamentKey: z.string(),
         teamFilter: z.array(z.number()).nullable(),
+        includePractice: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((value) => value === "true"),
       })
       .safeParse({
         tournamentKey: req.params.tournament,
         teamFilter: teams,
+        includePractice: req.query.includePractice,
       });
     if (!params.success) {
       res.status(400).send(params);
@@ -65,8 +71,12 @@ export const getMatches = async (
     const lastFinishedMatch = last ? last.matchNumber : 0;
 
     // Filter to return a list of user's team's scout reports for each row, only valid if user has a team number
-    let includeTeamReports: Prisma.TeamMatchData$scoutReportsArgs | undefined =
-      undefined;
+    const ownReportSelect = {
+      scouter: { select: { name: true, uuid: true } },
+    } satisfies Prisma.ScoutReportSelect;
+    let includeTeamReports:
+      | { where: Prisma.ScoutReportWhereInput; select: typeof ownReportSelect }
+      | undefined;
 
     const teamSourceRule = dataSourceRuleSchema(z.number()).parse(
       req.user.teamSourceRule,
@@ -93,20 +103,16 @@ export const getMatches = async (
             sourceTeamNumber: user.teamNumber,
           },
         },
-        select: {
-          scouter: {
-            select: {
-              name: true,
-              uuid: true,
-            },
-          },
-        },
+        select: ownReportSelect,
       };
     }
 
     const rawData = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: params.data.tournamentKey,
+        ...(params.data.includePractice
+          ? {}
+          : { matchType: { not: MatchType.PRACTICE } }),
       },
       select: {
         matchNumber: true,
@@ -153,6 +159,9 @@ export const getMatches = async (
       _count: { scoutReports: number };
       scoutReports: { scouter: { name: string; uuid: string } }[] | undefined;
     }[][] = rawData.reduce((acc, curr) => {
+      // Practice rows have team-number keys rather than official alliance slots.
+      // Format them separately so they cannot overwrite qualification matches.
+      if (curr.matchType === MatchType.PRACTICE) return acc;
       // Positive indices are quals, negatives are elims
       const i =
         curr.matchNumber * (curr.matchType === MatchType.ELIMINATION ? -1 : 1);
@@ -223,6 +232,52 @@ export const getMatches = async (
       };
     }[] = [];
 
+    const withPracticeMatches = (matches: typeof finalFormattedMatches) => {
+      if (!params.data.includePractice) return matches;
+
+      type MatchRow = (typeof groupedData)[number][number];
+      const practiceGroups = new Map<number, MatchRow[]>();
+      for (const row of rawData) {
+        if (
+          row.matchType !== MatchType.PRACTICE ||
+          row._count.scoutReports === 0
+        ) {
+          continue;
+        }
+        const group = practiceGroups.get(row.matchNumber) ?? [];
+        group.push(row);
+        practiceGroups.set(row.matchNumber, group);
+      }
+
+      const practiceMatches = [...practiceGroups.entries()]
+        .sort(([left], [right]) => left - right)
+        .filter(([, rows]) =>
+          (params.data.teamFilter ?? []).every((requiredTeam) =>
+            rows.some((row) => row.teamNumber === requiredTeam),
+          ),
+        )
+        .map(([matchNumber, rows]) => ({
+          matchNumber,
+          matchType: ReverseMatchTypeMap[MatchType.PRACTICE],
+          scouted: rows.some((row) => row._count.scoutReports >= 1),
+          finished: false,
+          // Practice reports do not identify red/blue alliance positions.
+          teams: rows
+            .sort((left, right) => left.teamNumber - right.teamNumber)
+            .map((row) => ({
+              number: row.teamNumber,
+              scouters: (row.scoutReports ?? []).map((report) => ({
+                name: report.scouter.name,
+                scouted: true,
+              })),
+              externalReports:
+                row._count.scoutReports - (row.scoutReports?.length ?? 0),
+            })),
+        }));
+
+      return [...matches, ...practiceMatches];
+    };
+
     // If no team number is set, there are no scouters and all reports are external
     if (!user.teamNumber) {
       for (const k in groupedData) {
@@ -275,7 +330,7 @@ export const getMatches = async (
         }
       }
 
-      res.status(200).send(finalFormattedMatches);
+      res.status(200).send(withPracticeMatches(finalFormattedMatches));
       return;
     }
     // Done here if user has no team number
@@ -397,7 +452,7 @@ export const getMatches = async (
     }
 
     if (!params.data.teamFilter) {
-      res.status(200).send(finalFormattedMatches);
+      res.status(200).send(withPracticeMatches(finalFormattedMatches));
       return;
     }
 
@@ -411,7 +466,7 @@ export const getMatches = async (
       }
     }
 
-    res.status(200).send(denseFormattedMatches);
+    res.status(200).send(withPracticeMatches(denseFormattedMatches));
   } catch (error) {
     console.log(error);
     res.status(500).send("Internal server error");

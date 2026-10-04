@@ -119,6 +119,7 @@ export const picklistShell = createAnalysisHandler({
     const matches = await prismaClient.teamMatchData.findFirst({
       where: {
         tournamentKey: query.tournamentKey,
+        matchType: { not: "PRACTICE" },
       },
     });
     if (!matches) {
@@ -130,6 +131,7 @@ export const picklistShell = createAnalysisHandler({
       by: ["teamNumber"],
       where: {
         tournamentKey: query.tournamentKey,
+        matchType: { not: "PRACTICE" },
       },
     });
     const includedTeams = teamsAtTournament.map((team) => team.teamNumber);
