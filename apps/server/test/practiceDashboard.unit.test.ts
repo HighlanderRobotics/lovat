@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../src/lib/middleware/requireAuth.js";
 
+vi.hoisted(() => {
+  // Importing @lovat/db enums also initializes its client; queries stay mocked.
+  process.env.DATABASE_URL =
+    "postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test";
+});
+
 vi.mock("../src/prismaClient.js", () => ({
   default: {
     scouter: { findFirst: vi.fn() },
