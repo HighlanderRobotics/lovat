@@ -325,6 +325,8 @@ export const addScoutReport = async (
     }
 
     console.log(error);
-    res.status(500).send({ error: error, displayError: "Error" });
+    res
+      .status(500)
+      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

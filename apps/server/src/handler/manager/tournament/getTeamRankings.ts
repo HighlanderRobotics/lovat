@@ -113,6 +113,6 @@ export const getTeamRankings = async (
     if (res.headersSent) {
       return;
     }
-    res.status(500).send({ message: "Failed to load team rankings" });
+    res.status(500).send("Internal server error");
   }
 };

@@ -259,7 +259,7 @@ export const getReportCSV = async (
     return;
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
 

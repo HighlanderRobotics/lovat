@@ -1,13 +1,27 @@
 import { Request, Response } from "express";
 import prismaClient from "../../prismaClient.js";
 import z from "zod";
+import { kv } from "../../redisClient.js";
 
 export const addSlackWorkspace = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const params = z.object({ code: z.string() }).parse(req.query);
+    const params = z
+      .object({
+        code: z.string().min(1),
+        state: z.string().regex(/^[A-Za-z0-9_-]{32}$/),
+      })
+      .parse(req.query);
+
+    const stateKey = `slack:oauth:${params.state}`;
+    const teamCode = await kv.get(stateKey);
+    if (typeof teamCode !== "string" || !teamCode) {
+      res.status(400).send("Invalid or expired OAuth state");
+      return;
+    }
+    await kv.del(stateKey);
 
     const form = new FormData();
 
@@ -42,7 +56,7 @@ export const addSlackWorkspace = async (
 
     const teamRow = await prismaClient.registeredTeam.findUnique({
       where: {
-        code: req.cookies.user_team_code,
+        code: teamCode,
       },
     });
 
@@ -77,6 +91,6 @@ export const addSlackWorkspace = async (
     );
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

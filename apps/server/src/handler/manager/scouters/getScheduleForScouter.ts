@@ -133,7 +133,9 @@ export const getScheduleForScouter = async (
     res.status(200).send({ hash: hashJsonObject(rows), data: finalArr });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ error: error, displayError: "error" });
+    res
+      .status(500)
+      .send({ error: "Internal server error", displayError: "error" });
   }
 };
 function hashJsonObject(json: object): string {

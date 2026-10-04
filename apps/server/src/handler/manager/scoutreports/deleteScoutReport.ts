@@ -74,6 +74,6 @@ export const deleteScoutReport = async (
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

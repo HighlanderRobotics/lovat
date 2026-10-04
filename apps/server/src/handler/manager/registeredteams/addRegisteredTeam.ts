@@ -73,7 +73,7 @@ export const addRegisteredTeam = async (
     res.status(200).send("verification email sent");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
 

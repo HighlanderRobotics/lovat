@@ -66,6 +66,6 @@ export const getScoutReport = async (
       .send({ scoutReport: responseReport, events: events, canModify });
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

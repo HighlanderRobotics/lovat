@@ -34,6 +34,6 @@ export const getSingleMutablePicklist = async (
   } catch (error) {
     console.error(error);
     console.error("failed mutable picklist");
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

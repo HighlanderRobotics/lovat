@@ -39,6 +39,6 @@ export const addWebsite = async (
     res.status(200).send("Slack verification sent");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
