@@ -4,5 +4,6 @@ export default defineConfig({
   test: {
     include: ["test/**/*.integration.test.ts"],
     maxWorkers: 1,
+    setupFiles: ["./test/blockOutboundHttp.ts"],
   },
 });
