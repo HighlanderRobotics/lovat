@@ -16,7 +16,7 @@ import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js
 const ScoutReportCreateSchema = z.object({
   uuid: z.string(),
   tournamentKey: z.string(),
-  matchType: z.enum(["QUALIFICATION", "ELIMINATION"]),
+  matchType: z.enum(["QUALIFICATION", "ELIMINATION","PRACTICE"]),
   matchNumber: z.number().int(),
   startTime: z.number().int(),
   notes: z.string(),

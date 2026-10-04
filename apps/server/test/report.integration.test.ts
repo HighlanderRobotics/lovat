@@ -24,7 +24,9 @@ process.env.DOTENV_CONFIG_PATH = "/dev/null";
 const { db } = await import("@lovat/db");
 const { app } = await import("../src/app.js");
 const { closeRedis, kv } = await import("../src/redisClient.js");
-
+const { averageManyFast } =
+  await import("../src/handler/analysis/coreAnalysis/averageManyFast.js");
+const { Metric } = await import("../src/handler/analysis/analysisConstants.js");
 const fixtureId = randomUUID();
 const teamNumber = -Math.floor(Math.random() * 1_000_000_000) - 1;
 const tournamentKey = `test-${fixtureId}`;
@@ -171,6 +173,59 @@ describe.sequential("report upload against disposable services", () => {
       await db.cachedAnalysis.findUnique({ where: { key: cacheKey } }),
     ).toBeNull();
     expect(await kv.get(cacheKey)).toBeNull();
+  });
+
+  it("keeps practice reports out of driver ability averages", async () => {
+    const storedUser = await db.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+
+    const user = {
+      ...storedUser,
+      teamSourceRule: { mode: "INCLUDE", items: [teamNumber] },
+      tournamentSourceRule: { mode: "INCLUDE", items: [tournamentKey] },
+    };
+
+    const args = {
+      teams: [9999],
+      metrics: [Metric.driverAbility],
+    };
+
+    const before = await averageManyFast(user, args);
+    expect(before[String(Metric.driverAbility)]["9999"]).toBe(3);
+
+    const response = await request(app)
+      .post("/v1/manager/scoutreports")
+      .send({
+        ...report(randomUUID()),
+        matchType: "PRACTICE",
+        matchNumber: 100,
+        driverAbility: 5,
+      });
+
+    expect(response.status).toBe(200);
+
+    const after = await averageManyFast(user, args);
+    expect(after[String(Metric.driverAbility)]["9999"]).toBe(3);
+
+    const practiceOnlyResponse = await request(app)
+      .post("/v1/manager/scoutreports")
+      .send({
+        ...report(randomUUID()),
+        teamNumber: 9998,
+        matchType: "PRACTICE",
+        matchNumber: 100,
+        driverAbility: 5,
+      });
+
+    expect(practiceOnlyResponse.status).toBe(200);
+
+    const practiceOnly = await averageManyFast(user, {
+      teams: [9998],
+      metrics: [Metric.driverAbility],
+    });
+
+    expect(practiceOnly[String(Metric.driverAbility)]["9998"]).toBe(-1);
   });
 
   it("limits repeated API-key requests using disposable Redis", async () => {
