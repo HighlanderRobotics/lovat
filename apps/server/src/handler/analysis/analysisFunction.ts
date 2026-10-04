@@ -86,7 +86,7 @@ export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
     keyFragments.push(`{${tournamentSource.mode}:[${tournamentSource.items}]}`);
   }
 
-  const key = ["analysis", "function", ...keyFragments].join(":");
+  const key = ["analysis", "function", user.id, ...keyFragments].join(":");
   const cacheRow = await kv.get(key);
 
   if (!cacheRow) {

@@ -105,7 +105,9 @@ export const createAnalysisHandler: <
         );
       }
 
-      const key = ["analysis", "handler", ...keyFragments].join(":");
+      const key = ["analysis", "handler", req.user.id, ...keyFragments].join(
+        ":",
+      );
 
       // Check to see if there's already an output in the cache
       const cacheRow = await kv.get(key);
