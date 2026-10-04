@@ -142,23 +142,47 @@ describe("signed Website requests", () => {
   });
 
   it("rejects a changed signature and stale or future timestamps", async () => {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const changed = await request(signedApp)
-      .post("/signed")
-      .send({})
-      .set("x-timestamp", String(timestamp))
-      .set("x-signature", sign(timestamp, { changed: true }));
-    expect(changed.status).toBe(403);
-
-    for (const offset of [-360, 360]) {
-      const shifted = timestamp + offset;
-      const response = await request(signedApp)
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-01-01T12:00:00.000Z"));
+    try {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const changed = await request(signedApp)
         .post("/signed")
         .send({})
-        .set("x-timestamp", String(shifted))
-        .set("x-signature", sign(shifted));
-      expect(response.status).toBe(401);
+        .set("x-timestamp", String(timestamp))
+        .set("x-signature", sign(timestamp, { changed: true }));
+      expect(changed.status).toBe(403);
+
+      for (const offset of [-360, 360]) {
+        const shifted = timestamp + offset;
+        const response = await request(signedApp)
+          .post("/signed")
+          .send({})
+          .set("x-timestamp", String(shifted))
+          .set("x-signature", sign(shifted));
+        expect(response.status).toBe(401);
+      }
+    } finally {
+      vi.useRealTimers();
     }
+  });
+
+  it("rejects signatures copied to a different body or request path", async () => {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const originalSignature = sign(timestamp, { action: "approve" });
+    const changedBody = await request(signedApp)
+      .post("/signed")
+      .send({ action: "reject" })
+      .set("x-timestamp", String(timestamp))
+      .set("x-signature", originalSignature);
+    expect(changedBody.status).toBe(403);
+
+    const changedPath = await request(signedApp)
+      .post("/signed?replayed=1")
+      .send({ action: "approve" })
+      .set("x-timestamp", String(timestamp))
+      .set("x-signature", originalSignature);
+    expect(changedPath.status).toBe(403);
   });
 });
 

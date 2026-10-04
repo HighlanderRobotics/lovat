@@ -72,9 +72,10 @@ Use only a disposable local database named `lovat_test`:
 export DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
 npm run db:validate
 npm run db:deploy
+npm run db:deploy
 npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 LOVAT_DB_TEST=1 node --test test/migrations.test.mjs
 LOVAT_DB_TEST=1 npm run test:integration
 ```
 
-CI provisions PostgreSQL 16, replays the complete migration history, checks for schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, and parameterized SQL. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.
+CI provisions PostgreSQL 16, replays the complete migration history, checks repeat deployment and schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, parameterized SQL, and report/event commit and cascade behavior. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.

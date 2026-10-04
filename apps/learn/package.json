@@ -13,15 +13,19 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.30.3",
-    "@astrojs/svelte": "^7.0.4",
-    "@fontsource/roboto": "^5.1.1",
-    "astro": "^5.0.2",
+    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/starlight": "^0.42.4",
+    "@astrojs/svelte": "^9.0.1",
+    "@fontsource/roboto": "^5.3.0",
+    "astro": "^7.3.5",
     "rehype-mathjax": "^7.1.0",
     "remark-math": "^6.0.0",
-    "sharp": "^0.32.5",
-    "svelte": "^5.20.2",
-    "typescript": "^5.7.3"
+    "sharp": "^0.35.5",
+    "svelte": "^5.57.1",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "0.9.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

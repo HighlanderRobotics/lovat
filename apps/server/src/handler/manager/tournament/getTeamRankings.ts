@@ -2,6 +2,40 @@ import { Request, Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 
+const tbaTeamStatusSchema = z.object({
+  qual: z
+    .object({
+      ranking: z.object({
+        rank: z.number().nullable(),
+        matches_played: z.number(),
+        sort_orders: z.array(z.number()),
+      }),
+    })
+    .optional(),
+});
+
+type TbaTeamStatus = z.infer<typeof tbaTeamStatusSchema>;
+
+const fetchTbaTeamStatuses = async (
+  tournamentKey: string,
+): Promise<Record<string, TbaTeamStatus>> => {
+  try {
+    const tbaResponse = await fetch(
+      `https://www.thebluealliance.com/api/v3/event/${tournamentKey}/teams/statuses`,
+    );
+    if (!tbaResponse.ok) {
+      return {};
+    }
+
+    return z
+      .record(z.string(), tbaTeamStatusSchema)
+      .parse(await tbaResponse.json());
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+};
+
 export const getTeamRankings = async (
   req: Request,
   res: Response,
@@ -27,7 +61,7 @@ export const getTeamRankings = async (
         teamNumber: true,
       },
     });
-    if (!rows) {
+    if (rows.length === 0) {
       res.status(404).send("Tournament or teams not found");
       return;
     }
@@ -56,32 +90,29 @@ export const getTeamRankings = async (
       matchesPlayed: null,
     }));
 
-    try {
-      const tbaResponse = await fetch(
-        `https://www.thebluealliance.com/api/v3/event/${params.data.tournamentKey}/teams/statuses`,
-      );
-      if (!tbaResponse.ok) throw Error("Failed to fetch from TBA");
+    const tbaTeamStatuses = await fetchTbaTeamStatuses(
+      params.data.tournamentKey,
+    );
 
-      const tbaTeams = await tbaResponse.json();
-
-      for (const team of tbaTeams) {
-        try {
-          const tbaTeam = tbaTeams[`frc${team.number}`];
-
-          team.rank = tbaTeam.qual.ranking.rank;
-          team.matchesPlayed = tbaTeam.qual.ranking.matches_played;
-          team.rankingPoints = Math.round(
-            tbaTeam.qual.ranking.sort_orders[0] * team.matchesPlayed,
-          );
-        } catch (e) {
-          continue;
-        }
+    for (const team of teams) {
+      const ranking = tbaTeamStatuses[`frc${team.number}`]?.qual?.ranking;
+      if (!ranking) {
+        continue;
       }
-    } finally {
-      res.status(200).send(teams);
+
+      team.rank = ranking.rank;
+      team.matchesPlayed = ranking.matches_played;
+      team.rankingPoints = Math.round(
+        ranking.sort_orders[0] * ranking.matches_played,
+      );
     }
+
+    res.status(200).send(teams);
   } catch (error) {
     console.error(error);
+    if (res.headersSent) {
+      return;
+    }
     res.status(500).send("Internal server error");
   }
 };
