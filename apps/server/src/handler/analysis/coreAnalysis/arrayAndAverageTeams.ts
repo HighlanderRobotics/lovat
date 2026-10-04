@@ -446,7 +446,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       const tmdFilter: Prisma.TeamMatchDataWhereInput = {};
       // Team filter
       tmdFilter.teamNumber = { in: teams };
-      tmdFilter.matchType = {not: "PRACTICE"};
+      tmdFilter.matchType = { not: "PRACTICE" };
 
       if (sourceTnmtFilter) {
         // Assign helper output directly; it's Prisma-compatible

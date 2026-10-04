@@ -65,7 +65,11 @@ export const RobotRoleSchema = z.enum([
 ]);
 export const WarningTypeSchema = z.enum(["BREAK"]);
 export const UserRoleSchema = z.enum(["ANALYST", "SCOUTING_LEAD"]);
-export const MatchTypeSchema = z.enum(["QUALIFICATION", "ELIMINATION","PRACTICE"]);
+export const MatchTypeSchema = z.enum([
+  "QUALIFICATION",
+  "ELIMINATION",
+  "PRACTICE",
+]);
 
 // Common JSON rule shapes used in User
 export const DataSourceRuleNumberSchema = z.object({

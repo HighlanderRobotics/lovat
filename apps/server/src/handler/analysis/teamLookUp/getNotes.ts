@@ -35,7 +35,7 @@ export const getNotes = createAnalysisHandler({
       where: {
         teamMatchData: {
           teamNumber: params.team,
-            matchType: {not:"PRACTICE"},
+          matchType: { not: "PRACTICE" },
         },
       },
     });
@@ -64,7 +64,7 @@ export const getNotes = createAnalysisHandler({
         teamMatchData: {
           teamNumber: params.team,
           tournamentKey: sourceTnmtFilter,
-          matchType:{not: "PRACTICE"},
+          matchType: { not: "PRACTICE" },
         },
         scouter: {
           sourceTeamNumber: sourceTeamFilter,

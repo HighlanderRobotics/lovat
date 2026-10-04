@@ -223,7 +223,7 @@ export const getTeamCSV = async (
                 ...(tournamentFilter
                   ? { tournamentKey: tournamentFilter }
                   : {}),
-                  matchType: {not: "PRACTICE"},
+                matchType: { not: "PRACTICE" },
               },
               ...(teamFilter
                 ? { scouter: { sourceTeamNumber: teamFilter } }
@@ -297,7 +297,7 @@ export const getTeamCSV = async (
                   ? { scouter: { sourceTeamNumber: teamFilter } }
                   : {},
               },
-               matchType: {not: "PRACTICE"},
+              matchType: { not: "PRACTICE" },
             },
             _count: {
               key: true,

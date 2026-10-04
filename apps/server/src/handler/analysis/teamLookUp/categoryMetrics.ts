@@ -34,7 +34,7 @@ export const categoryMetrics = createAnalysisHandler({
       where: {
         teamMatchData: {
           teamNumber: params.team,
-          matchType: {not: "PRACTICE"},
+          matchType: { not: "PRACTICE" },
         },
       },
     });
