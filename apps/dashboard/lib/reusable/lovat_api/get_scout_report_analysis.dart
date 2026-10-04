@@ -45,6 +45,7 @@ class SingleScoutReportAnalysis {
     required this.ballsFed,
     required this.ballsPerFeed,
     required this.autoScore,
+    required this.autoPathScore,
     this.notes,
     this.robotBrokeDescription,
   });
@@ -69,10 +70,24 @@ class SingleScoutReportAnalysis {
   final num ballsFed;
   final num ballsPerFeed;
   final num autoScore;
+  final num autoPathScore;
   final String? notes;
   final String? robotBrokeDescription;
 
+  num get fuelScore {
+    final endgamePoints = switch (climbResult) {
+      EndgameClimbResult.l1 => 10,
+      EndgameClimbResult.l2 => 20,
+      EndgameClimbResult.l3 => 30,
+      _ => 0,
+    };
+    final autoClimbPoints = autoClimb == AutoClimbResult.succeeded ? 15 : 0;
+    return totalPoints - endgamePoints - autoClimbPoints;
+  }
+
   factory SingleScoutReportAnalysis.fromJson(Map<String, dynamic> json) {
+    final autoPathScore = json['autoPath']['autoPoints'] as num;
+    final autoClimb = AutoClimbResult.values[(json['autoClimb'] as int)];
     return SingleScoutReportAnalysis(
       totalPoints: json['totalPoints'],
       driverAbility:
@@ -93,9 +108,11 @@ class SingleScoutReportAnalysis {
       accuracy: json["accuracy"],
       climbStartTime: json["climbStartTime"],
       climbResult: EndgameClimbResult.values[(json['climbResult'] as int)],
-      autoClimb: AutoClimbResult.values[(json['autoClimb'] as int)],
+      autoClimb: autoClimb,
       autoPath: AutoPath.fromMapSingleMatch(json["autoPath"]),
-      autoScore: json["autoPath"]["autoPoints"],
+      autoScore: (json['autoPoints'] as num?) ??
+          autoPathScore + (autoClimb == AutoClimbResult.succeeded ? 15 : 0),
+      autoPathScore: autoPathScore,
       volleys: json["volleys"],
       ballsFed: json["totalBallsFed"],
       ballsPerFeed:

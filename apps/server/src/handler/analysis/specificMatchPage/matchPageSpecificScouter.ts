@@ -57,6 +57,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
 
     const metrics = [
       Metric.totalPoints,
+      Metric.autoPoints,
       Metric.autoClimbStartTime,
       Metric.contactDefenseTime,
       Metric.campingDefenseTime,
@@ -78,6 +79,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
 
     const output: any = {
       totalPoints: agg[Metric.totalPoints],
+      autoPoints: agg[Metric.autoPoints],
       driverAbility: scoutReport.driverAbility,
       accuracy: scoutReport.accuracy,
       totalBallsFed: agg[Metric.totalBallsFed],

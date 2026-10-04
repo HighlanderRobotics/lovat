@@ -6,7 +6,13 @@ import {
   metricToEvent,
   minActionDuration,
 } from "../analysisConstants.js";
-import { AutoClimb, User } from "@lovat/db";
+import {
+  AutoClimb,
+  EndgameClimb,
+  EventAction,
+  Position,
+  User,
+} from "@lovat/db";
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 
@@ -51,29 +57,24 @@ function pairedDuration(
   return total;
 }
 
-export async function computeAverageScoutReport(
-  scoutReportUuid: string,
-  metrics: Metric[],
-): Promise<Partial<Record<Metric, number>>> {
-  const report = await prismaClient.scoutReport.findUniqueOrThrow({
-    where: { uuid: scoutReportUuid },
-    select: {
-      endgameClimb: true,
-      driverAbility: true,
-      autoClimb: true,
-      defenseEffectiveness: true,
-      events: {
-        select: {
-          action: true,
-          position: true,
-          points: true,
-          quantity: true,
-          time: true,
-        },
-      },
-    },
-  });
+export interface ScoutReportMetricsInput {
+  endgameClimb: EndgameClimb;
+  driverAbility: number;
+  autoClimb: AutoClimb;
+  defenseEffectiveness: number;
+  events: {
+    action: EventAction;
+    position: Position;
+    points: number;
+    quantity: number | null;
+    time: number;
+  }[];
+}
 
+export function calculateScoutReportMetrics(
+  report: ScoutReportMetricsInput,
+  metrics: Metric[],
+): Partial<Record<Metric, number>> {
   const result: Partial<Record<Metric, number>> = {};
 
   for (const metric of metrics) {
@@ -84,6 +85,7 @@ export async function computeAverageScoutReport(
       case Metric.totalPoints:
         result[metric] =
           endgameToPoints[report.endgameClimb] +
+          (report.autoClimb === AutoClimb.SUCCEEDED ? 15 : 0) +
           report.events.reduce((acc, cur) => acc + cur.points, 0);
         break;
       case Metric.teleopPoints:
@@ -96,7 +98,7 @@ export async function computeAverageScoutReport(
           report.events
             .filter((e) => e.time <= autoEnd)
             .reduce((acc, cur) => acc + cur.points, 0) +
-          (report.autoClimb === AutoClimb.SUCCEEDED ? 10 : 0);
+          (report.autoClimb === AutoClimb.SUCCEEDED ? 15 : 0);
         break;
       case Metric.autoClimbStartTime: {
         const t = firstEventTime(report.events, "CLIMB", (t) => t <= autoEnd);
@@ -149,9 +151,10 @@ export async function computeAverageScoutReport(
           0,
         );
         const firstStop = scoringStops.sort((a, b) => a.time - b.time)[0]?.time;
-        const duration = firstStop
-          ? firstStop - (report.events[0]?.time ?? 0)
-          : 150;
+        const firstEvent = Math.min(
+          ...report.events.map((event) => event.time),
+        );
+        const duration = firstStop !== undefined ? firstStop - firstEvent : 150;
         result[metric] = duration > 0 ? totalQuantity / duration : 0;
         break;
       }
@@ -218,6 +221,32 @@ export async function computeAverageScoutReport(
   }
 
   return result;
+}
+
+export async function computeAverageScoutReport(
+  scoutReportUuid: string,
+  metrics: Metric[],
+): Promise<Partial<Record<Metric, number>>> {
+  const report = await prismaClient.scoutReport.findUniqueOrThrow({
+    where: { uuid: scoutReportUuid },
+    select: {
+      endgameClimb: true,
+      driverAbility: true,
+      autoClimb: true,
+      defenseEffectiveness: true,
+      events: {
+        select: {
+          action: true,
+          position: true,
+          points: true,
+          quantity: true,
+          time: true,
+        },
+      },
+    },
+  });
+
+  return calculateScoutReportMetrics(report, metrics);
 }
 
 const argsSchema = z.object({
