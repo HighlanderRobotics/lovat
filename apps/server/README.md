@@ -89,3 +89,11 @@ Build locally from the repository root:
 ```sh
 docker build -f apps/server/Dockerfile -t lovat-server .
 ```
+
+### Development without a Blue Alliance key
+
+In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance
+imports so a fresh local database can start without an external API key.
+PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
+for real team, tournament, and match imports. Routes that call Blue Alliance
+directly still require the key. Production keeps its existing import behavior.
