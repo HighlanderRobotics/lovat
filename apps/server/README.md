@@ -91,6 +91,11 @@ After `npm run test:coverage` completes with disposable services, run
 UI lists the unit and integration tests, their results and timings, and coverage.
 It works without a running test process once generated.
 
+When `--coverage.reportsDirectory` overrides the coverage output location,
+report preparation copies the current run's coverage into the static site.
+The custom directory is preserved and stale files in the site's coverage folder
+are replaced. `npm run test:report:prepare` checks this behavior.
+
 CI uploads the full `server-test-report` artifact, including failed test runs
 when a report is available. Download and extract the artifact, then serve its
 directory with a static HTTP server; opening `index.html` directly from disk

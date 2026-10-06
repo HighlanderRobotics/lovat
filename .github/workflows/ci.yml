@@ -95,6 +95,7 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npm run typecheck:test
+      - run: npm run test:report:prepare
       - name: Test shared database against disposable PostgreSQL
         working-directory: packages/db
         env:
