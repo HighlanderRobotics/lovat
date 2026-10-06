@@ -379,8 +379,8 @@ const config = {
       return raw.reduce((acc, r) => acc + Number(r.count), 0) / raw.length;
     }
 
-    // Quantities and durations belong to one scouting observation. Average
-    // observation rates so duplicate reports do not increase the robot's rate.
+    // Pool feeding quantity and active time, matching the team analysis paths.
+    // Reports without feeding must not dilute the rate during active feeding.
     if (metric === Metric.totalBallsFed || metric === Metric.feedingRate) {
       const t = tnmtSql(`tmd."tournamentKey"`, 1);
       const s = teamSql(`sct."sourceTeamNumber"`, t.nextIdx);
@@ -407,7 +407,6 @@ const config = {
         const quantity = events
           .filter((e) => e.action === "STOP_FEEDING")
           .reduce((sum, event) => sum + (event.quantity ?? 0), 0);
-        if (metric === Metric.totalBallsFed) return quantity;
         const ordered = events
           .filter((e) => e.time !== null)
           .sort((a, b) => a.time - b.time);
@@ -423,10 +422,15 @@ const config = {
             if (elapsed >= minActionDuration) duration += elapsed;
           }
         }
-        return duration > 0 ? quantity / duration : 0;
+        return { quantity, duration };
       });
+      if (metric === Metric.feedingRate) {
+        const quantity = values.reduce((sum, value) => sum + value.quantity, 0);
+        const duration = values.reduce((sum, value) => sum + value.duration, 0);
+        return duration > 0 ? quantity / duration : 0;
+      }
       return values.length
-        ? values.reduce((sum, value) => sum + value, 0) / values.length
+        ? values.reduce((sum, value) => sum + value.quantity, 0) / values.length
         : 0;
     }
 

@@ -37,6 +37,7 @@ const robot = sourceTeam - 2;
 const missingRobot = sourceTeam - 3;
 const tournamentKey = `metrics-${fixtureId}`;
 const hiddenTournament = `hidden-${fixtureId}`;
+const fixtureTournaments = [tournamentKey, hiddenTournament];
 const matchKey = `match-${fixtureId}`;
 const scouterId = randomUUID();
 const otherScouterId = randomUUID();
@@ -170,7 +171,7 @@ afterAll(async () => {
     where: { number: { in: [sourceTeam, otherSourceTeam] } },
   });
   await db.tournament.deleteMany({
-    where: { key: { in: [tournamentKey, hiddenTournament] } },
+    where: { key: { in: fixtureTournaments } },
   });
   await closeRedis();
   await db.$disconnect();
@@ -204,6 +205,65 @@ const cases: [string, number, number][] = [
 ];
 
 describe("team analysis against real reports with source filters", () => {
+  it.each([
+    ["no feeding", [], 2],
+    [
+      "unequal durations",
+      [event("START_FEEDING", 50), event("STOP_FEEDING", 58, 8)],
+      16 / 12,
+    ],
+  ] as const)(
+    "pools population feeding quantities and active time with %s",
+    async (name, additionalEvents, expected) => {
+      const key = `feeding-${name}-${fixtureId}`;
+      fixtureTournaments.push(key);
+      await db.tournament.create({ data: { key, name: "Feeding regression" } });
+      const teamMatchKey = `match-${key}`;
+      await db.teamMatchData.create({
+        data: {
+          key: teamMatchKey,
+          tournamentKey: key,
+          teamNumber: robot,
+          matchType: "QUALIFICATION",
+          matchNumber: 1,
+        },
+      });
+      for (const feedingEvents of [
+        [event("START_FEEDING", 50), event("STOP_FEEDING", 54, 8)],
+        additionalEvents,
+      ]) {
+        await db.scoutReport.create({
+          data: {
+            ...reportData,
+            scouterUuid: scouterId,
+            teamMatchKey,
+            events: { create: [...feedingEvents] },
+          },
+        });
+      }
+      const scopedUser = {
+        ...user,
+        id: key,
+        tournamentSourceRule: { mode: "INCLUDE", items: [key] },
+      };
+      expect(
+        await averageAllTeamFast(scopedUser, { metric: Metric.feedingRate }),
+      ).toBeCloseTo(expected);
+      const batched = await averageManyFast(scopedUser, {
+        teams: [robot],
+        metrics: [Metric.feedingRate],
+      });
+      expect(batched[String(Metric.feedingRate)][String(robot)]).toBeCloseTo(
+        expected,
+      );
+      const timeline = await arrayAndAverageTeams(scopedUser, {
+        teams: [robot],
+        metric: Metric.feedingRate,
+      });
+      expect(timeline[String(robot)].average).toBeCloseTo(expected);
+      await db.tournament.delete({ where: { key } });
+    },
+  );
   it.each(cases)(
     "computes %s in batched metrics without counting extra scouters twice",
     async (_name, metric, expected) => {
