@@ -36,7 +36,7 @@ const config = {
   createKey: key,
   calculateAnalysis: calculate,
   usesDataSource: true,
-  shouldCache: true,
+  shouldCache: true as const,
 };
 
 beforeEach(() => {

@@ -39,13 +39,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
   returnSchema,
   usesDataSource: false,
   shouldCache: false,
-  createKey: async (args) => ({
-    key: [
-      "rankFlag",
-      args.eventKey,
-      JSON.stringify([...args.teams].sort((a, b) => a - b)),
-    ],
-  }),
   calculateAnalysis: async (args) => {
     const out = await computeRankFlag(args.eventKey, args.teams);
     return out as unknown as Record<string, number>;

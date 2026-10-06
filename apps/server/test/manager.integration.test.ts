@@ -612,3 +612,57 @@ it("prevents a lead from transferring another team's shift by editing its UUID",
     endMatchOrdinalNumber: 9,
   });
 });
+
+it("filters match-result reports by the authenticated viewer's source rules", async () => {
+  const matchKey = `results-${fixtureId}`;
+  await db.user.update({
+    where: { id: userIds.lead },
+    data: { teamSourceRule: { mode: "INCLUDE", items: [teamNumber] } },
+  });
+  for (let slot = 0; slot < 6; slot++)
+    await db.teamMatchData.create({
+      data: {
+        key: `${matchKey}_${slot}`,
+        teamNumber: slot + 1,
+        tournamentKey,
+        matchNumber: 1,
+        matchType: "QUALIFICATION",
+      },
+    });
+  const reports = [];
+  for (const sourceTeamNumber of [teamNumber, otherTeamNumber]) {
+    const scouter = await db.scouter.create({ data: { sourceTeamNumber } });
+    reports.push(
+      await db.scoutReport.create({
+        data: {
+          scouterUuid: scouter.uuid,
+          teamMatchKey: `${matchKey}_0`,
+          startTime: new Date(),
+          notes: sourceTeamNumber === teamNumber ? "Visible" : "Hidden",
+          robotRoles: [],
+          driverAbility: 3,
+          beached: "NEITHER",
+          defenseEffectiveness: 0,
+          feederTypes: [],
+          intakeType: "NEITHER",
+          fieldTraversal: "NONE",
+          scoresWhileMoving: false,
+          disrupts: false,
+          endgameClimb: "NOT_ATTEMPTED",
+          autoClimb: "NOT_ATTEMPTED",
+        },
+      }),
+    );
+  }
+  const response = await request(app)
+    .get("/v1/manager/match-results-page")
+    .query({ matchKey })
+    .auth(tokens.lead, { type: "bearer" });
+  expect(response.status).toBe(200);
+  expect(
+    response.body.red.teams[0].reports.map(
+      (report: { uuid: string }) => report.uuid,
+    ),
+  ).toEqual([reports[0].uuid]);
+  expect(JSON.stringify(response.body)).not.toContain(reports[1].uuid);
+});

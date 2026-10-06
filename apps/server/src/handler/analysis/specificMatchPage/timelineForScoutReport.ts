@@ -12,13 +12,6 @@ export const timelineForScoutReport = createAnalysisHandler({
   },
   usesDataSource: false,
   shouldCache: false,
-  createKey: async ({ params }) => {
-    return {
-      key: ["timelineForScoutReport", params.uuid],
-      teamDependencies: [],
-      tournamentDependencies: [],
-    };
-  },
   calculateAnalysis: async ({ params }, ctx) => {
     const events = await prismaClient.event.findMany({
       where: {

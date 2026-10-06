@@ -19,12 +19,10 @@ import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 function firstEventTime(
   events: { action: string; time: number }[],
   action: string,
-  predicate?: (t: number) => boolean,
+  predicate: (t: number) => boolean,
 ): number | null {
   const evt = events
-    .filter(
-      (e) => e.action === action && (predicate ? predicate(e.time) : true),
-    )
+    .filter((e) => e.action === action && predicate(e.time))
     .sort((a, b) => a.time - b.time)[0];
   return evt ? evt.time : null;
 }

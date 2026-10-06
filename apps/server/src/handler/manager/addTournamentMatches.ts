@@ -239,16 +239,12 @@ export const addTournamentMatches = async (
               key: z.string(),
               teamNumber: z.number(),
             })
-            .safeParse({
+            .parse({
               key: currMatchKey,
               tournamentKey: tournamentKey,
               matchNumber: matchNumber,
               teamNumber: currTeam,
             });
-
-          if (!params.success) {
-            throw params;
-          }
 
           //cant use currMatch key bc theres an issue with the enum
           await prismaClient.teamMatchData.upsert({
@@ -256,16 +252,16 @@ export const addTournamentMatches = async (
               key: currMatchKey,
             },
             update: {
-              tournamentKey: params.data.tournamentKey,
-              matchNumber: params.data.matchNumber,
-              teamNumber: params.data.teamNumber,
+              tournamentKey: params.tournamentKey,
+              matchNumber: params.matchNumber,
+              teamNumber: params.teamNumber,
               matchType: "ELIMINATION",
             },
             create: {
-              key: params.data.key,
-              tournamentKey: params.data.tournamentKey,
-              matchNumber: params.data.matchNumber,
-              teamNumber: params.data.teamNumber,
+              key: params.key,
+              tournamentKey: params.tournamentKey,
+              matchNumber: params.matchNumber,
+              teamNumber: params.teamNumber,
               matchType: "ELIMINATION",
             },
           });

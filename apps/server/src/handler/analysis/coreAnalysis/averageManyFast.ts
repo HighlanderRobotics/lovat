@@ -27,11 +27,6 @@ export function avg(values: number[]): number {
   return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
 }
 
-function avgNonNull(values: (number | null)[]): number {
-  const v = values.filter((x): x is number => x !== null);
-  return avg(v);
-}
-
 function firstEventTime(
   events: Event[],
   predicate: (e: Event) => boolean,
@@ -140,9 +135,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
             }
             const adjustedTimes = nonNullTimes.map((t) => {
               const remaining = autoEnd - t;
-              return remaining >= 0 ? remaining : 0;
+              return remaining;
             });
-            matchValue = avg(adjustedTimes.length ? adjustedTimes : [0]);
+            matchValue = avg(adjustedTimes);
             break;
           }
 
@@ -172,9 +167,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
             }
             const adjustedTimes = nonNullTimes.map((t) => {
               const remaining = 158 - t;
-              return remaining >= 0 ? remaining : 0;
+              return remaining;
             });
-            matchValue = avg(adjustedTimes.length ? adjustedTimes : [0]);
+            matchValue = avg(adjustedTimes);
             break;
           }
           case Metric.contactDefenseTime:

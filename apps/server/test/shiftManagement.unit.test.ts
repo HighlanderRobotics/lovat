@@ -1,3 +1,4 @@
+import { Prisma } from "@lovat/db";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { invoke, testUser } from "./helpers/handlerHarness.js";
 const db = vi.hoisted(() => ({
@@ -146,8 +147,13 @@ it("denies teamless shift updates", async () => {
     ).statusCode,
   ).toBe(403);
 });
-it("returns a missing shift when the update has no result", async () => {
-  db.scouterScheduleShift.update.mockResolvedValue(null);
+it("reports a shift removed between lookup and update", async () => {
+  db.scouterScheduleShift.update.mockRejectedValue(
+    new Prisma.PrismaClientKnownRequestError("missing", {
+      code: "P2025",
+      clientVersion: "test",
+    }),
+  );
   expect((await invoke(updateScouterShift, { body, params })).statusCode).toBe(
     404,
   );

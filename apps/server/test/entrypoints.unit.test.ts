@@ -67,3 +67,17 @@ it("disconnects and exits with failure when seeding fails", async () => {
   await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(1));
   expect(mocks.disconnect).toHaveBeenCalledOnce();
 });
+it.each([
+  ["production", "development", "production"],
+  [undefined, "test", "test"],
+  [undefined, undefined, "development"],
+])(
+  "resolves deployment and local environments in priority order %s %s",
+  async (railway, node, expected) => {
+    vi.stubEnv("RAILWAY_ENVIRONMENT_NAME", railway);
+    vi.stubEnv("NODE_ENV", node);
+    expect((await import("../src/lib/environment.js")).ENVIRONMENT).toBe(
+      expected,
+    );
+  },
+);

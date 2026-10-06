@@ -35,16 +35,20 @@ export type AnalysisHandlerArgs<
   V extends z.ZodObject,
 > = {
   params: AnalysisHandlerParamsSchema<T, U, V>;
-  createKey: (
-    params: AnalysisHandlerParams<T, U, V>,
-  ) => Promise<CreateKeyResult> | CreateKeyResult;
   calculateAnalysis: (
     params: AnalysisHandlerParams<T, U, V>,
     ctx: AnalysisContext,
   ) => Promise<any>;
   usesDataSource: boolean;
-  shouldCache: boolean;
-};
+} & (
+  | {
+      shouldCache: true;
+      createKey: (
+        params: AnalysisHandlerParams<T, U, V>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+  | { shouldCache: false; createKey?: never }
+);
 
 export const createAnalysisHandler: <
   T extends z.ZodObject,

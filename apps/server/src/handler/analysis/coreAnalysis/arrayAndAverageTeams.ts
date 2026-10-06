@@ -81,8 +81,8 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           srSelect = { driverAbility: true };
           matchAggregationFunction = (reports) => {
             return (
-              reports.reduce((acc, cur) => acc + (cur.driverAbility ?? 0), 0) /
-              (reports.length || 1)
+              reports.reduce((acc, cur) => acc + cur.driverAbility, 0) /
+              reports.length
             );
           };
           break;
@@ -105,10 +105,8 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           srSelect = { defenseEffectiveness: true };
           matchAggregationFunction = (reports) => {
             return (
-              reports.reduce(
-                (acc, cur) => acc + (cur.defenseEffectiveness ?? 0),
-                0,
-              ) / (reports.length || 1)
+              reports.reduce((acc, cur) => acc + cur.defenseEffectiveness, 0) /
+              reports.length
             );
           };
           break;
@@ -135,7 +133,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
                   ? accuracyToPercentage[accuracyEnum]
                   : 100;
               const accuracyMultiplier = accuracyPercent / 100;
-              const events = sr.events ?? [];
+              const events = sr.events;
               events.forEach((e) => {
                 total += (e.points ?? 0) * accuracyMultiplier;
               });
@@ -146,9 +144,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
                 total += 15;
               }
               const endgame = sr.endgameClimb as keyof typeof endgameToPoints;
-              total += endgame ? (endgameToPoints[endgame] ?? 0) : 0;
+              total += endgameToPoints[endgame];
             });
-            return total / (reports.length || 1);
+            return total / reports.length;
           };
           break;
 
@@ -173,12 +171,12 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
                   ? accuracyToPercentage[accuracyEnum]
                   : 100;
               const accuracyMultiplier = accuracyPercent / 100;
-              const events = sr.events ?? [];
+              const events = sr.events;
               events.forEach((e) => {
                 total += (e.points ?? 0) * accuracyMultiplier;
               });
             });
-            return total / (reports.length || 1);
+            return total / reports.length;
           };
           break;
 
@@ -204,12 +202,12 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
                   ? accuracyToPercentage[accuracyEnum]
                   : 100;
               const accuracyMultiplier = accuracyPercent / 100;
-              const events = sr.events ?? [];
+              const events = sr.events;
               events.forEach((e) => {
                 total += (e.points ?? 0) * accuracyMultiplier;
               });
             });
-            return total / (reports.length || 1);
+            return total / reports.length;
           };
           break;
         case Metric.fuelPerSecond:
@@ -217,18 +215,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
             events: {
               select: { action: true, quantity: true, time: true },
             },
-          };
-          matchAggregationFunction = (reports) => {
-            // Average per-report scoring rate, then average per match
-            const perReportRates = reports.map((r) => {
-              const totalFuel = (r.events ?? [])
-                .filter((e) => e.action === "STOP_SCORING")
-                .reduce((acc, cur) => acc + (cur.quantity ?? 0), 0);
-              const durations = calculateTimeMetric([r] as any, "SCORING");
-              const duration = durations.reduce((a, b) => a + b, 0);
-              return duration > 0 ? totalFuel / duration : 0;
-            });
-            return avg(perReportRates);
           };
           break;
         case Metric.feedingRate:
@@ -240,7 +226,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           matchAggregationFunction = (reports) => {
             const feedTime = calculateTimeMetric(reports as any, "FEEDING");
             const feeds = reports.flatMap((r) =>
-              (r.events || []).filter((e) => e.action === "STOP_FEEDING"),
+              r.events.filter((e) => e.action === "STOP_FEEDING"),
             );
             const totalFeedQuantity = feeds.reduce(
               (acc, f) => acc + (f.quantity ?? 0),
@@ -285,7 +271,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           matchAggregationFunction = (reports) => {
             // Average per-report: STOP_SCORING.quantity + STOP_FEEDING.quantity
             const perReportTotals = reports.map((r) => {
-              const events = r.events ?? [];
+              const events = r.events;
               const scored = events
                 .filter((e) => e.action === "STOP_SCORING")
                 .reduce((acc, cur) => acc + (cur.quantity ?? 0), 0);
@@ -307,7 +293,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           matchAggregationFunction = (reports) => {
             // Sum STOP_SCORING + STOP_FEEDING quantities per report
             const perReportTotals = reports.map((r) => {
-              const events = r.events ?? [];
+              const events = r.events;
               const total = events
                 .filter(
                   (e) =>
@@ -328,7 +314,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           } as any;
           matchAggregationFunction = (reports) => {
             const perReportTotals = reports.map((r) => {
-              return (r.events ?? [])
+              return r.events
                 .filter((e) => e.action === "STOP_FEEDING")
                 .reduce((acc, cur) => acc + (cur.quantity ?? 0), 0);
             });
@@ -345,7 +331,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           matchAggregationFunction = (reports) => {
             const perReportCounts = reports.map(
               (r) =>
-                (r.events ?? []).filter(
+                r.events.filter(
                   (e) => e.action === "INTAKE" && e.position === "OUTPOST",
                 ).length,
             );
@@ -366,7 +352,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
             reports.forEach((r, idx) => {
               const ac = (r as any).autoClimb as
                 "SUCCEEDED" | "FAILED" | "N_A" | undefined;
-              const rawClimbTimes = (r.events ?? [])
+              const rawClimbTimes = r.events
                 .filter((e) => e.action === "CLIMB")
                 .map((e) => e.time ?? 0);
               const filteredAutoTimes = rawClimbTimes
@@ -375,7 +361,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
               const first = filteredAutoTimes[0];
               if (ac === "SUCCEEDED" && first !== undefined) {
                 const remaining = autoEnd - first;
-                const clamped = remaining >= 0 ? remaining : 0;
+                const clamped = remaining;
                 times.push(clamped);
               }
             });
@@ -402,7 +388,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
             reports.forEach((r, idx) => {
               const eg = (r as any).endgameClimb as
                 "NOT_ATTEMPTED" | "FAILED" | "L1" | "L2" | "L3" | undefined;
-              const rawClimbTimes = (r.events ?? [])
+              const rawClimbTimes = r.events
                 .filter((e) => e.action === "CLIMB")
                 .map((e) => e.time ?? 0);
               const filteredTeleopTimes = rawClimbTimes
@@ -411,7 +397,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
               const firstTeleop = filteredTeleopTimes[0];
               if (eg === required && firstTeleop !== undefined) {
                 const remaining = 158 - firstTeleop;
-                const clamped = remaining >= 0 ? remaining : 0;
+                const clamped = remaining;
                 times.push(clamped);
               }
             });
@@ -435,9 +421,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           matchAggregationFunction = (reports) => {
             let total = 0;
             reports.forEach((sr) => {
-              total += (sr.events ?? []).length;
+              total += sr.events.length;
             });
-            return total / (reports.length || 1);
+            return total / reports.length;
           };
           break;
       }
@@ -473,7 +459,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           teamNumber: true,
           scoutReports: {
             where: srFilter,
-            select: srSelect ?? {},
+            select: srSelect,
           },
         },
         orderBy: [
@@ -511,6 +497,8 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         result[team] = { average: 0, timeLine: [] };
       }
 
+      // Prisma returns arrays for selected relations and non-null scalar fields.
+      // Aggregators below receive reports only after the empty-match check.
       for (const row of tmd) {
         const team = row.teamNumber;
         const tnmt = row.tournamentKey;
@@ -522,7 +510,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         if (metric === Metric.fuelPerSecond) {
           // Total fuel across all reports / total duration across all reports
           const totalFuel = (row.scoutReports as any)
-            .flatMap((r: any) => r.events ?? [])
+            .flatMap((r: any) => r.events)
             .filter((e: any) => e.action === "STOP_SCORING")
             .reduce((acc: number, cur: any) => acc + (cur.quantity ?? 0), 0);
           const totalDuration = calculateTimeMetric(

@@ -35,7 +35,8 @@ export const revokeApiKey = async (
 
     if (
       req.user.id === keyRow.user.id ||
-      (req.user.teamNumber === keyRow.user.teamNumber &&
+      (req.user.teamNumber !== null &&
+        req.user.teamNumber === keyRow.user.teamNumber &&
         req.user.role === UserRole.SCOUTING_LEAD)
     ) {
       await prismaClient.apiKey.delete({

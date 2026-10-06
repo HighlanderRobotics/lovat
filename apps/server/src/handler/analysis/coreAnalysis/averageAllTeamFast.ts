@@ -34,7 +34,7 @@ type PrismaFilter<T> = { in?: T[]; notIn?: T[] } | undefined;
  * @returns        { clause, param, nextIdx }
  *                 clause is empty string if filter is undefined (no restriction)
  */
-function filterToSql<T extends string | number>(
+export function filterToSql<T extends string | number>(
   filter: PrismaFilter<T>,
   cast: string,
   col: string,
@@ -125,15 +125,12 @@ const config = {
 
       const byTournament: Record<string, number[]> = {};
       for (const row of raw) {
-        if (row.driverAbility == null) continue;
         (byTournament[row.tournamentKey] ??= []).push(row.driverAbility);
       }
       const perTournamentAvg = Object.values(byTournament).map(
         (vals) => vals.reduce((a, b) => a + b, 0) / vals.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -160,15 +157,12 @@ const config = {
       const byTournament: Record<string, number[]> = {};
       for (const row of raw) {
         const pct = accuracyToPercentageInterpolated(row.accuracy);
-        if (typeof pct !== "number") continue;
         (byTournament[row.tournamentKey] ??= []).push(pct);
       }
       const perTournamentAvg = Object.values(byTournament).map(
         (vals) => vals.reduce((a, b) => a + b, 0) / vals.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -240,9 +234,7 @@ const config = {
         return duration > 0 ? totalFuel / duration : 0;
       });
 
-      return perReportRates.length
-        ? perReportRates.reduce((a, b) => a + b, 0) / perReportRates.length
-        : 0;
+      return perReportRates.reduce((a, b) => a + b, 0) / perReportRates.length;
     }
 
     // ------------------------------------------------------------------
@@ -295,9 +287,7 @@ const config = {
       const perTournamentAvg = Object.values(byTournament).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -348,9 +338,7 @@ const config = {
       const perTournamentAvg = Object.values(byTournament).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -716,7 +704,7 @@ const config = {
         let points = Number(row.matchPoints) * (accuracy / 100);
         if (metric === Metric.totalPoints) {
           const endgame = row.endgameClimb as keyof typeof endgameToPoints;
-          points += endgame ? (endgameToPoints[endgame] ?? 0) : 0;
+          points += endgameToPoints[endgame];
         }
         if (metric !== Metric.teleopPoints && row.autoClimb === "SUCCEEDED")
           points += 15;
@@ -726,9 +714,7 @@ const config = {
       const perTournamentAverages = Object.values(perTournamentValues).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAverages.length
-        ? weightedTourAvgLeft(perTournamentAverages)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAverages);
     }
 
     // ------------------------------------------------------------------

@@ -9,6 +9,10 @@ export const getSinglePicklist = async (
 ): Promise<void> => {
   try {
     const user = req.user;
+    if (user.teamNumber === null) {
+      res.status(403).send("Not affiliated with a team");
+      return;
+    }
 
     const params = z
       .object({

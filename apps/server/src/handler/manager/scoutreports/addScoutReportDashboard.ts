@@ -144,38 +144,6 @@ export const addScoutReportDashboard = async (
       return;
     }
 
-    // Create scout report using relations to match core handler
-    await prismaClient.scoutReport.create({
-      data: {
-        uuid: paramsScoutReport.uuid,
-        startTime: new Date(paramsScoutReport.startTime),
-        teamMatchData: { connect: { key: matchKey } },
-        scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },
-        notes: paramsScoutReport.notes,
-        robotRoles: paramsScoutReport.robotRoles,
-        driverAbility: paramsScoutReport.driverAbility,
-        robotBrokeDescription: paramsScoutReport.robotBrokeDescription ?? null,
-        autoClimb: paramsScoutReport.autoClimb,
-        beached: paramsScoutReport.beached,
-        feederTypes: paramsScoutReport.feederTypes,
-        intakeType: paramsScoutReport.intakeType,
-        fieldTraversal: paramsScoutReport.mobility,
-        defenseEffectiveness: paramsScoutReport.defenseEffectiveness,
-        scoresWhileMoving: paramsScoutReport.scoresWhileMoving,
-        accuracy: paramsScoutReport.accuracy ?? null,
-        climbPosition: paramsScoutReport.climbPosition,
-        climbSide: paramsScoutReport.climbSide,
-        endgameClimb: paramsScoutReport.endgameClimb,
-        disrupts: paramsScoutReport.disrupts,
-      },
-    });
-
-    // Invalidate cached analyses
-    invalidateCache(
-      paramsScoutReport.teamNumber,
-      paramsScoutReport.tournamentKey,
-    );
-
     // Build events payload
     const eventDataArray: {
       time: number;
@@ -233,6 +201,38 @@ export const addScoutReportDashboard = async (
         scoutReportUuid: scoutReportUuid,
       });
     }
+
+    // Create scout report using relations to match core handler
+    await prismaClient.scoutReport.create({
+      data: {
+        uuid: paramsScoutReport.uuid,
+        startTime: new Date(paramsScoutReport.startTime),
+        teamMatchData: { connect: { key: matchKey } },
+        scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },
+        notes: paramsScoutReport.notes,
+        robotRoles: paramsScoutReport.robotRoles,
+        driverAbility: paramsScoutReport.driverAbility,
+        robotBrokeDescription: paramsScoutReport.robotBrokeDescription ?? null,
+        autoClimb: paramsScoutReport.autoClimb,
+        beached: paramsScoutReport.beached,
+        feederTypes: paramsScoutReport.feederTypes,
+        intakeType: paramsScoutReport.intakeType,
+        fieldTraversal: paramsScoutReport.mobility,
+        defenseEffectiveness: paramsScoutReport.defenseEffectiveness,
+        scoresWhileMoving: paramsScoutReport.scoresWhileMoving,
+        accuracy: paramsScoutReport.accuracy ?? null,
+        climbPosition: paramsScoutReport.climbPosition,
+        climbSide: paramsScoutReport.climbSide,
+        endgameClimb: paramsScoutReport.endgameClimb,
+        disrupts: paramsScoutReport.disrupts,
+      },
+    });
+
+    // Invalidate cached analyses
+    invalidateCache(
+      paramsScoutReport.teamNumber,
+      paramsScoutReport.tournamentKey,
+    );
 
     const broke = paramsScoutReport.robotBrokeDescription?.trim();
     if (broke) {

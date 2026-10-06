@@ -230,3 +230,34 @@ describe("report event validation", () => {
     expect(removeOrphanedStartEvents(events, "26.0.5")).toEqual(events);
   });
 });
+it("serves fresh OpenAPI documents and permits localhost origins in development", async () => {
+  vi.stubEnv("NODE_ENV", "development");
+  vi.resetModules();
+  try {
+    const { app: developmentApp } = await import("../src/app.js");
+    const result = await request(developmentApp)
+      .get("/v1/doc.json")
+      .set("Origin", "http://localhost:3000");
+    expect(result.status).toBe(200);
+    expect(result.body.openapi).toBe("3.1.0");
+    expect(result.headers["access-control-allow-origin"]).toBe(
+      "http://localhost:3000",
+    );
+    vi.stubEnv("BASE_URL", "https://api.test.invalid");
+    const { generateOpenApiDocument } = await import("../src/lib/openapi.js");
+    expect(generateOpenApiDocument().servers).toEqual([
+      { url: "https://api.test.invalid" },
+    ]);
+    vi.stubEnv("BASE_URL", undefined);
+    expect(generateOpenApiDocument().servers).toEqual([
+      { url: "https://api.lovat.app" },
+    ]);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+it("serves the production OpenAPI document", async () => {
+  const result = await request(app).get("/v1/doc.json");
+  expect(result.status).toBe(200);
+  expect(result.body.openapi).toBe("3.1.0");
+});

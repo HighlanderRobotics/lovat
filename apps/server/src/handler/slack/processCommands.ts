@@ -17,11 +17,11 @@ export const processCommand = async (
       })
       .parse(req.body);
 
-    const body = params.text.split(" ");
+    const body = params.text.trim().split(/\s+/);
 
-    const action = body[0] ?? null;
+    const action = body[0];
 
-    if (body.length === 0 || action === "help") {
+    if (!action || action === "help") {
       res
         .status(200)
         .send(

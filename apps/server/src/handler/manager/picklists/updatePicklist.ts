@@ -17,6 +17,10 @@ export const updatePicklist = async (
     }
 
     const user = req.user;
+    if (user.teamNumber === null) {
+      res.status(403).send("Not affiliated with a team");
+      return;
+    }
     const params = z
       .object({
         name: z.string(),
@@ -63,7 +67,7 @@ export const updatePicklist = async (
       res.status(400).send(params);
       return;
     }
-    const row = await prismaClient.sharedPicklist.update({
+    await prismaClient.sharedPicklist.update({
       where: {
         uuid: req.params.uuid,
         author: {
@@ -91,10 +95,6 @@ export const updatePicklist = async (
         authorId: params.data.authorId,
       },
     });
-    if (!row) {
-      res.status(403).send("Not authorized to update this picklist");
-      return;
-    }
     res.status(200).send("picklist updated");
   } catch (error) {
     if (

@@ -1,3 +1,4 @@
+import { Prisma } from "@lovat/db";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
@@ -92,7 +93,7 @@ export const updateScouterShift = async (
       return;
     }
     if (req.user.role === "SCOUTING_LEAD") {
-      const rows = await prismaClient.scouterScheduleShift.update({
+      await prismaClient.scouterScheduleShift.update({
         where: {
           uuid: params.data.uuid,
           sourceTeamNumber: req.user.teamNumber,
@@ -128,19 +129,18 @@ export const updateScouterShift = async (
         },
       });
 
-      if (!rows) {
-        res
-          .status(404)
-          .send(
-            "Cannot find scouter shift or not on the team of the shift you are trying to edit",
-          );
-        return;
-      }
       res.status(200).send("Scouter shift updated successfully");
     } else {
       res.status(403).send("Unauthorized to delete this picklist");
     }
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).send("Scouter shift not found");
+      return;
+    }
     console.error(error);
     res.status(500).send("Error in deleting data");
   }

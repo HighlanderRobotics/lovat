@@ -238,7 +238,7 @@ export const getReportCSV = async (
     const csvString = stringify(condensed, {
       header: true,
       // Creates column headers from data properties
-      columns: condensed.length ? Object.keys(condensed[0]) : [],
+      columns: Object.keys(condensed[0]),
       // Required for excel viewing
       bom: true,
       // Rename boolean values to TRUE and FALSE

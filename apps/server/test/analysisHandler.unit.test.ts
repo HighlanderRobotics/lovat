@@ -30,10 +30,17 @@ const base = {
   calculateAnalysis: mocks.calculate,
 };
 const run = (
-  overrides: Partial<typeof base> = {},
+  overrides: Partial<Omit<typeof base, "shouldCache">> & {
+    shouldCache?: boolean;
+  } = {},
   requestOverrides: Parameters<typeof invoke>[1] = {},
 ) => {
-  const handler = createAnalysisHandler({ ...base, ...overrides });
+  const { createKey, ...config } = { ...base, ...overrides };
+  const handler = createAnalysisHandler(
+    config.shouldCache === false
+      ? { ...config, shouldCache: false }
+      : { ...config, shouldCache: true, createKey },
+  );
   return invoke((req, res) => handler(req, res, vi.fn()), {
     body: { metric: 1 },
     query: { view: "summary" },

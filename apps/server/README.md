@@ -69,11 +69,16 @@ HTML report at `coverage/index.html`, an LCOV report, and JSON summaries. CI run
 this combined command after deploying the disposable database and uploads the
 `server-coverage` artifact even when a test or coverage gate fails.
 
-Coverage floors in `vitest.coverage.config.ts` protect the measured global
-baseline and set stronger requirements for authentication and core analysis.
-These are regression gates; the global baseline is not a claim that the whole
-server is sufficiently tested. Remaining gaps include scouting schedule
-management, Slack commands, CSV exports, and analysis endpoints.
+`vitest.coverage.config.ts` requires 100% lines, statements, functions, and
+branches for every source file. The combined suite includes behavioral tests for
+schedules, imports, onboarding, Slack, CSV exports, permissions, source visibility,
+and analysis, plus database and cache integration tests. Coverage measures which
+code executes; the assertions verify the expected responses, calculations, and
+side effects.
+
+When another coverage watcher is running locally, keep reports separate with
+`npm run test:coverage -- --coverage.reportsDirectory=/private/tmp/lovat-coverage`.
+CI uses the default `coverage/` directory.
 
 ## Optional database restore
 

@@ -27,7 +27,7 @@ export const getTeamsInTournament = async (
         teamNumber: true,
       },
     });
-    if (!rows) {
+    if (rows.length === 0) {
       res.status(404).send("Tournament or teams not found");
       return;
     }

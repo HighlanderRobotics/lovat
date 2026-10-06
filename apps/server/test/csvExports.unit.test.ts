@@ -347,3 +347,86 @@ it("does not fetch unrestricted historical reports for malformed tournament visi
   expect(response.statusCode).toBe(400);
   expect(mocks.scoutReport.findMany).not.toHaveBeenCalled();
 });
+it("exports historical reports without restricting either source dimension", async () => {
+  mocks.teamMatchData.findMany.mockResolvedValue([]);
+  mocks.get.mockResolvedValue({ data: [{ team_number: 254 }] });
+  expect(
+    (
+      await invoke(getTeamCSV, {
+        query: { tournamentKey: "2026test" },
+        user: {
+          ...testUser,
+          teamSourceRule: { mode: "EXCLUDE", items: [] },
+          tournamentSourceRule: { mode: "EXCLUDE", items: [] },
+        },
+      })
+    ).statusCode,
+  ).toBe(200);
+  expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: { teamMatchData: { teamNumber: { in: [254] } } },
+    }),
+  );
+});
+it("rejects historical exports when no event team has visible scouting reports", async () => {
+  mocks.teamMatchData.findMany.mockResolvedValue([]);
+  mocks.get.mockResolvedValue({ data: [{ team_number: 971 }] });
+  expect(
+    (await invoke(getTeamCSV, { query: { tournamentKey: "2026test" } }))
+      .statusCode,
+  ).toBe(400);
+});
+it.each([
+  ["BUMP", "TRENCH"],
+  ["TRENCH", "BUMP"],
+])("combines movement across reports from %s to %s", async (first, second) => {
+  mocks.teamMatchData.findMany.mockResolvedValue([
+    {
+      teamNumber: 254,
+      scoutReports: [
+        {
+          ...report,
+          fieldTraversal: first,
+          robotRoles: ["FEEDING", "SCORING"],
+        },
+        {
+          ...report,
+          fieldTraversal: second,
+          robotRoles: ["FEEDING", "SCORING"],
+        },
+      ],
+    },
+  ]);
+  const [row] = parse(
+    (await invoke(getTeamCSV, { query: { tournamentKey: "2026test" } })).body,
+  );
+  expect(row).toMatchObject({
+    fieldTraversal: "BOTH",
+    mainRole: "SCORING",
+    secondaryRole: "FEEDING",
+  });
+});
+it("exports absent event lists from legacy report rows", async () => {
+  mocks.scoutReport.findMany.mockResolvedValue([
+    { scouter: {}, teamMatchData: {} },
+  ]);
+  expect(
+    (await invoke(getReportCSV, { query: { tournamentKey: "2026test" } }))
+      .statusCode,
+  ).toBe(200);
+});
+it("selects a secondary role when the leading role was already encountered", async () => {
+  mocks.teamMatchData.findMany.mockResolvedValue([
+    {
+      teamNumber: 254,
+      scoutReports: [
+        { ...report, robotRoles: ["FEEDING"] },
+        { ...report, robotRoles: ["FEEDING", "SCORING"] },
+      ],
+    },
+  ]);
+  const [row] = parse(
+    (await invoke(getTeamCSV, { query: { tournamentKey: "2026test" } })).body,
+  );
+  expect(row).toMatchObject({ mainRole: "FEEDING", secondaryRole: "SCORING" });
+});

@@ -358,13 +358,8 @@ export const getTeamCSV = async (
 
           const csvString = stringify(aggregatedData, {
             header: true,
-            columns: aggregatedData.length
-              ? Object.keys(aggregatedData[0])
-              : [],
+            columns: Object.keys(aggregatedData[0]),
             bom: true,
-            cast: {
-              boolean: (b) => (b ? "TRUE" : "FALSE"),
-            },
             quote: false,
           });
 
@@ -453,13 +448,9 @@ export const getTeamCSV = async (
     const csvString = stringify(aggregatedData, {
       header: true,
       // Creates column headers from data properties
-      columns: aggregatedData.length ? Object.keys(aggregatedData[0]) : [],
+      columns: Object.keys(aggregatedData[0]),
       // Required for excel viewing
       bom: true,
-      // Rename boolean values to TRUE and FALSE
-      cast: {
-        boolean: (b) => (b ? "TRUE" : "FALSE"),
-      },
       // Turn off quotation marks
       quote: false,
     });
@@ -532,8 +523,8 @@ async function aggregateTeamReports(
 
   // Main iteration for most aggregation summing (roles, fieldTraversal, perc flags)
   reports.forEach((report) => {
-    for (const role of report.robotRoles || []) {
-      roles[role] += report.weight / (report.robotRoles.length || 1);
+    for (const role of report.robotRoles) {
+      roles[role] += report.weight / report.robotRoles.length;
     }
 
     switch (report.fieldTraversal) {

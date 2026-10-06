@@ -20,14 +20,25 @@ export type AnalysisFunctionConfig<
 > = {
   argsSchema: T;
   returnSchema?: R;
-  createKey: (params: z.infer<T>) => Promise<CreateKeyResult> | CreateKeyResult;
   calculateAnalysis: (
     params: z.infer<T>,
     ctx: AnalysisContext,
   ) => Promise<z.infer<R>>;
   usesDataSource: boolean;
-  shouldCache: boolean;
-};
+} & (
+  | {
+      shouldCache: true;
+      createKey: (
+        params: z.infer<T>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+  | {
+      shouldCache: false;
+      createKey?: (
+        params: z.infer<T>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+);
 
 export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
   config: AnalysisFunctionConfig<T, R>,
