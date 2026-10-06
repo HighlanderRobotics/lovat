@@ -29,11 +29,7 @@ export const matchPrediction = createAnalysisHandler({
     ].sort();
 
     return {
-      key: [
-        "matchPrediction",
-        ...(red[0] >= blue[0] ? red : blue),
-        ...(red[0] < blue[0] ? red : blue),
-      ],
+      key: ["matchPrediction", "red", ...red, "blue", ...blue],
       teamDependencies: [
         query.red1,
         query.red2,
