@@ -1,5 +1,8 @@
 # Lovat
 
+[![CI & tests](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
+[![CodeQL](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml?query=branch%3Amain)
+
 Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Competition events. It collects match observations, analyzes team performance, supports scouting operations, and presents data for match strategy and alliance selection.
 
 ## Applications
