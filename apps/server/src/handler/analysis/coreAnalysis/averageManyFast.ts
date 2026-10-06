@@ -273,7 +273,10 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
           case Metric.totalBallThroughput: {
             const perReport = sr.map((r) => {
               return r.events
-                .filter((e) => e.action === "STOP_SCORING")
+                .filter(
+                  (e) =>
+                    e.action === "STOP_SCORING" || e.action === "STOP_FEEDING",
+                )
                 .reduce((acc, cur) => acc + (cur.quantity ?? 0), 0);
             });
             matchValue = avg(perReport);
@@ -295,8 +298,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
               (acc, f) => acc + (f.quantity ?? 0),
               0,
             );
+            const totalFeedTime = feedTime.reduce((a, b) => a + b, 0);
             matchValue =
-              totalFeedQuantity > 0 ? totalFeedQuantity / avg(feedTime) : 0;
+              totalFeedTime > 0 ? totalFeedQuantity / totalFeedTime : 0;
             break;
           }
           case Metric.timeFeeding: {

@@ -1,3 +1,4 @@
+import { Prisma } from "@lovat/db";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
@@ -96,6 +97,13 @@ export const updatePicklist = async (
     }
     res.status(200).send("picklist updated");
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
     console.error(error);
     res.status(500).send("Internal server error");
   }

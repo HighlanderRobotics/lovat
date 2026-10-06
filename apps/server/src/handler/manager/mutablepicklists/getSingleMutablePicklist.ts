@@ -30,6 +30,11 @@ export const getSingleMutablePicklist = async (
       },
     });
 
+    if (!row) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
+
     res.status(200).send(row);
   } catch (error) {
     console.error(error);

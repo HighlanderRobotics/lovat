@@ -135,6 +135,79 @@ describe("single-report scoring metrics", () => {
     });
   });
 
+  it("reports feeding quantities and rates independently from scoring", () => {
+    const input = report({
+      events: [
+        event(EventAction.START_FEEDING, 50),
+        event(EventAction.STOP_FEEDING, 54, 0, 8),
+        event(EventAction.START_SCORING, 30),
+        event(EventAction.STOP_SCORING, 40, 20, 20),
+      ],
+    });
+    expect(
+      calculateScoutReportMetrics(input, [
+        Metric.feedingRate,
+        Metric.timeFeeding,
+        Metric.feedsPerMatch,
+        Metric.totalBallsFed,
+        Metric.totalFuelOutputted,
+        Metric.totalBallThroughput,
+        Metric.volleysPerMatch,
+      ]),
+    ).toEqual({
+      [Metric.feedingRate]: 2,
+      [Metric.timeFeeding]: 4,
+      [Metric.feedsPerMatch]: 1,
+      [Metric.totalBallsFed]: 8,
+      [Metric.totalFuelOutputted]: 28,
+      [Metric.totalBallThroughput]: 28,
+      [Metric.volleysPerMatch]: 1,
+    });
+  });
+
+  it("keeps rates zero for missing quantities and zero-length observations", () => {
+    const input = report({
+      events: [
+        event(EventAction.START_FEEDING, 10),
+        event(EventAction.STOP_FEEDING, 10),
+        event(EventAction.STOP_SCORING, 10),
+      ],
+    });
+    expect(
+      calculateScoutReportMetrics(input, [
+        Metric.feedingRate,
+        Metric.totalBallsFed,
+        Metric.fuelPerSecond,
+      ]),
+    ).toEqual({
+      [Metric.feedingRate]: 0,
+      [Metric.totalBallsFed]: 0,
+      [Metric.fuelPerSecond]: 0,
+    });
+  });
+
+  it.each([
+    [EndgameClimb.L1, 10],
+    [EndgameClimb.L2, 20],
+    [EndgameClimb.L3, 30],
+    [EndgameClimb.FAILED, 0],
+  ] as const)("applies the %s climb bonus", (endgameClimb, expected) => {
+    expect(
+      calculateScoutReportMetrics(report({ endgameClimb }), [
+        Metric.totalPoints,
+      ]),
+    ).toEqual({ [Metric.totalPoints]: expected });
+  });
+
+  it("returns only requested supported metrics", () => {
+    expect(
+      calculateScoutReportMetrics(report({ driverAbility: 5 }), [
+        Metric.driverAbility,
+        Metric.accuracy,
+      ]),
+    ).toEqual({ [Metric.driverAbility]: 5 });
+  });
+
   it("applies the same calculation to a report loaded from Prisma", async () => {
     mocks.findUniqueOrThrow.mockResolvedValueOnce(
       report({

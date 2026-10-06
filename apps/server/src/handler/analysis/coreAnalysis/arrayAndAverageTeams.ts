@@ -189,10 +189,12 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
               select: { points: true },
             },
             accuracy: true,
+            autoClimb: true,
           };
           matchAggregationFunction = (reports) => {
             let total = 0;
             reports.forEach((sr) => {
+              if (sr.autoClimb === "SUCCEEDED") total += 15;
               const accuracyEnum = (sr as any).accuracy as
                 number | null | undefined;
               const accuracyPercent =
@@ -244,10 +246,8 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
               (acc, f) => acc + (f.quantity ?? 0),
               0,
             );
-            const avgFeedTime = avg(feedTime);
-            return totalFeedQuantity > 0 && avgFeedTime > 0
-              ? totalFeedQuantity / avgFeedTime
-              : 0;
+            const totalFeedTime = feedTime.reduce((a, b) => a + b, 0);
+            return totalFeedTime > 0 ? totalFeedQuantity / totalFeedTime : 0;
           };
           break;
         case Metric.timeFeeding:

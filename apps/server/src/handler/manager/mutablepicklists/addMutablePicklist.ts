@@ -19,7 +19,7 @@ export const addMutablePicklist = async (
     const params = z
       .object({
         name: z.string(),
-        teams: z.array(z.number().min(0)),
+        teams: z.array(z.number().int().min(0)),
         authorId: z.string(),
         tournamentKey: z.string().optional(),
       })

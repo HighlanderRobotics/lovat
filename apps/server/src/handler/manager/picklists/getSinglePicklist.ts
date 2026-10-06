@@ -31,6 +31,11 @@ export const getSinglePicklist = async (
       },
     });
 
+    if (!row) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
+
     // Map picklist rows to accepted names
     const out = {
       uuid: row.uuid,
@@ -38,6 +43,7 @@ export const getSinglePicklist = async (
       authorId: row.authorId,
       totalPoints: row.totalPoints,
       autoPoints: row.autoPoints,
+      driverAbility: row.driverAbility,
       teleopPoints: row.teleopPoints,
       climbResult: row.climbResult,
       autoClimb: row.autoClimb,

@@ -1,6 +1,7 @@
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentageInterpolated,
+  accuracyToPercentage,
   allTeamNumbers,
   autoEnd,
   endgameToPoints,
@@ -378,6 +379,57 @@ const config = {
       return raw.reduce((acc, r) => acc + Number(r.count), 0) / raw.length;
     }
 
+    // Quantities and durations belong to one scouting observation. Average
+    // observation rates so duplicate reports do not increase the robot's rate.
+    if (metric === Metric.totalBallsFed || metric === Metric.feedingRate) {
+      const t = tnmtSql(`tmd."tournamentKey"`, 1);
+      const s = teamSql(`sct."sourceTeamNumber"`, t.nextIdx);
+      const rows = await prismaClient.$queryRawUnsafe<
+        {
+          scoutReportUuid: string;
+          action: string | null;
+          quantity: number | null;
+          time: number | null;
+        }[]
+      >(
+        `SELECT sr."uuid" AS "scoutReportUuid", e."action", e."quantity", e."time"
+         FROM "ScoutReport" sr
+         JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
+         JOIN "Scouter" sct ON sct."uuid" = sr."scouterUuid"
+         LEFT JOIN "Event" e ON e."scoutReportUuid" = sr."uuid"
+           AND e."action" IN ('START_FEEDING'::"EventAction", 'STOP_FEEDING'::"EventAction")
+         WHERE 1=1 ${t.clause} ${s.clause}`,
+        ...buildParams(t.param, s.param),
+      );
+      const byReport: Record<string, typeof rows> = {};
+      for (const row of rows) (byReport[row.scoutReportUuid] ??= []).push(row);
+      const values = Object.values(byReport).map((events) => {
+        const quantity = events
+          .filter((e) => e.action === "STOP_FEEDING")
+          .reduce((sum, event) => sum + (event.quantity ?? 0), 0);
+        if (metric === Metric.totalBallsFed) return quantity;
+        const ordered = events
+          .filter((e) => e.time !== null)
+          .sort((a, b) => a.time - b.time);
+        let duration = 0;
+        for (let i = 0; i < ordered.length; i += 2) {
+          const start = ordered[i];
+          const stop = ordered[i + 1];
+          if (
+            start?.action === "START_FEEDING" &&
+            stop?.action === "STOP_FEEDING"
+          ) {
+            const elapsed = stop.time - start.time;
+            if (elapsed >= minActionDuration) duration += elapsed;
+          }
+        }
+        return duration > 0 ? quantity / duration : 0;
+      });
+      return values.length
+        ? values.reduce((sum, value) => sum + value, 0) / values.length
+        : 0;
+    }
+
     // ------------------------------------------------------------------
     // timeFeeding
     // ------------------------------------------------------------------
@@ -625,16 +677,18 @@ const config = {
           matchPoints: bigint;
           endgameClimb: string | null;
           autoClimb: string | null;
+          accuracy: number | null;
         }[]
       >(
         `SELECT
            tmd."tournamentKey",
            sr."uuid" AS "scoutReportUuid",
            COALESCE(SUM(e."points"), 0) AS "matchPoints",
+           sr."accuracy", sr."autoClimb",
            ${
              metric === Metric.totalPoints
-               ? `sr."endgameClimb", sr."autoClimb"`
-               : `NULL AS "endgameClimb", NULL AS "autoClimb"`
+               ? `sr."endgameClimb"`
+               : `NULL AS "endgameClimb"`
            }
          FROM "TeamMatchData" tmd
          JOIN "ScoutReport" sr  ON sr."teamMatchKey" = tmd."key"
@@ -643,7 +697,7 @@ const config = {
                                ${timeFilter}
          JOIN "Scouter" sct     ON sct."uuid" = sr."scouterUuid"
          WHERE 1=1 ${t.clause} ${s.clause}
-         GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb"`,
+         GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb", sr."accuracy"`,
         ...params,
       );
 
@@ -651,12 +705,17 @@ const config = {
 
       const perTournamentValues: Record<string, number[]> = {};
       for (const row of raw) {
-        let points = Number(row.matchPoints);
+        const accuracy =
+          row.accuracy === null
+            ? 100
+            : (accuracyToPercentage[row.accuracy] ?? 100);
+        let points = Number(row.matchPoints) * (accuracy / 100);
         if (metric === Metric.totalPoints) {
           const endgame = row.endgameClimb as keyof typeof endgameToPoints;
           points += endgame ? (endgameToPoints[endgame] ?? 0) : 0;
-          if (row.autoClimb === "SUCCEEDED") points += 15;
         }
+        if (metric !== Metric.teleopPoints && row.autoClimb === "SUCCEEDED")
+          points += 15;
         (perTournamentValues[row.tournamentKey] ??= []).push(points);
       }
 

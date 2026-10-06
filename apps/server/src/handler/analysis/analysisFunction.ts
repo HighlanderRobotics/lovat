@@ -5,6 +5,9 @@ import { kv } from "../../redisClient.js";
 import { AnalysisContext } from "./analysisConstants.js";
 import { User } from "@lovat/db";
 
+// Bump when formulas change so existing Redis entries cannot return old results.
+export const analysisCacheVersion = "v2";
+
 export type CreateKeyResult = {
   key: string[];
   teamDependencies?: number[];
@@ -86,7 +89,13 @@ export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
     keyFragments.push(`{${tournamentSource.mode}:[${tournamentSource.items}]}`);
   }
 
-  const key = ["analysis", "function", user.id, ...keyFragments].join(":");
+  const key = [
+    "analysis",
+    analysisCacheVersion,
+    "function",
+    user.id,
+    ...keyFragments,
+  ].join(":");
   const cacheRow = await kv.get(key);
 
   if (!cacheRow) {

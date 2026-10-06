@@ -103,7 +103,14 @@ const config = {
     );
     const differentialMean = redAllianceMean - blueAllianceMean;
 
-    const redLoosing = getZPercent((0 - differentialMean) / differentialSDV);
+    const redLoosing =
+      differentialSDV === 0
+        ? differentialMean === 0
+          ? 0.5
+          : differentialMean > 0
+            ? 0
+            : 1
+        : getZPercent((0 - differentialMean) / differentialSDV);
 
     const redWinning = 1 - redLoosing;
     const blueWiinning = 1 - redWinning;
