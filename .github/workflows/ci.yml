@@ -108,6 +108,8 @@ jobs:
           npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
           node --test test/migrations.test.mjs
           npm run test:integration
+      - name: Enforce unit-only Server coverage
+        run: npm run test:coverage:unit
       - name: Test Server behavior and enforce coverage against disposable services
         env:
           DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test

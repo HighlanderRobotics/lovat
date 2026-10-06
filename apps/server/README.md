@@ -36,8 +36,9 @@ npm run lint
 
 `npm test` runs non-watch Vitest behavior tests. `npm run typecheck` checks
 application types, and `npm run typecheck:test` also checks test and Vitest
-configuration types. `npm run test:coverage:unit` reports coverage for just the
-fast suite. The fast HTTP suite uses Supertest with a
+configuration types. `npx vitest --coverage` (watch mode) and
+`npm run test:coverage:unit` (one run) measure the fast suite and require 100%
+coverage for every source file. The fast HTTP suite uses Supertest with a
 synthetic signing key and mocked database lookups, so it does not need
 PostgreSQL, Redis, or external accounts.
 
@@ -69,8 +70,8 @@ HTML report at `coverage/index.html`, an LCOV report, and JSON summaries. CI run
 this combined command after deploying the disposable database and uploads the
 `server-coverage` artifact even when a test or coverage gate fails.
 
-`vitest.coverage.config.ts` requires 100% lines, statements, functions, and
-branches for every source file. The combined suite includes behavioral tests for
+`vitest.config.ts` and `vitest.coverage.config.ts` require 100% lines, statements,
+functions, and branches for every source file. The combined suite includes behavioral tests for
 schedules, imports, onboarding, Slack, CSV exports, permissions, source visibility,
 and analysis, plus database and cache integration tests. Coverage measures which
 code executes; the assertions verify the expected responses, calculations, and
@@ -78,7 +79,8 @@ side effects.
 
 When another coverage watcher is running locally, keep reports separate with
 `npm run test:coverage -- --coverage.reportsDirectory=/private/tmp/lovat-coverage`.
-CI uses the default `coverage/` directory.
+CI checks unit-only coverage independently before the combined run and uses
+the default `coverage/` directory.
 
 ## Optional database restore
 

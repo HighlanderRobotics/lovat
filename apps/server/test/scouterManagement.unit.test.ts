@@ -374,3 +374,20 @@ describe("scouter discovery", () => {
     });
   }
 });
+it.each([archiveScouter, unarchiveScouter])(
+  "%s translates missing-row persistence errors",
+  async (handler) => {
+    const { Prisma } = await import("@lovat/db");
+    db.scouter.update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("synthetic", {
+        code: "P2025",
+        clientVersion: "test",
+      }),
+    );
+    const response = await invoke(handler, {
+      body: { uuid: "scouter-1" },
+      params: { uuid: "scouter-1" },
+    });
+    expect(response.statusCode).toBe(404);
+  },
+);

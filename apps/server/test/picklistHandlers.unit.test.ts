@@ -254,3 +254,22 @@ it("defaults omitted shared weights to zero", async () => {
     },
   });
 });
+it.each([getSinglePicklist, getSingleMutablePicklist])(
+  "%s returns the requested team-scoped detail",
+  async (handler) => {
+    const result = await invoke(handler, { params: { uuid: "list" } });
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({
+      uuid: "list",
+      name: "Synthetic",
+      authorId: testUser.id,
+    });
+    expect(
+      handler === getSinglePicklist
+        ? db.sharedPicklist.findUnique
+        : db.mutablePicklist.findUnique,
+    ).toHaveBeenCalledWith({
+      where: { uuid: "list", author: { teamNumber: 8033 } },
+    });
+  },
+);
