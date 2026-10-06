@@ -49,6 +49,17 @@ export const updateScouterShift = async (
         uuid: params.data.uuid,
       },
     });
+    if (!tournamentRow) {
+      res.status(404).send("Scouter shift not found");
+      return;
+    }
+    if (
+      req.user.teamNumber === null ||
+      tournamentRow.sourceTeamNumber !== req.user.teamNumber
+    ) {
+      res.status(403).send("Unauthorized to update this shift");
+      return;
+    }
     const scoutersUnique = await checkOnlyOneInstanceOfScouter(
       params.data.team1,
       params.data.team2,
@@ -84,6 +95,7 @@ export const updateScouterShift = async (
       const rows = await prismaClient.scouterScheduleShift.update({
         where: {
           uuid: params.data.uuid,
+          sourceTeamNumber: req.user.teamNumber,
         },
         data: {
           startMatchOrdinalNumber: params.data.startMatchOrdinalNumber,

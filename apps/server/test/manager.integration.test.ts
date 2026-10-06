@@ -556,3 +556,59 @@ describe("scouter archival tenant isolation", () => {
     },
   );
 });
+
+it("prevents a lead from transferring another team's shift by editing its UUID", async () => {
+  const shift = await db.scouterScheduleShift.create({
+    data: {
+      sourceTeamNumber: teamNumber,
+      tournamentKey,
+      startMatchOrdinalNumber: 1,
+      endMatchOrdinalNumber: 10,
+    },
+  });
+  const body = {
+    startMatchOrdinalNumber: 2,
+    endMatchOrdinalNumber: 9,
+    team1: [],
+    team2: [],
+    team3: [],
+    team4: [],
+    team5: [],
+    team6: [],
+  };
+  const path = `/v1/manager/scoutershifts/${shift.uuid}`;
+  expect(
+    (
+      await request(app)
+        .post(path)
+        .send(body)
+        .auth(tokens.otherLead, { type: "bearer" })
+    ).status,
+  ).toBe(403);
+  expect(
+    await db.scouterScheduleShift.findUniqueOrThrow({
+      where: { uuid: shift.uuid },
+    }),
+  ).toMatchObject({
+    sourceTeamNumber: teamNumber,
+    startMatchOrdinalNumber: 1,
+    endMatchOrdinalNumber: 10,
+  });
+  expect(
+    (
+      await request(app)
+        .post(path)
+        .send(body)
+        .auth(tokens.lead, { type: "bearer" })
+    ).status,
+  ).toBe(200);
+  expect(
+    await db.scouterScheduleShift.findUniqueOrThrow({
+      where: { uuid: shift.uuid },
+    }),
+  ).toMatchObject({
+    sourceTeamNumber: teamNumber,
+    startMatchOrdinalNumber: 2,
+    endMatchOrdinalNumber: 9,
+  });
+});
