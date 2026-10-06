@@ -141,15 +141,11 @@ export const getReportCSV = async (
         tournamentKey: params.data.tournamentKey,
       },
     };
-    const parsedRule = dataSourceRuleSchema(z.number()).safeParse(
+    const sourceRule = dataSourceRuleSchema(z.number()).parse(
       req.user?.teamSourceRule,
     );
-    if (parsedRule.success) {
-      const filter = dataSourceRuleToPrismaFilter(parsedRule.data);
-      if (filter) {
-        where.scouter = { sourceTeamNumber: filter };
-      }
-    }
+    const filter = dataSourceRuleToPrismaFilter(sourceRule);
+    if (filter) where.scouter = { sourceTeamNumber: filter };
 
     const datapoints = await prismaClient.scoutReport.findMany({
       where,

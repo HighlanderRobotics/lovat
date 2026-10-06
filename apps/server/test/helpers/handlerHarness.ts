@@ -38,6 +38,15 @@ export const invoke = async (
       response.headers[name] = value;
       return response;
     }),
+    header: vi.fn((name: string, value: string) => {
+      response.headers[name] = value;
+      return response;
+    }),
+    attachment: vi.fn((name: string) => {
+      response.headers["Content-Disposition"] =
+        `attachment; filename="${name}"`;
+      return response;
+    }),
     redirect: vi.fn((url: string) => {
       response.statusCode = 302;
       response.headers.Location = url;

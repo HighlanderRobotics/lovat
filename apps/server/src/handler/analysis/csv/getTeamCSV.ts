@@ -132,6 +132,9 @@ export const getTeamCSV = async (
       };
     }
 
+    const sourceRule = dataSourceRuleSchema(z.number()).parse(
+      req.user?.teamSourceRule,
+    );
     // TMD instances will be sorted by team number and then looped through and aggregated
     const datapoints = await prismaClient.teamMatchData.findMany({
       where: {
@@ -141,11 +144,7 @@ export const getTeamCSV = async (
         teamNumber: true,
         scoutReports: {
           where: (() => {
-            const parsed = dataSourceRuleSchema(z.number()).safeParse(
-              req.user?.teamSourceRule,
-            );
-            if (!parsed.success) return {};
-            const filter = dataSourceRuleToPrismaFilter(parsed.data);
+            const filter = dataSourceRuleToPrismaFilter(sourceRule);
             return filter ? { scouter: { sourceTeamNumber: filter } } : {};
           })(),
           select: {
@@ -200,19 +199,11 @@ export const getTeamCSV = async (
           );
 
           // Build the data source filters
-          const parsedTeamRule = dataSourceRuleSchema(z.number()).safeParse(
-            req.user?.teamSourceRule,
+          const teamFilter = dataSourceRuleToPrismaFilter(sourceRule);
+          const tournamentRule = dataSourceRuleSchema(z.string()).parse(
+            req.user?.tournamentSourceRule,
           );
-          const teamFilter = parsedTeamRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTeamRule.data)
-            : undefined;
-
-          const parsedTournamentRule = dataSourceRuleSchema(
-            z.string(),
-          ).safeParse(req.user?.tournamentSourceRule);
-          const tournamentFilter = parsedTournamentRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTournamentRule.data)
-            : undefined;
+          const tournamentFilter = dataSourceRuleToPrismaFilter(tournamentRule);
 
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
