@@ -95,6 +95,7 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npm run typecheck:test
+      - run: npm run test:report:prepare
       - name: Test shared database against disposable PostgreSQL
         working-directory: packages/db
         env:
@@ -125,12 +126,46 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: server-coverage
-          path: apps/server/coverage/
+          path: apps/server/test-report/coverage/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Upload Server test overview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-test-report
+          path: apps/server/test-report/
           retention-days: 14
           if-no-files-found: warn
       - name: Build server deployment image
         working-directory: .
         run: docker build -f apps/server/Dockerfile -t lovat-server:ci .
+      - name: Package public test report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: apps/server/test-report/
+
+  test-report:
+    name: Publish test report
+    needs: [server, gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: test-report-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy test report
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   collection:
     name: Collection

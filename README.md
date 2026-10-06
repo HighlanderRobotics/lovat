@@ -78,6 +78,10 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 
 ## Deployment
 
+The [server test overview](https://highlanderrobotics.github.io/lovat/) can be
+published by CI after successful server checks on main. See
+[test report hosting](docs/test-report-hosting.md) for setup.
+
 - Server: Railway, repository root `/`, config `/apps/server/railway.json`, Dockerfile `apps/server/Dockerfile` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
 - Dashboard: Netlify web deployment and GitHub Actions Android artifact.
 - Collection: EAS, project root `apps/collection`.
