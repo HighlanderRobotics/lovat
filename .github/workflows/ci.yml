@@ -109,6 +109,10 @@ jobs:
           node --test test/migrations.test.mjs
           npm run test:integration
       - name: Enforce unit-only Server coverage
+        env:
+          DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+          REDIS_URL: redis://127.0.0.1:6379/15
+          LOVAT_DB_TEST: "1"
         run: npm run test:coverage:unit
       - name: Test Server behavior and enforce coverage against disposable services
         env:
