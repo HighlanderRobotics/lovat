@@ -26,14 +26,6 @@ export const deleteUser = async (
         .status(400)
         .send("Cannot delete the only scouting lead for the given team");
       return;
-    } else if (
-      req.user.role === "SCOUTING_LEAD" &&
-      checkScoutingLead.length === 1
-    ) {
-      res
-        .status(400)
-        .send("Cannot delete the only scouting lead for the given team");
-      return;
     } else {
       await prismaClient.user.delete({
         where: {

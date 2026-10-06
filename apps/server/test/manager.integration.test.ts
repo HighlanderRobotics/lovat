@@ -518,3 +518,41 @@ for (const root of [
     });
   });
 }
+
+describe("scouter archival tenant isolation", () => {
+  it.each(["archive", "unarchive"])(
+    "limits %s to the authenticated lead's team",
+    async (action) => {
+      const scouter = await db.scouter.create({
+        data: {
+          sourceTeamNumber: teamNumber,
+          archived: action === "unarchive",
+        },
+      });
+      const path = `/v1/manager/${action}/uuid/${scouter.uuid}`;
+      const unauthorized = await request(app)
+        .post(path)
+        .auth(tokens.otherLead, { type: "bearer" });
+      expect(unauthorized.status).toBe(404);
+      expect(
+        (await db.scouter.findUniqueOrThrow({ where: { uuid: scouter.uuid } }))
+          .archived,
+      ).toBe(action === "unarchive");
+      const authorized = await request(app)
+        .post(path)
+        .auth(tokens.lead, { type: "bearer" });
+      expect(authorized.status).toBe(200);
+      expect(
+        (await db.scouter.findUniqueOrThrow({ where: { uuid: scouter.uuid } }))
+          .archived,
+      ).toBe(action === "archive");
+      expect(
+        (
+          await request(app)
+            .post(`/v1/manager/${action}/uuid/${randomUUID()}`)
+            .auth(tokens.lead, { type: "bearer" })
+        ).status,
+      ).toBe(404);
+    },
+  );
+});
