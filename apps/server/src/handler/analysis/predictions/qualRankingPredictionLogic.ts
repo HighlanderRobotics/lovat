@@ -161,22 +161,14 @@ const config = {
         } else {
           let redRPs = 0;
           let blueRPs = 0;
-          let matchPrediction;
-
-          try {
-            matchPrediction = await matchPredictionLogic(ctx.user, {
-              red1: redTeams[0],
-              red2: redTeams[1],
-              red3: redTeams[2],
-              blue1: blueTeams[0],
-              blue2: blueTeams[1],
-              blue3: blueTeams[2],
-            });
-          } catch (error) {
-            if (error === "not enough data") {
-              throw "not enough data";
-            }
-          }
+          const matchPrediction = await matchPredictionLogic(ctx.user, {
+            red1: redTeams[0],
+            red2: redTeams[1],
+            red3: redTeams[2],
+            blue1: blueTeams[0],
+            blue2: blueTeams[1],
+            blue3: blueTeams[2],
+          });
 
           const redAlliance = await alliancePage(ctx.user, {
             team1: redTeams[0],

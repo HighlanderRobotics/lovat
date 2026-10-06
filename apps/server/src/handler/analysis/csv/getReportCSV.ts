@@ -141,15 +141,11 @@ export const getReportCSV = async (
         tournamentKey: params.data.tournamentKey,
       },
     };
-    const parsedRule = dataSourceRuleSchema(z.number()).safeParse(
+    const sourceRule = dataSourceRuleSchema(z.number()).parse(
       req.user?.teamSourceRule,
     );
-    if (parsedRule.success) {
-      const filter = dataSourceRuleToPrismaFilter(parsedRule.data);
-      if (filter) {
-        where.scouter = { sourceTeamNumber: filter };
-      }
-    }
+    const filter = dataSourceRuleToPrismaFilter(sourceRule);
+    if (filter) where.scouter = { sourceTeamNumber: filter };
 
     const datapoints = await prismaClient.scoutReport.findMany({
       where,
@@ -242,7 +238,7 @@ export const getReportCSV = async (
     const csvString = stringify(condensed, {
       header: true,
       // Creates column headers from data properties
-      columns: condensed.length ? Object.keys(condensed[0]) : [],
+      columns: Object.keys(condensed[0]),
       // Required for excel viewing
       bom: true,
       // Rename boolean values to TRUE and FALSE

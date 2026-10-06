@@ -1,3 +1,4 @@
+import { Prisma } from "@lovat/db";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
@@ -16,11 +17,15 @@ export const updateMutablePicklist = async (
     }
 
     const user = req.user;
+    if (user.teamNumber === null) {
+      res.status(403).send("Not affiliated with a team");
+      return;
+    }
 
     const params = z
       .object({
         name: z.string(),
-        teams: z.array(z.number().min(0)),
+        teams: z.array(z.number().int().min(0)),
         authorId: z.string(),
       })
       .safeParse({
@@ -33,7 +38,7 @@ export const updateMutablePicklist = async (
       return;
     }
 
-    const row = await prismaClient.mutablePicklist.update({
+    await prismaClient.mutablePicklist.update({
       where: {
         uuid: req.params.uuid,
         author: {
@@ -46,13 +51,15 @@ export const updateMutablePicklist = async (
         authorId: params.data.authorId,
       },
     });
-    if (!row) {
-      res.status(403).send("Not authorized to update this picklist");
-      return;
-    }
-
     res.status(200).send("mutable picklist updated");
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
     console.error(error);
     res.status(500).send("Internal server error");
   }

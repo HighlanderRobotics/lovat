@@ -9,6 +9,10 @@ export const getSingleMutablePicklist = async (
 ): Promise<void> => {
   try {
     const user = req.user;
+    if (user.teamNumber === null) {
+      res.status(403).send("Not affiliated with a team");
+      return;
+    }
 
     const params = z
       .object({
@@ -29,6 +33,11 @@ export const getSingleMutablePicklist = async (
         uuid: params.data.uuid,
       },
     });
+
+    if (!row) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
 
     res.status(200).send(row);
   } catch (error) {

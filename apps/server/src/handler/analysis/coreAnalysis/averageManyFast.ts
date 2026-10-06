@@ -27,11 +27,6 @@ export function avg(values: number[]): number {
   return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
 }
 
-function avgNonNull(values: (number | null)[]): number {
-  const v = values.filter((x): x is number => x !== null);
-  return avg(v);
-}
-
 function firstEventTime(
   events: Event[],
   predicate: (e: Event) => boolean,
@@ -140,9 +135,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
             }
             const adjustedTimes = nonNullTimes.map((t) => {
               const remaining = autoEnd - t;
-              return remaining >= 0 ? remaining : 0;
+              return remaining;
             });
-            matchValue = avg(adjustedTimes.length ? adjustedTimes : [0]);
+            matchValue = avg(adjustedTimes);
             break;
           }
 
@@ -172,9 +167,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
             }
             const adjustedTimes = nonNullTimes.map((t) => {
               const remaining = 158 - t;
-              return remaining >= 0 ? remaining : 0;
+              return remaining;
             });
-            matchValue = avg(adjustedTimes.length ? adjustedTimes : [0]);
+            matchValue = avg(adjustedTimes);
             break;
           }
           case Metric.contactDefenseTime:
@@ -273,7 +268,10 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
           case Metric.totalBallThroughput: {
             const perReport = sr.map((r) => {
               return r.events
-                .filter((e) => e.action === "STOP_SCORING")
+                .filter(
+                  (e) =>
+                    e.action === "STOP_SCORING" || e.action === "STOP_FEEDING",
+                )
                 .reduce((acc, cur) => acc + (cur.quantity ?? 0), 0);
             });
             matchValue = avg(perReport);
@@ -295,8 +293,9 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
               (acc, f) => acc + (f.quantity ?? 0),
               0,
             );
+            const totalFeedTime = feedTime.reduce((a, b) => a + b, 0);
             matchValue =
-              totalFeedQuantity > 0 ? totalFeedQuantity / avg(feedTime) : 0;
+              totalFeedTime > 0 ? totalFeedQuantity / totalFeedTime : 0;
             break;
           }
           case Metric.timeFeeding: {

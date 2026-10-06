@@ -132,6 +132,9 @@ export const getTeamCSV = async (
       };
     }
 
+    const sourceRule = dataSourceRuleSchema(z.number()).parse(
+      req.user?.teamSourceRule,
+    );
     // TMD instances will be sorted by team number and then looped through and aggregated
     const datapoints = await prismaClient.teamMatchData.findMany({
       where: {
@@ -141,11 +144,7 @@ export const getTeamCSV = async (
         teamNumber: true,
         scoutReports: {
           where: (() => {
-            const parsed = dataSourceRuleSchema(z.number()).safeParse(
-              req.user?.teamSourceRule,
-            );
-            if (!parsed.success) return {};
-            const filter = dataSourceRuleToPrismaFilter(parsed.data);
+            const filter = dataSourceRuleToPrismaFilter(sourceRule);
             return filter ? { scouter: { sourceTeamNumber: filter } } : {};
           })(),
           select: {
@@ -200,19 +199,11 @@ export const getTeamCSV = async (
           );
 
           // Build the data source filters
-          const parsedTeamRule = dataSourceRuleSchema(z.number()).safeParse(
-            req.user?.teamSourceRule,
+          const teamFilter = dataSourceRuleToPrismaFilter(sourceRule);
+          const tournamentRule = dataSourceRuleSchema(z.string()).parse(
+            req.user?.tournamentSourceRule,
           );
-          const teamFilter = parsedTeamRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTeamRule.data)
-            : undefined;
-
-          const parsedTournamentRule = dataSourceRuleSchema(
-            z.string(),
-          ).safeParse(req.user?.tournamentSourceRule);
-          const tournamentFilter = parsedTournamentRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTournamentRule.data)
-            : undefined;
+          const tournamentFilter = dataSourceRuleToPrismaFilter(tournamentRule);
 
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
@@ -367,13 +358,8 @@ export const getTeamCSV = async (
 
           const csvString = stringify(aggregatedData, {
             header: true,
-            columns: aggregatedData.length
-              ? Object.keys(aggregatedData[0])
-              : [],
+            columns: Object.keys(aggregatedData[0]),
             bom: true,
-            cast: {
-              boolean: (b) => (b ? "TRUE" : "FALSE"),
-            },
             quote: false,
           });
 
@@ -462,13 +448,9 @@ export const getTeamCSV = async (
     const csvString = stringify(aggregatedData, {
       header: true,
       // Creates column headers from data properties
-      columns: aggregatedData.length ? Object.keys(aggregatedData[0]) : [],
+      columns: Object.keys(aggregatedData[0]),
       // Required for excel viewing
       bom: true,
-      // Rename boolean values to TRUE and FALSE
-      cast: {
-        boolean: (b) => (b ? "TRUE" : "FALSE"),
-      },
       // Turn off quotation marks
       quote: false,
     });
@@ -541,8 +523,8 @@ async function aggregateTeamReports(
 
   // Main iteration for most aggregation summing (roles, fieldTraversal, perc flags)
   reports.forEach((report) => {
-    for (const role of report.robotRoles || []) {
-      roles[role] += report.weight / (report.robotRoles.length || 1);
+    for (const role of report.robotRoles) {
+      roles[role] += report.weight / report.robotRoles.length;
     }
 
     switch (report.fieldTraversal) {

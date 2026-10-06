@@ -16,8 +16,8 @@ export const pitDisplay = async (
       .object({
         team: z.number().min(0),
         tournamentKey: z.string(),
-        topTeamCount: z.number(),
-        teamsAboveCount: z.number(),
+        topTeamCount: z.number().int().min(0),
+        teamsAboveCount: z.number().int().min(0),
       })
       .safeParse({
         team: Number(req.query.team),
@@ -73,7 +73,7 @@ export const pitDisplay = async (
           (team) => team.number === params.data.team,
         );
 
-        if (findTeamIndex) {
+        if (findTeamIndex >= 0) {
           if (
             findTeamIndex <
             params.data.topTeamCount + params.data.teamsAboveCount
@@ -81,11 +81,10 @@ export const pitDisplay = async (
             data.rankingBlocks = mappedData;
           } else {
             let arrRankings = mappedData.slice(0, params.data.topTeamCount);
-            const startingIndex =
-              findTeamIndex - params.data.teamsAboveCount || 0;
+            const startingIndex = findTeamIndex - params.data.teamsAboveCount;
             arrRankings.push({
               type: "collapsedDivider",
-              teamCount: startingIndex + 1 - params.data.topTeamCount,
+              teamCount: startingIndex - params.data.topTeamCount,
             });
             arrRankings = arrRankings.concat(mappedData.slice(startingIndex));
             data.rankingBlocks = arrRankings;
@@ -105,9 +104,8 @@ export const pitDisplay = async (
       //reverse order (get most recent)
       orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
     });
-    nowPlaying.matchNumber = nowPlaying.matchNumber + 1;
-
     if (nowPlaying) {
+      nowPlaying.matchNumber += 1;
       const matchesData: any = {};
       matchesData.nowPlaying = await matchFormat(
         params.data.tournamentKey,
@@ -119,6 +117,7 @@ export const pitDisplay = async (
         nowPlaying.matchNumber + 1,
         nowPlaying.matchType,
       );
+      data.matches = matchesData;
       //if there are more matches left
       if (matchesData.next !== null) {
         const prevMatchAllRows = await prismaClient.teamMatchData.findMany({
@@ -188,6 +187,11 @@ export const pitDisplay = async (
           orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
         });
 
+        if (!nextTeamMatch) {
+          res.status(200).send(data);
+          return;
+        }
+
         //one elim (next) and one qual (prev)
         if (teamPrevMatch === null) {
           teamPrevMatch = await prismaClient.teamMatchData.findFirst({
@@ -198,10 +202,11 @@ export const pitDisplay = async (
             },
           });
         }
-        if (
-          nextTeamMatch &&
-          teamPrevMatch.matchType != nextTeamMatch.matchType
-        ) {
+        if (!teamPrevMatch) {
+          res.status(200).send(data);
+          return;
+        }
+        if (teamPrevMatch.matchType !== nextTeamMatch.matchType) {
           const maxQualifierRow = await prismaClient.teamMatchData.findFirst({
             where: {
               tournamentKey: params.data.tournamentKey,
@@ -210,6 +215,10 @@ export const pitDisplay = async (
             orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
           });
 
+          if (!maxQualifierRow) {
+            res.status(200).send(data);
+            return;
+          }
           if (nowPlaying.matchType !== teamPrevMatch.matchType) {
             data.teamMatchTimeline = {
               matchCount:
@@ -264,7 +273,7 @@ async function matchFormat(
         key: "asc",
       },
     });
-    if (fullLatestedScouted.length < 0) {
+    if (fullLatestedScouted.length !== 6) {
       return null;
     }
     const blueTeams = [

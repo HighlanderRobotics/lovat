@@ -26,3 +26,17 @@ describe("data-source rules", () => {
     ).toEqual({ notIn: [100] });
   });
 });
+it("filters nonempty inclusion and exclusion lists", () => {
+  expect(
+    dataSourceRuleToArray({ mode: "INCLUDE", items: [100] }, [100, 200]),
+  ).toEqual([100]);
+  expect(
+    dataSourceRuleToArray({ mode: "EXCLUDE", items: [100] }, [100, 200]),
+  ).toEqual([200]);
+});
+it("handles missing scalar rules and rejects unsupported array rule modes", () => {
+  expect(dataSourceRuleToPrismaFilter(null)).toBeUndefined();
+  expect(
+    dataSourceRuleToArray({ mode: "invalid" as "INCLUDE", items: [] }, [100]),
+  ).toEqual([]);
+});

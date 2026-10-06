@@ -1,7 +1,7 @@
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
-import { UserRole } from "@lovat/db";
+import { Prisma, UserRole } from "@lovat/db";
 import { Response } from "express";
 
 export const unarchiveScouter = async (
@@ -22,7 +22,10 @@ export const unarchiveScouter = async (
       })
       .parse(req.params);
 
-    if (req.user.role !== UserRole.SCOUTING_LEAD) {
+    if (
+      req.user.role !== UserRole.SCOUTING_LEAD ||
+      req.user.teamNumber === null
+    ) {
       res
         .status(403)
         .send("You need to be a scouting lead to unarchive scouters");
@@ -32,6 +35,7 @@ export const unarchiveScouter = async (
     await prismaClient.scouter.update({
       where: {
         uuid: params.uuid,
+        sourceTeamNumber: req.user.teamNumber,
       },
       data: {
         archived: false,
@@ -42,6 +46,13 @@ export const unarchiveScouter = async (
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid request parameters" });
+      return;
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).json({ error: "Scouter not found" });
       return;
     }
     console.error(error);

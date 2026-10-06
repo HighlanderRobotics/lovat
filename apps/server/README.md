@@ -30,18 +30,21 @@ npm run build
 npm run typecheck
 npm run typecheck:test
 npm test
-npm run test:coverage
+npm run test:coverage:unit
 npm run lint
 ```
 
 `npm test` runs non-watch Vitest behavior tests. `npm run typecheck` checks
 application types, and `npm run typecheck:test` also checks test and Vitest
-configuration types. `npm run test:coverage` includes untested application
-modules in the coverage report. The fast HTTP suite uses Supertest with a
+configuration types. `npx vitest --coverage` (watch mode) and
+`npm run test:coverage:unit` (one run) measure the fast suite and require 100%
+coverage for every source file. The fast HTTP suite uses Supertest with a
 synthetic signing key and mocked database lookups, so it does not need
 PostgreSQL, Redis, or external accounts.
 
-The report integration suite uses disposable local PostgreSQL and Redis. After
+The integration suites cover report uploads, API key and picklist lifecycles,
+team isolation, all numeric and categorical analysis metrics, and caching with
+real disposable PostgreSQL and Redis. After
 deploying the checked-in migrations to a database named `lovat_test`, run:
 
 ```bash
@@ -49,11 +52,35 @@ LOVAT_DB_TEST=1 \
   DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test \
   REDIS_URL=redis://127.0.0.1:6379/15 \
   npm run test:integration
+
+# Measure both suites together using the same disposable services:
+LOVAT_DB_TEST=1 \
+  DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test \
+  REDIS_URL=redis://127.0.0.1:6379/15 \
+  npm run test:coverage
 ```
 
 The suite refuses non-loopback hosts, a database with another name, or a Redis
 database other than 15. The existing shared database integration tests run
 separately from `packages/db`.
+
+`test:coverage` runs both Vitest projects and includes every `src/**/*.ts` file
+in the denominator, including the process entrypoint and seed script. It writes an
+HTML report at `coverage/index.html`, an LCOV report, and JSON summaries. CI runs
+this combined command after deploying the disposable database and uploads the
+`server-coverage` artifact even when a test or coverage gate fails.
+
+`vitest.config.ts` and `vitest.coverage.config.ts` require 100% lines, statements,
+functions, and branches for every source file. The combined suite includes behavioral tests for
+schedules, imports, onboarding, Slack, CSV exports, permissions, source visibility,
+and analysis, plus database and cache integration tests. Coverage measures which
+code executes; the assertions verify the expected responses, calculations, and
+side effects.
+
+When another coverage watcher is running locally, keep reports separate with
+`npm run test:coverage -- --coverage.reportsDirectory=/private/tmp/lovat-coverage`.
+CI checks unit-only coverage independently before the combined run and uses
+the default `coverage/` directory.
 
 ## Optional database restore
 

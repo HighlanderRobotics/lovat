@@ -1,3 +1,4 @@
+import { Prisma } from "@lovat/db";
 import { Response } from "express";
 import prismaClient from "../../prismaClient.js";
 import z from "zod";
@@ -21,11 +22,11 @@ export const updateNotes = async (
         note: z.string(),
         uuid: z.string(),
       })
-      .safeParse({
+      .parse({
         note: req.body.note,
         uuid: req.params.uuid,
       });
-    if (req.user.role !== "SCOUTING_LEAD") {
+    if (req.user.role !== "SCOUTING_LEAD" || req.user.teamNumber === null) {
       res.status(403).send("Not authorized to edit this note");
       return;
     }
@@ -37,17 +38,13 @@ export const updateNotes = async (
         },
       },
       data: {
-        notes: params.data.note,
+        notes: params.note,
       },
       include: {
         teamMatchData: true,
       },
     });
-    if (!row) {
-      res.status(403).send("Not authorized to update this picklist");
-      return;
-    }
-    invalidateCache(
+    await invalidateCache(
       row.teamMatchData.teamNumber,
       row.teamMatchData.tournamentKey,
     );
@@ -56,6 +53,13 @@ export const updateNotes = async (
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid request parameters" });
+      return;
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).send("Report not found");
       return;
     }
     console.error(error);

@@ -9,6 +9,10 @@ export const getSinglePicklist = async (
 ): Promise<void> => {
   try {
     const user = req.user;
+    if (user.teamNumber === null) {
+      res.status(403).send("Not affiliated with a team");
+      return;
+    }
 
     const params = z
       .object({
@@ -31,6 +35,11 @@ export const getSinglePicklist = async (
       },
     });
 
+    if (!row) {
+      res.status(404).send("Picklist not found");
+      return;
+    }
+
     // Map picklist rows to accepted names
     const out = {
       uuid: row.uuid,
@@ -38,6 +47,7 @@ export const getSinglePicklist = async (
       authorId: row.authorId,
       totalPoints: row.totalPoints,
       autoPoints: row.autoPoints,
+      driverAbility: row.driverAbility,
       teleopPoints: row.teleopPoints,
       climbResult: row.climbResult,
       autoClimb: row.autoClimb,

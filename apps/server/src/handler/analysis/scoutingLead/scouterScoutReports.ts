@@ -11,11 +11,6 @@ export const scouterScoutReports = createAnalysisHandler({
   },
   usesDataSource: true,
   shouldCache: false,
-  createKey: async ({ query }) => ({
-    key: ["scouterScoutReports", query.scouterUuid, query.tournamentKey || ""],
-    teamDependencies: [],
-    tournamentDependencies: query.tournamentKey ? [query.tournamentKey] : [],
-  }),
   calculateAnalysis: async ({ query }, ctx) => {
     const scouter = await prismaClient.scouter.findUnique({
       where: { uuid: query.scouterUuid },

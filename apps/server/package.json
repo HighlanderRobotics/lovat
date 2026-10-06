@@ -9,7 +9,7 @@
     "start": "cross-env NODE_ENV=production node dist/src/server.js",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --config vitest.coverage.config.ts --coverage",
     "typecheck": "tsc --noEmit",
     "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
     "lint": "eslint .",
@@ -17,7 +17,8 @@
     "format:check": "prettier --check .",
     "postinstall": "npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
     "prebuild": "npm --prefix ../../packages/db run build",
-    "db:seed": "tsx src/seed.ts"
+    "db:seed": "tsx src/seed.ts",
+    "test:coverage:unit": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",

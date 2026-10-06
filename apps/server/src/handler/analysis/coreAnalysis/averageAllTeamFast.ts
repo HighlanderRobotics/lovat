@@ -1,6 +1,7 @@
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentageInterpolated,
+  accuracyToPercentage,
   allTeamNumbers,
   autoEnd,
   endgameToPoints,
@@ -33,7 +34,7 @@ type PrismaFilter<T> = { in?: T[]; notIn?: T[] } | undefined;
  * @returns        { clause, param, nextIdx }
  *                 clause is empty string if filter is undefined (no restriction)
  */
-function filterToSql<T extends string | number>(
+export function filterToSql<T extends string | number>(
   filter: PrismaFilter<T>,
   cast: string,
   col: string,
@@ -124,15 +125,12 @@ const config = {
 
       const byTournament: Record<string, number[]> = {};
       for (const row of raw) {
-        if (row.driverAbility == null) continue;
         (byTournament[row.tournamentKey] ??= []).push(row.driverAbility);
       }
       const perTournamentAvg = Object.values(byTournament).map(
         (vals) => vals.reduce((a, b) => a + b, 0) / vals.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -159,15 +157,12 @@ const config = {
       const byTournament: Record<string, number[]> = {};
       for (const row of raw) {
         const pct = accuracyToPercentageInterpolated(row.accuracy);
-        if (typeof pct !== "number") continue;
         (byTournament[row.tournamentKey] ??= []).push(pct);
       }
       const perTournamentAvg = Object.values(byTournament).map(
         (vals) => vals.reduce((a, b) => a + b, 0) / vals.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -239,9 +234,7 @@ const config = {
         return duration > 0 ? totalFuel / duration : 0;
       });
 
-      return perReportRates.length
-        ? perReportRates.reduce((a, b) => a + b, 0) / perReportRates.length
-        : 0;
+      return perReportRates.reduce((a, b) => a + b, 0) / perReportRates.length;
     }
 
     // ------------------------------------------------------------------
@@ -294,9 +287,7 @@ const config = {
       const perTournamentAvg = Object.values(byTournament).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -347,9 +338,7 @@ const config = {
       const perTournamentAvg = Object.values(byTournament).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAvg.length
-        ? weightedTourAvgLeft(perTournamentAvg)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAvg);
     }
 
     // ------------------------------------------------------------------
@@ -376,6 +365,61 @@ const config = {
 
       if (raw.length === 0) return 0;
       return raw.reduce((acc, r) => acc + Number(r.count), 0) / raw.length;
+    }
+
+    // Pool feeding quantity and active time, matching the team analysis paths.
+    // Reports without feeding must not dilute the rate during active feeding.
+    if (metric === Metric.totalBallsFed || metric === Metric.feedingRate) {
+      const t = tnmtSql(`tmd."tournamentKey"`, 1);
+      const s = teamSql(`sct."sourceTeamNumber"`, t.nextIdx);
+      const rows = await prismaClient.$queryRawUnsafe<
+        {
+          scoutReportUuid: string;
+          action: string | null;
+          quantity: number | null;
+          time: number | null;
+        }[]
+      >(
+        `SELECT sr."uuid" AS "scoutReportUuid", e."action", e."quantity", e."time"
+         FROM "ScoutReport" sr
+         JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
+         JOIN "Scouter" sct ON sct."uuid" = sr."scouterUuid"
+         LEFT JOIN "Event" e ON e."scoutReportUuid" = sr."uuid"
+           AND e."action" IN ('START_FEEDING'::"EventAction", 'STOP_FEEDING'::"EventAction")
+         WHERE 1=1 ${t.clause} ${s.clause}`,
+        ...buildParams(t.param, s.param),
+      );
+      const byReport: Record<string, typeof rows> = {};
+      for (const row of rows) (byReport[row.scoutReportUuid] ??= []).push(row);
+      const values = Object.values(byReport).map((events) => {
+        const quantity = events
+          .filter((e) => e.action === "STOP_FEEDING")
+          .reduce((sum, event) => sum + (event.quantity ?? 0), 0);
+        const ordered = events
+          .filter((e) => e.time !== null)
+          .sort((a, b) => a.time - b.time);
+        let duration = 0;
+        for (let i = 0; i < ordered.length; i += 2) {
+          const start = ordered[i];
+          const stop = ordered[i + 1];
+          if (
+            start?.action === "START_FEEDING" &&
+            stop?.action === "STOP_FEEDING"
+          ) {
+            const elapsed = stop.time - start.time;
+            if (elapsed >= minActionDuration) duration += elapsed;
+          }
+        }
+        return { quantity, duration };
+      });
+      if (metric === Metric.feedingRate) {
+        const quantity = values.reduce((sum, value) => sum + value.quantity, 0);
+        const duration = values.reduce((sum, value) => sum + value.duration, 0);
+        return duration > 0 ? quantity / duration : 0;
+      }
+      return values.length
+        ? values.reduce((sum, value) => sum + value.quantity, 0) / values.length
+        : 0;
     }
 
     // ------------------------------------------------------------------
@@ -625,16 +669,18 @@ const config = {
           matchPoints: bigint;
           endgameClimb: string | null;
           autoClimb: string | null;
+          accuracy: number | null;
         }[]
       >(
         `SELECT
            tmd."tournamentKey",
            sr."uuid" AS "scoutReportUuid",
            COALESCE(SUM(e."points"), 0) AS "matchPoints",
+           sr."accuracy", sr."autoClimb",
            ${
              metric === Metric.totalPoints
-               ? `sr."endgameClimb", sr."autoClimb"`
-               : `NULL AS "endgameClimb", NULL AS "autoClimb"`
+               ? `sr."endgameClimb"`
+               : `NULL AS "endgameClimb"`
            }
          FROM "TeamMatchData" tmd
          JOIN "ScoutReport" sr  ON sr."teamMatchKey" = tmd."key"
@@ -643,7 +689,7 @@ const config = {
                                ${timeFilter}
          JOIN "Scouter" sct     ON sct."uuid" = sr."scouterUuid"
          WHERE 1=1 ${t.clause} ${s.clause}
-         GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb"`,
+         GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb", sr."accuracy"`,
         ...params,
       );
 
@@ -651,21 +697,24 @@ const config = {
 
       const perTournamentValues: Record<string, number[]> = {};
       for (const row of raw) {
-        let points = Number(row.matchPoints);
+        const accuracy =
+          row.accuracy === null
+            ? 100
+            : (accuracyToPercentage[row.accuracy] ?? 100);
+        let points = Number(row.matchPoints) * (accuracy / 100);
         if (metric === Metric.totalPoints) {
           const endgame = row.endgameClimb as keyof typeof endgameToPoints;
-          points += endgame ? (endgameToPoints[endgame] ?? 0) : 0;
-          if (row.autoClimb === "SUCCEEDED") points += 15;
+          points += endgameToPoints[endgame];
         }
+        if (metric !== Metric.teleopPoints && row.autoClimb === "SUCCEEDED")
+          points += 15;
         (perTournamentValues[row.tournamentKey] ??= []).push(points);
       }
 
       const perTournamentAverages = Object.values(perTournamentValues).map(
         (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
       );
-      return perTournamentAverages.length
-        ? weightedTourAvgLeft(perTournamentAverages)
-        : 0;
+      return weightedTourAvgLeft(perTournamentAverages);
     }
 
     // ------------------------------------------------------------------

@@ -11,7 +11,7 @@ const shiftScouterEx = [
   ["Gabi", "Jasmeh", "Colin"],
 ];
 
-const generateSchedule = async (
+export const generateSchedule = async (
   tournamentKey: string,
   shiftScouters?: string[][],
 ) => {
@@ -64,24 +64,20 @@ const generateSchedule = async (
     });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 304) {
-      return;
+      throw "NO_SCHEDULE";
     } else {
       throw error;
     }
   }
 
-  await prismaClient.tournament.update({
-    where: {
-      key: tournamentKey,
-    },
-    data: {
-      latestFetchETag: matchesResponse.headers.etag,
-    },
-  });
-
-  if (!matchesResponse || !teamsResponse) {
+  if (!matchesResponse || !teamsResponse || matchesResponse.data.length === 0) {
     throw "NO_SCHEDULE";
   }
+
+  await prismaClient.tournament.update({
+    where: { key: tournamentKey },
+    data: { latestFetchETag: matchesResponse.headers.etag },
+  });
 
   matchesResponse.data = matchesResponse.data.filter(
     (match: any) => match.comp_level === "qm",
@@ -91,7 +87,16 @@ const generateSchedule = async (
     (a: any, b: any) => a.match_number - b.match_number,
   );
 
+  if (matchesResponse.data.length === 0) throw "NO_SCHEDULE";
   const gaps = await getScheduleGaps(matchesResponse.data);
+  // Single-day events still need a final period even without an overnight gap.
+  if (!gaps.some((gap) => gap.type === "EOD")) {
+    gaps.push({
+      match_number: matchesResponse.data.at(-1).match_number,
+      gap: 0,
+      type: "EOD",
+    });
+  }
 
   const shifts = await buildShifts(gaps, shiftScouters);
 
@@ -229,7 +234,7 @@ const getScheduleGaps = async (matches: any[]) => {
   return gaps;
 };
 
-const buildShifts = (gaps: Gap[], shiftScouters: string[][] = []) => {
+const buildShifts = (gaps: Gap[], shiftScouters: string[][]) => {
   let periodStart = 1;
   const periods: Period[] = [];
   const shifts: Shift[] = [];

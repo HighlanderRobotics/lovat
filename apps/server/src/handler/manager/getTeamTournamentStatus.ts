@@ -10,7 +10,7 @@ export const getTeamTournamentStatus = async (
     const params = z
       .object({
         tournamentKey: z.string(),
-        teamNumber: z.string().transform((v) => Number(v)),
+        teamNumber: z.coerce.number().int().min(0),
       })
       .parse(req.query);
 
@@ -25,7 +25,7 @@ export const getTeamTournamentStatus = async (
       },
     });
 
-    if (!matches) {
+    if (matches.length === 0) {
       res.status(404).send("Team not in tournament!");
       return;
     }
@@ -38,6 +38,11 @@ export const getTeamTournamentStatus = async (
         number: params.teamNumber,
       },
     });
+
+    if (!team) {
+      res.status(404).send("Team not found");
+      return;
+    }
 
     const out = {
       ...team,
@@ -84,6 +89,10 @@ export const getTeamTournamentStatus = async (
 
     res.status(200).send(out);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).send("Invalid parameters");
+      return;
+    }
     console.error(error);
     res.status(500).send("Internal server error");
   }

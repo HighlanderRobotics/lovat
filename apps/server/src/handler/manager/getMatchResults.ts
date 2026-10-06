@@ -1,12 +1,14 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import prismaClient from "../../prismaClient.js";
 import z from "zod";
+import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
+import { scoutReportSourceFilter } from "../analysis/scoutReportSourceFilter.js";
 import { TeamMatchData, ScoutReport } from "@lovat/db";
 import { computeAverageScoutReport } from "../analysis/coreAnalysis/averageScoutReport.js";
 import { Metric } from "../analysis/analysisConstants.js";
 
 export const getMatchResults = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
@@ -24,9 +26,14 @@ export const getMatchResults = async (
           key: `${params.matchKey}_${i}`,
         },
         include: {
-          scoutReports: true,
+          scoutReports: { where: scoutReportSourceFilter(req.user) },
         },
       });
+    }
+
+    if (teams.some((team) => team === null)) {
+      res.status(404).send("Match not found");
+      return;
     }
 
     const out: MatchResultsOutput = {
@@ -36,6 +43,10 @@ export const getMatchResults = async (
 
     res.status(200).send(out);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).send("Invalid parameters");
+      return;
+    }
     console.error(error);
     res.status(500).send("Internal server error");
   }

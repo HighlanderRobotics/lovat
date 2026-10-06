@@ -2,12 +2,20 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    name: "unit",
     include: ["test/**/*.unit.test.ts"],
     maxWorkers: 1,
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/server.ts", "src/seed.ts"],
+      reporter: ["text", "html", "json-summary", "json", "lcov"],
+      thresholds: {
+        lines: 100,
+        statements: 100,
+        functions: 100,
+        branches: 100,
+        perFile: true,
+      },
     },
   },
 });

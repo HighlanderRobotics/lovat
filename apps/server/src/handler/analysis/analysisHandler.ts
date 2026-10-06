@@ -5,7 +5,10 @@ import prismaClient from "../../prismaClient.js";
 import { dataSourceRuleSchema } from "./dataSourceRule.js";
 import { kv } from "../../redisClient.js";
 import { AnalysisContext } from "./analysisConstants.js";
-import { CreateKeyResult } from "./analysisFunction.js";
+import {
+  analysisCacheVersion,
+  type CreateKeyResult,
+} from "./analysisFunction.js";
 
 export type AnalysisHandlerParamsSchema<
   T extends z.ZodObject,
@@ -32,16 +35,20 @@ export type AnalysisHandlerArgs<
   V extends z.ZodObject,
 > = {
   params: AnalysisHandlerParamsSchema<T, U, V>;
-  createKey: (
-    params: AnalysisHandlerParams<T, U, V>,
-  ) => Promise<CreateKeyResult> | CreateKeyResult;
   calculateAnalysis: (
     params: AnalysisHandlerParams<T, U, V>,
     ctx: AnalysisContext,
   ) => Promise<any>;
   usesDataSource: boolean;
-  shouldCache: boolean;
-};
+} & (
+  | {
+      shouldCache: true;
+      createKey: (
+        params: AnalysisHandlerParams<T, U, V>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+  | { shouldCache: false; createKey?: never }
+);
 
 export const createAnalysisHandler: <
   T extends z.ZodObject,
@@ -105,9 +112,13 @@ export const createAnalysisHandler: <
         );
       }
 
-      const key = ["analysis", "handler", req.user.id, ...keyFragments].join(
-        ":",
-      );
+      const key = [
+        "analysis",
+        analysisCacheVersion,
+        "handler",
+        req.user.id,
+        ...keyFragments,
+      ].join(":");
 
       // Check to see if there's already an output in the cache
       const cacheRow = await kv.get(key);

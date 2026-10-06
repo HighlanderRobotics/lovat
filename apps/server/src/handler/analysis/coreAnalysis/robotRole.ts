@@ -29,17 +29,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         metric: MetricsBreakdown.robotRole,
       });
 
-      let eventTypeWithMostOccurrences: string = null;
-      let maxCount = 0;
-
-      // Iterate through robot roles
-      for (const [type, count] of Object.entries(roles) as [string, number][]) {
-        if (count > maxCount) {
-          maxCount = count;
-          eventTypeWithMostOccurrences = type;
-        }
-      }
-
       const sortedRoles = Object.entries(roles)
         .sort((a, b) => (b[1] as number) - (a[1] as number))
         .map(([type]) => type);

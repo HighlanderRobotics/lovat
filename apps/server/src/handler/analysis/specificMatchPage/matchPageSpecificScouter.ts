@@ -24,13 +24,6 @@ export const matchPageSpecificScouter = createAnalysisHandler({
   },
   usesDataSource: false,
   shouldCache: false,
-  createKey: async ({ params }) => {
-    return {
-      key: ["matchPageSpecificScouter", params.uuid],
-      teamDependencies: [],
-      tournamentDependencies: [],
-    };
-  },
   calculateAnalysis: async ({ params }, ctx) => {
     const scoutReport = await prismaClient.scoutReport.findFirst({
       where: {

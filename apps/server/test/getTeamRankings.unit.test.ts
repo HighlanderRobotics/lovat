@@ -180,3 +180,27 @@ describe("getTeamRankings", () => {
     expect(prismaClient.teamMatchData.findMany).not.toHaveBeenCalled();
   });
 });
+it("returns a server error when tournament match lookup fails", async () => {
+  vi.mocked(prismaClient.teamMatchData.findMany).mockRejectedValue(
+    new Error("database"),
+  );
+  const { response, errors } = await request();
+  expect(errors).toEqual([]);
+  expect(response.status).toBe(500);
+});
+it("does not write another response when a failed request already sent headers", async () => {
+  vi.mocked(prismaClient.teamMatchData.findMany).mockRejectedValue(
+    new Error("database"),
+  );
+  const status = vi.fn();
+  const { invoke } = await import("./helpers/handlerHarness.js");
+  await invoke(
+    (req) =>
+      getTeamRankings(req, {
+        headersSent: true,
+        status,
+      } as unknown as import("express").Response),
+    { params: { tournament: "2026test" } },
+  );
+  expect(status).not.toHaveBeenCalled();
+});

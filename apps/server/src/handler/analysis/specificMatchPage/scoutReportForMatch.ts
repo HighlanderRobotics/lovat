@@ -11,13 +11,6 @@ export const scoutReportForMatch = createAnalysisHandler({
   },
   usesDataSource: false,
   shouldCache: false,
-  createKey: async ({ params }) => {
-    return {
-      key: ["scoutReportForMatch", params.match],
-      teamDependencies: [],
-      tournamentDependencies: [],
-    };
-  },
   calculateAnalysis: async ({ params }, ctx) => {
     const scoutReports = await prismaClient.scoutReport.findMany({
       where: {
