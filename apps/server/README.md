@@ -64,7 +64,7 @@ database other than 15. The existing shared database integration tests run
 separately from `packages/db`.
 
 `test:coverage` runs both Vitest projects and includes every `src/**/*.ts` file
-in the denominator except the process entrypoint and seed script. It writes an
+in the denominator, including the process entrypoint and seed script. It writes an
 HTML report at `coverage/index.html`, an LCOV report, and JSON summaries. CI runs
 this combined command after deploying the disposable database and uploads the
 `server-coverage` artifact even when a test or coverage gate fails.
@@ -73,7 +73,7 @@ Coverage floors in `vitest.coverage.config.ts` protect the measured global
 baseline and set stronger requirements for authentication and core analysis.
 These are regression gates; the global baseline is not a claim that the whole
 server is sufficiently tested. Remaining gaps include scouting schedule
-management, onboarding, Slack commands, CSV exports, and event-data imports.
+management, Slack commands, CSV exports, and analysis endpoints.
 
 ## Optional database restore
 

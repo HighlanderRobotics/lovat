@@ -11,6 +11,7 @@ vi.mock("../src/prismaClient.js", () => ({
   },
 }));
 
+import prisma from "../src/prismaClient.js";
 import scheduleJobs from "../src/lib/scheduleJobs.js";
 import fetchTournaments from "../src/lib/fetchTournaments.js";
 import fetchTeams from "../src/lib/fetchTeams.js";
@@ -21,6 +22,8 @@ describe("background jobs at startup", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    vi.mocked(prisma.tournament.count).mockResolvedValue(0);
+    vi.mocked(prisma.team.count).mockResolvedValue(0);
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("TBA_KEY", "");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -47,8 +50,10 @@ describe("background jobs at startup", () => {
     await scheduleJobs();
     expect(fetchTournaments).toHaveBeenCalledWith(2024);
     expect(fetchTeams).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(60 * 60 * 1000);
-    expect(fetchMatches).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(24 * 60 * 60 * 1000);
+    expect(fetchTournaments).toHaveBeenCalledTimes(2);
+    expect(fetchTeams).toHaveBeenCalledTimes(2);
+    expect(fetchMatches).toHaveBeenCalledTimes(24);
   });
 
   it("preserves production imports when a key is absent", async () => {
@@ -60,3 +65,24 @@ describe("background jobs at startup", () => {
     expect(fetchTournaments).toHaveBeenCalledWith(2024);
   });
 });
+
+it.each([true, false])(
+  "skips existing imports only when both dev tables have data (%s)",
+  async (hasTeams) => {
+    vi.useFakeTimers();
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("TBA_KEY", "synthetic-test-key");
+    vi.mocked(prisma.tournament.count).mockResolvedValue(1);
+    vi.mocked(prisma.team.count).mockResolvedValue(hasTeams ? 1 : 0);
+    vi.clearAllMocks();
+    try {
+      await scheduleJobs();
+      expect(fetchTournaments).toHaveBeenCalledTimes(hasTeams ? 0 : 1);
+      expect(fetchTeams).toHaveBeenCalledTimes(hasTeams ? 0 : 1);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+      vi.unstubAllEnvs();
+    }
+  },
+);

@@ -7,15 +7,14 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/server.ts", "src/seed.ts"],
       reporter: ["text", "html", "json-summary", "json", "lcov"],
       thresholds: {
         // Keep untouched modules in the global denominator. Raise these floors
         // as coverage expands into schedules, onboarding, and external imports.
-        lines: 49,
-        statements: 49,
-        functions: 42,
-        branches: 82,
+        lines: 72,
+        statements: 72,
+        functions: 69,
+        branches: 90,
         "src/lib/middleware/requireAuth.ts": { 100: true },
         "src/lib/middleware/requireVerifiedTeam.ts": { 100: true },
         "src/handler/analysis/analysisFunction.ts": { 100: true },
