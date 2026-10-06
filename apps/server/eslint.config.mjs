@@ -8,7 +8,7 @@ export default [
   ...tseslint.configs.stylistic,
 
   {
-    ignores: ["dist/**/*.js", "coverage/**"],
+    ignores: ["dist/**/*.js", "coverage/**", "test-report/**"],
   },
   {
     files: ["**/*.ts"],

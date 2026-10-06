@@ -65,8 +65,9 @@ database other than 15. The existing shared database integration tests run
 separately from `packages/db`.
 
 `test:coverage` runs both Vitest projects and includes every `src/**/*.ts` file
-in the denominator, including the process entrypoint and seed script. It writes an
-HTML report at `coverage/index.html`, an LCOV report, and JSON summaries. CI runs
+in the denominator, including the process entrypoint and seed script. It writes a
+Vitest test overview at `test-report/index.html`, an HTML coverage report at
+`test-report/coverage/index.html`, an LCOV report, and JSON summaries. CI runs
 this combined command after deploying the disposable database and uploads the
 `server-coverage` artifact even when a test or coverage gate fails.
 
@@ -80,7 +81,24 @@ side effects.
 When another coverage watcher is running locally, keep reports separate with
 `npm run test:coverage -- --coverage.reportsDirectory=/private/tmp/lovat-coverage`.
 CI checks unit-only coverage independently before the combined run and uses
-the default `coverage/` directory.
+the default `coverage/` directory for unit-only runs and `test-report/coverage/`
+for combined runs.
+
+### Static test overview
+
+After `npm run test:coverage` completes with disposable services, run
+`npm run test:report:preview` and open the printed local URL. The static Vitest
+UI lists the unit and integration tests, their results and timings, and coverage.
+It works without a running test process once generated.
+
+CI uploads the full `server-test-report` artifact, including failed test runs
+when a report is available. Download and extract the artifact, then serve its
+directory with a static HTTP server; opening `index.html` directly from disk
+cannot load the compressed test data reliably.
+
+Successful server CI runs on main can publish the report to GitHub Pages.
+See [test report hosting](../../docs/test-report-hosting.md) for the one-time
+Pages settings, public URL, and optional `tests.lovat.app` custom domain.
 
 ## Optional database restore
 
