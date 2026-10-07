@@ -14,108 +14,69 @@
 	/>
 </svelte:head>
 
-<header class="intro">
-	<div class="content">
-		<p class="eyebrow">What’s new</p>
+<main>
+	<header>
 		<h1>Changelog</h1>
-		<p>Follow Lovat’s progress across scouting, analysis, and everything in between.</p>
-		<p class="date-note">
-			Changes are grouped by the month they entered the codebase. Deployment dates may differ.
-		</p>
-	</div>
-</header>
-
-<div class="timeline">
-	<aside>
+		<p>Features and fixes, month by month.</p>
 		<nav aria-label="Changelog by year">
-			<p class="eyebrow">Jump to a year</p>
 			{#each years as year}
 				<a href={`#year-${year}`}>{year}</a>
 			{/each}
+			<a class="source" href="https://github.com/HighlanderRobotics/lovat/blob/main/CHANGELOG.md"
+				>GitHub ↗</a
+			>
 		</nav>
-		<a class="source" href="https://github.com/HighlanderRobotics/lovat/blob/main/CHANGELOG.md"
-			>View on GitHub ↗</a
-		>
-	</aside>
-	<main>
-		{#each data.months as month, index}
-			{#if month.year && (index === 0 || data.months[index - 1].year !== month.year)}
-				<div id={`year-${month.year}`} class="year-anchor"></div>
+	</header>
+	{#each data.months as month, index}
+		{#if month.year && (index === 0 || data.months[index - 1].year !== month.year)}
+			<div id={`year-${month.year}`} class="year-anchor"></div>
+		{/if}
+		<section class="month" aria-labelledby={month.id}>
+			<h2 id={month.id}><a href={`#${month.id}`}>{month.title}</a></h2>
+			{#if month.html}
+				<div class="markdown">
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+					{@html month.html}
+				</div>
 			{/if}
-			<section class="month" aria-labelledby={month.id}>
-				<h2 id={month.id}><a href={`#${month.id}`}>{month.title}</a></h2>
-				{#if month.html}
+			{#each month.features as feature}
+				<div class="feature">
+					<h3 id={feature.id}>{feature.title}</h3>
 					<div class="markdown">
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html month.html}
+						{@html feature.html}
 					</div>
-				{/if}
-				{#each month.features as feature}
-					<div class="feature">
-						<h3 id={feature.id}>{feature.title}</h3>
-						<div class="markdown">
-							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							{@html feature.html}
-						</div>
-					</div>
-				{/each}
-			</section>
-		{/each}
-	</main>
-</div>
+				</div>
+			{/each}
+		</section>
+	{/each}
+</main>
 
 <style>
-	.content {
-		max-width: 1000px;
+	main {
+		max-width: 800px;
 		margin: 0 auto;
+		padding: 40px 24px 64px;
 	}
-	.intro {
-		background: var(--secondary-container);
-		padding: 64px 24px;
-	}
-	.eyebrow {
-		color: var(--victory-purple);
-		font-size: 13px;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+	header {
+		margin-bottom: 40px;
 	}
 	h1 {
 		color: var(--on-background);
-		font-size: clamp(36px, 6vw, 56px);
+		font-size: 36px;
 		font-weight: 500;
-		margin: 12px 0;
+		margin: 0 0 8px;
 	}
-	.intro p:not(.eyebrow) {
+	header p {
 		color: var(--body);
-		font-size: 18px;
-		line-height: 1.6;
-		max-width: 650px;
-	}
-	.intro .date-note {
-		font-size: 14px !important;
-		margin-top: 16px;
-	}
-	.timeline {
-		max-width: 1048px;
-		margin: 0 auto;
-		padding: 48px 24px 80px;
-		display: grid;
-		grid-template-columns: 170px minmax(0, 1fr);
-		gap: 48px;
-	}
-	aside {
-		align-self: start;
-		position: sticky;
-		top: 97px;
+		font-size: 16px;
 	}
 	nav {
 		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-	nav .eyebrow {
-		margin-bottom: 4px;
+		flex-wrap: wrap;
+		gap: 16px;
+		margin-top: 20px;
+		font-size: 14px;
 	}
 	a {
 		color: var(--victory-purple);
@@ -128,22 +89,13 @@
 		outline: 2px solid var(--victory-purple);
 		outline-offset: 4px;
 	}
-	nav a {
-		color: var(--body);
-		font-size: 16px;
-	}
 	.source {
-		display: inline-block;
-		margin-top: 24px;
-		font-size: 13px;
+		margin-left: auto;
 	}
 	.month {
-		border-bottom: 1px solid var(--outline-variant);
-		padding-bottom: 36px;
-		margin-bottom: 36px;
-	}
-	.month:last-child {
-		border-bottom: 0;
+		border-top: 1px solid var(--outline-variant);
+		padding-top: 28px;
+		margin-top: 36px;
 	}
 	h2,
 	h3,
@@ -151,26 +103,26 @@
 		scroll-margin-top: 97px;
 	}
 	h2 {
-		font-size: 28px;
+		font-size: 24px;
 		font-weight: 500;
-		margin: 0 0 28px;
+		margin: 0 0 24px;
 	}
 	h2 a {
 		color: var(--on-background);
 	}
 	h3 {
 		color: var(--on-background);
-		font-size: 17px;
+		font-size: 16px;
 		font-weight: 500;
-		margin: 0 0 12px;
+		margin: 0 0 10px;
 	}
 	.feature + .feature {
-		margin-top: 28px;
+		margin-top: 24px;
 	}
 	.markdown {
 		color: var(--body);
 		font-size: 15px;
-		line-height: 1.8;
+		line-height: 1.7;
 		overflow-wrap: anywhere;
 	}
 	.markdown :global(ul) {
@@ -178,7 +130,7 @@
 		padding-left: 20px;
 	}
 	.markdown :global(li + li) {
-		margin-top: 12px;
+		margin-top: 10px;
 	}
 	.markdown :global(p) {
 		margin-top: 16px;
@@ -197,29 +149,5 @@
 		padding: 2px 5px;
 		border-radius: 4px;
 		font-size: 0.9em;
-	}
-	@media (max-width: 700px) {
-		.intro {
-			padding: 40px 20px;
-		}
-		.timeline {
-			display: block;
-			padding: 28px 20px 48px;
-		}
-		aside {
-			position: static;
-			margin-bottom: 36px;
-		}
-		nav {
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: 16px;
-		}
-		nav .eyebrow {
-			flex-basis: 100%;
-		}
-		.source {
-			margin-top: 16px;
-		}
 	}
 </style>
