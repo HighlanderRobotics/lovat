@@ -17,7 +17,6 @@
 <main>
 	<header>
 		<h1>Changelog</h1>
-		<p>Features and fixes, month by month.</p>
 		<nav aria-label="Changelog by year">
 			{#each years as year}
 				<a href={`#year-${year}`}>{year}</a>
@@ -66,10 +65,6 @@
 		font-size: 36px;
 		font-weight: 500;
 		margin: 0 0 8px;
-	}
-	header p {
-		color: var(--body);
-		font-size: 16px;
 	}
 	nav {
 		display: flex;
