@@ -45,6 +45,14 @@ if (app === 'learn') {
     assert.equal(asset.headers.get('cache-control'), 'no-cache', path);
   }
 } else {
+  const changelog = await get('/changelog');
+  assert.equal(changelog.status, 200);
+  const changelogHtml = await changelog.text();
+  assert.match(changelogHtml, /Changelog \| Lovat/);
+  assert.match(changelogHtml, /id="year-2022"/);
+  assert.match(changelogHtml, /Scouting and schedules/);
+  assert.match(changelogHtml, /https:\/\/github\.com\/HighlanderRobotics\/lovat\/blob\/main\/docs\/history/);
+  assert(!changelogHtml.includes('href="docs/'), 'Repository links must resolve on GitHub');
   const root = await get('/');
   assert.equal(root.status, 200);
   assert.match(root.headers.get('cache-control'), /no-store/);

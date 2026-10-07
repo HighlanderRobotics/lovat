@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'apps/website/**'
+      - 'CHANGELOG.md'
       - 'apps/learn/**'
       - 'apps/dashboard/**'
       - '.github/workflows/web-hosting.yml'
@@ -20,7 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build production image without secrets
-        run: docker build --build-arg LOVAT_API_BASE=https://preview-api.invalid --build-arg LOVAT_WEBSITE_URL=https://preview-website.invalid --build-arg PUBLIC_WEBSITE_URL=https://preview-website.invalid -t lovat-web:test apps/${{ matrix.app }}
+        run: |
+          context="apps/${{ matrix.app }}"
+          if [ "${{ matrix.app }}" = website ]; then context=.; fi
+          docker build -f "apps/${{ matrix.app }}/Dockerfile" --build-arg LOVAT_API_BASE=https://preview-api.invalid --build-arg LOVAT_WEBSITE_URL=https://preview-website.invalid --build-arg PUBLIC_WEBSITE_URL=https://preview-website.invalid -t lovat-web:test "$context"
       - name: Analyze Dashboard with the deployment SDK
         if: matrix.app == 'dashboard'
         run: |
