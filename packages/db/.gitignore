@@ -1,1 +1,6 @@
 src/generated/
+
+.agents
+.claude
+.windsurf
+skills-lock.json
