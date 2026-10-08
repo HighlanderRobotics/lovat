@@ -40,6 +40,7 @@ jobs:
               - '.github/workflows/ci.yml'
             website:
               - 'apps/website/**'
+              - 'CHANGELOG.md'
               - '.github/workflows/ci.yml'
 
   structure:
@@ -240,6 +241,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
+      - run: npm run test:changelog
       - run: npm run format:check
       - run: npm run lint
       - run: npm run check
