@@ -91,4 +91,8 @@ published by CI after successful server checks on main. See
 
 ## History
 
+See the [changelog](CHANGELOG.md) for changes grouped by month and feature across Lovat's full history
+and the [complete commit archive](docs/history/README.md) for all retained main
+and tagged application history, beginning in December 2022.
+
 This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
