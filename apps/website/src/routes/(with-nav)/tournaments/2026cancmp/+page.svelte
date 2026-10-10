@@ -15,7 +15,6 @@
 	$: tournament = data.tournament;
 	$: timezone = validTimezone(tournament.timezone);
 	$: days = [...new Set(tournament.matches.map((match) => dateKey(matchTime(match))))];
-	$: completed = tournament.matches.filter((match) => match.status === 'COMPLETED').length;
 	$: gapsAfter = new Map(tournament.gaps.map((gap) => [gap.afterMatchKey, gap]));
 	$: filteredMatches = tournament.matches.filter(
 		(match) =>
@@ -117,17 +116,30 @@
 				{/if}
 			</p>
 		</div>
-		<Button variant="secondary" element="a" href="https://www.thebluealliance.com/event/2026cancmp"
-			>View on TBA ↗</Button
-		>
 	</header>
 
-	<div class="stats" aria-label="Tournament overview">
-		<div class="stat"><strong>{tournament.teams.length}</strong><span>Teams</span></div>
-		<div class="stat"><strong>{tournament.matches.length}</strong><span>Matches</span></div>
-		<div class="stat"><strong>{completed}</strong><span>Completed</span></div>
-		<div class="stat"><strong>{tournament.gaps.length}</strong><span>Inferred breaks</span></div>
-	</div>
+	<nav class="event-links" aria-label="Event resources">
+		<DensityProvider density="compact">
+			<Button
+				variant="secondary"
+				element="a"
+				href="https://www.thebluealliance.com/event/2026cancmp"
+				><img src="/assets/event-resources/tba.svg" alt="TBA" /></Button
+			>
+			<Button
+				variant="secondary"
+				element="a"
+				href="https://frc-events.firstinspires.org/2026/CANCMP"
+				><img src="/assets/event-resources/first.png" alt="FIRST" /></Button
+			>
+			<Button variant="secondary" element="a" href="https://www.statbotics.io/event/2026cancmp"
+				><img src="/assets/event-resources/statbotics.ico" alt="Statbotics" /></Button
+			>
+			<Button variant="secondary" element="a" href="https://www.match13.com/event/2026cancmp"
+				><img src="/assets/event-resources/match13.png" alt="Match13" /></Button
+			>
+		</DensityProvider>
+	</nav>
 
 	<div class="section-nav" aria-label="Tournament views">
 		<DensityProvider density="compact">
@@ -153,7 +165,6 @@
 			<div class="section-heading">
 				<div>
 					<h2 id="schedule-heading">Match schedule</h2>
-					<p>All times in {timezone}. Actual starts shown when available.</p>
 				</div>
 				<span class="count" aria-live="polite">{filteredMatches.length} matches</span>
 			</div>
@@ -203,10 +214,6 @@
 					>{/each}
 			</nav>
 
-			<p class="hint">
-				Breaks are inferred from match timing, rather than official agenda announcements.
-			</p>
-
 			<div class="schedule">
 				{#each filteredMatches as match, index (match.key)}
 					{#if index === 0 || dateKey(matchTime(filteredMatches[index - 1])) !== dateKey(matchTime(match))}
@@ -237,7 +244,7 @@
 											class="score"
 											class:winner={match.winningAlliance === color}
 											>{match.alliances.find((alliance) => alliance.color === color)?.score ??
-												'—'}{#if match.winningAlliance === color}<small>WIN</small>{/if}</span
+												'—'}</span
 										>
 									</div>
 									<div class="participants">
@@ -266,9 +273,7 @@
 					{#if gap && !teamFilter && phase === 'all' && completion === 'all'}
 						<div class="break-row">
 							<div>
-								<strong>{gapLabels[gap.type]}</strong><span
-									>Inferred · {gap.timingSource.toLowerCase()} timing</span
-								>
+								<strong>{gapLabels[gap.type]}</strong>
 							</div>
 							<div>
 								{time(gap.startTime)} – {#if dateKey(gap.startTime) !== dateKey(gap.endTime)}{dayLabel(
@@ -281,7 +286,6 @@
 				{:else}
 					<div class="empty">
 						<h3>No matches found</h3>
-						<p>Try another day, team number, or match filter.</p>
 						<Button
 							variant="secondary"
 							on:click={() => {
@@ -300,7 +304,6 @@
 			<div class="section-heading">
 				<div>
 					<h2 id="teams-heading">Teams at this event</h2>
-					<p>Select a team to see its matches.</p>
 				</div>
 				<span class="count">{filteredTeams.length} teams</span>
 			</div>
@@ -325,13 +328,6 @@
 			</div>
 		</section>
 	{/if}
-
-	<footer>
-		Official event data imported into Lovat from TBA. {#if tournament.officialDataUpdatedAt}Last
-			imported {dayLabel(dateKey(tournament.officialDataUpdatedAt))} at {time(
-				tournament.officialDataUpdatedAt
-			)}.{/if} S = surrogate; DQ = disqualified.
-	</footer>
 </main>
 
 <style>
@@ -347,6 +343,17 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: 24px;
+	}
+	.event-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 20px 0 24px;
+	}
+	.event-links img {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
 	}
 	.event-header > div {
 		max-width: 820px;
@@ -371,28 +378,6 @@
 		color: var(--victory-purple);
 		font-size: 14px;
 	}
-	.stats {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 12px;
-		margin: 30px 0;
-	}
-	.stat {
-		display: flex;
-		flex-direction: column;
-		padding: 18px 20px;
-		background: var(--secondary-container);
-		border-radius: 10px;
-	}
-	.stat strong {
-		font-size: 28px;
-		font-weight: 500;
-		color: var(--victory-purple);
-	}
-	.stat span {
-		font-size: 14px;
-		color: var(--body);
-	}
 	.section-nav {
 		display: flex;
 		gap: 8px;
@@ -400,7 +385,6 @@
 		padding-bottom: 16px;
 		margin-bottom: 28px;
 	}
-	.section-heading p,
 	.count {
 		color: var(--body);
 		font-size: 14px;
@@ -439,9 +423,6 @@
 	}
 	.days button.active {
 		background: var(--light-gray);
-	}
-	.hint {
-		font-size: 12px;
 	}
 	.schedule {
 		display: flex;
@@ -527,10 +508,6 @@
 		font-weight: 500;
 		font-variant-numeric: tabular-nums;
 	}
-	.score small {
-		font-size: 10px;
-		letter-spacing: 0.4px;
-	}
 	.score.winner {
 		text-decoration: underline;
 		text-underline-offset: 4px;
@@ -581,9 +558,6 @@
 		font-weight: 500;
 		color: var(--on-background);
 	}
-	.break-row span {
-		font-size: 11px;
-	}
 	.roster-filter {
 		max-width: 380px;
 		margin: 24px 0;
@@ -627,17 +601,6 @@
 		background: var(--secondary-container);
 		border-radius: 10px;
 	}
-	.empty p {
-		margin-bottom: 18px;
-	}
-	footer {
-		margin-top: 32px;
-		padding-top: 20px;
-		border-top: 1px solid var(--light-gray);
-		color: var(--body);
-		font-size: 12px;
-		line-height: 1.7;
-	}
 	@media (max-width: 720px) {
 		main {
 			padding: 26px 20px 44px;
@@ -646,11 +609,6 @@
 			align-items: flex-start;
 			flex-direction: column;
 			gap: 14px;
-		}
-		.stats {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 10px;
-			margin: 24px 0;
 		}
 		.filters {
 			grid-template-columns: 1fr 1fr;
