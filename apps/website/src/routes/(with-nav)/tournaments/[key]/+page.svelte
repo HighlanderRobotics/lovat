@@ -3,10 +3,21 @@
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
 	import TournamentAlliances from './TournamentAlliances.svelte';
 	import AwardMarker from '$lib/AwardMarker.svelte';
+	import wallpaperData from '$lib/district-wallpapers.json';
 	import { avatarGradient } from '$lib/tournaments/branding';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
+
+	const wallpapers: Record<
+		string,
+		{ image: string; source: string; author: string; license: string; licenseUrl: string }
+	> = wallpaperData;
+
+	$: wallpaper =
+		tournament.district?.key.slice(4) === 'ca' && tournament.location
+			? wallpapers[tournament.location]
+			: undefined;
 
 	type Match = PageData['tournament']['matches'][number];
 
@@ -167,7 +178,8 @@
 </svelte:head>
 
 <main>
-	<header class="event-header">
+	<header class="event-header" class:has-wallpaper={!!wallpaper}>
+		{#if wallpaper}<img class="town-wallpaper" src={wallpaper.image} alt="" />{/if}
 		<div>
 			<div class="header-top">
 				<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
@@ -459,6 +471,16 @@
 			</div>
 		</section>
 	{/if}
+	{#if wallpaper}
+		<details class="photo-credits">
+			<summary>Photo credit</summary>
+			<p>
+				<a href={wallpaper.source}>{tournament.location}</a> · {wallpaper.author} ·
+				{#if wallpaper.licenseUrl}<a href={wallpaper.licenseUrl}>{wallpaper.license}</a
+					>{:else}{wallpaper.license}{/if}
+			</p>
+		</details>
+	{/if}
 </main>
 
 <style>
@@ -491,6 +513,43 @@
 	}
 	.event-header {
 		margin-bottom: 28px;
+	}
+	.event-header.has-wallpaper {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		padding: 28px;
+		border-radius: 7px;
+		min-height: 220px;
+		color: #fff;
+	}
+	.town-wallpaper {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: -2;
+	}
+	.event-header.has-wallpaper::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.5));
+		z-index: -1;
+	}
+	.has-wallpaper .breadcrumbs,
+	.has-wallpaper .breadcrumbs a,
+	.has-wallpaper .event-meta {
+		color: #eee;
+	}
+	.photo-credits {
+		margin-top: 28px;
+		font-size: 11px;
+		color: var(--body);
+	}
+	.photo-credits summary {
+		cursor: pointer;
 	}
 	.header-top {
 		align-items: flex-start;

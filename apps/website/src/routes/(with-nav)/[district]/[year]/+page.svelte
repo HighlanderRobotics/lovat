@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, DensityProvider, TextField } from 'magnolia-ui-svelte';
+	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
 	import wallpaperData from '$lib/district-wallpapers.json';
 	import type { PageData } from './$types';
@@ -12,13 +12,10 @@
 	> = wallpaperData;
 
 	let view = 'events';
-	let search = '';
 	let failedAvatars = new Set<string>();
 
 	$: district = data.district;
-	$: events = district.tournaments.filter((event) =>
-		`${event.name} ${event.location ?? ''}`.toLowerCase().includes(search.toLowerCase().trim())
-	);
+	$: events = district.tournaments;
 	$: eventGroups = groupEvents(events);
 
 	function groupEvents(tournaments: PageData['district']['tournaments']) {
@@ -45,11 +42,7 @@
 		return [...groups.values()].sort((a, b) => a.order - b.order);
 	}
 
-	$: teams = district.teamSeasons.filter((team) =>
-		`${team.teamNumber} ${team.name} ${team.city ?? ''}`
-			.toLowerCase()
-			.includes(search.toLowerCase().trim())
-	);
+	$: teams = district.teamSeasons;
 
 	$: photoCredits =
 		district.abbreviation === 'ca'
@@ -97,14 +90,12 @@
 				variant={view === 'events' ? 'primary' : 'text-only-secondary'}
 				on:click={() => {
 					view = 'events';
-					search = '';
 				}}>Events</Button
 			>
 			<Button
 				variant={view === 'teams' ? 'primary' : 'text-only-secondary'}
 				on:click={() => {
 					view = 'teams';
-					search = '';
 				}}>Teams</Button
 			>
 		</DensityProvider>
@@ -117,14 +108,6 @@
 				>{view === 'events' ? events.length : teams.length}
 				{view === 'events' ? 'events' : 'teams'}</span
 			>
-		</div>
-		<div class="search">
-			<label for="district-search">{view === 'events' ? 'Find an event' : 'Find a team'}</label
-			><TextField
-				id="district-search"
-				bind:value={search}
-				placeholder={view === 'events' ? 'Event name or location' : 'Team number or name'}
-			/>
 		</div>
 
 		<div class="list">
@@ -229,16 +212,6 @@
 	.section-heading > span {
 		color: var(--body);
 		font-size: 12px;
-	}
-	.search {
-		max-width: 360px;
-		margin-bottom: 20px;
-	}
-	label {
-		display: block;
-		font-size: 12px;
-		color: var(--body);
-		margin-bottom: 6px;
 	}
 	.list {
 		display: grid;
