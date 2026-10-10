@@ -320,3 +320,54 @@ test.skipIf(!enabled)(
 test("rejects empty tournament keys before loading clients", async () => {
   await expect(importMatches(" ")).rejects.toThrow("required");
 });
+
+test.skipIf(!enabled)(
+  "imports historical bracket display order and gaps in play sequence",
+  async () => {
+    const games = [
+      [1, 1, 0],
+      [1, 2, 3_600],
+      [2, 1, 480],
+      [2, 2, 4_080],
+    ].map(([set, number, offset]) => ({
+      ...match(`qf${set}m${number}`),
+      comp_level: "qf" as const,
+      set_number: set!,
+      match_number: number!,
+      time: 1_770_000_000 + offset!,
+    }));
+    const tba = provider(games, "historical-event", "historical-matches");
+    const event = await tba.getMatchEvent();
+
+    await importMatches(eventKey, {
+      db,
+      tba: {
+        ...tba,
+        getMatchEvent: async () => ({
+          ...event,
+          data: { ...event.data, playoff_type: 0 },
+        }),
+      },
+    });
+
+    const imported = await db.match.findMany({
+      where: { key: { in: games.map((game) => game.key) } },
+      orderBy: { displayOrder: "asc" },
+    });
+
+    expect(imported.map((game) => game.key)).toEqual([
+      `${eventKey}_qf1m1`,
+      `${eventKey}_qf2m1`,
+      `${eventKey}_qf1m2`,
+      `${eventKey}_qf2m2`,
+    ]);
+    expect(
+      await db.tournamentGap.findFirst({
+        where: {
+          afterMatchKey: `${eventKey}_qf2m1`,
+          beforeMatchKey: `${eventKey}_qf1m2`,
+        },
+      }),
+    ).not.toBeNull();
+  },
+);

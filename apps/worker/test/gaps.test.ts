@@ -132,3 +132,27 @@ test("uses predicted times only when comparable actual and scheduled pairs are a
 
   expect(inferTournamentGaps(eventKey, timezone, [after, before])).toEqual([]);
 });
+
+test("historical bracket gaps connect adjacent games rather than whole series", () => {
+  const bracket = (set: number, number: number, time: string): Timing => ({
+    ...match(number, time),
+    key: `${eventKey}_qf${set}m${number}`,
+    competitionLevel: "QUARTERFINAL",
+    setNumber: set,
+  });
+  const matches = [
+    bracket(1, 1, "2026-03-06T16:00:00Z"),
+    bracket(1, 2, "2026-03-06T17:00:00Z"),
+    bracket(2, 1, "2026-03-06T16:08:00Z"),
+    bracket(2, 2, "2026-03-06T17:08:00Z"),
+  ];
+  const gaps = inferTournamentGaps(eventKey, timezone, matches);
+
+  expect(gaps).toHaveLength(1);
+  expect(gaps[0]).toMatchObject({
+    afterMatchKey: `${eventKey}_qf2m1`,
+    beforeMatchKey: `${eventKey}_qf1m2`,
+    startTime: new Date("2026-03-06T16:11:00Z"),
+    endTime: new Date("2026-03-06T17:00:00Z"),
+  });
+});

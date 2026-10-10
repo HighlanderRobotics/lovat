@@ -1,5 +1,7 @@
 import type { Match, Prisma } from "@lovat/db";
 
+import { orderMatches } from "./match-order";
+
 type MatchTiming = Pick<
   Match,
   | "key"
@@ -10,7 +12,8 @@ type MatchTiming = Pick<
   | "actualTime"
   | "predictedTime"
   | "postResultTime"
->;
+> &
+  Partial<Pick<Match, "displayOrder">>;
 
 const minute = 60_000;
 const minGap = 30 * minute;
@@ -84,12 +87,14 @@ export function inferTournamentGaps(
   timezone: string | null,
   matches: MatchTiming[],
 ) {
-  const ordered = [...matches].sort(
-    (a, b) =>
-      levels[a.competitionLevel] - levels[b.competitionLevel] ||
-      a.setNumber - b.setNumber ||
-      a.matchNumber - b.matchNumber,
-  );
+  const ordered = orderMatches(matches, (match) => ({
+    level: levels[match.competitionLevel],
+    set: match.setNumber,
+    number: match.matchNumber,
+    scheduled: match.scheduledTime?.getTime() ?? null,
+    actual: match.actualTime?.getTime() ?? null,
+    display: match.displayOrder,
+  }));
   const gaps: Prisma.TournamentGapCreateManyInput[] = [];
 
   for (let index = 1; index < ordered.length; index++) {

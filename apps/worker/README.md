@@ -110,8 +110,21 @@ and require reconciliation. Unscouted removed slots are deleted; matches missing
 from a later response are retained.
 
 Practice matches are skipped because the current match enums do not support
-them. The job does not populate event rosters or run on a schedule yet. Match
+them. The job does not populate event rosters; the scheduler runs roster imports
+separately. Match
 integration tests use the same disposable database setup as the other imports.
+
+Server requests queue a `matches` job instead of importing TBA data themselves.
+They return the currently stored data; newly requested imports complete
+asynchronously while the worker is running. Existing jobs retain their lease,
+refresh time, and retry delay. The worker owns participant reconciliation and
+match cache validators, so an API request cannot bypass scouting-link checks.
+
+Match display order follows a complete actual-time sequence when available,
+otherwise a complete scheduled-time sequence. Before times are published,
+traditional brackets alternate series by game number; double-elimination
+brackets use numbered sets. Gap inference uses the same ordering, with stored
+display order as a fallback when timing is incomplete.
 
 ## Season, district and roster imports
 

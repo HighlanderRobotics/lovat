@@ -6,6 +6,8 @@ import {
   saveTournamentGaps,
 } from "./gaps";
 
+import { orderMatches } from "../match-order";
+
 type Dependencies = {
   db: PrismaClient;
   tba: Pick<ReturnType<typeof createTbaClient>, "getMatchEvent" | "getMatches">;
@@ -103,14 +105,17 @@ export const importMatches = async (
     return;
   }
 
-  const matches = fetched.data
-    .filter((match) => match.comp_level !== "pm")
-    .sort(
-      (a, b) =>
-        levelOrder[a.comp_level] - levelOrder[b.comp_level] ||
-        a.set_number - b.set_number ||
-        a.match_number - b.match_number,
-    );
+  const matches = orderMatches(
+    fetched.data.filter((match) => match.comp_level !== "pm"),
+    (match) => ({
+      level: levelOrder[match.comp_level],
+      set: match.set_number,
+      number: match.match_number,
+      scheduled: match.time,
+      actual: match.actual_time,
+    }),
+    event.data.playoff_type === 10 || event.data.playoff_type === 11,
+  );
 
   const aliases = new Map<string, string>();
 
