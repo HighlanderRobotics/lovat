@@ -91,6 +91,62 @@ async function withBaselineDatabase(run) {
   }
 }
 
+test("gap migration preserves existing reports and enforces event boundaries", async () => {
+  const gapSql = await readFile(
+    new URL(
+      "../prisma/migrations/20261010220000_add_tournament_gaps/migration.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  await withBaselineDatabase(async (client) => {
+    await client.query(competitionSql);
+    await client.query(importSql);
+    const reports = (await client.query('SELECT * FROM "ScoutReport"')).rows;
+    const actions = (await client.query('SELECT * FROM "Event"')).rows;
+
+    await client.query(gapSql);
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "ScoutReport"')).rows,
+      reports,
+    );
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "Event"')).rows,
+      actions,
+    );
+
+    await client.query(`
+      INSERT INTO "Tournament" (key, name) VALUES ('other-event', 'Other');
+      INSERT INTO "Match" (key, "tournamentKey", "competitionLevel", "setNumber", "matchNumber")
+        VALUES ('before', '2026fixture', 'QUALIFICATION', 1, 1),
+               ('after', '2026fixture', 'QUALIFICATION', 1, 2),
+               ('other', 'other-event', 'QUALIFICATION', 1, 1);
+    `);
+
+    const insert = `INSERT INTO "TournamentGap" ("tournamentKey", "afterMatchKey", "beforeMatchKey", type, "timingSource", "startTime", "endTime") VALUES ('2026fixture', 'before', $1, 'LUNCH', 'SCHEDULED', '2026-03-06 12:03:00', $2)`;
+
+    await assert.rejects(
+      client.query(insert, ["other", "2026-03-06 13:00:00"]),
+      /foreign key/,
+    );
+    await assert.rejects(
+      client.query(insert, ["after", "2026-03-06 11:00:00"]),
+      /check constraint/,
+    );
+    await client.query(insert, ["after", "2026-03-06 13:00:00"]);
+    await client.query(`DELETE FROM "Match" WHERE key = 'after'`);
+    assert.equal(
+      (await client.query('SELECT * FROM "TournamentGap"')).rowCount,
+      0,
+    );
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "ScoutReport"')).rows,
+      reports,
+    );
+  });
+});
+
 test("competition migration backfills missing teams and preserves reports and actions", async () => {
   await withBaselineDatabase(async (client) => {
     const reportsBefore = (await client.query('SELECT * FROM "ScoutReport"'))

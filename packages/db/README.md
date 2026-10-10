@@ -72,9 +72,23 @@ Railway must use repository root `/` and `apps/server/Dockerfile` so both direct
 and `ImportJob` tables. Fetch state is keyed by provider and endpoint (including
 meaningful query parameters). Workers must commit new HTTP validators with the
 imported data, not before it. Jobs are unique by kind and target; successful jobs
-are deleted so the same target can be scheduled again. Claiming, leases, retries,
+can be deleted or rescheduled by the worker. Claiming, leases, retries,
 and scheduling are worker responsibilities, not implemented by this migration.
 Existing tournament ETags are retained until ingestion moves to endpoint state.
+
+`20261010220000_add_tournament_gaps` adds worker-inferred pauses with lunch,
+overnight (EOD/new-day), playoff-transition, delay, and generic-break types.
+Each row links its preceding and following canonical matches and records
+whether inference used actual, scheduled, or predicted times. Interval
+boundaries are estimates, not official announcements or exact match end times.
+
+The additive migration preserves existing reports and match data. Composite
+foreign keys enforce that both boundary matches belong to the gap's tournament.
+SQL CHECK constraints enforce positive intervals and distinct boundary matches;
+preserve these constraints in later migrations. Gaps cascade when their
+tournament or boundary matches are deleted. Existing tournaments acquire gaps
+on the next match refresh, including a cached response, or through the worker's
+explicit gap backfill.
 
 `20261010180215_add_season_match_and_more` adds seasons, districts, rosters,
 canonical matches, and alliance results without changing existing report keys

@@ -132,6 +132,7 @@ model Tournament {
   teams         TeamTournament[]
   matches       Match[]
   teamMatchData TeamMatchData[]
+  gaps          TournamentGap[]
 
   mutablePicklists      MutablePicklist[]
   scouterScheduleShifts ScouterScheduleShift[]
@@ -171,10 +172,13 @@ model Match {
 
   tournament Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
 
-  alliances MatchAlliance[]
-  teamSlots TeamMatchData[]
+  alliances  MatchAlliance[]
+  teamSlots  TeamMatchData[]
+  gapsAfter  TournamentGap[] @relation("GapAfterMatch")
+  gapsBefore TournamentGap[] @relation("GapBeforeMatch")
 
   @@unique([tournamentKey, competitionLevel, setNumber, matchNumber])
+  @@unique([key, tournamentKey]) // Composite foreign keys keep gap boundaries in this event.
   @@index([tournamentKey, displayOrder])
   @@index([tournamentKey, scheduledTime])
 }
@@ -189,6 +193,39 @@ model MatchAlliance {
   match Match @relation(fields: [matchKey], references: [key], onDelete: Cascade)
 
   @@id([matchKey, color])
+}
+
+// Worker-derived intervals; classifications and boundaries are inferred.
+model TournamentGap {
+  tournamentKey  String
+  afterMatchKey  String
+  beforeMatchKey String
+
+  type         TournamentGapType
+  timingSource TournamentGapTimingSource
+  startTime    DateTime
+  endTime      DateTime
+
+  tournament  Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
+  afterMatch  Match      @relation("GapAfterMatch", fields: [afterMatchKey, tournamentKey], references: [key, tournamentKey], onDelete: Cascade)
+  beforeMatch Match      @relation("GapBeforeMatch", fields: [beforeMatchKey, tournamentKey], references: [key, tournamentKey], onDelete: Cascade)
+
+  @@id([afterMatchKey, beforeMatchKey])
+  @@index([tournamentKey, startTime])
+}
+
+enum TournamentGapType {
+  LUNCH
+  OVERNIGHT // EOD on the previous day, followed by a new day of matches.
+  PLAYOFF_TRANSITION
+  DELAY
+  BREAK
+}
+
+enum TournamentGapTimingSource {
+  ACTUAL
+  SCHEDULED
+  PREDICTED
 }
 
 model TeamMatchData {
