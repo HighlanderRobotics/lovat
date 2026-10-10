@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, DensityProvider } from 'magnolia-ui-svelte';
+	import { Button } from 'magnolia-ui-svelte';
 	import { eventAlliances, teamBranding } from '$lib/tournaments/2026cancmp';
 	import type { PageData } from './$types';
 
@@ -95,169 +95,130 @@
 	}
 </script>
 
-<svelte:head><title>Alliances & bracket | {tournament.name} | Lovat</title></svelte:head>
-
-<main>
-	<p class="eyebrow">2026 &gt; FIRST California &gt; Northern State Championship</p>
-	<h1>Alliances & bracket</h1>
-	<nav aria-label="Tournament pages">
-		<DensityProvider density="compact">
-			<Button element="a" variant="text-only-secondary" href="/tournaments/2026cancmp"
-				>Schedule & teams</Button
+<section aria-labelledby="alliances-heading">
+	<div class="section-heading">
+		<h2 id="alliances-heading">Alliances</h2>
+		{#if selectedAlliance !== null}<Button
+				variant="text-only-secondary"
+				on:click={() => (selectedAlliance = null)}>Show all</Button
+			>{/if}
+	</div>
+	<div class="alliance-list">
+		{#each eventAlliances as teams, index}
+			<button
+				class="alliance-card"
+				class:selected={selectedAlliance === index + 1}
+				aria-pressed={selectedAlliance === index + 1}
+				on:click={() => (selectedAlliance = selectedAlliance === index + 1 ? null : index + 1)}
 			>
-			<Button variant="primary">Alliances & bracket</Button>
-		</DensityProvider>
-	</nav>
-
-	<section aria-labelledby="alliances-heading">
-		<div class="section-heading">
-			<h2 id="alliances-heading">Alliances</h2>
-			{#if selectedAlliance !== null}<Button
-					variant="text-only-secondary"
-					on:click={() => (selectedAlliance = null)}>Show all</Button
-				>{/if}
-		</div>
-		<div class="alliance-list">
-			{#each eventAlliances as teams, index}
-				<button
-					class="alliance-card"
-					class:selected={selectedAlliance === index + 1}
-					aria-pressed={selectedAlliance === index + 1}
-					on:click={() => (selectedAlliance = selectedAlliance === index + 1 ? null : index + 1)}
-				>
-					<h3>Alliance {index + 1}</h3>
-					<div class="lineup">
-						{#each teams as number, pick}
-							<div class="team">
-								{#if teamBranding[number]}<img
-										src={teamBranding[number].logo}
-										alt=""
-										loading="lazy"
-									/>{/if}
-								<div>
-									<strong>{number}</strong><span>{names.get(number)}</span><small
-										>{pick === 0 ? 'Captain' : `Pick ${pick}`}</small
-									>
-								</div>
+				<h3>Alliance {index + 1}</h3>
+				<div class="lineup">
+					{#each teams as number, pick}
+						<div class="team">
+							{#if teamBranding[number]}<img
+									src={teamBranding[number].logo}
+									alt=""
+									loading="lazy"
+								/>{/if}
+							<div>
+								<strong>{number}</strong><span>{names.get(number)}</span><small
+									>{pick === 0 ? 'Captain' : `Pick ${pick}`}</small
+								>
 							</div>
-						{/each}
-					</div>
-				</button>
-			{/each}
-		</div>
-	</section>
-
-	<section aria-labelledby="bracket-heading">
-		<h2 id="bracket-heading">Double-elimination bracket</h2>
-		<!-- Keyboard focus lets users scroll the wide bracket with arrow keys. -->
-		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-		<div
-			class="bracket-scroll"
-			tabindex="0"
-			role="region"
-			aria-label="Scrollable elimination bracket"
-		>
-			<div class="bracket">
-				<svg width="1380" height="1160" aria-hidden="true">
-					{#each edges as edge}<path
-							d={connector(edge.from, edge.to)}
-							class:drop={edge.drop}
-						/>{/each}
-					<path d="M 900 340 H 1140 V 495 H 1170" />
-					<path d="M 1130 930 H 1145 V 585 H 1170" />
-				</svg>
-				<h3 class="bracket-label" style="left:20px;top:10px">Upper bracket</h3>
-				<h3 class="bracket-label" style="left:250px;top:670px">Lower bracket</h3>
-				{#each nodes as node}
-					{@const match = eliminationMatches.get(node.match)}
-					{#if match}
-						<a
-							class="bracket-match"
-							class:muted={!containsAlliance(match)}
-							style={`left:${node.x}px;top:${node.y}px`}
-							href={`https://www.thebluealliance.com/match/${match.key}`}
-							aria-label={`${[5, 6, 9, 10, 12, 13].includes(node.match) ? 'Lower' : 'Upper'} bracket match ${node.match}`}
-						>
-							<h4>Match {node.match}</h4>
-							{#each ['RED', 'BLUE'] as color}
-								<div
-									class="result"
-									class:red={color === 'RED'}
-									class:blue={color === 'BLUE'}
-									class:winning={match.winningAlliance === color}
-								>
-									<span>Alliance {allianceFor(match, color) ?? 'TBD'}</span><strong
-										>{match.alliances.find((alliance) => alliance.color === color)?.score ??
-											'—'}</strong
-									>
-								</div>
-							{/each}
-						</a>
-					{/if}
-				{/each}
-				<div
-					class="bracket-match finals"
-					class:muted={selectedAlliance !== null &&
-						!finalists.some((finalist) => finalist.alliance === selectedAlliance)}
-					style="left:1170px;top:455px"
-				>
-					<h4>Finals</h4>
-					{#each finalists as finalist}<div
-							class="result"
-							class:red={finalist.color === 'RED'}
-							class:blue={finalist.color === 'BLUE'}
-							class:winning={finalist.wins >= 2}
-						>
-							<span>Alliance {finalist.alliance}</span><strong>{finalist.wins}</strong>
-						</div>{/each}
-					{#each finals as match}
-						<a class="final-game" href={`https://www.thebluealliance.com/match/${match.key}`}>
-							<span>{match.matchNumber === 3 ? 'Tiebreaker' : `Match ${match.matchNumber}`}</span>
-							<strong class="final-scores">
-								<span class="red" class:winning={match.winningAlliance === 'RED'}
-									>{match.alliances.find((alliance) => alliance.color === 'RED')?.score ??
-										'—'}</span
-								>
-								<span>–</span>
-								<span class="blue" class:winning={match.winningAlliance === 'BLUE'}
-									>{match.alliances.find((alliance) => alliance.color === 'BLUE')?.score ??
-										'—'}</span
-								>
-							</strong>
-						</a>
+						</div>
 					{/each}
 				</div>
+			</button>
+		{/each}
+	</div>
+</section>
+
+<section aria-labelledby="bracket-heading">
+	<h2 id="bracket-heading">Double-elimination bracket</h2>
+	<!-- Keyboard focus lets users scroll the wide bracket with arrow keys. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div
+		class="bracket-scroll"
+		tabindex="0"
+		role="region"
+		aria-label="Scrollable elimination bracket"
+	>
+		<div class="bracket">
+			<svg width="1380" height="1160" aria-hidden="true">
+				{#each edges as edge}<path
+						d={connector(edge.from, edge.to)}
+						class:drop={edge.drop}
+					/>{/each}
+				<path d="M 900 340 H 1140 V 495 H 1170" />
+				<path d="M 1130 930 H 1145 V 585 H 1170" />
+			</svg>
+			<h3 class="bracket-label" style="left:20px;top:10px">Upper bracket</h3>
+			<h3 class="bracket-label" style="left:250px;top:670px">Lower bracket</h3>
+			{#each nodes as node}
+				{@const match = eliminationMatches.get(node.match)}
+				{#if match}
+					<a
+						class="bracket-match"
+						class:muted={!containsAlliance(match)}
+						style={`left:${node.x}px;top:${node.y}px`}
+						href={`https://www.thebluealliance.com/match/${match.key}`}
+						aria-label={`${[5, 6, 9, 10, 12, 13].includes(node.match) ? 'Lower' : 'Upper'} bracket match ${node.match}`}
+					>
+						<h4>Match {node.match}</h4>
+						{#each ['RED', 'BLUE'] as color}
+							<div
+								class="result"
+								class:red={color === 'RED'}
+								class:blue={color === 'BLUE'}
+								class:winning={match.winningAlliance === color}
+							>
+								<span>Alliance {allianceFor(match, color) ?? 'TBD'}</span><strong
+									>{match.alliances.find((alliance) => alliance.color === color)?.score ??
+										'—'}</strong
+								>
+							</div>
+						{/each}
+					</a>
+				{/if}
+			{/each}
+			<div
+				class="bracket-match finals"
+				class:muted={selectedAlliance !== null &&
+					!finalists.some((finalist) => finalist.alliance === selectedAlliance)}
+				style="left:1170px;top:455px"
+			>
+				<h4>Finals</h4>
+				{#each finalists as finalist}<div
+						class="result"
+						class:red={finalist.color === 'RED'}
+						class:blue={finalist.color === 'BLUE'}
+						class:winning={finalist.wins >= 2}
+					>
+						<span>Alliance {finalist.alliance}</span><strong>{finalist.wins}</strong>
+					</div>{/each}
+				{#each finals as match}
+					<a class="final-game" href={`https://www.thebluealliance.com/match/${match.key}`}>
+						<span>{match.matchNumber === 3 ? 'Tiebreaker' : `Match ${match.matchNumber}`}</span>
+						<strong class="final-scores">
+							<span class="red" class:winning={match.winningAlliance === 'RED'}
+								>{match.alliances.find((alliance) => alliance.color === 'RED')?.score ?? '—'}</span
+							>
+							<span>–</span>
+							<span class="blue" class:winning={match.winningAlliance === 'BLUE'}
+								>{match.alliances.find((alliance) => alliance.color === 'BLUE')?.score ?? '—'}</span
+							>
+						</strong>
+					</a>
+				{/each}
 			</div>
 		</div>
-	</section>
-</main>
+	</div>
+</section>
 
 <style>
-	main {
-		max-width: 1160px;
-		margin: 0 auto;
-		padding: 44px 26px 64px;
-		color: var(--on-background);
-	}
-	.eyebrow {
-		color: var(--victory-purple);
-		font-size: 14px;
-	}
-	h1 {
-		font-size: clamp(28px, 3.8vw, 42px);
-		font-weight: 500;
-		margin: 10px 0 24px;
-	}
 	h2 {
 		font-size: 24px;
 		font-weight: 500;
-	}
-	nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		padding-bottom: 16px;
-		border-bottom: 1px solid var(--light-gray);
 	}
 	section {
 		margin-top: 28px;
@@ -426,9 +387,6 @@
 		}
 	}
 	@media (max-width: 720px) {
-		main {
-			padding: 26px 20px 44px;
-		}
 		.alliance-list {
 			grid-template-columns: 1fr;
 		}

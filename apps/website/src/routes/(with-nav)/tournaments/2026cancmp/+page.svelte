@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
+	import TournamentAlliances from './TournamentAlliances.svelte';
 	import AwardMarker from '$lib/AwardMarker.svelte';
 	import { teamBranding, eventWinners, impactWinners } from '$lib/tournaments/2026cancmp';
 	import type { PageData } from './$types';
@@ -207,8 +208,9 @@
 					teamFilter = '';
 				}}>Teams</Button
 			>
-			<Button variant="text-only-secondary" element="a" href="/tournaments/2026cancmp/alliances"
-				>Alliances & bracket</Button
+			<Button
+				variant={view === 'alliances' ? 'primary' : 'text-only-secondary'}
+				on:click={() => (view = 'alliances')}>Alliances & bracket</Button
 			>
 		</DensityProvider>
 	</div>
@@ -382,6 +384,8 @@
 				{/each}
 			</div>
 		</section>
+	{:else if view === 'alliances'}
+		<TournamentAlliances {data} />
 	{:else}
 		<section aria-labelledby="teams-heading">
 			<div class="section-heading">
