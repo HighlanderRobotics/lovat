@@ -65,7 +65,7 @@ describe("TBA requests", () => {
       expect(headers.get("If-Modified-Since")).toBe(
         "Wed, 07 Oct 2026 00:00:00 GMT",
       );
-      expect(init?.redirect).toBe("error");
+      expect(init?.redirect).toBe("manual");
       expect(init?.signal).toBeDefined();
       return Response.json(
         { max_team_page: 25 },
@@ -95,6 +95,40 @@ describe("TBA requests", () => {
     await expect(client.getStatus()).rejects.toThrow(
       "without cache validators",
     );
+  });
+
+  test("real Bun fetch accepts 304 and refuses to follow redirects", async () => {
+    let status = 304;
+    let redirectedRequests = 0;
+    const server = Bun.serve({
+      port: 0,
+      fetch(request) {
+        if (new URL(request.url).pathname === "/redirected") {
+          redirectedRequests++;
+          return Response.json({ max_team_page: 25 });
+        }
+
+        return new Response(null, {
+          status,
+          headers: status === 302 ? { location: "/redirected" } : {},
+        });
+      },
+    });
+    const client = clientWith((_input, init) => fetch(server.url, init));
+
+    try {
+      expect(await client.getStatus({ etag: '"cached"' })).toEqual({
+        modified: false,
+        etag: '"cached"',
+        lastModified: null,
+      });
+
+      status = 302;
+      await expect(client.getStatus()).rejects.toMatchObject({ status: 302 });
+      expect(redirectedRequests).toBe(0);
+    } finally {
+      await server.stop(true);
+    }
   });
 
   test("accepts empty pages and nullable metadata", async () => {

@@ -156,7 +156,8 @@ export function createTbaClient({
     const timeout = AbortSignal.timeout(timeoutMs);
     const response = await fetcher(url, {
       headers,
-      redirect: "error",
+      // Bun treats 304 as a redirect in error mode; manual also avoids forwarding credentials.
+      redirect: "manual",
       signal: options.signal
         ? AbortSignal.any([options.signal, timeout])
         : timeout,
