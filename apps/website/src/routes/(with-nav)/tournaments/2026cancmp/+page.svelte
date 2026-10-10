@@ -15,6 +15,7 @@
 
 	$: tournament = data.tournament;
 	$: timezone = validTimezone(tournament.timezone);
+	$: teamNames = new Map(tournament.teams.map(({ team }) => [team.number, team.name]));
 	$: days = [...new Set(tournament.matches.map((match) => dateKey(matchTime(match))))];
 	$: gapsAfter = new Map(tournament.gaps.map((gap) => [gap.afterMatchKey, gap]));
 	$: filteredMatches = tournament.matches.filter(
@@ -139,11 +140,38 @@
 <main>
 	<header class="event-header">
 		<div>
-			<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
-				<span>2026</span><span aria-hidden="true">&gt;</span><span>FIRST California</span><span
-					aria-hidden="true">&gt;</span
-				><span aria-current="page">Northern State Championship</span>
-			</nav>
+			<div class="header-top">
+				<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
+					<span>2026</span><span aria-hidden="true">&gt;</span><span>FIRST California</span><span
+						aria-hidden="true">&gt;</span
+					><span aria-current="page">Northern State Championship</span>
+				</nav>
+				<nav class="event-links" aria-label="Event resources">
+					<DensityProvider density="compact">
+						<Button
+							variant="secondary"
+							element="a"
+							href="https://www.thebluealliance.com/event/2026cancmp"
+							><img src="/assets/event-resources/tba.svg" alt="TBA" /></Button
+						>
+						<Button
+							variant="secondary"
+							element="a"
+							href="https://frc-events.firstinspires.org/2026/CANCMP"
+							><img src="/assets/event-resources/first.png" alt="FIRST" /></Button
+						>
+						<Button
+							variant="secondary"
+							element="a"
+							href="https://www.statbotics.io/event/2026cancmp"
+							><img src="/assets/event-resources/statbotics.ico" alt="Statbotics" /></Button
+						>
+						<Button variant="secondary" element="a" href="https://www.match13.com/event/2026cancmp"
+							><img src="/assets/event-resources/match13.png" alt="Match13" /></Button
+						>
+					</DensityProvider>
+				</nav>
+			</div>
 			<h1>{tournament.name}</h1>
 			<p class="event-meta">
 				{tournament.location ?? 'Location unavailable'}
@@ -155,29 +183,6 @@
 			</p>
 		</div>
 	</header>
-
-	<nav class="event-links" aria-label="Event resources">
-		<DensityProvider density="compact">
-			<Button
-				variant="secondary"
-				element="a"
-				href="https://www.thebluealliance.com/event/2026cancmp"
-				><img src="/assets/event-resources/tba.svg" alt="TBA" /></Button
-			>
-			<Button
-				variant="secondary"
-				element="a"
-				href="https://frc-events.firstinspires.org/2026/CANCMP"
-				><img src="/assets/event-resources/first.png" alt="FIRST" /></Button
-			>
-			<Button variant="secondary" element="a" href="https://www.statbotics.io/event/2026cancmp"
-				><img src="/assets/event-resources/statbotics.ico" alt="Statbotics" /></Button
-			>
-			<Button variant="secondary" element="a" href="https://www.match13.com/event/2026cancmp"
-				><img src="/assets/event-resources/match13.png" alt="Match13" /></Button
-			>
-		</DensityProvider>
-	</nav>
 
 	<div class="section-nav" aria-label="Tournament views">
 		<DensityProvider density="compact">
@@ -194,9 +199,6 @@
 					view = 'teams';
 					teamFilter = '';
 				}}>Teams</Button
-			>
-			<Button variant="text-only-secondary" on:click={jumpToEliminations}
-				>Jump to eliminations</Button
 			>
 		</DensityProvider>
 	</div>
@@ -255,6 +257,12 @@
 					>{/each}
 			</nav>
 
+			<div class="schedule-actions">
+				<Button variant="text-only-secondary" on:click={jumpToEliminations}
+					>Jump to eliminations</Button
+				>
+			</div>
+
 			<div class="schedule">
 				{#each filteredMatches as match, index (match.key)}
 					{#if index === 0 || dateKey(matchTime(filteredMatches[index - 1])) !== dateKey(matchTime(match))}
@@ -283,15 +291,20 @@
 									>{/if}
 							</div>
 						</div>
+						<div class="scores" aria-label="Alliance scores">
+							{#each ['BLUE', 'RED'] as color}
+								<span
+									class="score"
+									class:winner={match.winningAlliance === color}
+									aria-label={`${color === 'BLUE' ? 'Blue' : 'Red'} alliance score`}
+								>
+									{match.alliances.find((alliance) => alliance.color === color)?.score ?? '—'}
+								</span>
+							{/each}
+						</div>
 						<div class="alliances">
 							{#each ['BLUE', 'RED'] as color}
 								<div class="alliance" class:red={color === 'RED'} class:blue={color === 'BLUE'}>
-									<div class="alliance-label">
-										<span class="score" class:winner={match.winningAlliance === color}
-											>{match.alliances.find((alliance) => alliance.color === color)?.score ??
-												'—'}</span
-										>
-									</div>
 									<div class="participants">
 										{#each match.teamSlots.filter((slot) => slot.alliance === color) as slot}
 											<button
@@ -299,8 +312,10 @@
 												class:highlighted={teamFilter.trim() === String(slot.teamNumber)}
 												on:click={() => (teamFilter = String(slot.teamNumber))}
 												aria-label={`Show matches for team ${slot.teamNumber}`}
-												><strong>{slot.teamNumber}</strong
-												>{#if slot.surrogate || slot.disqualified}<span
+												><strong>{slot.teamNumber}</strong>
+												{#if teamNames.has(slot.teamNumber)}<span class="team-name"
+														>{teamNames.get(slot.teamNumber)}</span
+													>{/if}{#if slot.surrogate || slot.disqualified}<span
 														>{#if slot.surrogate}S{/if}{#if slot.surrogate && slot.disqualified}
 															·
 														{/if}{#if slot.disqualified}DQ{/if}</span
@@ -322,10 +337,13 @@
 								<strong>{gapLabels[gap.type]}</strong>
 							</div>
 							<div>
-								{time(gap.startTime)} – {#if dateKey(gap.startTime) !== dateKey(gap.endTime)}{dayLabel(
-										dateKey(gap.endTime)
-									)}
-								{/if}{time(gap.endTime)}
+								{#if dateKey(gap.startTime) !== dateKey(gap.endTime)}
+									{dayLabel(dateKey(gap.startTime))}
+									{time(gap.startTime)} – {dayLabel(dateKey(gap.endTime))}
+									{time(gap.endTime)}
+								{:else}
+									{time(gap.startTime)} – {time(gap.endTime)}
+								{/if}
 							</div>
 						</div>
 					{/if}
@@ -383,7 +401,7 @@
 		padding: 44px 26px 64px;
 		color: var(--on-background);
 	}
-	.event-header,
+	.header-top,
 	.section-heading {
 		display: flex;
 		justify-content: space-between;
@@ -394,15 +412,27 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
-		margin: 20px 0 24px;
+		margin: 0;
+		margin-left: auto;
+		justify-content: flex-end;
+		flex-shrink: 0;
 	}
 	.event-links img {
 		width: 28px;
 		height: 28px;
 		object-fit: contain;
 	}
-	.event-header > div {
-		max-width: 820px;
+	.event-header {
+		margin-bottom: 28px;
+	}
+	.header-top {
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+	.schedule-actions {
+		display: flex;
+		justify-content: flex-end;
+		margin-bottom: 12px;
 	}
 	h1 {
 		font-size: clamp(28px, 3.8vw, 42px);
@@ -546,13 +576,20 @@
 	.blue {
 		background: #364077;
 	}
-	.alliance-label {
+	.scores {
 		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		margin-bottom: 8px;
-		font-size: 12px;
+		justify-content: center;
+		gap: 24px;
+		padding: 12px 16px 0;
+		background: linear-gradient(to right, #364077 50%, #793f3f 50%);
 	}
+	.scores .score {
+		flex: 1;
+	}
+	.scores .score:first-child {
+		justify-content: flex-end;
+	}
+
 	.score {
 		display: flex;
 		align-items: center;
@@ -567,10 +604,12 @@
 	}
 	.participants {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 10px;
 	}
 	.team-number {
+		min-width: 0;
+		overflow-wrap: anywhere;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
@@ -584,6 +623,9 @@
 	.team-number strong {
 		font-size: 20px;
 		font-weight: 400;
+	}
+	.team-name {
+		margin-top: 3px;
 	}
 	.team-number span {
 		font-size: 11px;
@@ -658,9 +700,7 @@
 		main {
 			padding: 26px 20px 44px;
 		}
-		.event-header {
-			align-items: flex-start;
-			flex-direction: column;
+		.header-top {
 			gap: 14px;
 		}
 		.filters {
