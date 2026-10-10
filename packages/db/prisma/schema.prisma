@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output = "../src/generated/prisma"
-  moduleFormat = "esm"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
   importFileExtension = "js"
 }
 
@@ -27,16 +27,191 @@ model FeatureToggle {
   enabled Boolean @default(true)
 }
 
-model TeamMatchData {
-  key           String        @id
+model Season {
+  year     Int     @id
+  gameName String?
+
+  teamSeasons     TeamSeason[]
+  districtSeasons DistrictSeason[]
+  tournaments     Tournament[]
+}
+
+model DistrictSeason {
+  key          String @id
+  seasonYear   Int
+  abbreviation String
+  name         String
+
+  season      Season       @relation(fields: [seasonYear], references: [year])
+  teamSeasons TeamSeason[]
+  tournaments Tournament[]
+
+  @@unique([seasonYear, abbreviation])
+}
+
+model Team {
+  number Int    @id
+  name   String
+
+  seasons         TeamSeason[]
+  tournamentTeams TeamTournament[]
+  matchData       TeamMatchData[]
+
+  registeredTeams RegisteredTeam[]
+}
+
+model TeamSeason {
+  teamNumber        Int
+  seasonYear        Int
+  name              String
+  city              String?
+  stateProvince     String?
+  country           String?
+  districtSeasonKey String?
+
+  team     Team            @relation(fields: [teamNumber], references: [number])
+  season   Season          @relation(fields: [seasonYear], references: [year])
+  district DistrictSeason? @relation(fields: [districtSeasonKey], references: [key])
+
+  @@id([teamNumber, seasonYear])
+  @@index([districtSeasonKey])
+}
+
+model Tournament {
+  key  String @id
+  name String
+
+  location        String?
+  date            String?
+  latestFetchETag String?
+
+  seasonYear          Int?
+  districtSeasonKey   String?
+  parentTournamentKey String?
+
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  timezone  String?
+
+  eventType   Int?
+  playoffType Int?
+
+  officialDataUpdatedAt DateTime?
+  officialDataRevision  Int       @default(0)
+
+  season   Season?         @relation(fields: [seasonYear], references: [year])
+  district DistrictSeason? @relation(fields: [districtSeasonKey], references: [key])
+
+  parentTournament Tournament?  @relation("TournamentHierarchy", fields: [parentTournamentKey], references: [key])
+  childTournaments Tournament[] @relation("TournamentHierarchy")
+
+  teams         TeamTournament[]
+  matches       Match[]
+  teamMatchData TeamMatchData[]
+
+  mutablePicklists      MutablePicklist[]
+  scouterScheduleShifts ScouterScheduleShift[]
+
+  @@index([seasonYear, startDate])
+  @@index([districtSeasonKey])
+  @@index([parentTournamentKey])
+}
+
+model TeamTournament {
+  teamNumber    Int
   tournamentKey String
-  matchNumber   Int           @db.SmallInt
+
+  team       Team       @relation(fields: [teamNumber], references: [number])
+  tournament Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
+
+  @@id([teamNumber, tournamentKey])
+  @@index([tournamentKey])
+}
+
+model Match {
+  key           String @id // Canonical key, e.g. "2026..._sf1m1"
+  tournamentKey String
+
+  competitionLevel CompetitionLevel
+  setNumber        Int
+  matchNumber      Int
+  displayOrder     Int?
+
+  scheduledTime  DateTime?
+  predictedTime  DateTime?
+  actualTime     DateTime?
+  postResultTime DateTime?
+
+  status          MatchStatus    @default(SCHEDULED)
+  winningAlliance AllianceColor? // Null for ties or unknown results.
+
+  tournament Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
+
+  alliances MatchAlliance[]
+  teamSlots TeamMatchData[]
+
+  @@unique([tournamentKey, competitionLevel, setNumber, matchNumber])
+  @@index([tournamentKey, displayOrder])
+  @@index([tournamentKey, scheduledTime])
+}
+
+model MatchAlliance {
+  matchKey String
+  color    AllianceColor
+
+  score          Int?
+  scoreBreakdown Json?
+
+  match Match @relation(fields: [matchKey], references: [key], onDelete: Cascade)
+
+  @@id([matchKey, color])
+}
+
+model TeamMatchData {
+  key           String    @id
+  tournamentKey String
+  matchNumber   Int       @db.SmallInt
   teamNumber    Int
   matchType     MatchType
-  scoutReports  ScoutReport[]
-  tournament    Tournament    @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
 
+  matchKey String?
+  alliance AllianceColor?
+  station  Int?
+
+  externalParticipantKey String?
+
+  disqualified Boolean?
+  surrogate    Boolean?
+
+  tournament Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
+  team       Team       @relation(fields: [teamNumber], references: [number])
+  match      Match?     @relation(fields: [matchKey], references: [key], onDelete: SetNull)
+
+  scoutReports ScoutReport[] // Existing model stays unchanged.
+
+  @@unique([matchKey, alliance, station])
   @@index([tournamentKey, teamNumber])
+  @@index([matchKey, teamNumber])
+}
+
+enum AllianceColor {
+  RED
+  BLUE
+}
+
+enum CompetitionLevel {
+  QUALIFICATION
+  EIGHTHFINAL
+  QUARTERFINAL
+  SEMIFINAL
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
 }
 
 model MutablePicklist {
@@ -135,12 +310,6 @@ model SharedPicklist {
   author                      User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
-model Team {
-  number         Int             @id
-  name           String
-  registeredTeam RegisteredTeam?
-}
-
 model RegisteredTeam {
   number                Int                    @id
   code                  String                 @unique
@@ -190,17 +359,6 @@ model SlackNotificationThread {
   subscriptionId String
   channelId      String
   channel        SlackSubscription @relation(fields: [subscriptionId], references: [subscriptionId], onDelete: Cascade)
-}
-
-model Tournament {
-  key                   String                 @id
-  name                  String
-  location              String?
-  date                  String?
-  mutablePicklists      MutablePicklist[]
-  scouterScheduleShifts ScouterScheduleShift[]
-  teamMatchData         TeamMatchData[]
-  latestFetchETag       String?
 }
 
 model User {
