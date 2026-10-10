@@ -66,6 +66,23 @@ Railway must use repository root `/` and `apps/server/Dockerfile` so both direct
 
 ## Integration checks
 
+### Competition-data migration
+
+`20261010180215_add_season_match_and_more` adds seasons, districts, rosters,
+canonical matches, and alliance results without changing existing report keys
+or measurements. It runs in one transaction and creates missing `Team` parents
+for existing scouting slots before adding the team foreign key. Those parents
+use an explicit `Team <number>` fallback name; official team ingestion can
+replace it later. Existing team names are preserved. Canonical match links and
+other imported metadata remain null until a verified backfill or import.
+
+The migration enforces stations 1–3 with a SQL CHECK constraint that Prisma
+cannot express. Keep that constraint in future migrations. Test coverage checks
+populated current-season report/action preservation, missing-team backfill,
+station and team constraints, and atomic rollback. Verify migration history on
+a staging clone before production deployment; these local checks do not prove
+that a particular deployed database is ready to migrate.
+
 Use only a disposable local database named `lovat_test`:
 
 ```bash

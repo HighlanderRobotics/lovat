@@ -57,7 +57,7 @@ model Team {
   tournamentTeams TeamTournament[]
   matchData       TeamMatchData[]
 
-  registeredTeams RegisteredTeam[]
+  registeredTeam RegisteredTeam?
 }
 
 model TeamSeason {
@@ -176,7 +176,7 @@ model TeamMatchData {
 
   matchKey String?
   alliance AllianceColor?
-  station  Int?
+  station  Int? // SQL CHECK constraint permits null or stations 1–3.
 
   externalParticipantKey String?
 

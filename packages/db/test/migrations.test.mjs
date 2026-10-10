@@ -22,11 +22,143 @@ const names = [
 const sql = await Promise.all(
   names.map((name) =>
     readFile(
-      new URL(`../prisma/migrations_backup/${name}/migration.sql`, import.meta.url),
+      new URL(
+        `../prisma/migrations_backup/${name}/migration.sql`,
+        import.meta.url,
+      ),
       "utf8",
     ),
   ),
 );
+
+const baselineSql = await readFile(
+  new URL("../prisma/migrations/0_baseline/migration.sql", import.meta.url),
+  "utf8",
+);
+const competitionSql = await readFile(
+  new URL(
+    "../prisma/migrations/20261010180215_add_season_match_and_more/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+async function withBaselineDatabase(run) {
+  const admin = new pg.Client({ connectionString: url.href });
+  const name = `lovat_migration_${randomUUID().replaceAll("-", "")}`;
+  let client,
+    created = false;
+  try {
+    await admin.connect();
+    await admin.query(`CREATE DATABASE "${name}"`);
+    created = true;
+    const target = new URL(url);
+    target.pathname = `/${name}`;
+    client = new pg.Client({ connectionString: target.href });
+    await client.connect();
+    await client.query(baselineSql);
+    await client.query(`
+      INSERT INTO "Team" (number, name) VALUES (8033, 'Existing team');
+      INSERT INTO "RegisteredTeam" (number, code, email)
+        VALUES (8033, 'fixture', 'fixture@example.invalid');
+      INSERT INTO "Scouter" (uuid, "sourceTeamNumber") VALUES ('scouter', 8033);
+      INSERT INTO "Tournament" (key, name) VALUES ('2026fixture', 'Fixture');
+      INSERT INTO "TeamMatchData" (key, "tournamentKey", "matchNumber", "teamNumber", "matchType")
+        VALUES ('missing-team', '2026fixture', 1, 254, 'QUALIFICATION'),
+               ('known-team', '2026fixture', 1, 8033, 'QUALIFICATION');
+      INSERT INTO "ScoutReport" (uuid, "teamMatchKey", "startTime", notes,
+        "driverAbility", "scouterUuid", beached, "defenseEffectiveness",
+        "intakeType", "fieldTraversal", "scoresWhileMoving", disrupts,
+        "endgameClimb", "autoClimb")
+        VALUES ('report', 'missing-team', CURRENT_TIMESTAMP, 'Preserve this note',
+          3, 'scouter', 'NEITHER', 0, 'NEITHER', 'NONE', false, false,
+          'NOT_ATTEMPTED', 'NOT_ATTEMPTED');
+      INSERT INTO "Event" ("eventUuid", time, action, position, points, quantity, "scoutReportUuid")
+        VALUES ('action', 10, 'INTAKE', 'DEPOT', 0, 2, 'report');
+    `);
+    await run(client);
+  } finally {
+    await client?.end();
+    if (created) await admin.query(`DROP DATABASE "${name}"`);
+    await admin.end();
+  }
+}
+
+test("competition migration backfills missing teams and preserves reports and actions", async () => {
+  await withBaselineDatabase(async (client) => {
+    const reportsBefore = (await client.query('SELECT * FROM "ScoutReport"'))
+      .rows;
+    const actionsBefore = (await client.query('SELECT * FROM "Event"')).rows;
+    await client.query(competitionSql);
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "ScoutReport"')).rows,
+      reportsBefore,
+    );
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "Event"')).rows,
+      actionsBefore,
+    );
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "Team" ORDER BY number')).rows,
+      [
+        { number: 254, name: "Team 254" },
+        { number: 8033, name: "Existing team" },
+      ],
+    );
+    const slots = (await client.query('SELECT * FROM "TeamMatchData"')).rows;
+    assert.equal(slots.length, 2);
+    assert.ok(
+      slots.every((slot) => slot.matchKey === null && slot.station === null),
+    );
+    await assert.rejects(
+      client.query(
+        `UPDATE "TeamMatchData" SET station = 0 WHERE key = 'missing-team'`,
+      ),
+      (error) => error.code === "23514",
+    );
+    await assert.rejects(
+      client.query(
+        `UPDATE "TeamMatchData" SET station = 4 WHERE key = 'missing-team'`,
+      ),
+      (error) => error.code === "23514",
+    );
+    await client.query(
+      `UPDATE "TeamMatchData" SET station = 3 WHERE key = 'missing-team'`,
+    );
+    await assert.rejects(
+      client.query(
+        `UPDATE "TeamMatchData" SET "teamNumber" = 99999 WHERE key = 'missing-team'`,
+      ),
+      (error) => error.code === "23503",
+    );
+  });
+});
+
+test("competition migration rolls back the backfill and schema on failure", async () => {
+  await withBaselineDatabase(async (client) => {
+    // Force a DDL conflict after the backfill has run.
+    await client.query(`CREATE TYPE "AllianceColor" AS ENUM ('RED', 'BLUE')`);
+    await assert.rejects(
+      client.query(competitionSql),
+      (error) => error.code === "42710",
+    );
+    await client.query("ROLLBACK");
+    assert.equal(
+      (await client.query('SELECT * FROM "Team" WHERE number = 254')).rowCount,
+      0,
+    );
+    assert.equal(
+      (await client.query('SELECT * FROM "ScoutReport"')).rowCount,
+      1,
+    );
+    assert.equal((await client.query('SELECT * FROM "Event"')).rowCount, 1);
+    assert.equal(
+      (await client.query(`SELECT to_regclass('public."Season"') AS name`))
+        .rows[0].name,
+      null,
+    );
+  });
+});
 
 async function withLegacyDatabase(run) {
   const admin = new pg.Client({ connectionString: url.href });
