@@ -68,6 +68,14 @@ Railway must use repository root `/` and `apps/server/Dockerfile` so both direct
 
 ### Competition-data migration
 
+`20261010193000_add_import_fetch_state_and_jobs` adds minimal `FetchState`
+and `ImportJob` tables. Fetch state is keyed by provider and endpoint (including
+meaningful query parameters). Workers must commit new HTTP validators with the
+imported data, not before it. Jobs are unique by kind and target; successful jobs
+are deleted so the same target can be scheduled again. Claiming, leases, retries,
+and scheduling are worker responsibilities, not implemented by this migration.
+Existing tournament ETags are retained until ingestion moves to endpoint state.
+
 `20261010180215_add_season_match_and_more` adds seasons, districts, rosters,
 canonical matches, and alliance results without changing existing report keys
 or measurements. It runs in one transaction and creates missing `Team` parents

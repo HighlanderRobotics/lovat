@@ -27,6 +27,30 @@ model FeatureToggle {
   enabled Boolean @default(true)
 }
 
+model FetchState {
+  provider     String
+  resourceKey  String // Endpoint path plus meaningful query parameters.
+  etag         String?
+  lastModified String?
+
+  @@id([provider, resourceKey])
+}
+
+model ImportJob {
+  id        String   @id @default(uuid())
+  kind      String
+  targetKey String
+  runAt     DateTime @default(now())
+
+  attempts       Int       @default(0)
+  leaseToken     String?
+  leaseExpiresAt DateTime?
+  lastError      String?
+
+  @@unique([kind, targetKey])
+  @@index([runAt])
+}
+
 model Season {
   year     Int     @id
   gameName String?

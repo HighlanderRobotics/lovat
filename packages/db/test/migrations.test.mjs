@@ -42,6 +42,13 @@ const competitionSql = await readFile(
   ),
   "utf8",
 );
+const importSql = await readFile(
+  new URL(
+    "../prisma/migrations/20261010193000_add_import_fetch_state_and_jobs/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 async function withBaselineDatabase(run) {
   const admin = new pg.Client({ connectionString: url.href });
@@ -156,6 +163,94 @@ test("competition migration rolls back the backfill and schema on failure", asyn
       (await client.query(`SELECT to_regclass('public."Season"') AS name`))
         .rows[0].name,
       null,
+    );
+  });
+});
+
+test("import migration preserves existing data and supports endpoint state and deduplicated jobs", async () => {
+  await withBaselineDatabase(async (client) => {
+    await client.query(competitionSql);
+    const reportsBefore = (await client.query('SELECT * FROM "ScoutReport"'))
+      .rows;
+    const actionsBefore = (await client.query('SELECT * FROM "Event"')).rows;
+    await client.query(importSql);
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "ScoutReport"')).rows,
+      reportsBefore,
+    );
+    assert.deepEqual(
+      (await client.query('SELECT * FROM "Event"')).rows,
+      actionsBefore,
+    );
+
+    await client.query(`
+      INSERT INTO "FetchState" (provider, "resourceKey", etag)
+        VALUES ('tba', 'event/2026fixture/matches', 'original'),
+               ('first', 'event/2026fixture/matches', NULL),
+               ('tba', 'event/2026fixture/teams', NULL);
+      INSERT INTO "ImportJob" (id, kind, "targetKey")
+        VALUES ('matches-job', 'eventMatches', '2026fixture'),
+               ('roster-job', 'eventRoster', '2026fixture');
+    `);
+    await assert.rejects(
+      client.query(`
+      INSERT INTO "FetchState" (provider, "resourceKey")
+        VALUES ('tba', 'event/2026fixture/matches')
+    `),
+      (error) => error.code === "23505",
+    );
+    await assert.rejects(
+      client.query(`
+      INSERT INTO "ImportJob" (id, kind, "targetKey")
+        VALUES ('duplicate', 'eventMatches', '2026fixture')
+    `),
+      (error) => error.code === "23505",
+    );
+    const job = (
+      await client.query(`SELECT * FROM "ImportJob" WHERE id = 'matches-job'`)
+    ).rows[0];
+    assert.equal(job.attempts, 0);
+    assert.equal(job.leaseToken, null);
+    assert.equal(job.leaseExpiresAt, null);
+    assert.equal(job.lastError, null);
+    assert.ok(job.runAt instanceof Date);
+
+    // Cache validators must roll back with the data they describe.
+    await client.query("BEGIN");
+    await client.query(
+      `UPDATE "FetchState" SET etag = 'new' WHERE provider = 'tba' AND "resourceKey" = 'event/2026fixture/matches'`,
+    );
+    await client.query(
+      `UPDATE "Tournament" SET name = 'Uncommitted' WHERE key = '2026fixture'`,
+    );
+    await assert.rejects(
+      client.query(
+        `UPDATE "TeamMatchData" SET station = 4 WHERE key = 'missing-team'`,
+      ),
+      (error) => error.code === "23514",
+    );
+    await client.query("ROLLBACK");
+    assert.equal(
+      (
+        await client.query(
+          `SELECT etag FROM "FetchState" WHERE provider = 'tba' AND "resourceKey" = 'event/2026fixture/matches'`,
+        )
+      ).rows[0].etag,
+      "original",
+    );
+    assert.equal(
+      (
+        await client.query(
+          `SELECT name FROM "Tournament" WHERE key = '2026fixture'`,
+        )
+      ).rows[0].name,
+      "Fixture",
+    );
+
+    // Completed jobs can be removed and scheduled again for the same target.
+    await client.query(`DELETE FROM "ImportJob" WHERE id = 'matches-job'`);
+    await client.query(
+      `INSERT INTO "ImportJob" (id, kind, "targetKey") VALUES ('next-job', 'eventMatches', '2026fixture')`,
     );
   });
 });
