@@ -264,7 +264,7 @@ export async function runNextJob(
     const interval = await refreshInterval(db, job, now);
 
     if (!lostLease) {
-      await db.importJob.updateMany({
+      const completed = await db.importJob.updateMany({
         where: {
           id: job.id,
           leaseToken: job.leaseToken,
@@ -278,6 +278,11 @@ export async function runNextJob(
           leaseExpiresAt: null,
         },
       });
+      if (completed.count === 1) {
+        console.info(
+          `Import completed: ${job.kind} ${job.targetKey}; next refresh ${new Date(now.getTime() + interval).toISOString()}`,
+        );
+      }
     }
   } catch (error) {
     const now = new Date();

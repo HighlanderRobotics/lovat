@@ -20,6 +20,7 @@ export async function runWorker(
   db: PrismaClient,
   signal: AbortSignal,
   concurrency = 2,
+  onReconciled: () => void = () => {},
 ) {
   if (
     !Number.isSafeInteger(concurrency) ||
@@ -33,6 +34,7 @@ export async function runWorker(
     while (!signal.aborted) {
       try {
         await reconcileSchedule(db);
+        onReconciled();
       } catch {
         console.error("Schedule reconciliation failed; retrying in 30 seconds");
       }

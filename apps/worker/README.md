@@ -225,3 +225,37 @@ Or queue `bun run enqueue gaps 2026casj` for the worker. Explicit gap jobs repea
 daily; normal match jobs already recalculate gaps on every refresh. Apply the
 shared database migration and rebuild the database package before running the
 updated worker.
+
+## Railway deployment
+
+Build from the repository root with `docker build -f apps/worker/Dockerfile .`.
+The image pins Node 22.20.0 and Bun 1.3.14, builds the shared Prisma package
+before installing the worker with its frozen lockfile, checks TypeScript, and
+runs as the non-root `node` user. The Docker build context excludes local
+environment files, generated clients, dependency directories, and other apps.
+
+For the worker service, set Root Directory to `/` and Config File to
+`/apps/worker/railway.json`. Configure these variables in the intended preview
+environment:
+
+```text
+DATABASE_URL=${{Postgres.DATABASE_PRIVATE_URL}}
+TBA_KEY=${{api.TBA_KEY}}
+WORKER_CONCURRENCY=2
+```
+
+Service names in references must match that environment's services. Use the
+preview database reference, not a production database URL. Railway supplies
+`PORT`; local health checks default to 8080. The worker listens on `/health` and
+returns 200 only after a successful scheduler pass within the last two minutes
+and a working database query. Startup fails if the import/gap tables are absent.
+
+The worker does not run migrations. Deploy the shared schema through the
+existing API/release migration owner before starting it. It runs continuously,
+with sleeping disabled and one replica by default. SIGTERM stops new claims and
+drains current jobs; Railway allows 60 seconds before termination. If a long
+import is interrupted, its lease expires and another process can retry it.
+
+GitHub CI runs fixture-based database tests, typechecks, and a Docker build for
+worker or shared database changes. Successful imports log their kind, target,
+and next refresh time without credentials or scouting content.
