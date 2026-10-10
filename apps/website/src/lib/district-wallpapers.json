@@ -1,27 +1,29 @@
 {
 	"Berkeley": {
 		"image": "/assets/cities/berkeley.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:Berkeley_cityscape.jpg",
-		"author": "pedrik",
-		"license": "CC BY 2.0",
-		"licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-		"bytes": 275201
+		"source": "https://commons.wikimedia.org/wiki/File:Campanile_Hi-Res_-_reduced_file_size.jpg",
+		"author": "Ryan Schwark",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"bytes": 202198,
+		"position": "50% 22%"
 	},
 	"San Diego": {
 		"image": "/assets/cities/san-diego.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:La_Jolla_Shores_view_%28cropped%29.jpg",
-		"author": "Dirk Hansen",
-		"license": "CC BY-SA 3.0",
-		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-		"bytes": 433288
+		"source": "https://commons.wikimedia.org/wiki/File:California_tower_gardens_at_Balboa_Park_2022.jpg",
+		"author": "Librarybell",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"bytes": 809522,
+		"position": "50% 22%"
 	},
 	"San Francisco": {
 		"image": "/assets/cities/san-francisco.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:Zeppelin-ride-020100925-195_%285029394846%29.jpg",
-		"author": "Craig Howell from San Carlos, CA, USA",
-		"license": "CC BY 2.0",
-		"licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-		"bytes": 358964
+		"source": "https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_as_seen_from_Battery_East.jpg",
+		"author": "Frank Schulenburg",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 252236
 	},
 	"Anaheim": {
 		"image": "/assets/cities/anaheim.jpg",
@@ -33,11 +35,12 @@
 	},
 	"Glendale": {
 		"image": "/assets/cities/glendale.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:Glendale%2C_California_skyline.jpg",
-		"author": "Quintin Soloviev",
-		"license": "CC BY 4.0",
-		"licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-		"bytes": 350724
+		"source": "https://commons.wikimedia.org/wiki/File:AmericanaBrandSign.jpg",
+		"author": "Minnaert",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"bytes": 266452,
+		"position": "50% 25%"
 	},
 	"Pittsburg": {
 		"image": "/assets/cities/pittsburg.jpg",
@@ -65,11 +68,12 @@
 	},
 	"Lancaster": {
 		"image": "/assets/cities/lancaster.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:October_2012_-_Overall_Excellence_in_Smart_Growth_2012-_Lancaster%2C_CA%2C_The_BLVD_Transformation_%288634270433%29.jpg",
-		"author": "USEPA Environmental-Protection-Agency",
-		"license": "Public domain",
-		"licenseUrl": "",
-		"bytes": 339766
+		"source": "https://commons.wikimedia.org/wiki/File:California_Poppies1.jpg",
+		"author": "Boris D (talk · contribs)",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 351163,
+		"position": "50% 65%"
 	},
 	"Rosemead": {
 		"image": "/assets/cities/rosemead.jpg",
@@ -105,11 +109,12 @@
 	},
 	"Daly City": {
 		"image": "/assets/cities/daly-city.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:Daly_City.jpg",
-		"author": "User:Stilfehler",
-		"license": "Public domain",
-		"licenseUrl": "",
-		"bytes": 459631
+		"source": "https://commons.wikimedia.org/wiki/File:Cow_Palace_(front).jpg",
+		"author": "Dante Alighieri",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 234214,
+		"position": "50% 32%"
 	},
 	"Half Moon Bay": {
 		"image": "/assets/cities/half-moon-bay.jpg",
@@ -121,11 +126,11 @@
 	},
 	"Woodside": {
 		"image": "/assets/cities/woodside.jpg",
-		"source": "https://commons.wikimedia.org/wiki/File:Village_Hub_Woodside.jpg",
-		"author": "JAAbboud",
-		"license": "CC BY-SA 4.0",
-		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-		"bytes": 398459
+		"source": "https://commons.wikimedia.org/wiki/File:Filoli_Main_House_Entrance.jpg",
+		"author": "Coolcaesar",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+		"bytes": 384295
 	},
 	"Port Hueneme": {
 		"image": "/assets/cities/port-hueneme.jpg",

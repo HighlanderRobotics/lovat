@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
-	import wallpaperData from '$lib/district-wallpapers.json';
+	import { eventWallpaper } from '$lib/tournaments/wallpaper';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
-
-	const wallpapers: Record<
-		string,
-		{ image: string; source: string; author: string; license: string; licenseUrl: string }
-	> = wallpaperData;
 
 	let view = 'events';
 	let failedAvatars = new Set<string>();
@@ -44,16 +39,15 @@
 
 	$: teams = district.teamSeasons;
 
-	$: photoCredits =
-		district.abbreviation === 'ca'
-			? [...new Set(district.tournaments.map((event) => event.location))].flatMap((city) =>
-					city && wallpapers[city] ? [{ city, ...wallpapers[city] }] : []
-				)
-			: [];
+	$: photoCredits = [
+		...new Map(
+			district.tournaments.map((event) => {
+				const photo = eventWallpaper(district.abbreviation, event.location);
 
-	function photoFor(city: string | null) {
-		return district.abbreviation === 'ca' && city ? wallpapers[city] : undefined;
-	}
+				return [photo.image, photo] as const;
+			})
+		).values()
+	];
 
 	function date(value: string | null) {
 		if (!value) return 'Date TBD';
@@ -116,11 +110,12 @@
 					<div class="event-group">
 						<h3>{group.label}</h3>
 						{#each group.events as event (event.key)}
-							{@const photo = photoFor(event.location)}
+							{@const photo = eventWallpaper(district.abbreviation, event.location)}
 							<a class="event-row" class:has-wallpaper={!!photo} href={`/tournaments/${event.key}`}>
 								{#if photo}<img
 										class="town-wallpaper"
 										src={photo.image}
+										style:object-position={photo.position}
 										alt=""
 										loading="lazy"
 									/>{/if}
@@ -161,7 +156,7 @@
 			<details class="photo-credits">
 				<summary>Photo credits</summary>
 				{#each photoCredits as photo}<p>
-						<a href={photo.source}>{photo.city}</a> · {photo.author} · {#if photo.licenseUrl}<a
+						<a href={photo.source}>{photo.label}</a> · {photo.author} · {#if photo.licenseUrl}<a
 								href={photo.licenseUrl}>{photo.license}</a
 							>{:else}{photo.license}{/if}
 					</p>{/each}

@@ -3,21 +3,13 @@
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
 	import TournamentAlliances from './TournamentAlliances.svelte';
 	import AwardMarker from '$lib/AwardMarker.svelte';
-	import wallpaperData from '$lib/district-wallpapers.json';
+	import { eventWallpaper } from '$lib/tournaments/wallpaper';
 	import { avatarGradient } from '$lib/tournaments/branding';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
 
-	const wallpapers: Record<
-		string,
-		{ image: string; source: string; author: string; license: string; licenseUrl: string }
-	> = wallpaperData;
-
-	$: wallpaper =
-		tournament.district?.key.slice(4) === 'ca' && tournament.location
-			? wallpapers[tournament.location]
-			: undefined;
+	$: wallpaper = eventWallpaper(tournament.district?.key.slice(4), tournament.location);
 
 	type Match = PageData['tournament']['matches'][number];
 
@@ -179,7 +171,12 @@
 
 <main>
 	<header class="event-header" class:has-wallpaper={!!wallpaper}>
-		{#if wallpaper}<img class="town-wallpaper" src={wallpaper.image} alt="" />{/if}
+		{#if wallpaper}<img
+				class="town-wallpaper"
+				src={wallpaper.image}
+				style:object-position={wallpaper.position}
+				alt=""
+			/>{/if}
 		<div>
 			<div class="header-top">
 				<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
@@ -475,7 +472,7 @@
 		<details class="photo-credits">
 			<summary>Photo credit</summary>
 			<p>
-				<a href={wallpaper.source}>{tournament.location}</a> · {wallpaper.author} ·
+				<a href={wallpaper.source}>{wallpaper.label}</a> · {wallpaper.author} ·
 				{#if wallpaper.licenseUrl}<a href={wallpaper.licenseUrl}>{wallpaper.license}</a
 					>{:else}{wallpaper.license}{/if}
 			</p>
