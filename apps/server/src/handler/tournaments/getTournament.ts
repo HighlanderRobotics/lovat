@@ -2,16 +2,29 @@ import type { Request, Response } from "express";
 import prismaClient from "../../prismaClient.js";
 
 export async function getTournament(
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> {
+  const key = req.params.key;
+
+  if (typeof key !== "string" || !/^[0-9]{4}[a-z0-9]+$/.test(key)) {
+    res.status(400).json({ error: "Invalid tournament key" });
+    return;
+  }
+
   try {
     // Public official data only: never include scouting reports or team strategy.
     const tournament = await prismaClient.tournament.findUnique({
-      where: { key: "2026cancmp" },
+      where: { key },
       select: {
         key: true,
         name: true,
+        seasonYear: true,
+        district: { select: { key: true, name: true } },
+        playoffType: true,
+        week: true,
+        allianceSelections: true,
+        awards: true,
         location: true,
         startDate: true,
         endDate: true,
@@ -19,7 +32,18 @@ export async function getTournament(
         officialDataUpdatedAt: true,
         teams: {
           orderBy: { teamNumber: "asc" },
-          select: { team: { select: { number: true, name: true } } },
+          select: {
+            team: {
+              select: {
+                number: true,
+                name: true,
+                seasons: {
+                  where: { seasonYear: Number(key.slice(0, 4)) },
+                  select: { name: true, avatar: true },
+                },
+              },
+            },
+          },
         },
         matches: {
           orderBy: [{ displayOrder: "asc" }, { key: "asc" }],
@@ -70,7 +94,16 @@ export async function getTournament(
     }
 
     res.set("Cache-Control", "public, max-age=30");
-    res.json(tournament);
+    res.json({
+      ...tournament,
+      teams: tournament.teams.map(({ team }) => ({
+        team: {
+          number: team.number,
+          name: team.seasons[0]?.name ?? team.name,
+          avatar: team.seasons[0]?.avatar ?? null,
+        },
+      })),
+    });
   } catch {
     res
       .status(503)

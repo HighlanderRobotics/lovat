@@ -272,3 +272,22 @@ import is interrupted, its lease expires and another process can retry it.
 GitHub CI runs fixture-based database tests, typechecks, and a Docker build for
 worker or shared database changes. Successful imports log their kind, target,
 and next refresh time without credentials or scouting content.
+
+## Tournament presentation data
+
+`tournament-details` imports TBA alliance selections and awards, preserving pick
+order, backups, and numeric participant remaps. It also imports raster avatars for
+the roster's `TeamSeason` records. The scheduler refreshes details at the roster
+cadence. Each event snapshot and its validators commit together; each team avatar
+commits separately so a failed media request can resume without discarding event
+data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
+
+The public Website route `/tournaments/[key]` reads these snapshots from the
+Server. Schedule, Teams, and Alliances & bracket are inline views at the same
+URL. The bracket currently renders only TBA playoff type 10 (eight-alliance
+double elimination). Other formats still show schedules, teams, and selections.
+
+Districts are available at `/[district]/[year]` (for example `/ca/2026`).
+Events are grouped by the imported regular-season week, with district championships
+in a separate section. Town wallpapers currently cover California. District avatars
+load through the public image endpoint only near the viewport.

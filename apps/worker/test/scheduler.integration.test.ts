@@ -20,6 +20,7 @@ const kinds = [
   "districts",
   "district-teams",
   "tournament-teams",
+  "tournament-details",
   "matches",
 ];
 const now = new Date("2094-03-06T18:00:00Z");
@@ -82,7 +83,7 @@ test.skipIf(!enabled)(
     await reconcileSchedule(db, now, year);
 
     expect(await db.importJob.count({ where: { targetKey: eventKey } })).toBe(
-      2,
+      3,
     );
 
     await db.importJob.update({

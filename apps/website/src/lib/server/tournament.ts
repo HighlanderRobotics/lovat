@@ -4,14 +4,48 @@ const time = z.iso.datetime().nullable();
 const alliance = z.enum(['RED', 'BLUE']);
 
 export const tournamentSchema = z.object({
-	key: z.literal('2026cancmp'),
+	key: z.string(),
 	name: z.string(),
+	seasonYear: z.number().int().nullable(),
+	district: z.object({ key: z.string(), name: z.string() }).nullable(),
+	week: z.number().int().nullable(),
+	playoffType: z.number().int().nullable(),
+	allianceSelections: z
+		.array(
+			z.object({
+				teams: z.array(z.number().int()),
+				backup: z.object({ in: z.number().int(), out: z.number().int() }).nullable()
+			})
+		)
+		.nullable(),
+	awards: z
+		.array(
+			z.object({
+				type: z.number().int(),
+				name: z.string(),
+				recipients: z.array(
+					z.object({ teamNumber: z.number().int().nullable(), name: z.string().nullable() })
+				)
+			})
+		)
+		.nullable(),
 	location: z.string().nullable(),
 	startDate: time,
 	endDate: time,
 	timezone: z.string().nullable(),
 	officialDataUpdatedAt: time,
-	teams: z.array(z.object({ team: z.object({ number: z.number().int(), name: z.string() }) })),
+	teams: z.array(
+		z.object({
+			team: z.object({
+				number: z.number().int(),
+				name: z.string(),
+				avatar: z
+					.string()
+					.regex(/^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/=]+$/)
+					.nullable()
+			})
+		})
+	),
 	matches: z.array(
 		z.object({
 			key: z.string(),

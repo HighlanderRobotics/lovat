@@ -19,6 +19,7 @@ const tournament = (key: string, year: number): TbaTournament => ({
   timezone: "America/Los_Angeles",
   event_type: 0,
   playoff_type: 10,
+  week: 2,
   parent_event_key: null,
   district: null,
 });
@@ -61,7 +62,9 @@ afterAll(async () => {
     await db.fetchState.deleteMany({
       where: {
         provider: "tba",
-        resourceKey: { in: years.map((year) => `events/${year}`) },
+        resourceKey: {
+          in: years.map((year) => `events/${year}?schema=weeks-v1`),
+        },
       },
     });
   } finally {
@@ -125,6 +128,7 @@ test.skipIf(!enabled)(
     expect(saved.startDate?.toISOString()).toBe("2091-03-01T00:00:00.000Z");
     expect(saved.date).toBe("2091-03-01");
     expect(saved.timezone).toBe("America/Los_Angeles");
+    expect(saved.week).toBe(2);
 
     await db.tournament.update({
       where: { key: child.key },
@@ -150,7 +154,10 @@ test.skipIf(!enabled)(
 test.skipIf(!enabled)(
   "missing parents roll back the season, tournaments and cache update",
   async () => {
-    const identity = { provider: "tba", resourceKey: "events/2092" };
+    const identity = {
+      provider: "tba",
+      resourceKey: "events/2092?schema=weeks-v1",
+    };
 
     await db.fetchState.upsert({
       where: { provider_resourceKey: identity },

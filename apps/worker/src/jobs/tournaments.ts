@@ -30,7 +30,7 @@ export const importTournaments = async (
   for (let year = initialYear; year <= finalYear; year++) {
     const identity = {
       provider: "tba",
-      resourceKey: `events/${year}`,
+      resourceKey: `events/${year}?schema=weeks-v1`,
     };
 
     const saved = await db.fetchState.findUnique({
@@ -95,6 +95,7 @@ export const importTournaments = async (
             endDate: new Date(`${tournament.end_date}T00:00:00.000Z`),
             timezone: tournament.timezone,
             eventType: tournament.event_type,
+            week: tournament.week ?? null,
             playoffType: tournament.playoff_type,
             districtSeasonKey: district?.key ?? null,
           };

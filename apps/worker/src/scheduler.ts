@@ -4,6 +4,7 @@ import { importTournaments } from "./jobs/tournaments";
 import { importTeamSeasons } from "./jobs/team-seasons";
 import { importDistricts, importDistrictTeams } from "./jobs/districts";
 import { importTournamentTeams } from "./jobs/tournament-teams";
+import { importTournamentDetails } from "./jobs/tournament-details";
 import { importMatches } from "./jobs/matches";
 import { refreshTournamentGaps } from "./jobs/gaps";
 import { validateSeason, validateTarget } from "./jobs/shared";
@@ -17,6 +18,7 @@ export const jobKinds = [
   "districts",
   "district-teams",
   "tournament-teams",
+  "tournament-details",
   "matches",
   "gaps",
 ] as const;
@@ -127,6 +129,7 @@ export async function reconcileSchedule(
     const cadence = tournamentCadence(tournament, now);
 
     await ensure("tournament-teams", tournament.key, cadence.roster);
+    await ensure("tournament-details", tournament.key, cadence.roster);
     await ensure("matches", tournament.key, cadence.matches);
   }
 }
@@ -186,6 +189,8 @@ export async function executeImport(
       return importDistrictTeams(job.targetKey, dependencies);
     case "tournament-teams":
       return importTournamentTeams(job.targetKey, dependencies);
+    case "tournament-details":
+      return importTournamentDetails(job.targetKey, dependencies);
     case "matches":
       return importMatches(job.targetKey, dependencies);
     case "gaps":
