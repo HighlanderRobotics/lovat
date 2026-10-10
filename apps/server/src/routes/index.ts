@@ -6,12 +6,15 @@ import analysisRouter from "./analysis/analysis.routes.js";
 import { onboardingRedirect } from "../handler/slack/onboardingRedirect.js";
 import { generateOpenApiDocument } from "../lib/openapi.js";
 import swaggerUi from "swagger-ui-express";
+import { getTournament } from "../handler/tournaments/getTournament.js";
 
 const router = Router();
 
 router.use("/slack", slackRouter);
 router.use("/manager", managerRouter);
 router.use("/analysis", analysisRouter);
+
+router.get("/tournaments/2026cancmp", getTournament);
 
 router.get("/slack-invite", onboardingRedirect);
 
