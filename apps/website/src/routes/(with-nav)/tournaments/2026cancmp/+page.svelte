@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
+	import AwardMarker from '$lib/AwardMarker.svelte';
+	import { teamBranding, eventWinners, impactWinners } from '$lib/tournaments/2026cancmp';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -86,18 +88,23 @@
 
 		// This event uses the eight-alliance double-elimination bracket.
 		if (match.competitionLevel === 'SEMIFINAL') {
-			const round =
-				match.setNumber <= 4
-					? 1
-					: match.setNumber <= 8
-						? 2
-						: match.setNumber <= 10
-							? 3
-							: match.setNumber <= 12
-								? 4
-								: 5;
+			const bracketNames: Record<number, string> = {
+				1: 'Upper Bracket Round 1',
+				2: 'Upper Bracket Round 1',
+				3: 'Upper Bracket Round 1',
+				4: 'Upper Bracket Round 1',
+				5: 'Lower Bracket Round 1',
+				6: 'Lower Bracket Round 1',
+				7: 'Upper Bracket Round 2',
+				8: 'Upper Bracket Round 2',
+				9: 'Lower Bracket Round 2',
+				10: 'Lower Bracket Round 2',
+				11: 'Upper Bracket Final',
+				12: 'Lower Bracket Semifinal',
+				13: 'Lower Bracket Final'
+			};
 
-			return `Elimination Match ${match.setNumber} · Round ${round}`;
+			return `${bracketNames[match.setNumber]} · Match ${match.setNumber}`;
 		}
 
 		const stage = match.competitionLevel === 'QUARTERFINAL' ? 'Quarterfinal' : 'Eighthfinal';
@@ -244,23 +251,25 @@
 				</div>
 			</div>
 
-			<nav class="days" aria-label="Schedule days">
-				<button
-					class:active={day === 'all'}
-					aria-pressed={day === 'all'}
-					on:click={() => (day = 'all')}>All days</button
-				>
-				{#each days as date}<button
-						class:active={day === date}
-						aria-pressed={day === date}
-						on:click={() => (day = date)}>{dayLabel(date)}</button
-					>{/each}
-			</nav>
+			<div class="schedule-controls">
+				<nav class="days" aria-label="Schedule days">
+					<button
+						class:active={day === 'all'}
+						aria-pressed={day === 'all'}
+						on:click={() => (day = 'all')}>All days</button
+					>
+					{#each days as date}<button
+							class:active={day === date}
+							aria-pressed={day === date}
+							on:click={() => (day = date)}>{dayLabel(date)}</button
+						>{/each}
+				</nav>
 
-			<div class="schedule-actions">
-				<Button variant="text-only-secondary" on:click={jumpToEliminations}
-					>Jump to eliminations</Button
-				>
+				<div class="schedule-actions">
+					<Button variant="text-only-secondary" on:click={jumpToEliminations}
+						>Jump to eliminations</Button
+					>
+				</div>
 			</div>
 
 			<div class="schedule">
@@ -284,6 +293,23 @@
 								<h4>{matchLabel(match)}</h4>
 								<span class="badge">{match.status.replaceAll('_', ' ')}</span>
 							</div>
+							<div class="scores" aria-label="Alliance scores">
+								{#each ['BLUE', 'RED'] as color}
+									<span
+										class="score"
+										class:blue-score={color === 'BLUE'}
+										class:red-score={color === 'RED'}
+										class:winner={match.winningAlliance === color}
+										aria-label={`${color === 'BLUE' ? 'Blue' : 'Red'} alliance score`}
+									>
+										<span
+											>{match.alliances.find((alliance) => alliance.color === color)?.score ??
+												'—'}</span
+										>
+									</span>
+									{#if color === 'BLUE'}<span class="score-divider" aria-hidden="true">–</span>{/if}
+								{/each}
+							</div>
 							<div class="timing">
 								<span>Scheduled time <strong>{time(match.scheduledTime)}</strong></span>
 								{#if match.actualTime}<span
@@ -291,17 +317,7 @@
 									>{/if}
 							</div>
 						</div>
-						<div class="scores" aria-label="Alliance scores">
-							{#each ['BLUE', 'RED'] as color}
-								<span
-									class="score"
-									class:winner={match.winningAlliance === color}
-									aria-label={`${color === 'BLUE' ? 'Blue' : 'Red'} alliance score`}
-								>
-									{match.alliances.find((alliance) => alliance.color === color)?.score ?? '—'}
-								</span>
-							{/each}
-						</div>
+
 						<div class="alliances">
 							{#each ['BLUE', 'RED'] as color}
 								<div class="alliance" class:red={color === 'RED'} class:blue={color === 'BLUE'}>
@@ -380,6 +396,7 @@
 			</div>
 			<div class="roster">
 				{#each filteredTeams as { team }}<button
+						style={`--team-color: ${teamBranding[team.number]?.color ?? '130, 130, 130'}`}
 						class="team-card"
 						on:click={() => {
 							teamFilter = String(team.number);
@@ -387,8 +404,21 @@
 							day = 'all';
 							phase = 'all';
 							completion = 'all';
-						}}><strong>{team.number}</strong><span>{team.name}</span></button
-					>{:else}<p>No teams match your search.</p>{/each}
+						}}
+					>
+						<div class="team-logo">
+							{#if teamBranding[team.number]}<img
+									src={teamBranding[team.number].logo}
+									alt=""
+									loading="lazy"
+								/>{:else}<span>{team.number}</span>{/if}
+						</div>
+						<div class="team-identity"><strong>{team.number}</strong><span>{team.name}</span></div>
+						<div class="team-awards">
+							{#if eventWinners.has(team.number)}<AwardMarker award="winner" />{/if}
+							{#if impactWinners.has(team.number)}<AwardMarker award="impact" />{/if}
+						</div>
+					</button>{:else}<p>No teams match your search.</p>{/each}
 			</div>
 		</section>
 	{/if}
@@ -429,10 +459,18 @@
 		align-items: flex-start;
 		flex-wrap: wrap;
 	}
+	.schedule-controls {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		gap: 8px 16px;
+		margin-bottom: 12px;
+	}
 	.schedule-actions {
 		display: flex;
 		justify-content: flex-end;
-		margin-bottom: 12px;
+		margin-left: auto;
 	}
 	h1 {
 		font-size: clamp(28px, 3.8vw, 42px);
@@ -492,7 +530,6 @@
 		display: flex;
 		gap: 6px;
 		flex-wrap: wrap;
-		margin-bottom: 12px;
 	}
 	.days button {
 		padding: 8px 14px;
@@ -524,11 +561,12 @@
 	}
 	.match-header {
 		padding: 12px 16px;
-		display: flex;
-		justify-content: space-between;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 		align-items: center;
 		gap: 12px;
 	}
+
 	.match-title {
 		display: flex;
 		align-items: center;
@@ -579,15 +617,18 @@
 	.scores {
 		display: flex;
 		justify-content: center;
-		gap: 24px;
-		padding: 12px 16px 0;
-		background: linear-gradient(to right, #364077 50%, #793f3f 50%);
+		gap: 12px;
+		align-items: center;
+		padding: 0;
 	}
-	.scores .score {
-		flex: 1;
+	.blue-score > span {
+		color: #a2a7d0;
 	}
-	.scores .score:first-child {
-		justify-content: flex-end;
+	.red-score > span {
+		color: #d0a2a2;
+	}
+	.score-divider {
+		color: var(--body);
 	}
 
 	.score {
@@ -598,7 +639,7 @@
 		font-weight: 500;
 		font-variant-numeric: tabular-nums;
 	}
-	.score.winner {
+	.score.winner > span {
 		text-decoration: underline;
 		text-underline-offset: 4px;
 	}
@@ -620,6 +661,14 @@
 		cursor: pointer;
 		text-align: left;
 	}
+	.team-number:nth-child(2) {
+		align-items: center;
+		text-align: center;
+	}
+	.team-number:nth-child(3) {
+		align-items: flex-end;
+		text-align: right;
+	}
 	.team-number strong {
 		font-size: 20px;
 		font-weight: 400;
@@ -634,8 +683,7 @@
 	.blue .team-number span {
 		color: #a2a7d0;
 	}
-	.team-number.highlighted strong,
-	.team-number:hover strong {
+	.team-number.highlighted strong {
 		text-decoration: underline;
 		text-underline-offset: 4px;
 	}
@@ -658,34 +706,63 @@
 		margin: 24px 0;
 	}
 	.roster {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 	.team-card {
-		border: 0;
-		border-radius: 10px;
-		background: var(--secondary-container);
-		padding: 16px;
+		border: 1px solid var(--light-gray);
+		border-radius: 7px;
+		background:
+			linear-gradient(90deg, rgba(var(--team-color), 0.25), rgba(var(--team-color), 0)),
+			var(--secondary-container);
+		padding: 7px;
 		color: var(--on-background);
 		text-align: left;
 		cursor: pointer;
 		display: flex;
-		flex-direction: column;
-		gap: 5px;
+		align-items: center;
+		gap: 10px;
 	}
-	.team-card strong {
-		color: var(--victory-purple);
-		font-size: 22px;
+	.team-logo {
+		width: 48px;
+		height: 48px;
+		flex-shrink: 0;
+		background: rgba(var(--team-color), 0.5);
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.team-logo img {
+		width: 32px;
+		height: 32px;
+		object-fit: contain;
+	}
+	.team-logo span {
+		font-size: 12px;
+	}
+	.team-identity {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		min-width: 0;
+	}
+	.team-identity strong {
+		font-size: 16px;
 		font-weight: 500;
 	}
-	.team-card span {
-		font-size: 13px;
+	.team-identity span {
+		font-size: 12px;
 		color: var(--body);
+		overflow-wrap: anywhere;
 	}
-	.team-card:hover {
-		background: var(--light-gray);
+	.team-awards {
+		display: flex;
+		gap: 8px;
+		margin-left: auto;
 	}
+
 	button:focus-visible {
 		outline: 2px solid var(--victory-purple);
 		outline-offset: 4px;
@@ -715,19 +792,21 @@
 		}
 		.match-header {
 			padding: 10px;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		}
+		.scores {
+			grid-column: 1 / -1;
+			grid-row: 2;
 		}
 		.match-title {
-			max-width: 55%;
+			max-width: 100%;
 		}
 		.timing {
-			max-width: 45%;
+			max-width: 100%;
 			text-align: right;
 		}
 		.alliance {
 			padding: 10px;
-		}
-		.roster {
-			grid-template-columns: repeat(2, 1fr);
 		}
 		.break-row {
 			align-items: flex-start;
