@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
 	import type { PageData } from './$types';
 
@@ -58,10 +59,9 @@
 
 		return new Intl.DateTimeFormat('en-US', {
 			timeZone: timezone,
-			hour: '2-digit',
+			hour: 'numeric',
 			minute: '2-digit',
-			second: '2-digit',
-			hourCycle: 'h23'
+			hour12: true
 		}).format(new Date(value));
 	}
 
@@ -78,11 +78,45 @@
 
 	function matchLabel(match: Match) {
 		if (match.competitionLevel === 'QUALIFICATION') return `Qualification ${match.matchNumber}`;
-		if (match.competitionLevel === 'FINAL') return `Final ${match.matchNumber}`;
-		if (match.competitionLevel === 'SEMIFINAL')
-			return `Playoff ${match.setNumber} · ${match.matchNumber}`;
 
-		return `${match.competitionLevel === 'QUARTERFINAL' ? 'Quarterfinal' : 'Eighthfinal'} ${match.setNumber} · ${match.matchNumber}`;
+		if (match.competitionLevel === 'FINAL') {
+			return match.matchNumber === 3 ? 'Finals Tiebreaker' : `Finals Match ${match.matchNumber}`;
+		}
+
+		// This event uses the eight-alliance double-elimination bracket.
+		if (match.competitionLevel === 'SEMIFINAL') {
+			const round =
+				match.setNumber <= 4
+					? 1
+					: match.setNumber <= 8
+						? 2
+						: match.setNumber <= 10
+							? 3
+							: match.setNumber <= 12
+								? 4
+								: 5;
+
+			return `Elimination Match ${match.setNumber} · Round ${round}`;
+		}
+
+		const stage = match.competitionLevel === 'QUARTERFINAL' ? 'Quarterfinal' : 'Eighthfinal';
+
+		return `${stage} ${match.setNumber} · Match ${match.matchNumber}`;
+	}
+
+	async function jumpToEliminations() {
+		view = 'schedule';
+		day = 'all';
+		phase = 'all';
+		completion = 'all';
+		teamFilter = '';
+
+		await tick();
+
+		const firstElimination = document.getElementById('eliminations');
+
+		firstElimination?.scrollIntoView({ block: 'start' });
+		firstElimination?.focus({ preventScroll: true });
 	}
 
 	const gapLabels = {
@@ -105,7 +139,11 @@
 <main>
 	<header class="event-header">
 		<div>
-			<p class="eyebrow">2026 FIRST Robotics Competition · {tournament.key}</p>
+			<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
+				<span>2026</span><span aria-hidden="true">&gt;</span><span>FIRST California</span><span
+					aria-hidden="true">&gt;</span
+				><span aria-current="page">Northern State Championship</span>
+			</nav>
 			<h1>{tournament.name}</h1>
 			<p class="event-meta">
 				{tournament.location ?? 'Location unavailable'}
@@ -156,6 +194,9 @@
 					view = 'teams';
 					teamFilter = '';
 				}}>Teams</Button
+			>
+			<Button variant="text-only-secondary" on:click={jumpToEliminations}
+				>Jump to eliminations</Button
 			>
 		</DensityProvider>
 	</div>
@@ -219,30 +260,34 @@
 					{#if index === 0 || dateKey(matchTime(filteredMatches[index - 1])) !== dateKey(matchTime(match))}
 						<h3 class="day-heading">{dayLabel(dateKey(matchTime(match)))}</h3>
 					{/if}
-					<article class="match-card" aria-label={matchLabel(match)}>
+					<article
+						class="match-card"
+						id={match.competitionLevel !== 'QUALIFICATION' &&
+						!filteredMatches
+							.slice(0, index)
+							.some((previous) => previous.competitionLevel !== 'QUALIFICATION')
+							? 'eliminations'
+							: undefined}
+						tabindex="-1"
+						aria-label={matchLabel(match)}
+					>
 						<div class="match-header">
 							<div class="match-title">
 								<h4>{matchLabel(match)}</h4>
 								<span class="badge">{match.status.replaceAll('_', ' ')}</span>
 							</div>
 							<div class="timing">
-								<strong>{time(matchTime(match))}</strong><span
-									>{match.actualTime
-										? 'Actual'
-										: match.predictedTime
-											? 'Predicted'
-											: 'Scheduled'}{#if match.actualTime && match.scheduledTime}
-										· planned {time(match.scheduledTime)}{/if}</span
-								>
+								<span>Scheduled time <strong>{time(match.scheduledTime)}</strong></span>
+								{#if match.actualTime}<span
+										>Actual time <strong>{time(match.actualTime)}</strong></span
+									>{/if}
 							</div>
 						</div>
 						<div class="alliances">
 							{#each ['BLUE', 'RED'] as color}
 								<div class="alliance" class:red={color === 'RED'} class:blue={color === 'BLUE'}>
 									<div class="alliance-label">
-										{color === 'RED' ? 'Red' : 'Blue'}<span
-											class="score"
-											class:winner={match.winningAlliance === color}
+										<span class="score" class:winner={match.winningAlliance === color}
 											>{match.alliances.find((alliance) => alliance.color === color)?.score ??
 												'—'}</span
 										>
@@ -254,11 +299,12 @@
 												class:highlighted={teamFilter.trim() === String(slot.teamNumber)}
 												on:click={() => (teamFilter = String(slot.teamNumber))}
 												aria-label={`Show matches for team ${slot.teamNumber}`}
-												><strong>{slot.teamNumber}</strong><span
-													>Station {slot.station ?? '—'}{#if slot.surrogate}
-														· S{/if}{#if slot.disqualified}
-														· DQ{/if}</span
-												></button
+												><strong>{slot.teamNumber}</strong
+												>{#if slot.surrogate || slot.disqualified}<span
+														>{#if slot.surrogate}S{/if}{#if slot.surrogate && slot.disqualified}
+															·
+														{/if}{#if slot.disqualified}DQ{/if}</span
+													>{/if}</button
 											>
 										{/each}
 										{#if !match.teamSlots.some((slot) => slot.alliance === color)}<span
@@ -374,12 +420,18 @@
 		margin: 0;
 		line-height: 1.6;
 	}
+	.breadcrumbs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
 	.eyebrow {
 		color: var(--victory-purple);
 		font-size: 14px;
 	}
 	.section-nav {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 8px;
 		border-bottom: 1px solid var(--light-gray);
 		padding-bottom: 16px;
@@ -435,6 +487,7 @@
 		font-weight: 500;
 	}
 	.match-card {
+		scroll-margin-top: 90px;
 		overflow: hidden;
 		border-radius: 7px;
 		background: var(--secondary-container);
@@ -496,7 +549,7 @@
 	.alliance-label {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: flex-end;
 		margin-bottom: 8px;
 		font-size: 12px;
 	}
