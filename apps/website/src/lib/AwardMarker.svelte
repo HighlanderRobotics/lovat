@@ -1,31 +1,31 @@
 <script lang="ts">
-	import { Icon } from 'magnolia-ui-svelte';
-
 	export let award: 'winner' | 'impact';
 	export let label = award === 'winner' ? 'Event winner' : 'FIRST Impact Award winner';
 </script>
 
-<span class="award-marker" role="img" aria-label={label} title={label}>
-	<span aria-hidden="true">
-		<Icon
-			icon={award === 'winner' ? 'crown' : 'bookmark'}
-			filled
-			color={award === 'winner' ? '#ffd54f' : '#63a4ff'}
-		/>
-	</span>
-</span>
+<span
+	class="award-marker"
+	class:winner={award === 'winner'}
+	role="img"
+	aria-label={label}
+	title={label}
+></span>
 
 <style>
-	/* Current Material Symbols subset: the Magnolia font predates the crown glyph. */
-	@font-face {
-		font-family: 'Material Award Symbols';
-		src: url('/assets/icons/award-symbols.woff2') format('woff2');
-		font-style: normal;
-		font-weight: 100 700;
-		font-display: block;
+	/* Google's Material Symbols Rounded SVGs avoid icon-font fallback text. */
+	.award-marker {
+		display: inline-block;
+		width: 24px;
+		height: 24px;
+		flex-shrink: 0;
+		background-color: #63a4ff;
+		mask: url('/assets/icons/bookmark.svg') center / contain no-repeat;
+		-webkit-mask: url('/assets/icons/bookmark.svg') center / contain no-repeat;
 	}
 
-	.award-marker :global(.material-symbols-rounded) {
-		font-family: 'Material Award Symbols';
+	.award-marker.winner {
+		background-color: #ffd54f;
+		mask-image: url('/assets/icons/crown.svg');
+		-webkit-mask-image: url('/assets/icons/crown.svg');
 	}
 </style>

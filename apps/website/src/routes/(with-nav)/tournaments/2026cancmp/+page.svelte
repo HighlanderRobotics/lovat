@@ -130,7 +130,7 @@
 	const gapLabels = {
 		LUNCH: 'Break for lunch',
 		OVERNIGHT: 'End of day / overnight',
-		PLAYOFF_TRANSITION: 'Qualification → playoffs',
+		PLAYOFF_TRANSITION: 'Eliminations Begin',
 		DELAY: 'Delay',
 		BREAK: 'Break'
 	};
@@ -206,6 +206,9 @@
 					view = 'teams';
 					teamFilter = '';
 				}}>Teams</Button
+			>
+			<Button variant="text-only-secondary" element="a" href="/tournaments/2026cancmp/alliances"
+				>Alliances & bracket</Button
 			>
 		</DensityProvider>
 	</div>

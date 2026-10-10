@@ -242,3 +242,16 @@ export const teamBranding: Record<number, { logo: string; color: string }> = {
 		color: '252, 84, 12'
 	}
 };
+
+// Alliance selection order: captain, first pick, second pick.
+// https://frc-events.firstinspires.org/2026/CANCMP/playoffs
+export const eventAlliances = [
+	[254, 1323, 6238],
+	[9470, 1678, 6665],
+	[6036, 5940, 3501],
+	[3045, 581, 846],
+	[972, 971, 3256],
+	[8, 5026, 841],
+	[2813, 4698, 6962],
+	[2073, 604, 1868]
+];

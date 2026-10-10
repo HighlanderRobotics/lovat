@@ -1,9 +1,9 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { tournamentSchema } from '$lib/server/tournament';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
+export const load: LayoutServerLoad = async ({ fetch, setHeaders }) => {
 	if (!env.LOVAT_API_BASE) error(503, 'Tournament data is not configured');
 
 	let response: Response;
