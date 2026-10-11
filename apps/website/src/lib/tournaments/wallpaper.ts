@@ -12,6 +12,8 @@ type Wallpaper = {
 	licenseUrl: string;
 	position?: string;
 	fit?: string;
+	background?: string;
+	backgroundImage?: string;
 };
 
 const wallpapers: Record<string, Wallpaper> = townPhotos;
@@ -57,7 +59,11 @@ export function districtWallpaper(district: string) {
 		: { ...matchPhoto, label: 'FRC match', position: 'center', fit: 'cover' };
 }
 
-export function eventWallpaper(district: string | undefined, city: string | null, key?: string) {
+export function eventWallpaper(
+	district: string | undefined,
+	city: string | null,
+	key?: string
+): Wallpaper & { label: string; position: string } {
 	const override = key ? overrides[key] : undefined;
 
 	if (override) return { ...override, label: key!, position: override.position ?? 'center' };

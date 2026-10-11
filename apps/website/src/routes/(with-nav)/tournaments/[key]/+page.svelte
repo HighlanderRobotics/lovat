@@ -142,6 +142,10 @@
 	<header
 		class="event-header"
 		class:has-wallpaper={!!wallpaper}
+		style:--portrait-background={wallpaper.background ?? '#181818'}
+		style:--portrait-extension={wallpaper.backgroundImage
+			? `url("${wallpaper.backgroundImage}")`
+			: 'none'}
 		class:portrait={wallpaper.fit === 'contain'}
 	>
 		{#if wallpaper}<img
@@ -696,15 +700,19 @@
 	}
 
 	.event-header.portrait {
-		background: #181818;
+		background-image: var(--portrait-extension), var(--portrait-background);
+		background-size: cover;
+		background-position: center;
 	}
 
 	.event-header.portrait .town-wallpaper {
 		left: auto;
-		width: 45%;
+		width: auto;
+		max-width: 45%;
+		mask-image: linear-gradient(90deg, transparent, #000 30%);
 	}
 
 	.event-header.portrait::before {
-		background: linear-gradient(90deg, #181818 35%, rgba(24, 24, 24, 0.25));
+		background: linear-gradient(90deg, #10101099, #10101033 65%, transparent);
 	}
 </style>

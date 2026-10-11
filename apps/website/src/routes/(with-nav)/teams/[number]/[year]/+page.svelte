@@ -178,7 +178,14 @@
 						if (e.currentTarget.open) void loadEvent(event.key);
 					}}
 				>
-					<summary class="event" class:portrait={photo.fit === 'contain'}>
+					<summary
+						class="event"
+						style:--portrait-background={photo.background ?? '#181818'}
+						style:--portrait-extension={photo.backgroundImage
+							? `url("${photo.backgroundImage}")`
+							: 'none'}
+						class:portrait={photo.fit === 'contain'}
+					>
 						<img
 							class="wallpaper"
 							src={photo.image}
@@ -583,7 +590,9 @@
 	}
 
 	.event.portrait {
-		background: #181818;
+		background-image: var(--portrait-extension), var(--portrait-background);
+		background-size: cover;
+		background-position: center;
 		min-height: 144px;
 		padding-right: 190px;
 		flex-direction: column;
@@ -595,10 +604,12 @@
 	.event.portrait img {
 		left: auto;
 		right: 44px;
-		width: 140px;
+		width: auto;
+		max-width: 140px;
+		mask-image: linear-gradient(90deg, transparent, #000 24%);
 	}
 
 	.event.portrait::before {
-		background: linear-gradient(90deg, #181818 50%, transparent 100%);
+		background: linear-gradient(90deg, #10101099, #10101033 70%, transparent);
 	}
 </style>
