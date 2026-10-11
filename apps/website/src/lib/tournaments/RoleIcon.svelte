@@ -28,7 +28,6 @@
 		width: 18px;
 		height: 18px;
 		display: block;
-		margin-top: 4px;
 		background: currentColor;
 		mask: var(--role-icon) center / contain no-repeat;
 		-webkit-mask: var(--role-icon) center / contain no-repeat;

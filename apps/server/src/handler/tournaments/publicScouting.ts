@@ -34,9 +34,9 @@ async function publicContext(year: number, teams: number[]): Promise<User> {
   };
 }
 
-export function mostCommonRole(
+export function mostCommonRoles(
   reports: { robotRoles: RobotRole[] }[],
-): RobotRole | null {
+): RobotRole[] {
   const votes = new Map<RobotRole, number>();
 
   for (const report of reports) {
@@ -44,12 +44,12 @@ export function mostCommonRole(
       votes.set(role, (votes.get(role) ?? 0) + 1);
   }
 
-  const sorted = [...votes].sort((a, b) => b[1] - a[1]);
+  const highest = Math.max(0, ...votes.values());
 
-  // A tie has no single most common reported role.
-  return sorted.length && sorted[0]![1] !== sorted[1]?.[1]
-    ? sorted[0]![0]
-    : null;
+  return [...votes]
+    .filter(([, count]) => count === highest)
+    .map(([role]) => role)
+    .sort();
 }
 
 export async function getPublicTeamMetrics(
@@ -119,7 +119,7 @@ export async function getPublicMatchAnalysis(
   }
 
   try {
-    const analysis = await publicCache(`scouting:match:${key}`, async () => {
+    const analysis = await publicCache(`scouting:match:v2:${key}`, async () => {
       const match = await prisma.match.findUnique({
         where: { key },
         select: {
@@ -137,9 +137,10 @@ export async function getPublicMatchAnalysis(
       if (!match) return null;
 
       const roles = match.teamSlots.flatMap((slot) => {
-        const role = mostCommonRole(slot.scoutReports);
-
-        return role ? [{ teamNumber: slot.teamNumber, role }] : [];
+        return mostCommonRoles(slot.scoutReports).map((role) => ({
+          teamNumber: slot.teamNumber,
+          role,
+        }));
       });
       const blue = match.teamSlots
         .filter((slot) => slot.alliance === "BLUE")
@@ -188,5 +189,112 @@ export async function getPublicMatchAnalysis(
     res.json(analysis);
   } catch {
     res.status(503).json({ error: "Prediction unavailable" });
+  }
+}
+
+// Match detail aggregates are requested separately so schedule cards stay light.
+export async function getPublicMatchMetrics(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const key = req.params.key;
+
+  if (
+    typeof key !== "string" ||
+    !/^\d{4}[a-z0-9]+_(?:qm\d+|(?:ef|qf|sf|f)\d+m\d+)$/.test(key)
+  ) {
+    res.status(400).json({ error: "Invalid match" });
+    return;
+  }
+
+  try {
+    const result = await publicCache(
+      `scouting:match-metrics:v1:${key}`,
+      async () => {
+        const match = await prisma.match.findUnique({
+          where: { key },
+          select: {
+            tournament: { select: { key: true, seasonYear: true } },
+            teamSlots: {
+              select: {
+                key: true,
+                teamNumber: true,
+                alliance: true,
+                _count: { select: { scoutReports: true } },
+              },
+            },
+          },
+        });
+
+        if (!match) return null;
+        if (match.tournament.seasonYear !== 2026) return { teams: [] };
+
+        const slots = match.teamSlots.filter(
+          (slot) => slot._count.scoutReports > 0,
+        );
+        if (!slots.length) return { teams: [] };
+
+        const user: User = {
+          id: "public-match-scouting:2026",
+          email: "public@example.invalid",
+          emailVerified: false,
+          username: null,
+          teamNumber: null,
+          role: "ANALYST",
+          teamSourceRule: { mode: "EXCLUDE", items: [] },
+          tournamentSourceRule: {
+            mode: "INCLUDE",
+            items: [match.tournament.key],
+          },
+        };
+        const metrics = [
+          Metric.totalPoints,
+          Metric.autoPoints,
+          Metric.teleopPoints,
+          Metric.totalFuelOutputted,
+          Metric.totalBallsFed,
+          Metric.totalDefenseTime,
+        ];
+        const values = await Promise.all(
+          metrics.map((metric) =>
+            arrayAndAverageTeams(user, {
+              teams: slots.map((slot) => slot.teamNumber),
+              metric,
+            }),
+          ),
+        );
+
+        const teams = slots.map((slot) => {
+          const atMatch = (index: number): number | null =>
+            values[index]?.[slot.teamNumber]?.timeLine?.find(
+              (entry) => entry.match === slot.key,
+            )?.dataPoint ?? null;
+
+          return {
+            teamNumber: slot.teamNumber,
+            alliance: slot.alliance,
+            reports: slot._count.scoutReports,
+            points: atMatch(0),
+            auto: atMatch(1),
+            teleop: atMatch(2),
+            fuelOutput: atMatch(3),
+            fuelFed: atMatch(4),
+            defenseSeconds: atMatch(5),
+          };
+        });
+
+        return { teams };
+      },
+    );
+
+    if (!result) {
+      res.status(404).json({ error: "Match not found" });
+      return;
+    }
+
+    res.set("Cache-Control", "public, max-age=60");
+    res.json(result);
+  } catch {
+    res.status(503).json({ error: "Scouting metrics unavailable" });
   }
 }

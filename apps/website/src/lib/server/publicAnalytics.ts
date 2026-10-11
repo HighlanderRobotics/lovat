@@ -17,6 +17,22 @@ export const publicMatchSchema = z.object({
 	)
 });
 
+export const publicMatchMetricsSchema = z.object({
+	teams: z.array(
+		z.object({
+			teamNumber: z.number().int().positive(),
+			alliance: z.enum(['BLUE', 'RED']).nullable(),
+			reports: z.number().int().positive(),
+			points: z.number().finite().nullable(),
+			auto: z.number().finite().nullable(),
+			teleop: z.number().finite().nullable(),
+			fuelOutput: z.number().finite().nullable(),
+			fuelFed: z.number().finite().nullable(),
+			defenseSeconds: z.number().finite().nullable()
+		})
+	)
+});
+
 export const metricsSchema = z.object({
 	metrics: z
 		.object({

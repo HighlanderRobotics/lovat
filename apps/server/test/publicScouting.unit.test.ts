@@ -28,7 +28,8 @@ vi.mock("../src/handler/analysis/coreAnalysis/arrayAndAverageTeams.js", () => ({
 import {
   getPublicMatchAnalysis,
   getPublicTeamMetrics,
-  mostCommonRole,
+  getPublicMatchMetrics,
+  mostCommonRoles,
 } from "../src/handler/tournaments/publicScouting.js";
 import { chooseRobotPhoto } from "../src/handler/tournaments/getRobotPhoto.js";
 
@@ -127,20 +128,127 @@ describe("public scouting projections", () => {
     ).toBe(400);
     expect(mocks.match).not.toHaveBeenCalled();
   });
-  it("deduplicates roles within a report and hides ties", () => {
+  it("deduplicates votes and returns every tied top role", () => {
     expect(
-      mostCommonRole([
+      mostCommonRoles([
         { robotRoles: ["SCORING", "SCORING"] },
         { robotRoles: ["DEFENDING"] },
       ]),
-    ).toBeNull();
+    ).toEqual(["DEFENDING", "SCORING"]);
     expect(
-      mostCommonRole([
+      mostCommonRoles([
         { robotRoles: ["SCORING"] },
         { robotRoles: ["SCORING", "FEEDING"] },
       ]),
-    ).toBe("SCORING");
-    expect(mostCommonRole([])).toBeNull();
+    ).toEqual(["SCORING"]);
+    expect(mostCommonRoles([])).toEqual([]);
+  });
+});
+
+describe("public match metrics", () => {
+  it("returns only the current slot's aggregate, never season averages or raw reports", async () => {
+    mocks.match.mockResolvedValue({
+      tournament: { key: "2026casnf", seasonYear: 2026 },
+      teamSlots: [
+        {
+          key: "slot-8033",
+          teamNumber: 8033,
+          alliance: "BLUE",
+          _count: { scoutReports: 2 },
+        },
+        {
+          key: "slot-1",
+          teamNumber: 1,
+          alliance: "RED",
+          _count: { scoutReports: 0 },
+        },
+      ],
+    });
+    mocks.metrics.mockResolvedValue({
+      8033: {
+        average: 999,
+        timeLine: [
+          { match: "other-slot", dataPoint: 999 },
+          { match: "slot-8033", dataPoint: 42 },
+        ],
+      },
+    });
+    const response = await invoke(getPublicMatchMetrics, {
+      params: { key: "2026casnf_qm4" },
+    });
+    expect(response.body).toEqual({
+      teams: [
+        {
+          teamNumber: 8033,
+          alliance: "BLUE",
+          reports: 2,
+          points: 42,
+          auto: 42,
+          teleop: 42,
+          fuelOutput: 42,
+          fuelFed: 42,
+          defenseSeconds: 42,
+        },
+      ],
+    });
+    expect(mocks.metrics.mock.calls[0]![0]).toMatchObject({
+      teamSourceRule: { mode: "EXCLUDE", items: [] },
+      tournamentSourceRule: { mode: "INCLUDE", items: ["2026casnf"] },
+    });
+    expect(mocks.metrics.mock.calls[0]![1].teams).toEqual([8033]);
+    expect(mocks.match.mock.calls[0]![0].select.teamSlots.select).toEqual({
+      key: true,
+      teamNumber: true,
+      alliance: true,
+      _count: { select: { scoutReports: true } },
+    });
+  });
+  it("hides unsupported seasons and unscouted matches", async () => {
+    mocks.match.mockResolvedValue({
+      tournament: { key: "2025casnf", seasonYear: 2025 },
+      teamSlots: [],
+    });
+    expect(
+      (
+        await invoke(getPublicMatchMetrics, {
+          params: { key: "2025casnf_qm4" },
+        })
+      ).body,
+    ).toEqual({ teams: [] });
+    mocks.match.mockResolvedValue({
+      tournament: { key: "2026casnf", seasonYear: 2026 },
+      teamSlots: [],
+    });
+    expect(
+      (
+        await invoke(getPublicMatchMetrics, {
+          params: { key: "2026casnf_qm4" },
+        })
+      ).body,
+    ).toEqual({ teams: [] });
+    expect(mocks.metrics).not.toHaveBeenCalled();
+  });
+  it("rejects malformed keys and handles missing matches and failures", async () => {
+    expect(
+      (await invoke(getPublicMatchMetrics, { params: { key: "bad" } }))
+        .statusCode,
+    ).toBe(400);
+    mocks.match.mockResolvedValue(null);
+    expect(
+      (
+        await invoke(getPublicMatchMetrics, {
+          params: { key: "2026casnf_qm4" },
+        })
+      ).statusCode,
+    ).toBe(404);
+    mocks.match.mockRejectedValue(new Error("secret"));
+    expect(
+      (
+        await invoke(getPublicMatchMetrics, {
+          params: { key: "2026casnf_qm4" },
+        })
+      ).body,
+    ).toEqual({ error: "Scouting metrics unavailable" });
   });
 });
 

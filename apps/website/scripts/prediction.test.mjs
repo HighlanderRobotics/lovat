@@ -164,3 +164,32 @@ test('public predictions reject malformed matches and provider failures', async 
 	assert.equal(response.status, 503);
 	assert.deepEqual(await response.json(), { error: 'Prediction unavailable' });
 });
+
+const { GET: publicMetrics } = await vite.ssrLoadModule(
+	'/src/routes/api/public/matches/[key]/metrics/+server.ts'
+);
+test('public match metrics return approved aggregates without reports or source identities', async () => {
+	const team = {
+		teamNumber: 8033,
+		alliance: 'BLUE',
+		reports: 2,
+		points: 42,
+		auto: 10,
+		teleop: 30,
+		fuelOutput: 50,
+		fuelFed: 20,
+		defenseSeconds: 12
+	};
+	const response = await publicMetrics({
+		params: { key: '2026casnf_qm4' },
+		fetch: async (_url, options) => {
+			assert.equal(options.credentials, 'omit');
+			return Response.json({
+				teams: [{ ...team, scoutReports: ['private'], notes: 'private' }],
+				sourceTeams: ['private']
+			});
+		}
+	});
+	assert.deepEqual(await response.json(), { teams: [team] });
+	assert.equal(response.headers.get('cache-control'), 'public, max-age=60');
+});

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import ScoreBreakdown from '$lib/tournaments/ScoreBreakdown.svelte';
+	import MatchScouting from '$lib/tournaments/MatchScouting.svelte';
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { matchLabel } from '$lib/tournaments/matchLabel';
 	import type { PageData } from './$types';
@@ -66,6 +67,10 @@
 		{teamNames}
 		linkToMatch={false}
 	/>
+
+	{#key data.match.key}
+		<MatchScouting matchKey={data.match.key} year={tournament.seasonYear} />
+	{/key}
 
 	<ScoreBreakdown alliances={data.breakdowns} />
 

@@ -14,7 +14,17 @@
 	export let onTeamSelect: ((number: number) => void) | undefined = undefined;
 	export let id: string | undefined = undefined;
 	export let linkToMatch = true;
-	let roles = new Map<number, string>();
+	let roles = new Map<number, string[]>();
+
+	function updateRoles(items: { teamNumber: number; role: string }[]) {
+		const next = new Map<number, string[]>();
+
+		for (const { teamNumber, role } of items) {
+			next.set(teamNumber, [...(next.get(teamNumber) ?? []), role]);
+		}
+
+		roles = next;
+	}
 	$: blueTeams = match.teamSlots
 		.filter((slot) => slot.alliance === 'BLUE')
 		.map((slot) => slot.teamNumber);
@@ -74,8 +84,7 @@
 
 	<PredictionBar
 		matchKey={match.key}
-		on:roles={(event) =>
-			(roles = new Map(event.detail.map(({ teamNumber, role }) => [teamNumber, role])))}
+		on:roles={(event) => updateRoles(event.detail)}
 		blue={blueTeams}
 		red={redTeams}
 	/>
@@ -93,18 +102,20 @@
 							class:disqualified={slot.disqualified === true}
 							class:highlighted={highlightedTeam === slot.teamNumber}
 							on:click={() => onTeamSelect?.(slot.teamNumber)}
-							aria-label={`${onTeamSelect ? 'Show matches for team' : 'View team'} ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}${roles.has(slot.teamNumber) ? `, Lovat scouting role: ${roles.get(slot.teamNumber)?.toLowerCase()}` : ''}`}
-							><strong>{slot.teamNumber}</strong>
+							aria-label={`${onTeamSelect ? 'Show matches for team' : 'View team'} ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}${roles.has(slot.teamNumber) ? `, Lovat scouting role: ${roles.get(slot.teamNumber)?.join(', ').toLowerCase()}` : ''}`}
+							><span class="team-heading">
+								<strong>{slot.teamNumber}</strong>
+								{#each roles.get(slot.teamNumber) ?? [] as role}
+									<RoleIcon {role} />
+								{/each}
+							</span>
 							{#if teamNames.has(slot.teamNumber)}<span class="team-name"
 									>{teamNames.get(slot.teamNumber)}</span
 								>{/if}{#if slot.surrogate || slot.disqualified}<span
 									>{#if slot.surrogate}S{/if}{#if slot.surrogate && slot.disqualified}
 										·
 									{/if}{#if slot.disqualified}DQ{/if}</span
-								>{/if}
-							{#if roles.has(slot.teamNumber)}<span class="robot-role">
-									<RoleIcon role={roles.get(slot.teamNumber)!} />
-								</span>{/if}</svelte:element
+								>{/if}</svelte:element
 						>
 					{/each}
 					{#if !match.teamSlots.some((slot) => slot.alliance === color)}<span>Teams TBD</span>{/if}
@@ -242,6 +253,12 @@
 	.team-number strong {
 		font-size: 20px;
 		font-weight: 400;
+	}
+	.team-heading {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 4px;
 	}
 	.team-name {
 		margin-top: 3px;

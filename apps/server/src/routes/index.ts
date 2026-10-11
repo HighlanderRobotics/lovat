@@ -17,6 +17,7 @@ import { getSearch } from "../handler/tournaments/getSearch.js";
 import { getRobotPhoto } from "../handler/tournaments/getRobotPhoto.js";
 import {
   getPublicMatchAnalysis,
+  getPublicMatchMetrics,
   getPublicTeamMetrics,
 } from "../handler/tournaments/publicScouting.js";
 
@@ -34,6 +35,7 @@ router.get("/teams/:number/avatar/:year", getTeamAvatar);
 router.get("/teams/:number/seasons/:year", getTeamSeason);
 router.get("/search", getSearch);
 router.get("/public/matches/:key", getPublicMatchAnalysis);
+router.get("/public/matches/:key/metrics", getPublicMatchMetrics);
 router.get("/public/teams/:number/:year/metrics", getPublicTeamMetrics);
 router.get("/public/teams/:number/:year/photo", getRobotPhoto);
 
