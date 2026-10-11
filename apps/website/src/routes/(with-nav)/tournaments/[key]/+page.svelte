@@ -180,7 +180,7 @@
 		<div>
 			<div class="header-top">
 				<nav class="eyebrow breadcrumbs" aria-label="Event hierarchy">
-					<span>{year}</span>
+					<a href={`/${year}`}>{year}</a>
 					{#if tournament.district}
 						<span aria-hidden="true">&gt;</span>
 						<a href={`/${tournament.district.key.slice(4)}/${year}`}>{tournament.district.name}</a>
@@ -368,9 +368,10 @@
 										{#each match.teamSlots.filter((slot) => slot.alliance === color) as slot}
 											<button
 												class="team-number"
+												class:disqualified={slot.disqualified === true}
 												class:highlighted={teamFilter.trim() === String(slot.teamNumber)}
 												on:click={() => (teamFilter = String(slot.teamNumber))}
-												aria-label={`Show matches for team ${slot.teamNumber}`}
+												aria-label={`Show matches for team ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}`}
 												><strong>{slot.teamNumber}</strong>
 												{#if teamNames.has(slot.teamNumber)}<span class="team-name"
 														>{teamNames.get(slot.teamNumber)}</span
@@ -776,9 +777,16 @@
 	.blue .team-number span {
 		color: #a2a7d0;
 	}
+	.team-number.disqualified strong,
+	.team-number.disqualified .team-name {
+		text-decoration: line-through;
+	}
 	.team-number.highlighted strong {
 		text-decoration: underline;
 		text-underline-offset: 4px;
+	}
+	.team-number.disqualified.highlighted strong {
+		text-decoration: underline line-through;
 	}
 	.break-row {
 		display: flex;

@@ -71,9 +71,9 @@
 <main>
 	<header>
 		<nav class="breadcrumbs" aria-label="District hierarchy">
-			<span>{district.seasonYear}</span><span aria-hidden="true">&gt;</span><span
-				aria-current="page">{district.name}</span
-			>
+			<a href={`/${district.seasonYear}`}>{district.seasonYear}</a><span aria-hidden="true"
+				>&gt;</span
+			><span aria-current="page">{district.name}</span>
 		</nav>
 		<h1>{district.name}</h1>
 	</header>

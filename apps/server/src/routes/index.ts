@@ -7,6 +7,7 @@ import { onboardingRedirect } from "../handler/slack/onboardingRedirect.js";
 import { generateOpenApiDocument } from "../lib/openapi.js";
 import swaggerUi from "swagger-ui-express";
 import { getTeamAvatar } from "../handler/tournaments/getTeamAvatar.js";
+import { getSeason } from "../handler/tournaments/getSeason.js";
 import { getDistrict } from "../handler/tournaments/getDistrict.js";
 import { getTournament } from "../handler/tournaments/getTournament.js";
 
@@ -18,6 +19,7 @@ router.use("/analysis", analysisRouter);
 
 router.get("/tournaments/:key", getTournament);
 router.get("/districts/:key", getDistrict);
+router.get("/seasons/:year", getSeason);
 router.get("/teams/:number/avatar/:year", getTeamAvatar);
 
 router.get("/slack-invite", onboardingRedirect);

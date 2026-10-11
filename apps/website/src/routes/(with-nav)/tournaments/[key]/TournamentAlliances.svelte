@@ -113,6 +113,9 @@
 	</div>
 	<div class="alliance-list">
 		{#each eventAlliances as alliance, index}
+			{@const lineup = [
+				...new Set([...alliance.teams, ...(alliance.backup ? [alliance.backup.in] : [])])
+			]}
 			<button
 				class="alliance-card"
 				class:selected={selectedAlliance === index + 1}
@@ -120,8 +123,9 @@
 				on:click={() => (selectedAlliance = selectedAlliance === index + 1 ? null : index + 1)}
 			>
 				<h3>Alliance {index + 1}</h3>
-				<div class="lineup">
-					{#each [...alliance.teams, ...(alliance.backup ? [alliance.backup.in] : [])] as number, pick}
+
+				<div class="lineup" style:--team-count={lineup.length}>
+					{#each lineup as number, pick}
 						<div class="team">
 							{#if teamBranding[number]}<img
 									src={teamBranding[number].logo}
@@ -271,7 +275,7 @@
 	}
 	.lineup {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(var(--team-count), minmax(0, 1fr));
 		gap: 12px;
 	}
 	.team {
@@ -407,6 +411,9 @@
 	@media (max-width: 720px) {
 		.alliance-list {
 			grid-template-columns: 1fr;
+		}
+		.lineup {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 		.team {
 			flex-direction: column;
