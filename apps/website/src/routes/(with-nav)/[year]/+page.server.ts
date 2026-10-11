@@ -12,6 +12,7 @@ const seasonSchema = z.object({
 	tournaments: z.array(
 		z.object({
 			key: z.string(),
+			parentTournamentKey: z.string().nullable(),
 			name: z.string(),
 			location: z.string().nullable(),
 			startDate: z.iso.datetime().nullable(),

@@ -32,6 +32,7 @@ it("returns public season districts and events without team or scouting data", a
   expect(query.select.tournaments.where).toEqual({ districtSeasonKey: null });
   expect(query.select.tournaments.select).toEqual({
     key: true,
+    parentTournamentKey: true,
     name: true,
     location: true,
     startDate: true,

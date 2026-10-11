@@ -8,6 +8,7 @@ export const districtSchema = z.object({
 	tournaments: z.array(
 		z.object({
 			key: z.string(),
+			parentTournamentKey: z.string().nullable(),
 			week: z.number().int().nullable(),
 			eventType: z.number().int().nullable(),
 			name: z.string(),

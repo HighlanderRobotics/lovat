@@ -28,6 +28,7 @@ export async function getSeason(req: Request, res: Response): Promise<void> {
           orderBy: [{ startDate: "asc" }, { key: "asc" }],
           select: {
             key: true,
+            parentTournamentKey: true,
             name: true,
             location: true,
             startDate: true,

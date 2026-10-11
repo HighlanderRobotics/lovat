@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
-	import { divisionColor } from '$lib/tournaments/division';
+	import { nestedEvents } from '$lib/tournaments/eventHierarchy';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -8,10 +8,14 @@
 	let search = '';
 
 	$: season = data.season;
-	$: filteredEvents = season.tournaments.filter((event) =>
+	$: matchingEvents = season.tournaments.filter((event) =>
 		`${event.name} ${event.location ?? ''} ${event.key}`
 			.toLowerCase()
 			.includes(search.trim().toLowerCase())
+	);
+	$: matchingParents = new Set(matchingEvents.map((event) => event.parentTournamentKey));
+	$: filteredEvents = season.tournaments.filter(
+		(event) => matchingEvents.includes(event) || matchingParents.has(event.key)
 	);
 	$: eventGroups = groupEvents(filteredEvents);
 	$: photoCredits = [
@@ -106,18 +110,12 @@
 			{#each eventGroups as group (group.label)}
 				<div class="event-group">
 					<h3>{group.label}</h3>
-					{#each group.events as event (event.key)}
+					{#each nestedEvents(group.events) as { event, nested, name } (event.key)}
 						{@const photo = eventWallpaper(undefined, event.location)}
-						<a
-							class="event"
-							class:division={event.eventType === 3}
-							style:--division-color={divisionColor(event.key)}
-							href={`/tournaments/${event.key}`}
-						>
+						<a class="event" class:nested href={`/tournaments/${event.key}`}>
 							<img src={photo.image} alt="" loading="lazy" />
 							<div>
-								{#if event.eventType === 3}<span class="division-label">Division</span>{/if}
-								<strong>{event.name}</strong><span>{event.location ?? ''}</span>
+								<strong>{name}</strong><span>{event.location ?? ''}</span>
 							</div>
 							<span class="dates">
 								<span>{date(event.startDate)}</span>
@@ -241,15 +239,10 @@
 	input:focus-visible {
 		outline: 2px solid var(--victory-purple);
 	}
-	.event.division {
-		border-left: 4px solid var(--division-color);
-	}
-	.event > div > .division-label {
-		color: var(--division-color);
-		font-size: 11px;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+	.event.nested {
+		margin-left: 24px;
+		border-left: 2px solid var(--light-gray);
+		min-height: 88px;
 	}
 	.event-group {
 		display: grid;

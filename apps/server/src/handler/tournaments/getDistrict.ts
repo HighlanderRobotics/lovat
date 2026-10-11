@@ -21,6 +21,7 @@ export async function getDistrict(req: Request, res: Response): Promise<void> {
           orderBy: [{ startDate: "asc" }, { key: "asc" }],
           select: {
             key: true,
+            parentTournamentKey: true,
             week: true,
             eventType: true,
             name: true,

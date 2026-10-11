@@ -32,6 +32,7 @@ it("returns the requested district with public events and season teams", async (
   });
   expect(query.select.tournaments.select).toEqual({
     key: true,
+    parentTournamentKey: true,
     week: true,
     eventType: true,
     name: true,
