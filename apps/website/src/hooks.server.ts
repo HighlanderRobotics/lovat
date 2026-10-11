@@ -23,7 +23,13 @@ const csrf =
 		const response = await resolve(event);
 		// Operational pages include verification side effects and live pit data.
 		// Static assets are served separately by the adapter.
-		response.headers.set('cache-control', 'private, no-store');
+		if (
+			event.request.method !== 'GET' ||
+			!event.url.pathname.startsWith('/api/public/') ||
+			response.status !== 200
+		) {
+			response.headers.set('cache-control', 'private, no-store');
+		}
 		return response;
 	};
 function isContentType(request: Request, ...types: string[]) {

@@ -4,6 +4,7 @@
 	import { learnUrl } from '$lib/siteUrls';
 	import { onNavigate } from '$app/navigation';
 	import { Button, DensityProvider, Icon } from 'magnolia-ui-svelte';
+	import SiteSearch from '$lib/SiteSearch.svelte';
 
 	let authBusy = false;
 	let authError = false;
@@ -71,6 +72,7 @@
 			</div>
 		</DensityProvider>
 	</nav>
+	<SiteSearch />
 
 	{#if hasBanner}
 		<div class="secondary-container">

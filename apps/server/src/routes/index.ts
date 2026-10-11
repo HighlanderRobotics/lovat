@@ -13,6 +13,12 @@ import { getDistrict } from "../handler/tournaments/getDistrict.js";
 import { getTournament } from "../handler/tournaments/getTournament.js";
 
 import { getMatch } from "../handler/tournaments/getMatch.js";
+import { getSearch } from "../handler/tournaments/getSearch.js";
+import { getRobotPhoto } from "../handler/tournaments/getRobotPhoto.js";
+import {
+  getPublicMatchAnalysis,
+  getPublicTeamMetrics,
+} from "../handler/tournaments/publicScouting.js";
 
 const router = Router();
 
@@ -26,6 +32,10 @@ router.get("/districts/:key", getDistrict);
 router.get("/seasons/:year", getSeason);
 router.get("/teams/:number/avatar/:year", getTeamAvatar);
 router.get("/teams/:number/seasons/:year", getTeamSeason);
+router.get("/search", getSearch);
+router.get("/public/matches/:key", getPublicMatchAnalysis);
+router.get("/public/teams/:number/:year/metrics", getPublicTeamMetrics);
+router.get("/public/teams/:number/:year/photo", getRobotPhoto);
 
 router.get("/slack-invite", onboardingRedirect);
 

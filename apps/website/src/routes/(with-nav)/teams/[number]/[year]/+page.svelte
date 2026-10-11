@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
+	import TeamOverview from '$lib/tournaments/TeamOverview.svelte';
 	import { goto } from '$app/navigation';
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient } from '$lib/tournaments/branding';
@@ -140,6 +141,10 @@
 			</div>
 		</header>
 	{/key}
+	{#key `${team.teamNumber}:${team.seasonYear}`}<TeamOverview
+			number={team.teamNumber}
+			year={team.seasonYear}
+		/>{/key}
 
 	<section aria-labelledby="events-heading">
 		<div class="section-heading">

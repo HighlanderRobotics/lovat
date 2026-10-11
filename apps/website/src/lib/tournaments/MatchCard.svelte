@@ -13,6 +13,13 @@
 	export let onTeamSelect: ((number: number) => void) | undefined = undefined;
 	export let id: string | undefined = undefined;
 	export let linkToMatch = true;
+	let roles = new Map<number, string>();
+	$: blueTeams = match.teamSlots
+		.filter((slot) => slot.alliance === 'BLUE')
+		.map((slot) => slot.teamNumber);
+	$: redTeams = match.teamSlots
+		.filter((slot) => slot.alliance === 'RED')
+		.map((slot) => slot.teamNumber);
 
 	function time(value: string | null) {
 		if (!value) return 'Time TBD';
@@ -65,8 +72,11 @@
 	</div>
 
 	<PredictionBar
-		blue={match.teamSlots.filter((slot) => slot.alliance === 'BLUE').map((slot) => slot.teamNumber)}
-		red={match.teamSlots.filter((slot) => slot.alliance === 'RED').map((slot) => slot.teamNumber)}
+		matchKey={match.key}
+		on:roles={(event) =>
+			(roles = new Map(event.detail.map(({ teamNumber, role }) => [teamNumber, role])))}
+		blue={blueTeams}
+		red={redTeams}
 	/>
 
 	<div class="alliances">
@@ -90,6 +100,12 @@
 									>{#if slot.surrogate}S{/if}{#if slot.surrogate && slot.disqualified}
 										·
 									{/if}{#if slot.disqualified}DQ{/if}</span
+								>{/if}
+							{#if roles.has(slot.teamNumber)}<span class="robot-role"
+									>{roles
+										.get(slot.teamNumber)
+										?.toLowerCase()
+										.replace(/^./, (letter) => letter.toUpperCase())}</span
 								>{/if}</svelte:element
 						>
 					{/each}

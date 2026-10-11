@@ -132,3 +132,35 @@ test('records count wins, losses and ties; skip surrogates, unplayed and unresol
 	assert.deepEqual(records.get(2), { wins: 0, losses: 1, ties: 1 });
 	assert.equal(records.has(3), false);
 });
+
+const { GET: publicMatch } = await vite.ssrLoadModule(
+	'/src/routes/api/public/matches/[key]/+server.ts'
+);
+test('public predictions omit credentials and strip all fields outside the approved projection', async () => {
+	const response = await publicMatch({
+		params: { key: '2026casnf_qm4' },
+		fetch: async (_url, options) => {
+			assert.equal(options.credentials, 'omit');
+			assert.equal(options.headers, undefined);
+			return Response.json({
+				prediction: { blueWinning: 0.6, redWinning: 0.4, notes: 'private' },
+				roles: [{ teamNumber: 8033, role: 'SCORING', scouter: 'private' }],
+				reports: ['private']
+			});
+		}
+	});
+	assert.equal(response.headers.get('cache-control'), 'public, max-age=60');
+	assert.deepEqual(await response.json(), {
+		prediction: { blueWinning: 0.6, redWinning: 0.4 },
+		roles: [{ teamNumber: 8033, role: 'SCORING' }]
+	});
+});
+test('public predictions reject malformed matches and provider failures', async () => {
+	const fetch = async () => {
+		throw new Error('private provider details');
+	};
+	assert.equal((await publicMatch({ params: { key: 'invalid' }, fetch })).status, 400);
+	const response = await publicMatch({ params: { key: '2026casnf_qm4' }, fetch });
+	assert.equal(response.status, 503);
+	assert.deepEqual(await response.json(), { error: 'Prediction unavailable' });
+});
