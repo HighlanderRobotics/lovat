@@ -11,6 +11,7 @@
 	export let highlightedTeam: number | undefined = undefined;
 	export let onTeamSelect: ((number: number) => void) | undefined = undefined;
 	export let id: string | undefined = undefined;
+	export let linkToMatch = true;
 
 	function time(value: string | null) {
 		if (!value) return 'Time TBD';
@@ -35,7 +36,11 @@
 <article class="match-card" {id} tabindex="-1" aria-label={matchLabel(match, playoffType)}>
 	<div class="match-header">
 		<div class="match-title">
-			<h4>{matchLabel(match, playoffType)}</h4>
+			<h4>
+				{#if linkToMatch}<a class="match-link" href={`/matches/${match.key}`}
+						>{matchLabel(match, playoffType)}</a
+					>{:else}{matchLabel(match, playoffType)}{/if}
+			</h4>
 			<span class="badge">{match.status.replaceAll('_', ' ')}</span>
 		</div>
 		<div class="scores" aria-label="Alliance scores">
@@ -90,6 +95,14 @@
 </article>
 
 <style>
+	.match-link {
+		color: inherit;
+		text-decoration: none;
+	}
+	.match-link:focus-visible {
+		outline: 2px solid var(--victory-purple);
+		outline-offset: 3px;
+	}
 	.match-card {
 		scroll-margin-top: 90px;
 		overflow: hidden;

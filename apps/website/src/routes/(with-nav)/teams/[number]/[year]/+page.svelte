@@ -187,37 +187,44 @@
 					</summary>
 					<div class="event-content">
 						<a class="tournament-link" href={`/tournaments/${event.key}`}>View tournament →</a>
-						<h3>Awards</h3>
-						{#if event.awards.length}
-							<div class="awards">
-								{#each event.awards as award}<span>{award}</span>{/each}
+						<div class="event-summary">
+							<div>
+								<h3>Awards</h3>
+								{#if event.awards.length}
+									<div class="awards">
+										{#each event.awards as award}<span>{award}</span>{/each}
+									</div>
+								{:else}<p>No awards.</p>{/if}
 							</div>
-						{:else}<p>No awards.</p>{/if}
-
-						{#if eventDetails[event.key]?.loading}
-							<p role="status">Loading matches and alliance…</p>
-						{:else if eventDetails[event.key]?.error}
-							<p role="alert">Matches and alliance are temporarily unavailable.</p>
-							<button class="retry" on:click={() => loadEvent(event.key)}>Retry</button>
-						{:else if eventDetails[event.key]?.data}
+							<div>
+								<h3>Alliance</h3>
+								{#if eventDetails[event.key]?.loading}
+									<p role="status">Loading…</p>
+								{:else if eventDetails[event.key]?.error}
+									<p role="alert">Temporarily unavailable.</p>
+									<button class="retry" on:click={() => loadEvent(event.key)}>Retry</button>
+								{:else if eventDetails[event.key]?.data}
+									{@const alliance = eventDetails[event.key].data!.alliance}
+									{#if alliance}
+										<div class="selected-alliance">
+											<strong>Alliance {alliance.number}</strong>
+											{#each alliance.teams as number}<a
+													class:current-team={number === team.teamNumber}
+													href={`/teams/${number}/${team.seasonYear}`}>{number}</a
+												>{/each}
+										</div>
+										{#if alliance.backup}<p class="backup">
+												Backup: <a href={`/teams/${alliance.backup.in}/${team.seasonYear}`}
+													>{alliance.backup.in}</a
+												>
+												replacing {alliance.backup.out}
+											</p>{/if}
+									{:else}<p>No alliance selection.</p>{/if}
+								{/if}
+							</div>
+						</div>
+						{#if eventDetails[event.key]?.data}
 							{@const details = eventDetails[event.key].data!}
-							<h3>Alliance</h3>
-							{#if details.alliance}
-								<div class="selected-alliance">
-									<strong>Alliance {details.alliance.number}</strong>
-									{#each details.alliance.teams as number}<a
-											class:current-team={number === team.teamNumber}
-											href={`/teams/${number}/${team.seasonYear}`}>{number}</a
-										>{/each}
-								</div>
-								{#if details.alliance.backup}<p class="backup">
-										Backup: <a href={`/teams/${details.alliance.backup.in}/${team.seasonYear}`}
-											>{details.alliance.backup.in}</a
-										>
-										replacing {details.alliance.backup.out}
-									</p>{/if}
-							{:else}<p>No alliance selection.</p>{/if}
-
 							<h3>Matches</h3>
 							<div class="team-matches">
 								{#each details.matches as match (match.key)}
@@ -433,6 +440,11 @@
 	.event-dropdown[open] .event {
 		border-radius: 7px 7px 0 0;
 	}
+	.event-summary {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 24px;
+	}
 	.event-content h3 {
 		margin: 24px 0 12px;
 		font-size: 18px;
@@ -509,6 +521,9 @@
 		.team-logo img {
 			width: 56px;
 			height: 56px;
+		}
+		.event-summary {
+			gap: 16px;
 		}
 		.event {
 			align-items: flex-start;
