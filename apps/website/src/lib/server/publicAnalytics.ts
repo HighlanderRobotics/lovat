@@ -39,7 +39,14 @@ export const metricsSchema = z.object({
 			matches: z.number().int().positive(),
 			points: z.number().finite(),
 			auto: z.number().finite(),
-			teleop: z.number().finite()
+			teleop: z.number().finite(),
+			percentiles: z
+				.object({
+					points: z.number().finite().min(0).max(100).nullable(),
+					auto: z.number().finite().min(0).max(100).nullable(),
+					teleop: z.number().finite().min(0).max(100).nullable()
+				})
+				.optional()
 		})
 		.nullable()
 });

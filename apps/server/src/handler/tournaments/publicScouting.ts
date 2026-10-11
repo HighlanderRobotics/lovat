@@ -52,6 +52,77 @@ export function mostCommonRoles(
     .sort();
 }
 
+// Midrank percentile: ties share a rank, with the lowest/highest unique values at 0/100.
+export function metricPercentile(
+  value: number,
+  cohort: number[],
+): number | null {
+  const valid = cohort.filter(Number.isFinite);
+  if (!Number.isFinite(value) || valid.length < 2) return null;
+
+  const below = valid.filter((entry) => entry < value).length;
+  const equal = valid.filter((entry) => entry === value).length;
+  if (!equal) return null;
+
+  return (
+    Math.round(((below + (equal - 1) / 2) / (valid.length - 1)) * 1000) / 10
+  );
+}
+
+async function seasonTeamMetrics(year: number) {
+  return publicCache(`scouting:team-distribution:v1:${year}`, async () => {
+    const rows = await prisma.teamMatchData.findMany({
+      where: { tournament: { seasonYear: year }, scoutReports: { some: {} } },
+      distinct: ["teamNumber"],
+      select: { teamNumber: true },
+      orderBy: { teamNumber: "asc" },
+    });
+    const teams = rows.map((row) => row.teamNumber);
+    const user = await publicContext(year, teams);
+    const result: {
+      number: number;
+      matches: number;
+      points: number;
+      auto: number;
+      teleop: number;
+    }[] = [];
+
+    // Bound each analysis query rather than loading every season report at once.
+    for (let start = 0; start < teams.length; start += 100) {
+      const batch = teams.slice(start, start + 100);
+      const values = await Promise.all(
+        [Metric.totalPoints, Metric.autoPoints, Metric.teleopPoints].map(
+          (metric) => arrayAndAverageTeams(user, { teams: batch, metric }),
+        ),
+      );
+
+      for (const number of batch) {
+        const total = values[0]?.[number];
+        const auto = values[1]?.[number];
+        const teleop = values[2]?.[number];
+
+        if (
+          !total?.timeLine?.length ||
+          !auto?.timeLine?.length ||
+          !teleop?.timeLine?.length ||
+          ![total.average, auto.average, teleop.average].every(Number.isFinite)
+        )
+          continue;
+
+        result.push({
+          number,
+          matches: total.timeLine.length,
+          points: total.average,
+          auto: auto.average,
+          teleop: teleop.average,
+        });
+      }
+    }
+
+    return result;
+  });
+}
+
 export async function getPublicTeamMetrics(
   req: Request,
   res: Response,
@@ -73,26 +144,35 @@ export async function getPublicTeamMetrics(
 
   try {
     const metrics = await publicCache(
-      `scouting:team:${number}:${year}`,
+      `scouting:team:v2:${number}:${year}`,
       async () => {
         // Lovat's current scoring engine is for REBUILT; never apply it to older games.
         if (year !== 2026) return null;
 
-        const user = await publicContext(year, [number]);
-        const values = await Promise.all(
-          [Metric.totalPoints, Metric.autoPoints, Metric.teleopPoints].map(
-            (metric) => arrayAndAverageTeams(user, { teams: [number], metric }),
-          ),
-        );
-        const total = values[0]![number];
+        const cohort = await seasonTeamMetrics(year);
+        const team = cohort.find((entry) => entry.number === number);
 
-        if (!total?.timeLine?.length) return null;
+        if (!team) return null;
 
         return {
-          matches: total.timeLine.length,
-          points: total.average,
-          auto: values[1]![number]?.average ?? 0,
-          teleop: values[2]![number]?.average ?? 0,
+          matches: team.matches,
+          points: team.points,
+          auto: team.auto,
+          teleop: team.teleop,
+          percentiles: {
+            points: metricPercentile(
+              team.points,
+              cohort.map((entry) => entry.points),
+            ),
+            auto: metricPercentile(
+              team.auto,
+              cohort.map((entry) => entry.auto),
+            ),
+            teleop: metricPercentile(
+              team.teleop,
+              cohort.map((entry) => entry.teleop),
+            ),
+          },
         };
       },
     );

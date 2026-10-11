@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
+	import type { z } from 'zod';
+	import type { metricsSchema } from '$lib/server/publicAnalytics';
 	export let number: number;
 	export let year: number;
-	let metrics: { matches: number; points: number; auto: number; teleop: number } | null = null;
+	let metrics: z.infer<typeof metricsSchema>['metrics'] = null;
 	const dispatch = createEventDispatcher<{ photo: { image: string; source: string } | null }>();
 	let disposed = false;
 
@@ -29,6 +31,15 @@
 			controller.abort();
 		};
 	});
+	function ordinal(value: number) {
+		const rank = Math.round(value);
+		const suffix =
+			rank % 100 >= 11 && rank % 100 <= 13
+				? 'th'
+				: (({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[rank % 10] ?? 'th');
+
+		return `${rank}${suffix}`;
+	}
 </script>
 
 {#if metrics}
@@ -36,12 +47,16 @@
 		{#if metrics}<div class="metrics">
 				<h2>Lovat scouting metrics</h2>
 				<div class="values">
-					{#each [['Points', metrics.points], ['Auto', metrics.auto], ['Teleop', metrics.teleop]] as [label, value]}<div
+					{#each [['Points', metrics.points, metrics.percentiles?.points], ['Auto', metrics.auto, metrics.percentiles?.auto], ['Teleop', metrics.teleop, metrics.percentiles?.teleop]] as [label, value, percentile]}<div
 						>
 							<strong>{Number(value).toFixed(1)}</strong><span>{label}</span>
+							{#if typeof percentile === 'number'}<span
+									class="percentile"
+									title={`Compared with other teams scouted in ${year}; tied values share a rank`}
+									>{ordinal(percentile)} percentile</span
+								>{/if}
 						</div>{/each}
 				</div>
-				<span class="matches">{metrics.matches} matches</span>
 			</div>{/if}
 	</section>
 {/if}
@@ -82,9 +97,8 @@
 		font-size: 13px;
 		color: var(--body);
 	}
-	.matches {
-		display: block;
-		margin-top: 20px;
-		text-align: center;
+	.percentile {
+		color: var(--victory-purple);
+		font-size: 12px;
 	}
 </style>

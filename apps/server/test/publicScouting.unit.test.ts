@@ -30,12 +30,17 @@ import {
   getPublicTeamMetrics,
   getPublicMatchMetrics,
   mostCommonRoles,
+  metricPercentile,
 } from "../src/handler/tournaments/publicScouting.js";
 import { chooseRobotPhoto } from "../src/handler/tournaments/getRobotPhoto.js";
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.events.mockResolvedValue([{ tournamentKey: "2026casnf" }]);
+  mocks.events.mockImplementation(async (args) =>
+    args.distinct[0] === "teamNumber"
+      ? [{ teamNumber: 8033 }]
+      : [{ tournamentKey: "2026casnf" }],
+  );
   mocks.match.mockResolvedValue({
     tournament: { seasonYear: 2026 },
     teamSlots: [1, 2, 3, 4, 5, 6].map((teamNumber) => ({
@@ -118,7 +123,13 @@ describe("public scouting projections", () => {
       params: { number: "8033", year: "2026" },
     });
     expect(response.body).toEqual({
-      metrics: { matches: 1, points: 42, auto: 42, teleop: 42 },
+      metrics: {
+        matches: 1,
+        points: 42,
+        auto: 42,
+        teleop: 42,
+        percentiles: { points: null, auto: null, teleop: null },
+      },
     });
   });
   it("rejects malformed keys without querying reports", async () => {
@@ -142,6 +153,51 @@ describe("public scouting projections", () => {
       ]),
     ).toEqual(["SCORING"]);
     expect(mostCommonRoles([])).toEqual([]);
+  });
+});
+
+describe("season metric percentiles", () => {
+  it("gives ordered values their rank and ties a shared midpoint", () => {
+    expect(metricPercentile(10, [10, 20, 30])).toBe(0);
+    expect(metricPercentile(20, [10, 20, 30])).toBe(50);
+    expect(metricPercentile(30, [10, 20, 30])).toBe(100);
+    expect(metricPercentile(20, [10, 20, 20, 30])).toBe(50);
+    expect(metricPercentile(0, [0, 0, 0])).toBe(50);
+    expect(metricPercentile(42, [42])).toBeNull();
+    expect(metricPercentile(42, [])).toBeNull();
+  });
+  it("ranks the three metrics independently within the approved season cohort", async () => {
+    mocks.events.mockImplementation(async (args) =>
+      args.distinct[0] === "teamNumber"
+        ? [{ teamNumber: 8033 }, { teamNumber: 1 }]
+        : [{ tournamentKey: "2026casnf" }],
+    );
+    let index = 0;
+    mocks.metrics.mockImplementation(async () => {
+      const target = [42, 10, 30][index++];
+      return {
+        8033: { average: target, timeLine: [{ match: "private" }] },
+        1: { average: 20, timeLine: [{ match: "private" }] },
+      };
+    });
+    const response = await invoke(getPublicTeamMetrics, {
+      params: { number: "8033", year: "2026" },
+    });
+    expect(response.body).toEqual({
+      metrics: {
+        matches: 1,
+        points: 42,
+        auto: 10,
+        teleop: 30,
+        percentiles: { points: 100, auto: 0, teleop: 100 },
+      },
+    });
+    expect(mocks.events.mock.calls[0]![0]).toMatchObject({
+      where: { tournament: { seasonYear: 2026 }, scoutReports: { some: {} } },
+      distinct: ["teamNumber"],
+      select: { teamNumber: true },
+    });
+    expect(mocks.metrics.mock.calls[0]![1].teams).toEqual([8033, 1]);
   });
 });
 
