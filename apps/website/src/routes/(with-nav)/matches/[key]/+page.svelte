@@ -91,7 +91,23 @@
 				</DensityProvider>
 			</nav>
 		</div>
-		<h1>{label}</h1>
+		<div class="title-row">
+			<h1>{label}</h1>
+			{#if data.videos.length}
+				<nav class="match-videos" aria-label="Match videos">
+					<DensityProvider density="compact">
+						{#each data.videos as video, index (video)}
+							<a href={`https://www.youtube.com/watch?v=${video}`} target="_blank" rel="noreferrer">
+								<svg viewBox="0 0 24 24" aria-hidden="true"
+									><path fill="currentColor" d="M8 5v14l11-7z" /></svg
+								>
+								{data.videos.length === 1 ? 'Watch on YouTube' : `Watch on YouTube ${index + 1}`}
+							</a>
+						{/each}
+					</DensityProvider>
+				</nav>
+			{/if}
+		</div>
 		{#if matchDate}<p>{matchDate}</p>{/if}
 	</header>
 
@@ -103,21 +119,6 @@
 		{teamNames}
 		linkToMatch={false}
 	/>
-
-	{#if data.videos.length}
-		<nav class="match-videos" aria-label="Match videos">
-			<DensityProvider density="compact">
-				{#each data.videos as video, index (video)}
-					<a href={`https://www.youtube.com/watch?v=${video}`} target="_blank" rel="noreferrer">
-						<svg viewBox="0 0 24 24" aria-hidden="true"
-							><path fill="currentColor" d="M8 5v14l11-7z" /></svg
-						>
-						{data.videos.length === 1 ? 'Watch on YouTube' : `Watch on YouTube ${index + 1}`}
-					</a>
-				{/each}
-			</DensityProvider>
-		</nav>
-	{/if}
 
 	{#key data.match.key}
 		<MatchScouting matchKey={data.match.key} year={tournament.seasonYear} />
@@ -188,8 +189,16 @@
 		outline: 2px solid var(--victory-purple);
 		outline-offset: 3px;
 	}
-	h1 {
+	.title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 12px;
 		margin: 24px 0 12px;
+	}
+	h1 {
+		margin: 0;
 		font-size: clamp(28px, 3.8vw, 42px);
 		font-weight: 500;
 	}
@@ -208,7 +217,8 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 10px;
-		margin-top: 16px;
+		justify-content: flex-end;
+		margin-left: auto;
 	}
 	.match-videos svg {
 		width: 20px;
