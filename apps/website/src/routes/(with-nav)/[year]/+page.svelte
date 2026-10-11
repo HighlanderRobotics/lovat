@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
+	import { divisionColor } from '$lib/tournaments/division';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -107,9 +108,17 @@
 					<h3>{group.label}</h3>
 					{#each group.events as event (event.key)}
 						{@const photo = eventWallpaper(undefined, event.location)}
-						<a class="event" href={`/tournaments/${event.key}`}>
+						<a
+							class="event"
+							class:division={event.eventType === 3}
+							style:--division-color={divisionColor(event.key)}
+							href={`/tournaments/${event.key}`}
+						>
 							<img src={photo.image} alt="" loading="lazy" />
-							<div><strong>{event.name}</strong><span>{event.location ?? ''}</span></div>
+							<div>
+								{#if event.eventType === 3}<span class="division-label">Division</span>{/if}
+								<strong>{event.name}</strong><span>{event.location ?? ''}</span>
+							</div>
 							<span class="dates">
 								<span>{date(event.startDate)}</span>
 								{#if event.endDate && event.endDate !== event.startDate}
@@ -231,6 +240,16 @@
 	}
 	input:focus-visible {
 		outline: 2px solid var(--victory-purple);
+	}
+	.event.division {
+		border-left: 4px solid var(--division-color);
+	}
+	.event > div > .division-label {
+		color: var(--division-color);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 	.event-group {
 		display: grid;

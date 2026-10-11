@@ -518,7 +518,7 @@
 		overflow: hidden;
 		padding: 28px;
 		border-radius: 7px;
-		min-height: 220px;
+		min-height: 320px;
 		color: #fff;
 	}
 	.town-wallpaper {

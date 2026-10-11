@@ -2,6 +2,7 @@
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
 	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
+	import { divisionColor } from '$lib/tournaments/division';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -80,11 +81,29 @@
 			style:object-position={background.position}
 			alt=""
 		/>
-		<nav class="breadcrumbs" aria-label="District hierarchy">
-			<a href={`/${district.seasonYear}`}>{district.seasonYear}</a><span aria-hidden="true"
-				>&gt;</span
-			><span aria-current="page">{district.name}</span>
-		</nav>
+		<div class="header-top">
+			<nav class="breadcrumbs" aria-label="District hierarchy">
+				<a href={`/${district.seasonYear}`}>{district.seasonYear}</a><span aria-hidden="true"
+					>&gt;</span
+				><span aria-current="page">{district.name}</span>
+			</nav>
+			<nav class="district-links" aria-label="District resources">
+				<DensityProvider density="compact">
+					<Button
+						variant="secondary"
+						element="a"
+						href={`https://www.thebluealliance.com/events/${district.abbreviation}/${district.seasonYear}`}
+						><img src="/assets/event-resources/tba.svg" alt="TBA" /></Button
+					>
+					<Button
+						variant="secondary"
+						element="a"
+						href={`https://www.statbotics.io/events?year=${district.seasonYear}&district=${district.abbreviation}`}
+						><img src="/assets/event-resources/statbotics.ico" alt="Statbotics" /></Button
+					>
+				</DensityProvider>
+			</nav>
+		</div>
 		<h1>{district.name}</h1>
 	</header>
 
@@ -121,7 +140,13 @@
 						<h3>{group.label}</h3>
 						{#each group.events as event (event.key)}
 							{@const photo = eventWallpaper(district.abbreviation, event.location)}
-							<a class="event-row" class:has-wallpaper={!!photo} href={`/tournaments/${event.key}`}>
+							<a
+								class="event-row"
+								class:division={event.eventType === 5}
+								style:--division-color={divisionColor(event.key)}
+								class:has-wallpaper={!!photo}
+								href={`/tournaments/${event.key}`}
+							>
 								{#if photo}<img
 										class="town-wallpaper"
 										src={photo.image}
@@ -129,7 +154,10 @@
 										alt=""
 										loading="lazy"
 									/>{/if}
-								<div><strong>{event.name}</strong><span>{event.location ?? ''}</span></div>
+								<div>
+									{#if event.eventType === 5}<span class="division-label">Division</span>{/if}
+									<strong>{event.name}</strong><span>{event.location ?? ''}</span>
+								</div>
 								<span class="dates">
 									<span>{date(event.startDate)}</span>
 									{#if event.endDate && event.endDate !== event.startDate}
@@ -186,7 +214,8 @@
 		position: relative;
 		isolation: isolate;
 		overflow: hidden;
-		padding: 24px;
+		padding: 32px;
+		min-height: 300px;
 		border-radius: 8px;
 		margin-bottom: 28px;
 		color: #fff;
@@ -205,6 +234,33 @@
 		height: 100%;
 		object-fit: cover;
 		z-index: -2;
+	}
+	.header-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 24px;
+	}
+	.district-links {
+		display: flex;
+		gap: 8px;
+		flex-shrink: 0;
+		margin-left: auto;
+	}
+	.district-links img {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
+	}
+	.event-row.division {
+		border-left: 4px solid var(--division-color);
+	}
+	.event-row.has-wallpaper > div > .division-label {
+		color: var(--division-color);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 	.breadcrumbs {
 		display: flex;
@@ -379,6 +435,14 @@
 	@media (max-width: 600px) {
 		main {
 			padding: 26px 20px 44px;
+		}
+		header {
+			padding: 24px;
+			min-height: 280px;
+		}
+		.header-top {
+			flex-wrap: wrap;
+			gap: 16px;
 		}
 		.event-row {
 			position: relative;
