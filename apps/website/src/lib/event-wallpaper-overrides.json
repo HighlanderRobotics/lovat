@@ -45,7 +45,7 @@
 		"bytes": 460257,
 		"fit": "contain",
 		"background": "linear-gradient(180deg, #151c57, #7e0e3f, #8a040e)",
-		"backgroundImage": "/assets/worlds/hop-background.jpg"
+		"backgroundImage": "/assets/worlds/hop-background-v2.jpg"
 	},
 	"2026joh": {
 		"image": "/assets/worlds/joh.jpg",
