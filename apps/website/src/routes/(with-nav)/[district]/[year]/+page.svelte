@@ -229,7 +229,7 @@
 		isolation: isolate;
 		overflow: hidden;
 		padding: 32px;
-		min-height: 300px;
+		min-height: 450px;
 		border-radius: 8px;
 		margin-bottom: 28px;
 		color: #fff;
@@ -447,7 +447,7 @@
 		}
 		header {
 			padding: 24px;
-			min-height: 280px;
+			min-height: 420px;
 		}
 		.header-top {
 			flex-wrap: wrap;

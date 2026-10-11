@@ -294,6 +294,7 @@
 		border: 1px solid var(--light-gray);
 		border-radius: 8px;
 		padding: 28px;
+		min-height: 400px;
 		background:
 			linear-gradient(110deg, rgba(var(--team-color), 0.3), transparent 85%),
 			var(--secondary-container);
