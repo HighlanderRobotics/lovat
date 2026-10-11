@@ -47,6 +47,7 @@ describe("authentication dependencies and failures", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     mocks.verify.mockResolvedValue({ payload: { sub: user.id } });
     mocks.decode.mockReturnValue({ sub: user.id });
     mocks.userInfo.mockResolvedValue({

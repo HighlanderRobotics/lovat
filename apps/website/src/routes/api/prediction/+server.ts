@@ -56,8 +56,10 @@ export const POST: RequestHandler = async ({ request, fetch, url }) => {
 			signal: AbortSignal.timeout(20_000)
 		});
 
-		if (response.status === 401 || response.status === 403)
+		if (response.status === 401 || response.status === 403) {
+			console.warn('Prediction authorization rejected by API', { status: response.status });
 			return reply({ error: 'Sign in required' }, 401);
+		}
 		if (!response.ok) return reply({ error: 'Predictions unavailable' }, 503);
 
 		const body = await response.text();
