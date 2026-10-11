@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	export let number: number;
 	export let year: number;
 	let metrics: { matches: number; points: number; auto: number; teleop: number } | null = null;
-	let photo: { image: string; source: string } | null = null;
+	const dispatch = createEventDispatcher<{ photo: { image: string; source: string } | null }>();
 	let disposed = false;
 
 	onMount(() => {
@@ -17,7 +17,7 @@
 
 				if (!disposed) {
 					metrics = result.metrics;
-					photo = result.photo;
+					dispatch('photo', result.photo);
 				}
 			})
 			.catch(() => {
@@ -31,8 +31,8 @@
 	});
 </script>
 
-{#if metrics || photo}
-	<section class="overview" aria-label="Robot and public scouting metrics">
+{#if metrics}
+	<section class="overview" aria-label="Public scouting metrics">
 		{#if metrics}<div class="metrics">
 				<h2>Lovat scouting metrics</h2>
 				<div class="values">
@@ -43,18 +43,6 @@
 				</div>
 				<span class="matches">{metrics.matches} matches</span>
 			</div>{/if}
-		{#if photo}<a
-				class="robot-photo"
-				href={photo.source}
-				target="_blank"
-				rel="noreferrer"
-				aria-label={`Team ${number} robot photo on TBA`}
-				><img
-					src={photo.image}
-					alt={`Team ${number}'s ${year} robot`}
-					on:error={() => (photo = null)}
-				/><span>TBA</span></a
-			>{/if}
 	</section>
 {/if}
 
@@ -98,36 +86,5 @@
 		display: block;
 		margin-top: 20px;
 		text-align: center;
-	}
-	.robot-photo {
-		position: relative;
-		width: 300px;
-		max-width: 45%;
-		display: flex;
-		background: var(--secondary-container);
-		border-radius: 7px;
-		overflow: hidden;
-	}
-	img {
-		width: 100%;
-		height: 240px;
-		object-fit: contain;
-	}
-	.robot-photo span {
-		position: absolute;
-		right: 8px;
-		bottom: 8px;
-		padding: 4px 8px;
-		background: #181818bb;
-		border-radius: 4px;
-	}
-	@media (max-width: 650px) {
-		.overview {
-			flex-direction: column;
-		}
-		.robot-photo {
-			width: 100%;
-			max-width: none;
-		}
 	}
 </style>

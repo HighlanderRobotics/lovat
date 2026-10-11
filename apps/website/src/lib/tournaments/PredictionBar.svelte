@@ -87,7 +87,7 @@
 			<div class="blue" style:flex-grow={prediction.blueWinning}></div>
 			<div class="red" style:flex-grow={prediction.redWinning}></div>
 			<div class="labels">
-				<span>{bluePercent}%</span><span>Lovat</span><span>{100 - bluePercent}%</span>
+				<span>{bluePercent}%</span><span>{100 - bluePercent}%</span>
 			</div>
 		</div>
 	{/if}
@@ -118,10 +118,5 @@
 		font-size: 11px;
 		font-variant-numeric: tabular-nums;
 		text-shadow: 0 1px 2px #000;
-	}
-	.labels span:nth-child(2) {
-		position: absolute;
-		left: 50%;
-		transform: translateX(-50%);
 	}
 </style>

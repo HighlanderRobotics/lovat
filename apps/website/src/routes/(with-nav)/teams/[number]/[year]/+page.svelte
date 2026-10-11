@@ -48,10 +48,14 @@
 	export let data: PageData;
 
 	let failedAvatar = false;
+	let robotPhoto: { image: string; source: string } | null = null;
 	let selectedYear: number;
 
 	$: team = data.team;
-	$: if (team) failedAvatar = false;
+	$: if (team) {
+		failedAvatar = false;
+		robotPhoto = null;
+	}
 	$: selectedYear = team.seasonYear;
 	$: location = [team.city, team.stateProvince, team.country].filter(Boolean).join(', ');
 	$: photoCredits = [
@@ -85,7 +89,14 @@
 
 <main>
 	{#key `${team.teamNumber}:${team.seasonYear}`}
-		<header use:avatarGradient={'.team-logo img'}>
+		<header use:avatarGradient={'.team-logo img'} class:has-robot-photo={Boolean(robotPhoto)}>
+			{#if robotPhoto}<img
+					class="robot-background"
+					src={robotPhoto.image}
+					alt=""
+					aria-hidden="true"
+					on:error={() => (robotPhoto = null)}
+				/>{/if}
 			<div class="header-top">
 				<nav class="breadcrumbs" aria-label="Team hierarchy">
 					<a href={`/${team.seasonYear}`}>{team.seasonYear}</a>
@@ -144,6 +155,7 @@
 	{#key `${team.teamNumber}:${team.seasonYear}`}<TeamOverview
 			number={team.teamNumber}
 			year={team.seasonYear}
+			on:photo={(event) => (robotPhoto = event.detail)}
 		/>{/key}
 
 	<section aria-labelledby="events-heading">
@@ -268,6 +280,9 @@
 		color: var(--on-background);
 	}
 	header {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
 		--team-color: 130, 130, 130;
 		border: 1px solid var(--light-gray);
 		border-radius: 8px;
@@ -275,6 +290,22 @@
 		background:
 			linear-gradient(110deg, rgba(var(--team-color), 0.3), transparent 85%),
 			var(--secondary-container);
+	}
+	.robot-background {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center 75%;
+		z-index: -2;
+	}
+	header.has-robot-photo::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, #181818ee, #18181899 50%, #18181844);
+		z-index: -1;
 	}
 	.header-top,
 	.section-heading {

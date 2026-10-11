@@ -60,7 +60,7 @@
 						>{matchLabel(match, playoffType)}</a
 					>{:else}{matchLabel(match, playoffType)}{/if}
 			</h4>
-			<span class="badge">Official · {match.status.replaceAll('_', ' ')}</span>
+			<span class="badge">{match.status.replaceAll('_', ' ')}</span>
 		</div>
 		<div class="scores" aria-label="Alliance scores">
 			{#each ['BLUE', 'RED'] as color}
