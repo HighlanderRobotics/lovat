@@ -86,12 +86,15 @@ export const requireAuth = async (
     } catch (error) {
       // Keep token contents and claim values out of authentication diagnostics.
       const code =
-        error instanceof Error && "code" in error &&
-        typeof error.code === "string" && /^ERR_[A-Z_]+$/.test(error.code)
+        error instanceof Error &&
+        "code" in error &&
+        typeof error.code === "string" &&
+        /^ERR_[A-Z_]+$/.test(error.code)
           ? error.code
           : "verification_failed";
       const claim =
-        error instanceof Error && "claim" in error &&
+        error instanceof Error &&
+        "claim" in error &&
         ["aud", "iss", "exp", "nbf"].includes(String(error.claim))
           ? String(error.claim)
           : undefined;

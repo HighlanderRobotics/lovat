@@ -57,7 +57,18 @@ export const POST: RequestHandler = async ({ request, fetch, url }) => {
 		});
 
 		if (response.status === 401 || response.status === 403) {
-			console.warn('Prediction authorization rejected by API', { status: response.status });
+			const body = await response.text();
+			const reason = ['No authorization token provided', 'Invalid authorization token'].includes(
+				body
+			)
+				? body
+				: 'Unknown authorization rejection';
+
+			console.warn('Prediction authorization rejected by API', {
+				status: response.status,
+				reason,
+				redirected: response.redirected
+			});
 			return reply({ error: 'Sign in required' }, 401);
 		}
 		if (!response.ok) return reply({ error: 'Predictions unavailable' }, 503);

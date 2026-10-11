@@ -81,6 +81,32 @@ describe("authentication dependencies and failures", () => {
     expect(mocks.findUnique).not.toHaveBeenCalled();
   });
 
+  it("logs only the rejection code and claim name, never token or claim values", async () => {
+    mocks.verify.mockRejectedValue(
+      Object.assign(new Error("private claim value"), {
+        code: "ERR_JWT_CLAIM_VALIDATION_FAILED",
+        claim: "aud",
+        payload: { aud: "private claim value" },
+      }),
+    );
+
+    expect(
+      (
+        await request(app).get("/protected").auth("private-token", {
+          type: "bearer",
+        })
+      ).status,
+    ).toBe(401);
+
+    expect(console.warn).toHaveBeenCalledWith("Authorization token rejected", {
+      code: "ERR_JWT_CLAIM_VALIDATION_FAILED",
+      claim: "aud",
+    });
+    expect(JSON.stringify(vi.mocked(console.warn).mock.calls)).not.toContain(
+      "private",
+    );
+  });
+
   it("checks issuer and audience and persists fresh Auth0 user info", async () => {
     const res = await request(app)
       .get("/protected")
