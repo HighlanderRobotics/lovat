@@ -95,16 +95,48 @@
 			<h1>{label}</h1>
 			{#if data.videos.length}
 				<nav class="match-videos" aria-label="Match videos">
-					<DensityProvider density="compact">
-						{#each data.videos as video, index (video)}
-							<a href={`https://www.youtube.com/watch?v=${video}`} target="_blank" rel="noreferrer">
-								<svg viewBox="0 0 24 24" aria-hidden="true"
-									><path fill="currentColor" d="M8 5v14l11-7z" /></svg
-								>
-								{data.videos.length === 1 ? 'Watch on YouTube' : `Watch on YouTube ${index + 1}`}
-							</a>
-						{/each}
-					</DensityProvider>
+					{#if data.videos.length === 1}
+						<a
+							href={`https://www.youtube.com/watch?v=${data.videos[0]}`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							<svg viewBox="0 0 24 24" aria-hidden="true"
+								><path fill="currentColor" d="M8 5v14l11-7z" /></svg
+							>
+							Watch on YouTube
+						</a>
+					{:else}
+						{#key data.match.key}
+							<details class="video-dropdown">
+								<summary>
+									<svg viewBox="0 0 24 24" aria-hidden="true"
+										><path fill="currentColor" d="M8 5v14l11-7z" /></svg
+									>
+									Watch on YouTube
+									<svg class="video-arrow" viewBox="0 0 24 24" aria-hidden="true"
+										><path
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											d="m6 9 6 6 6-6"
+										/></svg
+									>
+								</summary>
+								<div class="video-options">
+									{#each data.videos as video, index (video)}
+										<a
+											href={`https://www.youtube.com/watch?v=${video}`}
+											target="_blank"
+											rel="noreferrer">Recording {index + 1}</a
+										>
+									{/each}
+								</div>
+							</details>
+						{/key}
+					{/if}
 				</nav>
 			{/if}
 		</div>
@@ -225,7 +257,8 @@
 		height: 20px;
 		margin-right: 6px;
 	}
-	.match-videos a {
+	.match-videos a,
+	.match-videos summary {
 		display: inline-flex;
 		align-items: center;
 		padding: 10px 16px;
@@ -234,12 +267,47 @@
 		color: var(--victory-purple);
 		text-decoration: none;
 	}
-	.match-videos a:hover {
+	.match-videos a:hover,
+	.match-videos summary:hover {
 		background: var(--secondary-container);
 	}
-	.match-videos a:focus-visible {
+	.match-videos a:focus-visible,
+	.match-videos summary:focus-visible {
 		outline: 2px solid var(--victory-purple);
 		outline-offset: 3px;
+	}
+	.video-dropdown {
+		position: relative;
+	}
+	.video-dropdown summary {
+		list-style: none;
+		cursor: pointer;
+	}
+	.video-dropdown summary::-webkit-details-marker {
+		display: none;
+	}
+	.match-videos .video-arrow {
+		margin: 0 0 0 8px;
+	}
+	.video-dropdown[open] .video-arrow {
+		transform: rotate(180deg);
+	}
+	.video-options {
+		position: absolute;
+		top: calc(100% + 8px);
+		right: 0;
+		z-index: 5;
+		display: grid;
+		gap: 12px;
+		min-width: 100%;
+		padding: 12px;
+		border: 1px solid var(--light-gray);
+		border-radius: 7px;
+		background: var(--secondary-container);
+		box-shadow: 0 8px 24px #0006;
+	}
+	.video-options a {
+		white-space: nowrap;
 	}
 	.previous-match,
 	.next-match {
