@@ -35,3 +35,9 @@ docker build -f apps/website/Dockerfile -t lovat-website .
 `/changelog` is generated from the root [CHANGELOG.md](../../CHANGELOG.md) during the Website build. Edit that file, using `## Month YYYY` headings, `### Feature` headings, and Markdown bullets. An empty Unreleased section is hidden; feature sections under Unreleased are shown.
 
 The Vite plugin reads the file directly, watches it during development, renders Markdown with raw HTML disabled, and rewrites repository-relative links to GitHub. The generated content is bundled and prerendered, so the deployed server requires no Markdown file or GitHub requests at runtime. Rebuild the Website to publish changelog edits. CI and Railway watch the root file as well as Website sources. Netlify's existing app base directory works with the full repository checkout; include root changelog changes if you configure a custom build-ignore rule.
+
+## Scouting predictions
+
+Match cards show the existing Lovat scouting predictor after signing in. Predictions use the signed-in user's Server data-source rules; public loaders never return scouting data. Requests use an in-memory Auth0 access token, a same-origin proxy, and private/no-store responses. Only cards near the viewport fetch predictions, with two concurrent requests and per-session deduplication. Signing out clears the prediction cache.
+
+The default Auth0 domain and public SPA client ID match Dashboard. Override with `PUBLIC_AUTH0_DOMAIN` and `PUBLIC_AUTH0_CLIENT_ID` for a separate Website SPA client. Register each Website origin (including the PR URL and `http://127.0.0.1:8771`) in Auth0's Allowed Callback URLs, Allowed Web Origins, and Allowed Logout URLs. Use the origin itself as the callback URL. Server continues validating the token and enforcing user data-source rules. Auth0 configuration is required before sign-in can work on a new origin.

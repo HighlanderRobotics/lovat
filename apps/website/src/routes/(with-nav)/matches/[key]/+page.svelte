@@ -70,17 +70,23 @@
 	<ScoreBreakdown alliances={data.breakdowns} />
 
 	<nav class="match-navigation" aria-label="Adjacent matches">
-		<DensityProvider density="compact">
-			{#if data.previous}<Button
-					element="a"
-					variant="secondary"
-					href={`/matches/${data.previous.key}`}
-					>← {matchLabel(data.previous, tournament.playoffType)}</Button
-				>{/if}
-			{#if data.next}<Button element="a" variant="secondary" href={`/matches/${data.next.key}`}
-					>{matchLabel(data.next, tournament.playoffType)} →</Button
-				>{/if}
-		</DensityProvider>
+		<div class="previous-match">
+			<DensityProvider density="compact">
+				{#if data.previous}<Button
+						element="a"
+						variant="secondary"
+						href={`/matches/${data.previous.key}`}
+						>← {matchLabel(data.previous, tournament.playoffType)}</Button
+					>{/if}
+			</DensityProvider>
+		</div>
+		<div class="next-match">
+			<DensityProvider density="compact">
+				{#if data.next}<Button element="a" variant="secondary" href={`/matches/${data.next.key}`}
+						>{matchLabel(data.next, tournament.playoffType)} →</Button
+					>{/if}
+			</DensityProvider>
+		</div>
 	</nav>
 </main>
 
@@ -125,6 +131,15 @@
 		gap: 12px;
 		margin-top: 20px;
 	}
+	.previous-match,
+	.next-match {
+		min-width: 0;
+	}
+	.next-match {
+		margin-left: auto;
+		text-align: right;
+	}
+
 	@media (max-width: 600px) {
 		main {
 			padding: 26px 20px 44px;

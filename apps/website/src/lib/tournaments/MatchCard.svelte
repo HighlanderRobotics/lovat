@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PredictionBar from '$lib/tournaments/PredictionBar.svelte';
 	import { matchLabel } from '$lib/tournaments/matchLabel';
 	import type { z } from 'zod';
 	import type { tournamentSchema } from '$lib/server/tournament';
@@ -62,6 +63,11 @@
 			{#if match.actualTime}<span>Actual time <strong>{time(match.actualTime)}</strong></span>{/if}
 		</div>
 	</div>
+
+	<PredictionBar
+		blue={match.teamSlots.filter((slot) => slot.alliance === 'BLUE').map((slot) => slot.teamNumber)}
+		red={match.teamSlots.filter((slot) => slot.alliance === 'RED').map((slot) => slot.teamNumber)}
+	/>
 
 	<div class="alliances">
 		{#each ['BLUE', 'RED'] as color}

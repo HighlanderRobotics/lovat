@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { teamRecords } from '$lib/tournaments/teamRecords';
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
@@ -30,6 +31,7 @@
 			.filter(({ team }) => team.avatar)
 			.map(({ team }) => [team.number, { logo: team.avatar!, color: '130, 130, 130' }])
 	);
+	$: records = teamRecords(tournament.matches);
 	$: eventWinners = awardTeams(1);
 	$: impactWinners = awardTeams(0);
 	$: year = tournament.seasonYear ?? Number(tournament.key.slice(0, 4));
@@ -358,7 +360,9 @@
 				/>
 			</div>
 			<div class="roster">
-				{#each filteredTeams as { team } (team.number)}<a
+				{#each filteredTeams as { team } (team.number)}
+					{@const record = records.get(team.number) ?? { wins: 0, losses: 0, ties: 0 }}
+					<a
 						style={`--team-color: ${teamBranding[team.number]?.color ?? '130, 130, 130'}`}
 						class="team-card"
 						use:avatarGradient
@@ -372,6 +376,11 @@
 								/>{:else}<span>{team.number}</span>{/if}
 						</div>
 						<div class="team-identity"><strong>{team.number}</strong><span>{team.name}</span></div>
+						<span
+							class="team-record"
+							aria-label={`${record.wins} wins, ${record.losses} losses, ${record.ties} ties`}
+							title="Wins–Losses–Ties">{record.wins}–{record.losses}–{record.ties}</span
+						>
 						<div class="team-awards">
 							{#if eventWinners.has(team.number)}<AwardMarker award="winner" />{/if}
 							{#if impactWinners.has(team.number)}<AwardMarker award="impact" />{/if}
@@ -629,10 +638,16 @@
 		color: var(--body);
 		overflow-wrap: anywhere;
 	}
+	.team-record {
+		margin-left: auto;
+		white-space: nowrap;
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+	}
+
 	.team-awards {
 		display: flex;
 		gap: 8px;
-		margin-left: auto;
 	}
 
 	button:focus-visible {
