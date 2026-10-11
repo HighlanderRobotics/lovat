@@ -97,13 +97,13 @@
 		return { destroy: () => observer.disconnect() };
 	}
 
-	function pie(index: number) {
+	function pie(entries: { role: string; percentage: number }[], index: number) {
 		const start =
-			(distribution.slice(0, index).reduce((sum, entry) => sum + entry.percentage, 0) / 100) *
+			(entries.slice(0, index).reduce((sum, entry) => sum + entry.percentage, 0) / 100) *
 				Math.PI *
 				2 -
 			Math.PI / 2;
-		const end = start + (distribution[index].percentage / 100) * Math.PI * 2;
+		const end = start + (entries[index].percentage / 100) * Math.PI * 2;
 
 		return `M150 150 L${150 + 132 * Math.cos(start)} ${150 + 132 * Math.sin(start)} A132 132 0 ${end - start > Math.PI ? 1 : 0} 1 ${150 + 132 * Math.cos(end)} ${150 + 132 * Math.sin(end)} Z`;
 	}
@@ -228,7 +228,7 @@
 									fill={roles[entry.role].color}
 									><title>{roles[entry.role].label}: {entry.percentage.toFixed(1)}%</title></circle
 								>
-							{:else}<path d={pie(index)} fill={roles[entry.role].color}
+							{:else}<path d={pie(distribution, index)} fill={roles[entry.role].color}
 									><title>{roles[entry.role].label}: {entry.percentage.toFixed(1)}%</title></path
 								>{/if}
 						{/each}
