@@ -147,5 +147,122 @@
 		"license": "Public domain",
 		"licenseUrl": "",
 		"bytes": 274226
+	},
+	"Houston": {
+		"source": "https://commons.wikimedia.org/wiki/File:Houston_panorama.jpg",
+		"author": "Henry Han",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/houston.jpg",
+		"bytes": 96996
+	},
+	"Flint": {
+		"source": "https://commons.wikimedia.org/wiki/File:Flint,_Michigan_Skyline.jpg",
+		"author": "WeaponizingArchitecture",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"position": "50% 75%",
+		"image": "/assets/cities/flint.jpg",
+		"bytes": 84646
+	},
+	"University Center": {
+		"source": "https://commons.wikimedia.org/wiki/File:Saginaw_Valley_State_University%27s_Regional_Education_Center_(4323596316).jpg",
+		"author": "Saginaw Future Inc.",
+		"license": "CC BY 2.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+		"position": "50% 40%",
+		"image": "/assets/cities/university-center.jpg",
+		"bytes": 257470
+	},
+	"Istanbul": {
+		"source": "https://commons.wikimedia.org/wiki/File:Bosphorus_Bridge,_%C4%B0stanbul,_Turkey,_2010_-_panoramio.jpg",
+		"author": "Tugrul Kagan Ates",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/istanbul.jpg",
+		"bytes": 226126
+	},
+	"İstanbul": {
+		"source": "https://commons.wikimedia.org/wiki/File:Bosphorus_Bridge,_%C4%B0stanbul,_Turkey,_2010_-_panoramio.jpg",
+		"author": "Tugrul Kagan Ates",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/istanbul.jpg",
+		"bytes": 226126
+	},
+	"Başakşehir / İstanbul": {
+		"source": "https://commons.wikimedia.org/wiki/File:Bosphorus_Bridge,_%C4%B0stanbul,_Turkey,_2010_-_panoramio.jpg",
+		"author": "Tugrul Kagan Ates",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/istanbul.jpg",
+		"bytes": 226126
+	},
+	"Bakırköy / İstanbul": {
+		"source": "https://commons.wikimedia.org/wiki/File:Bosphorus_Bridge,_%C4%B0stanbul,_Turkey,_2010_-_panoramio.jpg",
+		"author": "Tugrul Kagan Ates",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/istanbul.jpg",
+		"bytes": 226126
+	},
+	"Rochester": {
+		"source": "https://commons.wikimedia.org/wiki/File:Highfallsrochester.jpg",
+		"author": "Evilarry",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/rochester.jpg",
+		"bytes": 255271
+	},
+	"Wilsonville": {
+		"source": "https://commons.wikimedia.org/wiki/File:Wilsonville_railroad_bridge.jpg",
+		"author": "Cjdaniel",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"position": "50% 45%",
+		"image": "/assets/cities/wilsonville.jpg",
+		"bytes": 330089
+	},
+	"Hamilton": {
+		"source": "https://commons.wikimedia.org/wiki/File:HamiltonOntarioSkylineC.JPG",
+		"author": "Rick Cordeiro",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "50% 40%",
+		"image": "/assets/cities/hamilton.jpg",
+		"bytes": 374482
+	},
+	"Niagara Falls": {
+		"source": "https://commons.wikimedia.org/wiki/File:NiagaraFallsSkylon.jpg",
+		"author": "Cimosteve",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"position": "50% 50%",
+		"image": "/assets/cities/niagara-falls.jpg",
+		"bytes": 173255
+	},
+	"Hadera": {
+		"source": "https://commons.wikimedia.org/wiki/File:PikiWiki_Israel_72716_hadera_river_park.jpg",
+		"author": "Israel Preker / Heritage Conservation Outside The City / Pikiwiki Israel",
+		"license": "CC BY 2.5",
+		"licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+		"position": "50% 50%",
+		"image": "/assets/cities/hadera.jpg",
+		"bytes": 267355
+	},
+	"West Springfield": {
+		"source": "https://commons.wikimedia.org/wiki/File:Storrowton_Green,_Eastern_States_Exposition,_West_Springfield_MA.jpg",
+		"author": "John Phelan",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"position": "50% 40%",
+		"image": "/assets/cities/west-springfield.jpg",
+		"bytes": 433937
 	}
 }
