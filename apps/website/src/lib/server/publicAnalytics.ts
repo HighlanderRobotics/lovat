@@ -75,13 +75,14 @@ export const photoSchema = z.object({
 export async function fetchPublic<T>(
 	fetcher: typeof fetch,
 	path: string,
-	schema: z.ZodType<T>
+	schema: z.ZodType<T>,
+	timeoutMs = 20_000
 ): Promise<T> {
 	if (!env.LOVAT_API_BASE) throw new Error('Public data unavailable');
 
 	const response = await fetcher(`${env.LOVAT_API_BASE}/v1/public/${path}`, {
 		credentials: 'omit',
-		signal: AbortSignal.timeout(20_000)
+		signal: AbortSignal.timeout(timeoutMs)
 	});
 
 	if (!response.ok) throw new Error('Public data unavailable');

@@ -13,7 +13,8 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 
 	const path = `teams/${params.number}/${params.year}`;
 	const [metrics, photo] = await Promise.allSettled([
-		fetchPublic(fetch, `${path}/metrics`, metricsSchema),
+		// The shared season percentile distribution may need a cold-cache calculation.
+		fetchPublic(fetch, `${path}/metrics`, metricsSchema, 45_000),
 		fetchPublic(fetch, `${path}/photo`, photoSchema)
 	]);
 
