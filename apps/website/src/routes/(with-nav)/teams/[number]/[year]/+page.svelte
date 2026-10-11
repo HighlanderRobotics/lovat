@@ -1,9 +1,48 @@
 <script lang="ts">
+	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { goto } from '$app/navigation';
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient } from '$lib/tournaments/branding';
 	import { eventWallpaper } from '$lib/tournaments/wallpaper';
 	import type { PageData } from './$types';
+	import type { z } from 'zod';
+	import type { tournamentSchema } from '$lib/server/tournament';
+
+	type Tournament = z.infer<typeof tournamentSchema>;
+	type EventDetails = {
+		matches: Tournament['matches'];
+		timezone: string | null;
+		teams: { number: number; name: string }[];
+		playoffType: number | null;
+		alliance: (NonNullable<Tournament['allianceSelections']>[number] & { number: number }) | null;
+	};
+	type EventState = { loading?: boolean; error?: boolean; data?: EventDetails };
+
+	let eventDetails: Record<string, EventState> = {};
+
+	$: if (data.team) eventDetails = {};
+
+	async function loadEvent(key: string) {
+		if (eventDetails[key]?.loading || eventDetails[key]?.data) return;
+
+		const profile = data.team;
+
+		eventDetails = { ...eventDetails, [key]: { loading: true } };
+
+		try {
+			const response = await fetch(
+				`/teams/${profile.teamNumber}/${profile.seasonYear}/events/${key}`
+			);
+
+			if (!response.ok) throw new Error('Event unavailable');
+
+			const details: EventDetails = await response.json();
+
+			if (data.team === profile) eventDetails = { ...eventDetails, [key]: { data: details } };
+		} catch {
+			if (data.team === profile) eventDetails = { ...eventDetails, [key]: { error: true } };
+		}
+	}
 
 	export let data: PageData;
 
@@ -116,36 +155,85 @@
 		<div class="events">
 			{#each team.tournaments as event (event.key)}
 				{@const photo = eventWallpaper(event.district?.abbreviation, event.location, event.key)}
-				<a
-					class="event"
-					class:portrait={photo.fit === 'contain'}
-					href={`/tournaments/${event.key}`}
+				<details
+					class="event-dropdown"
+					on:toggle={(e) => {
+						if (e.currentTarget.open) void loadEvent(event.key);
+					}}
 				>
-					<img
-						class="wallpaper"
-						src={photo.image}
-						style:object-position={photo.position}
-						style:object-fit={photo.fit ?? 'cover'}
-						alt=""
-						loading="lazy"
-					/>
-					<div>
-						<strong>{event.name}</strong><span
-							>{[event.location, event.week !== null ? `Week ${event.week + 1}` : null]
-								.filter(Boolean)
-								.join(' · ')}</span
+					<summary class="event" class:portrait={photo.fit === 'contain'}>
+						<img
+							class="wallpaper"
+							src={photo.image}
+							style:object-position={photo.position}
+							style:object-fit={photo.fit ?? 'cover'}
+							alt=""
+							loading="lazy"
+						/>
+						<div>
+							<strong>{event.name}</strong><span
+								>{[event.location, event.week !== null ? `Week ${event.week + 1}` : null]
+									.filter(Boolean)
+									.join(' · ')}</span
+							>
+						</div>
+						<span class="dates"
+							><span>{date(event.startDate)}</span
+							>{#if event.endDate && event.endDate !== event.startDate}<span>–</span><span
+									>{date(event.endDate)}</span
+								>{/if}</span
 						>
-						{#if event.awards.length}<div class="awards">
+						<span class="expand-icon" aria-hidden="true">⌄</span>
+					</summary>
+					<div class="event-content">
+						<a class="tournament-link" href={`/tournaments/${event.key}`}>View tournament →</a>
+						<h3>Awards</h3>
+						{#if event.awards.length}
+							<div class="awards">
 								{#each event.awards as award}<span>{award}</span>{/each}
-							</div>{/if}
+							</div>
+						{:else}<p>No awards.</p>{/if}
+
+						{#if eventDetails[event.key]?.loading}
+							<p role="status">Loading matches and alliance…</p>
+						{:else if eventDetails[event.key]?.error}
+							<p role="alert">Matches and alliance are temporarily unavailable.</p>
+							<button class="retry" on:click={() => loadEvent(event.key)}>Retry</button>
+						{:else if eventDetails[event.key]?.data}
+							{@const details = eventDetails[event.key].data!}
+							<h3>Alliance</h3>
+							{#if details.alliance}
+								<div class="selected-alliance">
+									<strong>Alliance {details.alliance.number}</strong>
+									{#each details.alliance.teams as number}<a
+											class:current-team={number === team.teamNumber}
+											href={`/teams/${number}/${team.seasonYear}`}>{number}</a
+										>{/each}
+								</div>
+								{#if details.alliance.backup}<p class="backup">
+										Backup: <a href={`/teams/${details.alliance.backup.in}/${team.seasonYear}`}
+											>{details.alliance.backup.in}</a
+										>
+										replacing {details.alliance.backup.out}
+									</p>{/if}
+							{:else}<p>No alliance selection.</p>{/if}
+
+							<h3>Matches</h3>
+							<div class="team-matches">
+								{#each details.matches as match (match.key)}
+									<MatchCard
+										{match}
+										playoffType={details.playoffType}
+										timezone={details.timezone}
+										year={team.seasonYear}
+										teamNames={new Map(details.teams.map((entry) => [entry.number, entry.name]))}
+										highlightedTeam={team.teamNumber}
+									/>
+								{:else}<p>No matches imported yet.</p>{/each}
+							</div>
+						{/if}
 					</div>
-					<span class="dates"
-						><span>{date(event.startDate)}</span
-						>{#if event.endDate && event.endDate !== event.startDate}<span>–</span><span
-								>{date(event.endDate)}</span
-							>{/if}</span
-					>
-				</a>
+				</details>
 			{:else}<p>No events imported for this season.</p>{/each}
 		</div>
 	</section>
@@ -266,6 +354,8 @@
 		gap: 10px;
 	}
 	.event {
+		cursor: pointer;
+		list-style: none;
 		position: relative;
 		isolation: isolate;
 		overflow: hidden;
@@ -325,9 +415,63 @@
 		border-radius: 4px;
 		padding: 5px 8px;
 	}
+	.event::-webkit-details-marker {
+		display: none;
+	}
+	.expand-icon {
+		font-size: 24px !important;
+	}
+	.event-dropdown[open] .expand-icon {
+		transform: rotate(180deg);
+	}
+	.event-content {
+		padding: 20px;
+		border: 1px solid var(--light-gray);
+		border-top: 0;
+		border-radius: 0 0 7px 7px;
+	}
+	.event-dropdown[open] .event {
+		border-radius: 7px 7px 0 0;
+	}
+	.event-content h3 {
+		margin: 24px 0 12px;
+		font-size: 18px;
+		font-weight: 500;
+	}
+	.tournament-link,
+	.backup a {
+		color: var(--victory-purple);
+	}
+	.selected-alliance {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+	.backup {
+		margin-top: 10px;
+	}
+	.current-team {
+		font-weight: 700;
+	}
+	.team-matches {
+		display: grid;
+		gap: 8px;
+	}
+	.retry {
+		margin-top: 10px;
+		padding: 8px 12px;
+		color: var(--on-background);
+		background: var(--secondary-container);
+		border: 1px solid var(--light-gray);
+		border-radius: 6px;
+		cursor: pointer;
+	}
+
 	.event:hover {
 		border-color: var(--victory-purple);
 	}
+	summary:focus-visible,
+	button:focus-visible,
 	a:focus-visible,
 	select:focus-visible {
 		outline: 2px solid var(--victory-purple);

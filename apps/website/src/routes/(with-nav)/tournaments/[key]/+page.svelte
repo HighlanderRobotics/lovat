@@ -1,4 +1,5 @@
 <script lang="ts">
+	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
 	import TournamentAlliances from './TournamentAlliances.svelte';
@@ -101,44 +102,6 @@
 			month: 'short',
 			day: 'numeric'
 		}).format(new Date(`${value}T12:00:00Z`));
-	}
-
-	function matchLabel(match: Match) {
-		if (match.competitionLevel === 'QUALIFICATION') return `Qualification ${match.matchNumber}`;
-
-		if (match.competitionLevel === 'FINAL') {
-			return match.matchNumber === 3 ? 'Finals Tiebreaker' : `Finals Match ${match.matchNumber}`;
-		}
-
-		// Only apply double-elimination labels to that format.
-		if (match.competitionLevel === 'SEMIFINAL' && tournament.playoffType === 10) {
-			const bracketNames: Record<number, string> = {
-				1: 'Upper Bracket Round 1',
-				2: 'Upper Bracket Round 1',
-				3: 'Upper Bracket Round 1',
-				4: 'Upper Bracket Round 1',
-				5: 'Lower Bracket Round 1',
-				6: 'Lower Bracket Round 1',
-				7: 'Upper Bracket Round 2',
-				8: 'Upper Bracket Round 2',
-				9: 'Lower Bracket Round 2',
-				10: 'Lower Bracket Round 2',
-				11: 'Upper Bracket Final',
-				12: 'Lower Bracket Semifinal',
-				13: 'Lower Bracket Final'
-			};
-
-			return `${bracketNames[match.setNumber]} · Match ${match.setNumber}`;
-		}
-
-		const stage =
-			match.competitionLevel === 'SEMIFINAL'
-				? 'Semifinal'
-				: match.competitionLevel === 'QUARTERFINAL'
-					? 'Quarterfinal'
-					: 'Eighthfinal';
-
-		return `${stage} ${match.setNumber} · Match ${match.matchNumber}`;
 	}
 
 	async function jumpToEliminations() {
@@ -329,76 +292,21 @@
 					{#if index === 0 || dateKey(matchTime(filteredMatches[index - 1])) !== dateKey(matchTime(match))}
 						<h3 class="day-heading">{dayLabel(dateKey(matchTime(match)))}</h3>
 					{/if}
-					<article
-						class="match-card"
+					<MatchCard
+						{match}
+						playoffType={tournament.playoffType}
+						{timezone}
+						{year}
+						{teamNames}
+						highlightedTeam={Number(teamFilter) || undefined}
+						onTeamSelect={(number) => (teamFilter = String(number))}
 						id={match.competitionLevel !== 'QUALIFICATION' &&
 						!filteredMatches
 							.slice(0, index)
 							.some((previous) => previous.competitionLevel !== 'QUALIFICATION')
 							? 'eliminations'
 							: undefined}
-						tabindex="-1"
-						aria-label={matchLabel(match)}
-					>
-						<div class="match-header">
-							<div class="match-title">
-								<h4>{matchLabel(match)}</h4>
-								<span class="badge">{match.status.replaceAll('_', ' ')}</span>
-							</div>
-							<div class="scores" aria-label="Alliance scores">
-								{#each ['BLUE', 'RED'] as color}
-									<span
-										class="score"
-										class:blue-score={color === 'BLUE'}
-										class:red-score={color === 'RED'}
-										class:winner={match.winningAlliance === color}
-										aria-label={`${color === 'BLUE' ? 'Blue' : 'Red'} alliance score`}
-									>
-										<span
-											>{match.alliances.find((alliance) => alliance.color === color)?.score ??
-												'—'}</span
-										>
-									</span>
-									{#if color === 'BLUE'}<span class="score-divider" aria-hidden="true">–</span>{/if}
-								{/each}
-							</div>
-							<div class="timing">
-								<span>Scheduled time <strong>{time(match.scheduledTime)}</strong></span>
-								{#if match.actualTime}<span
-										>Actual time <strong>{time(match.actualTime)}</strong></span
-									>{/if}
-							</div>
-						</div>
-
-						<div class="alliances">
-							{#each ['BLUE', 'RED'] as color}
-								<div class="alliance" class:red={color === 'RED'} class:blue={color === 'BLUE'}>
-									<div class="participants">
-										{#each match.teamSlots.filter((slot) => slot.alliance === color) as slot}
-											<button
-												class="team-number"
-												class:disqualified={slot.disqualified === true}
-												class:highlighted={teamFilter.trim() === String(slot.teamNumber)}
-												on:click={() => (teamFilter = String(slot.teamNumber))}
-												aria-label={`Show matches for team ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}`}
-												><strong>{slot.teamNumber}</strong>
-												{#if teamNames.has(slot.teamNumber)}<span class="team-name"
-														>{teamNames.get(slot.teamNumber)}</span
-													>{/if}{#if slot.surrogate || slot.disqualified}<span
-														>{#if slot.surrogate}S{/if}{#if slot.surrogate && slot.disqualified}
-															·
-														{/if}{#if slot.disqualified}DQ{/if}</span
-													>{/if}</button
-											>
-										{/each}
-										{#if !match.teamSlots.some((slot) => slot.alliance === color)}<span
-												>Teams TBD</span
-											>{/if}
-									</div>
-								</div>
-							{/each}
-						</div>
-					</article>
+					/>
 					{@const gap = gapsAfter.get(match.key)}
 					{#if gap && !teamFilter && phase === 'all' && completion === 'all'}
 						<div class="break-row">
@@ -650,147 +558,6 @@
 		font-size: 18px;
 		font-weight: 500;
 	}
-	.match-card {
-		scroll-margin-top: 90px;
-		overflow: hidden;
-		border-radius: 7px;
-		background: var(--secondary-container);
-	}
-	.match-header {
-		padding: 12px 16px;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-		align-items: center;
-		gap: 12px;
-	}
-
-	.match-title {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 8px;
-	}
-	h4 {
-		margin: 0;
-		font-size: 15px;
-		font-weight: 500;
-	}
-	.badge {
-		background: var(--light-gray);
-		border-radius: 5px;
-		padding: 5px 7px;
-		font-size: 10px;
-		letter-spacing: 0.4px;
-	}
-	.timing {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		font-variant-numeric: tabular-nums;
-	}
-	.timing strong {
-		font-size: 14px;
-		font-weight: 500;
-	}
-	.timing span {
-		font-size: 11px;
-		color: var(--body);
-	}
-	.alliances {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-	}
-	/* Alliance tokens shared with Dashboard's darkColorScheme. */
-	.alliance {
-		padding: 12px 16px;
-		min-width: 0;
-	}
-	.red {
-		background: #793f3f;
-	}
-	.blue {
-		background: #364077;
-	}
-	.scores {
-		display: flex;
-		justify-content: center;
-		gap: 12px;
-		align-items: center;
-		padding: 0;
-	}
-	.blue-score > span {
-		color: #a2a7d0;
-	}
-	.red-score > span {
-		color: #d0a2a2;
-	}
-	.score-divider {
-		color: var(--body);
-	}
-
-	.score {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		font-size: 20px;
-		font-weight: 500;
-		font-variant-numeric: tabular-nums;
-	}
-	.score.winner > span {
-		text-decoration: underline;
-		text-underline-offset: 4px;
-	}
-	.participants {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 10px;
-	}
-	.team-number {
-		min-width: 0;
-		overflow-wrap: anywhere;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		padding: 0;
-		border: 0;
-		background: transparent;
-		color: var(--on-background);
-		cursor: pointer;
-		text-align: left;
-	}
-	.team-number:nth-child(2) {
-		align-items: center;
-		text-align: center;
-	}
-	.team-number:nth-child(3) {
-		align-items: flex-end;
-		text-align: right;
-	}
-	.team-number strong {
-		font-size: 20px;
-		font-weight: 400;
-	}
-	.team-name {
-		margin-top: 3px;
-	}
-	.team-number span {
-		font-size: 11px;
-		color: #d0a2a2;
-	}
-	.blue .team-number span {
-		color: #a2a7d0;
-	}
-	.team-number.disqualified strong,
-	.team-number.disqualified .team-name {
-		text-decoration: line-through;
-	}
-	.team-number.highlighted strong {
-		text-decoration: underline;
-		text-underline-offset: 4px;
-	}
-	.team-number.disqualified.highlighted strong {
-		text-decoration: underline line-through;
-	}
 	.break-row {
 		display: flex;
 		justify-content: space-between;
@@ -891,27 +658,6 @@
 		}
 		.team-filter {
 			grid-column: 1 / -1;
-		}
-		.alliances {
-			grid-template-columns: 1fr;
-		}
-		.match-header {
-			padding: 10px;
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		}
-		.scores {
-			grid-column: 1 / -1;
-			grid-row: 2;
-		}
-		.match-title {
-			max-width: 100%;
-		}
-		.timing {
-			max-width: 100%;
-			text-align: right;
-		}
-		.alliance {
-			padding: 10px;
 		}
 		.break-row {
 			align-items: flex-start;
