@@ -291,3 +291,7 @@ Districts are available at `/[district]/[year]` (for example `/ca/2026`).
 Events are grouped by the imported regular-season week, with district championships
 in a separate section. Town wallpapers currently cover California. District avatars
 load through the public image endpoint only near the viewport.
+
+### Historical seasons
+
+Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.

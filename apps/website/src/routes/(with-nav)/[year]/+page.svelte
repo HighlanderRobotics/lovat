@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
 	import { nestedEvents } from '$lib/tournaments/eventHierarchy';
 	import type { PageData } from './$types';
@@ -6,6 +7,8 @@
 	export let data: PageData;
 
 	let search = '';
+	let selectedYear: number;
+	$: selectedYear = data.season.year;
 
 	$: season = data.season;
 	$: matchingEvents = season.tournaments.filter((event) =>
@@ -79,7 +82,17 @@
 
 <main>
 	<header>
-		<h1>{season.year} Season</h1>
+		<div class="season-heading">
+			<h1>{season.year} Season</h1>
+			<select
+				aria-label="Season"
+				bind:value={selectedYear}
+				on:change={() => goto(`/${selectedYear}`)}
+			>
+				{#each season.seasonYears ?? [season.year] as year}<option value={year}>{year}</option
+					>{/each}
+			</select>
+		</div>
 		{#if season.gameName}<p>{season.gameName}</p>{/if}
 	</header>
 
@@ -151,6 +164,24 @@
 </main>
 
 <style>
+	.season-heading {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
+	}
+	select {
+		background: var(--secondary-container);
+		color: var(--on-background);
+		border: 1px solid var(--light-gray);
+		border-radius: 7px;
+		padding: 8px 12px;
+		font: inherit;
+	}
+	select:focus-visible {
+		outline: 2px solid var(--victory-purple);
+		outline-offset: 3px;
+	}
 	main {
 		max-width: 1160px;
 		margin: 0 auto;

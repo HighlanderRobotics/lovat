@@ -45,8 +45,13 @@ export async function getSeason(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    const seasons = await prismaClient.season.findMany({
+      orderBy: { year: "desc" },
+      select: { year: true },
+    });
+
     res.set("Cache-Control", "public, max-age=300");
-    res.json(season);
+    res.json({ ...season, seasonYears: seasons.map(({ year }) => year) });
   } catch {
     res.status(503).json({ error: "Season data is temporarily unavailable" });
   }

@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { z } from 'zod';
 import { tournamentSchema } from '$lib/server/tournament';
 import type { PageServerLoad } from './$types';
 
@@ -44,7 +45,34 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
 
 	setHeaders({ 'cache-control': 'public, max-age=30' });
 
+	let breakdowns: { color: 'BLUE' | 'RED'; scoreBreakdown: Record<string, unknown> | null }[] = [];
+
+	try {
+		const breakdownResponse = await fetch(`${env.LOVAT_API_BASE}/v1/matches/${params.key}`, {
+			signal: AbortSignal.timeout(10_000)
+		});
+
+		if (breakdownResponse.ok) {
+			const result = z
+				.object({
+					key: z.literal(params.key),
+					alliances: z.array(
+						z.object({
+							color: z.enum(['BLUE', 'RED']),
+							scoreBreakdown: z.record(z.string(), z.unknown()).nullable()
+						})
+					)
+				})
+				.safeParse(await breakdownResponse.json());
+
+			if (result.success) breakdowns = result.data.alliances;
+		}
+	} catch {
+		// Keep the match result available while breakdown data is unavailable.
+	}
+
 	return {
+		breakdowns,
 		match: tournament.matches[index],
 		previous: tournament.matches[index - 1] ?? null,
 		next: tournament.matches[index + 1] ?? null,

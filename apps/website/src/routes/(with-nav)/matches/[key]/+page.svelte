@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
+	import ScoreBreakdown from '$lib/tournaments/ScoreBreakdown.svelte';
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { matchLabel } from '$lib/tournaments/matchLabel';
 	import type { PageData } from './$types';
@@ -65,6 +66,8 @@
 		{teamNames}
 		linkToMatch={false}
 	/>
+
+	<ScoreBreakdown alliances={data.breakdowns} />
 
 	<nav class="match-navigation" aria-label="Adjacent matches">
 		<DensityProvider density="compact">

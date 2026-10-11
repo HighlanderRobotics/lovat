@@ -12,6 +12,8 @@ import { getSeason } from "../handler/tournaments/getSeason.js";
 import { getDistrict } from "../handler/tournaments/getDistrict.js";
 import { getTournament } from "../handler/tournaments/getTournament.js";
 
+import { getMatch } from "../handler/tournaments/getMatch.js";
+
 const router = Router();
 
 router.use("/slack", slackRouter);
@@ -19,6 +21,7 @@ router.use("/manager", managerRouter);
 router.use("/analysis", analysisRouter);
 
 router.get("/tournaments/:key", getTournament);
+router.get("/matches/:key", getMatch);
 router.get("/districts/:key", getDistrict);
 router.get("/seasons/:year", getSeason);
 router.get("/teams/:number/avatar/:year", getTeamAvatar);

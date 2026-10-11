@@ -5,6 +5,7 @@ import type { PageServerLoad } from './$types';
 
 const seasonSchema = z.object({
 	year: z.number().int(),
+	seasonYears: z.array(z.number().int()).optional(),
 	gameName: z.string().nullable(),
 	districtSeasons: z.array(
 		z.object({ key: z.string(), abbreviation: z.string(), name: z.string() })

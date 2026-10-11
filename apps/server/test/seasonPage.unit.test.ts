@@ -1,10 +1,13 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { invoke } from "./helpers/handlerHarness.js";
 
-const findUnique = vi.hoisted(() => vi.fn());
+const { findUnique, findMany } = vi.hoisted(() => ({
+  findUnique: vi.fn(),
+  findMany: vi.fn(),
+}));
 
 vi.mock("../src/prismaClient.js", () => ({
-  default: { season: { findUnique } },
+  default: { season: { findUnique, findMany } },
 }));
 
 import { getSeason } from "../src/handler/tournaments/getSeason.js";
@@ -19,6 +22,7 @@ it("returns public season districts and events without team or scouting data", a
     tournaments: [],
   };
   findUnique.mockResolvedValue(season);
+  findMany.mockResolvedValue([{ year: 2026 }, { year: 2025 }, { year: 2024 }]);
 
   const res = await invoke(getSeason, { params: { year: "2026" } });
   const query = findUnique.mock.calls[0]![0];
@@ -42,7 +46,11 @@ it("returns public season districts and events without team or scouting data", a
   });
   expect(JSON.stringify(query)).not.toContain("teamSeasons");
   expect(JSON.stringify(query)).not.toContain("scoutReports");
-  expect(res.body).toEqual(season);
+  expect(findMany).toHaveBeenCalledWith({
+    orderBy: { year: "desc" },
+    select: { year: true },
+  });
+  expect(res.body).toEqual({ ...season, seasonYears: [2026, 2025, 2024] });
   expect(res.headers["Cache-Control"]).toBe("public, max-age=300");
 });
 
