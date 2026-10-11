@@ -35,7 +35,7 @@ test('unmapped competitions use a variety of fallback photos', () => {
 });
 
 test('event, location, and district overrides retain their precedence', () => {
-	assert.equal(eventWallpaper('ca', 'Houston', '2026cur').image, '/assets/worlds/cur.jpg');
+	assert.equal(eventWallpaper('ca', 'Houston', '2026cur').image, '/assets/worlds/icons/cur.svg');
 	assert.equal(
 		eventWallpaper('ont', 'Rochester', '2026nyro').image,
 		'/assets/cities/rochester.jpg'

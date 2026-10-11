@@ -180,11 +180,8 @@
 				>
 					<summary
 						class="event"
-						style:--portrait-background={photo.background ?? '#181818'}
-						style:--portrait-extension={photo.backgroundImage
-							? `url("${photo.backgroundImage}")`
-							: 'none'}
-						class:portrait={photo.fit === 'contain'}
+						style:--division-background={photo.background ?? '#181818'}
+						class:division-symbol={photo.symbol === true}
 					>
 						<img
 							class="wallpaper"
@@ -589,27 +586,27 @@
 		}
 	}
 
-	.event.portrait {
-		background-image: var(--portrait-extension), var(--portrait-background);
-		background-size: cover;
-		background-position: center;
-		min-height: 144px;
-		padding-right: 190px;
+	.event.division-symbol {
+		background: var(--division-background);
+		min-height: 108px;
+		padding-right: 150px;
 		flex-direction: column;
 		align-items: flex-start;
 		justify-content: center;
 		gap: 12px;
 	}
 
-	.event.portrait img {
+	.event.division-symbol img {
 		left: auto;
-		right: 44px;
+		right: 52px;
 		width: auto;
-		max-width: 140px;
-		mask-image: linear-gradient(90deg, transparent, #000 24%);
+		max-width: 80px;
+		top: 20px;
+		height: calc(100% - 40px);
+		mask-image: none;
 	}
 
-	.event.portrait::before {
-		background: linear-gradient(90deg, #10101099, #10101033 70%, transparent);
+	.event.division-symbol::before {
+		background: linear-gradient(90deg, #10101033, transparent);
 	}
 </style>

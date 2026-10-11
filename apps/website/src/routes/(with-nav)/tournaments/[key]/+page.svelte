@@ -142,11 +142,8 @@
 	<header
 		class="event-header"
 		class:has-wallpaper={!!wallpaper}
-		style:--portrait-background={wallpaper.background ?? '#181818'}
-		style:--portrait-extension={wallpaper.backgroundImage
-			? `url("${wallpaper.backgroundImage}")`
-			: 'none'}
-		class:portrait={wallpaper.fit === 'contain'}
+		style:--division-background={wallpaper.background ?? '#181818'}
+		class:division-symbol={wallpaper.symbol === true}
 	>
 		{#if wallpaper}<img
 				class="town-wallpaper"
@@ -699,20 +696,29 @@
 		}
 	}
 
-	.event-header.portrait {
-		background-image: var(--portrait-extension), var(--portrait-background);
-		background-size: cover;
-		background-position: center;
+	.event-header.division-symbol {
+		background: var(--division-background);
 	}
 
-	.event-header.portrait .town-wallpaper {
+	.event-header.division-symbol .town-wallpaper {
 		left: auto;
-		width: auto;
-		max-width: 45%;
-		mask-image: linear-gradient(90deg, transparent, #000 30%);
+		right: 32px;
+		top: 20%;
+		height: 60%;
+		width: 32%;
+		mask-image: none;
 	}
 
-	.event-header.portrait::before {
-		background: linear-gradient(90deg, #10101099, #10101033 65%, transparent);
+	.event-header.division-symbol::before {
+		background: linear-gradient(90deg, #10101033, transparent);
+	}
+	@media (max-width: 600px) {
+		.event-header.division-symbol .town-wallpaper {
+			top: auto;
+			bottom: 28px;
+			right: 28px;
+			width: 112px;
+			height: 112px;
+		}
 	}
 </style>

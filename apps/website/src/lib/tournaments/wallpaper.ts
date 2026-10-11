@@ -13,7 +13,7 @@ type Wallpaper = {
 	position?: string;
 	fit?: string;
 	background?: string;
-	backgroundImage?: string;
+	symbol?: boolean;
 };
 
 const wallpapers: Record<string, Wallpaper> = townPhotos;
