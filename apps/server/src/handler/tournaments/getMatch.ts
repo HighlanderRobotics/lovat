@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prismaClient from "../../prismaClient.js";
+import { matchVideos } from "./matchVideos.js";
 
 export async function getMatch(req: Request, res: Response): Promise<void> {
   const key = req.params.key;
@@ -32,7 +33,7 @@ export async function getMatch(req: Request, res: Response): Promise<void> {
     }
 
     res.set("Cache-Control", "public, max-age=30");
-    res.json(match);
+    res.json({ ...match, videos: await matchVideos(key) });
   } catch {
     res.status(503).json({ error: "Match data is temporarily unavailable" });
   }

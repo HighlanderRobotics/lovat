@@ -201,7 +201,14 @@
 								>{/if}</span
 						>
 						<svg class="expand-icon" viewBox="0 0 24 24" aria-hidden="true">
-							<path fill="currentColor" d="m7 10 5 5 5-5z" />
+							<path
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="m6 9 6 6 6-6"
+							/>
 						</svg>
 					</summary>
 					<div class="event-content">
@@ -408,7 +415,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 16px;
-		padding: 20px;
+		padding: 20px 60px 20px 20px;
 		border: 1px solid var(--light-gray);
 		border-radius: 7px;
 		min-height: 108px;
@@ -464,6 +471,9 @@
 		display: none;
 	}
 	.expand-icon {
+		position: absolute;
+		right: 20px;
+		top: calc(50% - 12px);
 		width: 24px;
 		height: 24px;
 	}
@@ -574,7 +584,7 @@
 	.event.portrait {
 		background: #181818;
 		min-height: 144px;
-		padding-right: 150px;
+		padding-right: 190px;
 		flex-direction: column;
 		align-items: flex-start;
 		justify-content: center;
@@ -583,6 +593,7 @@
 
 	.event.portrait img {
 		left: auto;
+		right: 44px;
 		width: 140px;
 	}
 

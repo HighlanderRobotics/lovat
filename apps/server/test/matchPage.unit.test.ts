@@ -2,6 +2,11 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { invoke } from "./helpers/handlerHarness.js";
 
 const findUnique = vi.hoisted(() => vi.fn());
+const videos = vi.hoisted(() => vi.fn());
+
+vi.mock("../src/handler/tournaments/matchVideos.js", () => ({
+  matchVideos: videos,
+}));
 
 vi.mock("../src/prismaClient.js", () => ({
   default: { match: { findUnique } },
@@ -9,7 +14,10 @@ vi.mock("../src/prismaClient.js", () => ({
 
 import { getMatch } from "../src/handler/tournaments/getMatch.js";
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  videos.mockResolvedValue(["abcdefghijk"]);
+});
 
 it("selects only official match breakdowns, without scouting relations", async () => {
   const match = {
@@ -30,7 +38,8 @@ it("selects only official match breakdowns, without scouting relations", async (
       },
     },
   });
-  expect(res.body).toEqual(match);
+  expect(res.body).toEqual({ ...match, videos: ["abcdefghijk"] });
+  expect(videos).toHaveBeenCalledWith(match.key);
   expect(res.headers["Cache-Control"]).toBe("public, max-age=30");
 });
 

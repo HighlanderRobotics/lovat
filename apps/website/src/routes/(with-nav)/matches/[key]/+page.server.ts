@@ -46,6 +46,7 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
 	setHeaders({ 'cache-control': 'public, max-age=30' });
 
 	let breakdowns: { color: 'BLUE' | 'RED'; scoreBreakdown: Record<string, unknown> | null }[] = [];
+	let videos: string[] = [];
 
 	try {
 		const breakdownResponse = await fetch(`${env.LOVAT_API_BASE}/v1/matches/${params.key}`, {
@@ -56,6 +57,7 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
 			const result = z
 				.object({
 					key: z.literal(params.key),
+					videos: z.array(z.string().regex(/^[A-Za-z0-9_-]{11}$/)).optional(),
 					alliances: z.array(
 						z.object({
 							color: z.enum(['BLUE', 'RED']),
@@ -65,13 +67,17 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
 				})
 				.safeParse(await breakdownResponse.json());
 
-			if (result.success) breakdowns = result.data.alliances;
+			if (result.success) {
+				breakdowns = result.data.alliances;
+				videos = result.data.videos ?? [];
+			}
 		}
 	} catch {
 		// Keep the match result available while breakdown data is unavailable.
 	}
 
 	return {
+		videos,
 		breakdowns,
 		match: tournament.matches[index],
 		previous: tournament.matches[index - 1] ?? null,
