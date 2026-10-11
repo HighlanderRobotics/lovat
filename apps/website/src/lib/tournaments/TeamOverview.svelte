@@ -34,7 +34,7 @@
 {#if metrics || photo}
 	<section class="overview" aria-label="Robot and public scouting metrics">
 		{#if metrics}<div class="metrics">
-				<h2>Scouting metrics</h2>
+				<h2>Lovat scouting metrics</h2>
 				<div class="values">
 					{#each [['Points', metrics.points], ['Auto', metrics.auto], ['Teleop', metrics.teleop]] as [label, value]}<div
 						>

@@ -84,7 +84,7 @@
 {#if details.length}
 	<div class="breakdown-sections">
 		{#if scoring.length}<section aria-labelledby="scoring-heading">
-				<h2 id="scoring-heading">Score breakdown</h2>
+				<h2 id="scoring-heading">Official score breakdown</h2>
 				<table>
 					<thead
 						><tr
@@ -103,7 +103,7 @@
 				</table>
 			</section>{/if}
 		{#if fuel.length}<section aria-labelledby="fuel-heading">
-				<h2 id="fuel-heading">Fuel scored</h2>
+				<h2 id="fuel-heading">Official fuel scored</h2>
 				<table>
 					<thead
 						><tr
@@ -123,7 +123,7 @@
 			</section>{/if}
 	</div>
 	<details class="official-details">
-		<summary>Full breakdown</summary>
+		<summary>Full official breakdown</summary>
 		<table>
 			<thead
 				><tr

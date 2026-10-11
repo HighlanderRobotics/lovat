@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PredictionBar from '$lib/tournaments/PredictionBar.svelte';
+	import RoleIcon from '$lib/tournaments/RoleIcon.svelte';
 	import { matchLabel } from '$lib/tournaments/matchLabel';
 	import type { z } from 'zod';
 	import type { tournamentSchema } from '$lib/server/tournament';
@@ -49,7 +50,7 @@
 						>{matchLabel(match, playoffType)}</a
 					>{:else}{matchLabel(match, playoffType)}{/if}
 			</h4>
-			<span class="badge">{match.status.replaceAll('_', ' ')}</span>
+			<span class="badge">Official · {match.status.replaceAll('_', ' ')}</span>
 		</div>
 		<div class="scores" aria-label="Alliance scores">
 			{#each ['BLUE', 'RED'] as color}
@@ -92,7 +93,7 @@
 							class:disqualified={slot.disqualified === true}
 							class:highlighted={highlightedTeam === slot.teamNumber}
 							on:click={() => onTeamSelect?.(slot.teamNumber)}
-							aria-label={`${onTeamSelect ? 'Show matches for team' : 'View team'} ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}`}
+							aria-label={`${onTeamSelect ? 'Show matches for team' : 'View team'} ${slot.teamNumber}${slot.disqualified ? ', disqualified' : ''}${roles.has(slot.teamNumber) ? `, Lovat scouting role: ${roles.get(slot.teamNumber)?.toLowerCase()}` : ''}`}
 							><strong>{slot.teamNumber}</strong>
 							{#if teamNames.has(slot.teamNumber)}<span class="team-name"
 									>{teamNames.get(slot.teamNumber)}</span
@@ -101,12 +102,9 @@
 										·
 									{/if}{#if slot.disqualified}DQ{/if}</span
 								>{/if}
-							{#if roles.has(slot.teamNumber)}<span class="robot-role"
-									>{roles
-										.get(slot.teamNumber)
-										?.toLowerCase()
-										.replace(/^./, (letter) => letter.toUpperCase())}</span
-								>{/if}</svelte:element
+							{#if roles.has(slot.teamNumber)}<span class="robot-role">
+									<RoleIcon role={roles.get(slot.teamNumber)!} />
+								</span>{/if}</svelte:element
 						>
 					{/each}
 					{#if !match.teamSlots.some((slot) => slot.alliance === color)}<span>Teams TBD</span>{/if}
