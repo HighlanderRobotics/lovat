@@ -22,7 +22,7 @@
 		...new Map(
 			[
 				...season.districtSeasons.map((district) => districtWallpaper(district.abbreviation)),
-				eventWallpaper(undefined, null)
+				...season.tournaments.map((event) => eventWallpaper(undefined, event.location, event.key))
 			].map((photo) => [photo.image, photo] as const)
 		).values()
 	];
@@ -33,7 +33,7 @@
 		for (const event of events) {
 			const championship = event.eventType === 3 || event.eventType === 4;
 			const label = championship
-				? 'Championship'
+				? 'Worlds'
 				: event.eventType === 100
 					? 'Preseason'
 					: event.eventType === 99
@@ -77,7 +77,10 @@
 	<meta name="description" content={`FRC districts and events for the ${season.year} season.`} />
 </svelte:head>
 
-<main>
+<main class:season-wallpaper={season.year === 2026}>
+	{#if season.year === 2026}
+		<img class="season-background" src="/assets/2026-season-background.jpg" alt="" />
+	{/if}
 	<header>
 		<h1>{season.year} Season</h1>
 		{#if season.gameName}<p>{season.gameName}</p>{/if}
@@ -111,9 +114,20 @@
 				<div class="event-group">
 					<h3>{group.label}</h3>
 					{#each nestedEvents(group.events) as { event, nested, name } (event.key)}
-						{@const photo = eventWallpaper(undefined, event.location)}
-						<a class="event" class:nested href={`/tournaments/${event.key}`}>
-							<img src={photo.image} alt="" loading="lazy" />
+						{@const photo = eventWallpaper(undefined, event.location, event.key)}
+						<a
+							class="event"
+							class:portrait={photo.fit === 'contain'}
+							class:nested
+							href={`/tournaments/${event.key}`}
+						>
+							<img
+								src={photo.image}
+								style:object-position={photo.position}
+								style:object-fit={photo.fit ?? 'cover'}
+								alt=""
+								loading="lazy"
+							/>
 							<div>
 								<strong>{name}</strong><span>{event.location ?? ''}</span>
 							</div>
@@ -130,7 +144,13 @@
 		</div>
 	</section>
 	<details class="photo-credits">
-		<summary>Photo credits</summary>
+		<summary>Media credits</summary>
+		{#if season.year === 2026}<p>
+				<a
+					href="https://www.chiefdelphi.com/t/frc-photography-through-an-artistic-experimental-lens-frc5193-2026-photo-showcase-incl-fim-tc-and-esky-comps-fim-dcmp/519222"
+					>Season background</a
+				> · Alex, FRC 5193 Pantheon
+			</p>{/if}
 		{#each photoCredits as photo}<p>
 				<a href={photo.source}>{photo.label}</a> · {photo.author} ·
 				{#if photo.licenseUrl}<a href={photo.licenseUrl}>{photo.license}</a
@@ -146,6 +166,39 @@
 		padding: 44px 26px 64px;
 		color: var(--on-background);
 	}
+	.season-wallpaper {
+		position: relative;
+		isolation: isolate;
+	}
+
+	.season-background {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100vh;
+		object-fit: cover;
+		object-position: center 70%;
+		z-index: -2;
+	}
+
+	.season-wallpaper::before {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background: rgba(15, 15, 18, 0.8);
+		z-index: -1;
+	}
+
+	.season-wallpaper h1,
+	.season-wallpaper h2,
+	.season-wallpaper h3 {
+		color: #fff;
+	}
+
+	.season-wallpaper > header p {
+		color: #ddd;
+	}
+
 	h1 {
 		font-size: clamp(28px, 3.8vw, 42px);
 		font-weight: 500;
@@ -301,5 +354,24 @@
 			align-items: flex-start;
 			flex-direction: column;
 		}
+	}
+
+	.event.portrait {
+		background: #181818;
+		min-height: 144px;
+		padding-right: 150px;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 12px;
+	}
+
+	.event.portrait img {
+		left: auto;
+		width: 140px;
+	}
+
+	.event.portrait::before {
+		background: linear-gradient(90deg, #181818 50%, transparent 100%);
 	}
 </style>

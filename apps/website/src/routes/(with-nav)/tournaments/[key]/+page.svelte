@@ -9,7 +9,11 @@
 
 	export let data: PageData;
 
-	$: wallpaper = eventWallpaper(tournament.district?.key.slice(4), tournament.location);
+	$: wallpaper = eventWallpaper(
+		tournament.district?.key.slice(4),
+		tournament.location,
+		tournament.key
+	);
 
 	type Match = PageData['tournament']['matches'][number];
 
@@ -170,11 +174,16 @@
 </svelte:head>
 
 <main>
-	<header class="event-header" class:has-wallpaper={!!wallpaper}>
+	<header
+		class="event-header"
+		class:has-wallpaper={!!wallpaper}
+		class:portrait={wallpaper.fit === 'contain'}
+	>
 		{#if wallpaper}<img
 				class="town-wallpaper"
 				src={wallpaper.image}
 				style:object-position={wallpaper.position}
+				style:object-fit={wallpaper.fit ?? 'cover'}
 				alt=""
 			/>{/if}
 		<div>
@@ -441,17 +450,11 @@
 				/>
 			</div>
 			<div class="roster">
-				{#each filteredTeams as { team } (team.number)}<button
+				{#each filteredTeams as { team } (team.number)}<a
 						style={`--team-color: ${teamBranding[team.number]?.color ?? '130, 130, 130'}`}
 						class="team-card"
 						use:avatarGradient
-						on:click={() => {
-							teamFilter = String(team.number);
-							view = 'schedule';
-							day = 'all';
-							phase = 'all';
-							completion = 'all';
-						}}
+						href={`/teams/${team.number}/${year}`}
 					>
 						<div class="team-logo">
 							{#if teamBranding[team.number]}<img
@@ -465,7 +468,7 @@
 							{#if eventWinners.has(team.number)}<AwardMarker award="winner" />{/if}
 							{#if impactWinners.has(team.number)}<AwardMarker award="impact" />{/if}
 						</div>
-					</button>{:else}<p>No teams match your search.</p>{/each}
+					</a>{:else}<p>No teams match your search.</p>{/each}
 			</div>
 		</section>
 	{/if}
@@ -812,6 +815,7 @@
 		gap: 10px;
 	}
 	.team-card {
+		text-decoration: none;
 		border: 1px solid var(--light-gray);
 		border-radius: 7px;
 		background:
@@ -916,5 +920,18 @@
 		.break-row > div:last-child {
 			text-align: right;
 		}
+	}
+
+	.event-header.portrait {
+		background: #181818;
+	}
+
+	.event-header.portrait .town-wallpaper {
+		left: auto;
+		width: 45%;
+	}
+
+	.event-header.portrait::before {
+		background: linear-gradient(90deg, #181818 35%, rgba(24, 24, 24, 0.25));
 	}
 </style>

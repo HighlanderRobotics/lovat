@@ -46,7 +46,7 @@
 			[
 				background,
 				...district.tournaments.map((event) => {
-					const photo = eventWallpaper(district.abbreviation, event.location);
+					const photo = eventWallpaper(district.abbreviation, event.location, event.key);
 
 					return photo;
 				})
@@ -151,7 +151,7 @@
 					<div class="event-group">
 						<h3>{group.label}</h3>
 						{#each nestedEvents(group.events) as { event, nested, name } (event.key)}
-							{@const photo = eventWallpaper(district.abbreviation, event.location)}
+							{@const photo = eventWallpaper(district.abbreviation, event.location, event.key)}
 							<a
 								class="event-row"
 								class:nested
@@ -181,7 +181,11 @@
 				{:else}<p>No events found.</p>{/each}
 			{:else}
 				{#each teams as team (`${district.key}:${team.teamNumber}`)}
-					<div class="team-row" use:avatarGradient>
+					<a
+						class="team-row"
+						href={`/teams/${team.teamNumber}/${district.seasonYear}`}
+						use:avatarGradient
+					>
 						<div class="team-logo">
 							<img
 								use:lazyAvatar
@@ -196,7 +200,7 @@
 						<div class="team-identity">
 							<strong>{team.teamNumber}</strong><span>{team.name}</span>
 						</div>
-					</div>
+					</a>
 				{:else}<p>No teams found.</p>{/each}
 			{/if}
 		</div>

@@ -1,0 +1,91 @@
+{
+	"2026arc": {
+		"image": "/assets/worlds/arc.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Domenico-Fetti_Archimedes_1620.jpg",
+		"author": "Domenico Fetti",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 674495,
+		"fit": "contain"
+	},
+	"2026cur": {
+		"image": "/assets/worlds/cur.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Marie_Curie_c._1920s.jpg",
+		"author": "Henri Manuel",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 391233,
+		"fit": "contain"
+	},
+	"2026gal": {
+		"image": "/assets/worlds/gal.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Galileo_Galilei_(1564-1642)_RMG_BHC2700.tiff",
+		"author": "Justus Sustermans",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 610465,
+		"fit": "contain"
+	},
+	"2026hop": {
+		"image": "/assets/worlds/hop.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Commodore_Grace_M._Hopper,_USN_(covered)_head_and_shoulders_crop.jpg",
+		"author": "James S. Davis",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 460257,
+		"fit": "contain"
+	},
+	"2026joh": {
+		"image": "/assets/worlds/joh.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Katherine_Johnson_1983.jpg",
+		"author": "NASA",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 409998,
+		"fit": "contain"
+	},
+	"2026mil": {
+		"image": "/assets/worlds/mil.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Milstein_lnp_restauraci%C3%B3n.jpg",
+		"author": "original file: Diario La Nueva Provincia de Bah\u00eda Blanca\nderivative work: Rexmania",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 39851,
+		"fit": "contain"
+	},
+	"2026new": {
+		"image": "/assets/worlds/new.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Portrait_of_Sir_Isaac_Newton,_1689_(brightened).jpg",
+		"author": "Godfrey Kneller",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 522935,
+		"fit": "contain"
+	},
+	"2026cmptx": {
+		"image": "/assets/worlds/cmptx.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Albert_Einstein_Head_cleaned.jpg",
+		"author": "Oren Jack Turner",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"position": "right center",
+		"bytes": 401039,
+		"fit": "contain"
+	},
+	"2026dal": {
+		"image": "/assets/worlds/dal.svg",
+		"source": "https://www.acs.org/education/whatischemistry/landmarks/daly.html",
+		"author": "Lovat",
+		"license": "Original illustration",
+		"licenseUrl": "",
+		"position": "right center",
+		"fit": "contain"
+	}
+}

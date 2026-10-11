@@ -1,8 +1,8 @@
 const colors = new Map<string, string>();
 
 // Read the imported raster avatar so roster gradients follow each season's team branding.
-export function avatarGradient(node: HTMLElement) {
-	const image = node.querySelector('img');
+export function avatarGradient(node: HTMLElement, selector = 'img') {
+	const image = node.querySelector<HTMLImageElement>(selector);
 
 	if (!image) return;
 
