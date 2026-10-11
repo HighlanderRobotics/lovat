@@ -9,7 +9,6 @@
 	let element: HTMLDivElement;
 	let visible = false;
 	let prediction: { blueWinning: number; redWinning: number } | null = null;
-	let state = 'loading';
 	let requestId = 0;
 
 	onMount(() => {
@@ -38,11 +37,9 @@
 		const current = ++requestId;
 
 		prediction = null;
-		state = 'loading';
 
 		if (!signedIn || !inView) return;
 		if (blueTeams.length !== 3 || redTeams.length !== 3) {
-			state = 'unavailable';
 			return;
 		}
 
@@ -52,9 +49,8 @@
 			if (current !== requestId) return;
 
 			prediction = result;
-			state = result ? 'ready' : 'no-data';
 		} catch {
-			if (current === requestId) state = 'unavailable';
+			// Missing scouting data and provider failures leave the card unchanged.
 		}
 	}
 
@@ -74,14 +70,6 @@
 				<div class="blue" style:flex-grow={prediction.blueWinning}></div>
 				<div class="red" style:flex-grow={prediction.redWinning}></div>
 				<div class="labels"><span>{bluePercent}%</span><span>{100 - bluePercent}%</span></div>
-			</div>
-		{:else}
-			<div class="empty" aria-live="polite">
-				{state === 'loading'
-					? 'Loading prediction…'
-					: state === 'no-data'
-						? 'Not enough scouting data'
-						: 'Prediction unavailable'}
 			</div>
 		{/if}
 	{/if}
@@ -112,11 +100,5 @@
 		font-size: 11px;
 		font-variant-numeric: tabular-nums;
 		text-shadow: 0 1px 2px #000;
-	}
-	.empty {
-		padding: 5px 12px;
-		text-align: center;
-		color: var(--body);
-		font-size: 11px;
 	}
 </style>
