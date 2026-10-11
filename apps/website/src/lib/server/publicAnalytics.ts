@@ -89,3 +89,19 @@ export async function fetchPublic<T>(
 
 	return schema.parse(await response.json());
 }
+
+export const teamSeriesSchema = z.object({
+	matches: z.array(
+		z.object({
+			matchKey: z.string().nullable(),
+			eventKey: z.string(),
+			eventName: z.string(),
+			label: z.string(),
+			points: z.number().finite().nullable(),
+			auto: z.number().finite().nullable(),
+			teleop: z.number().finite().nullable(),
+			feeding: z.number().finite().nullable(),
+			roles: z.array(z.enum(['CYCLING', 'SCORING', 'FEEDING', 'DEFENDING', 'IMMOBILE']))
+		})
+	)
+});

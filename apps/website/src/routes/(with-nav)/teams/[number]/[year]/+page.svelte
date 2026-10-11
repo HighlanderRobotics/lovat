@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import TeamOverview from '$lib/tournaments/TeamOverview.svelte';
+	import TeamAnalytics from '$lib/tournaments/TeamAnalytics.svelte';
 	import { goto } from '$app/navigation';
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient } from '$lib/tournaments/branding';
@@ -50,9 +51,11 @@
 	let failedAvatar = false;
 	let robotPhoto: { image: string; source: string } | null = null;
 	let selectedYear: number;
+	let view: 'events' | 'analytics' = 'events';
 
 	$: team = data.team;
 	$: if (team) {
+		view = 'events';
 		failedAvatar = false;
 		robotPhoto = null;
 	}
@@ -158,122 +161,143 @@
 			on:photo={(event) => (robotPhoto = event.detail)}
 		/>{/key}
 
-	<section aria-labelledby="events-heading">
-		<div class="section-heading">
-			<h2 id="events-heading">Events</h2>
-			<select
-				aria-label="Season"
-				bind:value={selectedYear}
-				on:change={() => goto(`/teams/${team.teamNumber}/${selectedYear}`)}
-			>
-				{#each team.seasonYears as year}<option value={year}>{year}</option>{/each}
-			</select>
-		</div>
-		<div class="events">
-			{#each team.tournaments as event (event.key)}
-				{@const photo = eventWallpaper(event.district?.abbreviation, event.location, event.key)}
-				<details
-					class="event-dropdown"
-					on:toggle={(e) => {
-						if (e.currentTarget.open) void loadEvent(event.key);
-					}}
+	<div class="view-nav">
+		<div class="view-buttons" aria-label="Team views">
+			<DensityProvider density="compact">
+				<Button
+					variant={view === 'events' ? 'primary' : 'text-only-secondary'}
+					on:click={() => (view = 'events')}>Events</Button
 				>
-					<summary
-						class="event"
-						style:--division-background={photo.background ?? '#181818'}
-						class:division-symbol={photo.symbol === true}
-					>
-						<img
-							class="wallpaper"
-							src={photo.image}
-							style:object-position={photo.position}
-							style:object-fit={photo.fit ?? 'cover'}
-							alt=""
-							loading="lazy"
-						/>
-						<div>
-							<strong>{event.name}</strong><span
-								>{[event.location, event.week !== null ? `Week ${event.week + 1}` : null]
-									.filter(Boolean)
-									.join(' · ')}</span
-							>
-						</div>
-						<span class="dates"
-							><span>{date(event.startDate)}</span
-							>{#if event.endDate && event.endDate !== event.startDate}<span>–</span><span
-									>{date(event.endDate)}</span
-								>{/if}</span
-						>
-						<svg class="expand-icon" viewBox="0 0 24 24" aria-hidden="true">
-							<path
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="m6 9 6 6 6-6"
-							/>
-						</svg>
-					</summary>
-					<div class="event-content">
-						<a class="tournament-link" href={`/tournaments/${event.key}`}>View tournament →</a>
-						<div class="event-summary">
-							<div>
-								<h3>Awards</h3>
-								{#if event.awards.length}
-									<div class="awards">
-										{#each event.awards as award}<span>{award}</span>{/each}
-									</div>
-								{:else}<p>No awards.</p>{/if}
-							</div>
-							<div>
-								<h3>Alliance</h3>
-								{#if eventDetails[event.key]?.loading}
-									<p role="status">Loading…</p>
-								{:else if eventDetails[event.key]?.error}
-									<p role="alert">Temporarily unavailable.</p>
-									<button class="retry" on:click={() => loadEvent(event.key)}>Retry</button>
-								{:else if eventDetails[event.key]?.data}
-									{@const alliance = eventDetails[event.key].data!.alliance}
-									{#if alliance}
-										<div class="selected-alliance">
-											<strong>Alliance {alliance.number}</strong>
-											{#each alliance.teams as number}<a
-													class:current-team={number === team.teamNumber}
-													href={`/teams/${number}/${team.seasonYear}`}>{number}</a
-												>{/each}
-										</div>
-										{#if alliance.backup}<p class="backup">
-												Backup: <a href={`/teams/${alliance.backup.in}/${team.seasonYear}`}
-													>{alliance.backup.in}</a
-												>
-												replacing {alliance.backup.out}
-											</p>{/if}
-									{:else}<p>No alliance selection.</p>{/if}
-								{/if}
-							</div>
-						</div>
-						{#if eventDetails[event.key]?.data}
-							{@const details = eventDetails[event.key].data!}
-							<h3>Matches</h3>
-							<div class="team-matches">
-								{#each details.matches as match (match.key)}
-									<MatchCard
-										{match}
-										playoffType={details.playoffType}
-										timezone={details.timezone}
-										year={team.seasonYear}
-										teamNames={new Map(details.teams.map((entry) => [entry.number, entry.name]))}
-										highlightedTeam={team.teamNumber}
-									/>
-								{:else}<p>No matches imported yet.</p>{/each}
-							</div>
-						{/if}
-					</div>
-				</details>
-			{:else}<p>No events imported for this season.</p>{/each}
+				<Button
+					variant={view === 'analytics' ? 'primary' : 'text-only-secondary'}
+					on:click={() => (view = 'analytics')}>Analytics</Button
+				>
+			</DensityProvider>
 		</div>
-	</section>
+		<select
+			aria-label="Season"
+			bind:value={selectedYear}
+			on:change={() => goto(`/teams/${team.teamNumber}/${selectedYear}`)}
+		>
+			{#each team.seasonYears as year}<option value={year}>{year}</option>{/each}
+		</select>
+	</div>
+	{#if view === 'analytics'}
+		{#key `${team.teamNumber}:${team.seasonYear}`}<TeamAnalytics
+				number={team.teamNumber}
+				year={team.seasonYear}
+			/>{/key}
+	{:else}
+		<section aria-labelledby="events-heading">
+			<div class="section-heading">
+				<h2 id="events-heading">Events</h2>
+			</div>
+			<div class="events">
+				{#each team.tournaments as event (event.key)}
+					{@const photo = eventWallpaper(event.district?.abbreviation, event.location, event.key)}
+					<details
+						class="event-dropdown"
+						on:toggle={(e) => {
+							if (e.currentTarget.open) void loadEvent(event.key);
+						}}
+					>
+						<summary
+							class="event"
+							style:--division-background={photo.background ?? '#181818'}
+							class:division-symbol={photo.symbol === true}
+						>
+							<img
+								class="wallpaper"
+								src={photo.image}
+								style:object-position={photo.position}
+								style:object-fit={photo.fit ?? 'cover'}
+								alt=""
+								loading="lazy"
+							/>
+							<div>
+								<strong>{event.name}</strong><span
+									>{[event.location, event.week !== null ? `Week ${event.week + 1}` : null]
+										.filter(Boolean)
+										.join(' · ')}</span
+								>
+							</div>
+							<span class="dates"
+								><span>{date(event.startDate)}</span
+								>{#if event.endDate && event.endDate !== event.startDate}<span>–</span><span
+										>{date(event.endDate)}</span
+									>{/if}</span
+							>
+							<svg class="expand-icon" viewBox="0 0 24 24" aria-hidden="true">
+								<path
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="m6 9 6 6 6-6"
+								/>
+							</svg>
+						</summary>
+						<div class="event-content">
+							<a class="tournament-link" href={`/tournaments/${event.key}`}>View tournament →</a>
+							<div class="event-summary">
+								<div>
+									<h3>Awards</h3>
+									{#if event.awards.length}
+										<div class="awards">
+											{#each event.awards as award}<span>{award}</span>{/each}
+										</div>
+									{:else}<p>No awards.</p>{/if}
+								</div>
+								<div>
+									<h3>Alliance</h3>
+									{#if eventDetails[event.key]?.loading}
+										<p role="status">Loading…</p>
+									{:else if eventDetails[event.key]?.error}
+										<p role="alert">Temporarily unavailable.</p>
+										<button class="retry" on:click={() => loadEvent(event.key)}>Retry</button>
+									{:else if eventDetails[event.key]?.data}
+										{@const alliance = eventDetails[event.key].data!.alliance}
+										{#if alliance}
+											<div class="selected-alliance">
+												<strong>Alliance {alliance.number}</strong>
+												{#each alliance.teams as number}<a
+														class:current-team={number === team.teamNumber}
+														href={`/teams/${number}/${team.seasonYear}`}>{number}</a
+													>{/each}
+											</div>
+											{#if alliance.backup}<p class="backup">
+													Backup: <a href={`/teams/${alliance.backup.in}/${team.seasonYear}`}
+														>{alliance.backup.in}</a
+													>
+													replacing {alliance.backup.out}
+												</p>{/if}
+										{:else}<p>No alliance selection.</p>{/if}
+									{/if}
+								</div>
+							</div>
+							{#if eventDetails[event.key]?.data}
+								{@const details = eventDetails[event.key].data!}
+								<h3>Matches</h3>
+								<div class="team-matches">
+									{#each details.matches as match (match.key)}
+										<MatchCard
+											{match}
+											playoffType={details.playoffType}
+											timezone={details.timezone}
+											year={team.seasonYear}
+											teamNames={new Map(details.teams.map((entry) => [entry.number, entry.name]))}
+											highlightedTeam={team.teamNumber}
+										/>
+									{:else}<p>No matches imported yet.</p>{/each}
+								</div>
+							{/if}
+						</div>
+					</details>
+				{:else}<p>No events imported for this season.</p>{/each}
+			</div>
+		</section>
+	{/if}
 	{#if photoCredits.length}<details class="photo-credits">
 			<summary>Photo credits</summary>{#each photoCredits as photo}<p>
 					<a href={photo.source}>{photo.label}</a> · {photo.author} · {#if photo.licenseUrl}<a
@@ -284,6 +308,20 @@
 </main>
 
 <style>
+	.view-nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
+		margin-top: 28px;
+		padding-bottom: 16px;
+		border-bottom: 1px solid var(--light-gray);
+	}
+	.view-buttons {
+		display: flex;
+		gap: 4px;
+	}
+
 	main {
 		max-width: 1160px;
 		margin: 0 auto;

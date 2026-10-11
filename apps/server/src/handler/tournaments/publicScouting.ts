@@ -378,3 +378,125 @@ export async function getPublicMatchMetrics(
     res.status(503).json({ error: "Scouting metrics unavailable" });
   }
 }
+
+export async function getPublicTeamSeries(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const number = Number(req.params.number);
+  const year = Number(req.params.year);
+
+  if (
+    !Number.isInteger(number) ||
+    number <= 0 ||
+    number > 2_147_483_647 ||
+    !Number.isInteger(year) ||
+    year < 1992 ||
+    year > 9999
+  ) {
+    res.status(400).json({ error: "Invalid team or year" });
+    return;
+  }
+
+  try {
+    const matches = await publicCache(
+      `scouting:team-series:v1:${number}:${year}`,
+      async () => {
+        if (year !== 2026) return [];
+
+        const slots = await prisma.teamMatchData.findMany({
+          where: {
+            teamNumber: number,
+            tournament: { seasonYear: year },
+            scoutReports: { some: {} },
+          },
+          select: {
+            key: true,
+            matchKey: true,
+            matchNumber: true,
+            matchType: true,
+            tournamentKey: true,
+            tournament: { select: { name: true, startDate: true } },
+            match: {
+              select: {
+                displayOrder: true,
+                actualTime: true,
+                scheduledTime: true,
+              },
+            },
+            scoutReports: { select: { robotRoles: true } },
+          },
+        });
+
+        if (!slots.length) return [];
+
+        const user = await publicContext(year, [number]);
+        const values = await Promise.all(
+          [
+            Metric.totalPoints,
+            Metric.autoPoints,
+            Metric.teleopPoints,
+            Metric.totalBallsFed,
+          ].map((metric) =>
+            arrayAndAverageTeams(user, { teams: [number], metric }),
+          ),
+        );
+        const timelines = values.map(
+          (value) =>
+            new Map(
+              (value[number]?.timeLine ?? []).map((entry) => [
+                entry.match,
+                entry.dataPoint,
+              ]),
+            ),
+        );
+
+        const eventTime = (slot: (typeof slots)[number]) =>
+          slot.tournament.startDate?.getTime() ?? 0;
+        const matchTime = (slot: (typeof slots)[number]) =>
+          (slot.match?.actualTime ?? slot.match?.scheduledTime)?.getTime() ?? 0;
+
+        slots.sort(
+          (a, b) =>
+            eventTime(a) - eventTime(b) ||
+            a.tournamentKey.localeCompare(b.tournamentKey) ||
+            (a.matchType === b.matchType
+              ? 0
+              : a.matchType === "QUALIFICATION"
+                ? -1
+                : 1) ||
+            (a.match?.displayOrder ?? a.matchNumber) -
+              (b.match?.displayOrder ?? b.matchNumber) ||
+            matchTime(a) - matchTime(b) ||
+            a.key.localeCompare(b.key),
+        );
+
+        return slots.map((slot) => {
+          const value = (index: number) => {
+            const result = timelines[index]?.get(slot.key);
+            return typeof result === "number" && Number.isFinite(result)
+              ? result
+              : null;
+          };
+
+          return {
+            matchKey: slot.matchKey,
+            eventKey: slot.tournamentKey,
+            eventName: slot.tournament.name,
+            label: `${slot.matchType === "QUALIFICATION" ? "Qualification" : "Elimination"} ${slot.matchNumber}`,
+            points: value(0),
+            auto: value(1),
+            teleop: value(2),
+            feeding: value(3),
+            roles: mostCommonRoles(slot.scoutReports),
+          };
+        });
+      },
+    );
+
+    res.set("Cache-Control", "public, max-age=60");
+    res.json({ matches });
+  } catch {
+    res.status(503).json({ error: "Team analytics unavailable" });
+  }
+}

@@ -28,6 +28,7 @@ vi.mock("../src/handler/analysis/coreAnalysis/arrayAndAverageTeams.js", () => ({
 import {
   getPublicMatchAnalysis,
   getPublicTeamMetrics,
+  getPublicTeamSeries,
   getPublicMatchMetrics,
   mostCommonRoles,
   metricPercentile,
@@ -338,5 +339,161 @@ describe("robot media", () => {
         },
       ]),
     ).toBeNull();
+  });
+});
+
+describe("public team series", () => {
+  it("projects per-match averages and tied roles in event/match order without raw reports", async () => {
+    const slot = (key: string, matchNumber: number, roles = ["SCORING"]) => ({
+      key,
+      matchNumber,
+      matchKey: `2026casnf_qm${matchNumber}`,
+      matchType: "QUALIFICATION",
+      tournamentKey: "2026casnf",
+      tournament: { name: "San Francisco", startDate: new Date("2026-03-13") },
+      match: {
+        displayOrder: matchNumber,
+        actualTime: null,
+        scheduledTime: null,
+      },
+      scoutReports: roles.map((role) => ({
+        robotRoles: [role],
+        notes: "private",
+        scouterUuid: "private",
+      })),
+    });
+    mocks.events.mockResolvedValueOnce([
+      slot("second", 2),
+      slot("first", 1, ["FEEDING", "SCORING"]),
+    ]);
+    mocks.events.mockResolvedValueOnce([{ tournamentKey: "2026casnf" }]);
+    mocks.metrics.mockResolvedValue({
+      8033: {
+        average: 999,
+        timeLine: [
+          { match: "first", dataPoint: 0, notes: "private" },
+          { match: "second", dataPoint: 42 },
+          { match: "unrelated", dataPoint: 9000 },
+        ],
+      },
+    });
+
+    const response = await invoke(getPublicTeamSeries, {
+      params: { number: "8033", year: "2026" },
+    });
+
+    expect(response.body).toEqual({
+      matches: [
+        {
+          matchKey: "2026casnf_qm1",
+          eventKey: "2026casnf",
+          eventName: "San Francisco",
+          label: "Qualification 1",
+          points: 0,
+          auto: 0,
+          teleop: 0,
+          feeding: 0,
+          roles: ["FEEDING", "SCORING"],
+        },
+        {
+          matchKey: "2026casnf_qm2",
+          eventKey: "2026casnf",
+          eventName: "San Francisco",
+          label: "Qualification 2",
+          points: 42,
+          auto: 42,
+          teleop: 42,
+          feeding: 42,
+          roles: ["SCORING"],
+        },
+      ],
+    });
+    expect(mocks.events.mock.calls[0]![0].where).toEqual({
+      teamNumber: 8033,
+      tournament: { seasonYear: 2026 },
+      scoutReports: { some: {} },
+    });
+    expect(mocks.events.mock.calls[0]![0].select.scoutReports).toEqual({
+      select: { robotRoles: true },
+    });
+    expect(mocks.metrics.mock.calls[0]![0]).toMatchObject({
+      teamSourceRule: { mode: "EXCLUDE", items: [] },
+      tournamentSourceRule: { mode: "INCLUDE", items: ["2026casnf"] },
+    });
+    expect(mocks.metrics.mock.calls[0]![1].teams).toEqual([8033]);
+  });
+
+  it("keeps missing/non-finite measurements null and supports slots without imported matches", async () => {
+    mocks.events.mockResolvedValueOnce([
+      {
+        key: "legacy",
+        matchKey: null,
+        matchNumber: 3,
+        matchType: "ELIMINATION",
+        tournamentKey: "2026casnf",
+        tournament: { name: "San Francisco", startDate: null },
+        match: null,
+        scoutReports: [],
+      },
+    ]);
+    mocks.events.mockResolvedValueOnce([{ tournamentKey: "2026casnf" }]);
+    mocks.metrics.mockResolvedValue({
+      8033: { timeLine: [{ match: "legacy", dataPoint: NaN }] },
+    });
+
+    const response = await invoke(getPublicTeamSeries, {
+      params: { number: "8033", year: "2026" },
+    });
+    expect(response.body).toEqual({
+      matches: [
+        {
+          matchKey: null,
+          eventKey: "2026casnf",
+          eventName: "San Francisco",
+          label: "Elimination 3",
+          points: null,
+          auto: null,
+          teleop: null,
+          feeding: null,
+          roles: [],
+        },
+      ],
+    });
+  });
+
+  it("does not run the current scoring engine on other seasons or empty teams", async () => {
+    expect(
+      (
+        await invoke(getPublicTeamSeries, {
+          params: { number: "8033", year: "2025" },
+        })
+      ).body,
+    ).toEqual({ matches: [] });
+    expect(mocks.events).not.toHaveBeenCalled();
+    mocks.events.mockResolvedValueOnce([]);
+    expect(
+      (
+        await invoke(getPublicTeamSeries, {
+          params: { number: "8033", year: "2026" },
+        })
+      ).body,
+    ).toEqual({ matches: [] });
+    expect(mocks.metrics).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid parameters and hides upstream failures", async () => {
+    expect(
+      (
+        await invoke(getPublicTeamSeries, {
+          params: { number: "0", year: "2026" },
+        })
+      ).statusCode,
+    ).toBe(400);
+    mocks.events.mockRejectedValueOnce(new Error("private database details"));
+    const response = await invoke(getPublicTeamSeries, {
+      params: { number: "8033", year: "2026" },
+    });
+    expect(response.statusCode).toBe(503);
+    expect(response.body).toEqual({ error: "Team analytics unavailable" });
   });
 });

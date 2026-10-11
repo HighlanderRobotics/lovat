@@ -19,6 +19,7 @@ import {
   getPublicMatchAnalysis,
   getPublicMatchMetrics,
   getPublicTeamMetrics,
+  getPublicTeamSeries,
 } from "../handler/tournaments/publicScouting.js";
 
 const router = Router();
@@ -37,6 +38,7 @@ router.get("/search", getSearch);
 router.get("/public/matches/:key", getPublicMatchAnalysis);
 router.get("/public/matches/:key/metrics", getPublicMatchMetrics);
 router.get("/public/teams/:number/:year/metrics", getPublicTeamMetrics);
+router.get("/public/teams/:number/:year/series", getPublicTeamSeries);
 router.get("/public/teams/:number/:year/photo", getRobotPhoto);
 
 router.get("/slack-invite", onboardingRedirect);
