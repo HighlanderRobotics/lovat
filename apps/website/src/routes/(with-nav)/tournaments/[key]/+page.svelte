@@ -368,14 +368,18 @@
 						use:avatarGradient
 						href={`/teams/${team.number}/${year}`}
 					>
-						<div class="team-logo">
-							{#if teamBranding[team.number]}<img
-									src={teamBranding[team.number].logo}
-									alt=""
-									loading="lazy"
-								/>{:else}<span>{team.number}</span>{/if}
+						<div class="team-info">
+							<div class="team-logo">
+								{#if teamBranding[team.number]}<img
+										src={teamBranding[team.number].logo}
+										alt=""
+										loading="lazy"
+									/>{:else}<span>{team.number}</span>{/if}
+							</div>
+							<div class="team-identity">
+								<strong>{team.number}</strong><span>{team.name}</span>
+							</div>
 						</div>
-						<div class="team-identity"><strong>{team.number}</strong><span>{team.name}</span></div>
 						<span
 							class="team-record"
 							aria-label={`${record.wins} wins, ${record.losses} losses, ${record.ties} ties`}
@@ -601,9 +605,16 @@
 		color: var(--on-background);
 		text-align: left;
 		cursor: pointer;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: center;
+		gap: 10px;
+	}
+	.team-info {
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		min-width: 0;
 	}
 	.team-logo {
 		width: 48px;
@@ -639,7 +650,7 @@
 		overflow-wrap: anywhere;
 	}
 	.team-record {
-		margin-left: auto;
+		text-align: center;
 		white-space: nowrap;
 		font-size: 13px;
 		font-variant-numeric: tabular-nums;
@@ -647,6 +658,7 @@
 
 	.team-awards {
 		display: flex;
+		justify-content: flex-end;
 		gap: 8px;
 	}
 
