@@ -77,10 +77,7 @@
 	<meta name="description" content={`FRC districts and events for the ${season.year} season.`} />
 </svelte:head>
 
-<main class:season-wallpaper={season.year === 2026}>
-	{#if season.year === 2026}
-		<img class="season-background" src="/assets/2026-season-background.jpg" alt="" />
-	{/if}
+<main>
 	<header>
 		<h1>{season.year} Season</h1>
 		{#if season.gameName}<p>{season.gameName}</p>{/if}
@@ -145,12 +142,6 @@
 	</section>
 	<details class="photo-credits">
 		<summary>Media credits</summary>
-		{#if season.year === 2026}<p>
-				<a
-					href="https://www.chiefdelphi.com/t/frc-photography-through-an-artistic-experimental-lens-frc5193-2026-photo-showcase-incl-fim-tc-and-esky-comps-fim-dcmp/519222"
-					>Season background</a
-				> · Alex, FRC 5193 Pantheon
-			</p>{/if}
 		{#each photoCredits as photo}<p>
 				<a href={photo.source}>{photo.label}</a> · {photo.author} ·
 				{#if photo.licenseUrl}<a href={photo.licenseUrl}>{photo.license}</a
@@ -165,38 +156,6 @@
 		margin: 0 auto;
 		padding: 44px 26px 64px;
 		color: var(--on-background);
-	}
-	.season-wallpaper {
-		position: relative;
-		isolation: isolate;
-	}
-
-	.season-background {
-		position: fixed;
-		inset: 0;
-		width: 100%;
-		height: 100vh;
-		object-fit: cover;
-		object-position: center 70%;
-		z-index: -2;
-	}
-
-	.season-wallpaper::before {
-		content: '';
-		position: fixed;
-		inset: 0;
-		background: rgba(15, 15, 18, 0.8);
-		z-index: -1;
-	}
-
-	.season-wallpaper h1,
-	.season-wallpaper h2,
-	.season-wallpaper h3 {
-		color: #fff;
-	}
-
-	.season-wallpaper > header p {
-		color: #ddd;
 	}
 
 	h1 {
