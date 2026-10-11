@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
-	import { eventWallpaper } from '$lib/tournaments/wallpaper';
+	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -11,6 +11,7 @@
 
 	$: district = data.district;
 	$: events = district.tournaments;
+	$: background = districtWallpaper(district.abbreviation);
 	$: eventGroups = groupEvents(events);
 
 	function groupEvents(tournaments: PageData['district']['tournaments']) {
@@ -41,11 +42,14 @@
 
 	$: photoCredits = [
 		...new Map(
-			district.tournaments.map((event) => {
-				const photo = eventWallpaper(district.abbreviation, event.location);
+			[
+				background,
+				...district.tournaments.map((event) => {
+					const photo = eventWallpaper(district.abbreviation, event.location);
 
-				return [photo.image, photo] as const;
-			})
+					return photo;
+				})
+			].map((photo) => [photo.image, photo] as const)
 		).values()
 	];
 
@@ -70,6 +74,12 @@
 
 <main>
 	<header>
+		<img
+			class="district-wallpaper"
+			src={background.image}
+			style:object-position={background.position}
+			alt=""
+		/>
 		<nav class="breadcrumbs" aria-label="District hierarchy">
 			<a href={`/${district.seasonYear}`}>{district.seasonYear}</a><span aria-hidden="true"
 				>&gt;</span
@@ -171,6 +181,30 @@
 		margin: 0 auto;
 		padding: 44px 26px 64px;
 		color: var(--on-background);
+	}
+	header {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		padding: 24px;
+		border-radius: 8px;
+		margin-bottom: 28px;
+		color: #fff;
+	}
+	header::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.5));
+		z-index: -1;
+	}
+	.district-wallpaper {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: -2;
 	}
 	.breadcrumbs {
 		display: flex;

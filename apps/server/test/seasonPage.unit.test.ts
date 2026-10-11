@@ -36,6 +36,8 @@ it("returns public season districts and events without team or scouting data", a
     location: true,
     startDate: true,
     endDate: true,
+    week: true,
+    eventType: true,
   });
   expect(JSON.stringify(query)).not.toContain("teamSeasons");
   expect(JSON.stringify(query)).not.toContain("scoutReports");

@@ -1,9 +1,60 @@
 <script lang="ts">
+	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
 
+	let search = '';
+
 	$: season = data.season;
+	$: filteredEvents = season.tournaments.filter((event) =>
+		`${event.name} ${event.location ?? ''} ${event.key}`
+			.toLowerCase()
+			.includes(search.trim().toLowerCase())
+	);
+	$: eventGroups = groupEvents(filteredEvents);
+	$: photoCredits = [
+		...new Map(
+			[
+				...season.districtSeasons.map((district) => districtWallpaper(district.abbreviation)),
+				eventWallpaper(undefined, null)
+			].map((photo) => [photo.image, photo] as const)
+		).values()
+	];
+
+	function groupEvents(events: PageData['season']['tournaments']) {
+		const groups = new Map<string, { label: string; order: number; events: typeof events }>();
+
+		for (const event of events) {
+			const championship = event.eventType === 3 || event.eventType === 4;
+			const label = championship
+				? 'Championship'
+				: event.eventType === 100
+					? 'Preseason'
+					: event.eventType === 99
+						? 'Offseason'
+						: event.week !== null
+							? `Week ${event.week + 1}`
+							: 'Other events';
+			const order = championship
+				? 100
+				: event.eventType === 100
+					? -100
+					: event.eventType === 99
+						? 102
+						: (event.week ?? 101);
+			let group = groups.get(label);
+
+			if (!group) {
+				group = { label, order, events: [] };
+				groups.set(label, group);
+			}
+
+			group.events.push(event);
+		}
+
+		return [...groups.values()].sort((a, b) => a.order - b.order);
+	}
 
 	function date(value: string | null) {
 		if (!value) return 'Date TBD';
@@ -31,27 +82,54 @@
 		<h2 id="districts-heading">Districts</h2>
 		<div class="districts">
 			{#each season.districtSeasons as district (district.key)}
-				<a href={`/${district.abbreviation}/${season.year}`}>{district.name}</a>
+				{@const photo = districtWallpaper(district.abbreviation)}
+				<a class="district" href={`/${district.abbreviation}/${season.year}`}>
+					<img src={photo.image} style:object-position={photo.position} alt="" loading="lazy" />
+					<strong>{district.name}</strong>
+				</a>
 			{:else}<p>No districts imported yet.</p>{/each}
 		</div>
 	</section>
 
 	<section aria-labelledby="events-heading">
-		<h2 id="events-heading">Events</h2>
+		<div class="events-heading">
+			<h2 id="events-heading">Events</h2>
+			<input
+				type="search"
+				aria-label="Search events"
+				placeholder="Search events"
+				bind:value={search}
+			/>
+		</div>
 		<div class="events">
-			{#each season.tournaments as event (event.key)}
-				<a class="event" href={`/tournaments/${event.key}`}>
-					<div><strong>{event.name}</strong><span>{event.location ?? ''}</span></div>
-					<span class="dates">
-						<span>{date(event.startDate)}</span>
-						{#if event.endDate && event.endDate !== event.startDate}
-							<span>–</span><span>{date(event.endDate)}</span>
-						{/if}
-					</span>
-				</a>
-			{:else}<p>No events imported yet.</p>{/each}
+			{#each eventGroups as group (group.label)}
+				<div class="event-group">
+					<h3>{group.label}</h3>
+					{#each group.events as event (event.key)}
+						{@const photo = eventWallpaper(undefined, event.location)}
+						<a class="event" href={`/tournaments/${event.key}`}>
+							<img src={photo.image} alt="" loading="lazy" />
+							<div><strong>{event.name}</strong><span>{event.location ?? ''}</span></div>
+							<span class="dates">
+								<span>{date(event.startDate)}</span>
+								{#if event.endDate && event.endDate !== event.startDate}
+									<span>–</span><span>{date(event.endDate)}</span>
+								{/if}
+							</span>
+						</a>
+					{/each}
+				</div>
+			{:else}<p>{search ? 'No events found.' : 'No events imported yet.'}</p>{/each}
 		</div>
 	</section>
+	<details class="photo-credits">
+		<summary>Photo credits</summary>
+		{#each photoCredits as photo}<p>
+				<a href={photo.source}>{photo.label}</a> · {photo.author} ·
+				{#if photo.licenseUrl}<a href={photo.licenseUrl}>{photo.license}</a
+					>{:else}{photo.license}{/if}
+			</p>{/each}
+	</details>
 </main>
 
 <style>
@@ -101,6 +179,84 @@
 		outline: 2px solid var(--victory-purple);
 		outline-offset: 3px;
 	}
+	.district,
+	.event {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		color: #fff;
+		min-height: 100px;
+	}
+	.district {
+		display: flex;
+		align-items: end;
+	}
+	.district img,
+	.event img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: -2;
+	}
+	.district::before,
+	.event::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, rgba(15, 15, 15, 0.85), rgba(15, 15, 15, 0.5));
+		z-index: -1;
+	}
+	.events-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		margin-bottom: 20px;
+	}
+	.events-heading h2 {
+		margin: 0;
+	}
+	input {
+		width: 210px;
+		min-width: 0;
+		padding: 8px 12px;
+		border: 1px solid var(--light-gray);
+		border-radius: 7px;
+		background: var(--secondary-container);
+		color: var(--on-background);
+		font: inherit;
+		font-size: 13px;
+	}
+	input:focus-visible {
+		outline: 2px solid var(--victory-purple);
+	}
+	.event-group {
+		display: grid;
+		gap: 10px;
+	}
+	.event-group + .event-group {
+		margin-top: 18px;
+	}
+	h3 {
+		margin: 0 0 4px;
+		font-size: 18px;
+		font-weight: 500;
+	}
+	.photo-credits {
+		margin-top: 20px;
+		font-size: 11px;
+		color: var(--body);
+	}
+	.photo-credits a {
+		padding: 0;
+		border: 0;
+		background: none;
+	}
+	.photo-credits summary {
+		cursor: pointer;
+	}
 	.event {
 		display: flex;
 		align-items: center;
@@ -118,7 +274,7 @@
 	}
 	.event span {
 		font-size: 12px;
-		color: var(--body);
+		color: #ddd;
 	}
 	.dates {
 		display: flex;

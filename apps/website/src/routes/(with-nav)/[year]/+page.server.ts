@@ -15,7 +15,9 @@ const seasonSchema = z.object({
 			name: z.string(),
 			location: z.string().nullable(),
 			startDate: z.iso.datetime().nullable(),
-			endDate: z.iso.datetime().nullable()
+			endDate: z.iso.datetime().nullable(),
+			week: z.number().int().nullable(),
+			eventType: z.number().int().nullable()
 		})
 	)
 });

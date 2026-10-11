@@ -32,6 +32,8 @@ export async function getSeason(req: Request, res: Response): Promise<void> {
             location: true,
             startDate: true,
             endDate: true,
+            week: true,
+            eventType: true,
           },
         },
       },
