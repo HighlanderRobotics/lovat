@@ -58,18 +58,22 @@ export const POST: RequestHandler = async ({ request, fetch, url }) => {
 
 		if (response.status === 401 || response.status === 403) {
 			const body = await response.text();
-			const reason = ['No authorization token provided', 'Invalid authorization token'].includes(
-				body
-			)
-				? body
-				: 'Unknown authorization rejection';
+			const teamRequired = body === 'No team' || body === 'Your team has not been verified yet';
+			const reason = teamRequired
+				? 'Verified team required'
+				: ['No authorization token provided', 'Invalid authorization token'].includes(body)
+					? body
+					: 'Unknown authorization rejection';
 
 			console.warn('Prediction authorization rejected by API', {
 				status: response.status,
 				reason,
 				redirected: response.redirected
 			});
-			return reply({ error: 'Sign in required' }, 401);
+			return reply(
+				{ error: teamRequired ? 'Verified team required' : 'Sign in required' },
+				teamRequired ? 403 : 401
+			);
 		}
 		if (!response.ok) return reply({ error: 'Predictions unavailable' }, 503);
 

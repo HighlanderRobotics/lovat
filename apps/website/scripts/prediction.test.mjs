@@ -88,6 +88,18 @@ test('handles no scouting data, expired authorization, outages and invalid proba
 	assert.deepEqual(await invalid.json(), { prediction: null });
 });
 
+test('distinguishes a missing verified team from an expired session', async () => {
+	for (const [body, status] of [
+		['No team', 401],
+		['Your team has not been verified yet', 403]
+	]) {
+		const response = await POST(event({ upstream: async () => new Response(body, { status }) }));
+
+		assert.equal(response.status, 403);
+		assert.deepEqual(await response.json(), { error: 'Verified team required' });
+	}
+});
+
 test('records count wins, losses and ties; skip surrogates, unplayed and unresolved matches; DQs lose', () => {
 	const match = {
 		status: 'COMPLETED',
