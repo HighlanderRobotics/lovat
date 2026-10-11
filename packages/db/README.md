@@ -75,6 +75,7 @@ npm run db:deploy
 npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 LOVAT_DB_TEST=1 node --test test/migrations.test.mjs
 LOVAT_DB_TEST=1 npm run test:integration
+LOVAT_DB_TEST=1 npm run test:practice-migration
 ```
 
 CI provisions PostgreSQL 16, replays the complete migration history, checks for schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, and parameterized SQL. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.

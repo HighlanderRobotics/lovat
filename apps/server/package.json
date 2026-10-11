@@ -9,6 +9,7 @@
     "start": "cross-env NODE_ENV=production node dist/src/server.js",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:practice-live": "npm run build && node --env-file=.env test/practiceImport.live.mjs",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "typecheck:test": "tsc --noEmit --project tsconfig.test.json",

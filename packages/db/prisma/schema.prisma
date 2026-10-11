@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output = "../src/generated/prisma"
-  moduleFormat = "esm"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
   importFileExtension = "js"
 }
 
@@ -28,13 +28,15 @@ model FeatureToggle {
 }
 
 model TeamMatchData {
-  key           String        @id
-  tournamentKey String
-  matchNumber   Int           @db.SmallInt
-  teamNumber    Int
-  matchType     MatchType
-  scoutReports  ScoutReport[]
-  tournament    Tournament    @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
+  key               String        @id
+  tournamentKey     String
+  matchNumber       Int           @db.SmallInt
+  teamNumber        Int
+  matchType         MatchType
+  /// True only when a public provider schedule includes this practice team.
+  practiceScheduled Boolean       @default(false)
+  scoutReports      ScoutReport[]
+  tournament        Tournament    @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
 
   @@index([tournamentKey, teamNumber])
 }

@@ -2,6 +2,7 @@ import prismaClient from "../../prismaClient.js";
 import z from "zod";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
+import { addPracticeMatches } from "./addPracticeMatches.js";
 
 interface TbaAlliance {
   team_keys: string[];
@@ -21,7 +22,7 @@ interface TbaMatch {
 
 type TbaMatchesResponse = TbaMatch[];
 
-export const addTournamentMatches = async (
+const addTbaTournamentMatches = async (
   tournamentKey: string,
 ): Promise<void> => {
   try {
@@ -274,5 +275,17 @@ export const addTournamentMatches = async (
     }
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const addTournamentMatches = async (
+  tournamentKey: string,
+): Promise<void> => {
+  await addTbaTournamentMatches(tournamentKey);
+
+  try {
+    await addPracticeMatches(tournamentKey);
+  } catch (error) {
+    console.error("Failed to import Nexus practice matches", error);
   }
 };

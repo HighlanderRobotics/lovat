@@ -119,6 +119,7 @@ export const getMatches = async (
         matchType: true,
         teamNumber: true,
         key: true,
+        practiceScheduled: true,
         _count: {
           // Represents the total number of valid scout reports for this row
           select: {
@@ -240,7 +241,7 @@ export const getMatches = async (
       for (const row of rawData) {
         if (
           row.matchType !== MatchType.PRACTICE ||
-          row._count.scoutReports === 0
+          (!row.practiceScheduled && row._count.scoutReports === 0)
         ) {
           continue;
         }

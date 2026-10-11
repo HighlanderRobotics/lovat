@@ -97,3 +97,46 @@ imports so a fresh local database can start without an external API key.
 PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
 for real team, tournament, and match imports. Routes that call Blue Alliance
 directly still require the key. Production keeps its existing import behavior.
+
+### Practice match imports from Nexus
+
+Practice schedules come from [Nexus](https://frc.nexus). Get an API key at
+[Nexus API access](https://frc.nexus/api), then set `NEXUS_API_KEY` in your local
+`apps/server/.env` and restart the server. For deployment, set the same variable
+in the Server service's environment settings. Keep the actual key out of Git.
+An empty key skips Nexus imports.
+
+The match importer fetches TBA qualification and playoff matches, then attempts
+the Nexus practice import even if TBA's schedule is unchanged or its request
+fails. The existing background-job settings still control scheduled imports;
+match-list requests also call the importer. Nexus responses are cached in
+server memory for one minute and requests time out after ten seconds. Events
+Nexus does not have return no practice matches; other failures are logged.
+Replays are skipped because they need an identity separate from the original
+practice match.
+
+Imported rows use the same event, match-number, and team-number keys as practice
+report uploads. Imported rows are marked `practiceScheduled=true`; existing
+scouting reports stay attached. Apply the checked-in
+`20261011000000_mark_scheduled_practice_matches` migration before running this
+Server version. It adds the marker with a default of false, so old report-only
+rows do not become public.
+
+With `includePractice=true`, the match-list API includes publicly imported
+practice teams even before they have reports. Report-only teams remain visible
+only when the viewer can access a report, and report counts and scouter names
+retain their source-team filters. Practice responses still use a `teams` array
+without alliance slots. This does not add Dashboard or Collection UI support.
+The importer preserves existing rows when a schedule changes, including rows
+that are no longer returned by Nexus. See the
+[Nexus API documentation](https://frc.nexus/api/v1/docs) for the response format.
+
+To check live fetching and database saving, use a migrated, disposable local
+`lovat_test` database with `LOVAT_DB_TEST=1`, a valid `NEXUS_API_KEY`, and
+`LOVAT_TEST_EVENT_KEY` set to a Nexus event with practice matches. Run
+`npm run test:practice-live` from `apps/server`. The command builds Server,
+loads `.env` without overriding variables already set in the terminal, and
+imports the schedule twice to check keys, scheduling markers, and duplicates.
+It refuses an event already present in the test database and removes only its
+own temporary tournament and match rows. This optional check needs live Nexus
+availability and is not part of the offline unit suite.
