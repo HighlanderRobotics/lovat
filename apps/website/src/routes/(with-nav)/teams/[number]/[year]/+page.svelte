@@ -188,7 +188,9 @@
 									>{date(event.endDate)}</span
 								>{/if}</span
 						>
-						<span class="expand-icon" aria-hidden="true">⌄</span>
+						<svg class="expand-icon" viewBox="0 0 24 24" aria-hidden="true">
+							<path fill="currentColor" d="m7 10 5 5 5-5z" />
+						</svg>
 					</summary>
 					<div class="event-content">
 						<a class="tournament-link" href={`/tournaments/${event.key}`}>View tournament →</a>
@@ -431,7 +433,8 @@
 		display: none;
 	}
 	.expand-icon {
-		font-size: 24px !important;
+		width: 24px;
+		height: 24px;
 	}
 	.event-dropdown[open] .expand-icon {
 		transform: rotate(180deg);
