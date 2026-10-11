@@ -1,3 +1,4 @@
+# Build from the repository root: docker build -f apps/website/Dockerfile .
 FROM node:20.19.6-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/apps/website

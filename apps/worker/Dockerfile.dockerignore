@@ -1,0 +1,15 @@
+**
+!packages/
+!packages/db/
+!packages/db/**
+!apps/
+!apps/worker/
+!apps/worker/**
+**/node_modules
+**/dist
+**/coverage
+**/src/generated
+**/.env
+**/.env.*
+**/*.log
+**/.DS_Store

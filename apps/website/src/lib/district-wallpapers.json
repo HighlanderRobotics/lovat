@@ -1,0 +1,151 @@
+{
+	"Berkeley": {
+		"image": "/assets/cities/berkeley.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Campanile_Hi-Res_-_reduced_file_size.jpg",
+		"author": "Ryan Schwark",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"bytes": 202198,
+		"position": "50% 22%"
+	},
+	"San Diego": {
+		"image": "/assets/cities/san-diego.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:California_tower_gardens_at_Balboa_Park_2022.jpg",
+		"author": "Librarybell",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"bytes": 809522,
+		"position": "50% 22%"
+	},
+	"San Francisco": {
+		"image": "/assets/cities/san-francisco.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_as_seen_from_Battery_East.jpg",
+		"author": "Frank Schulenburg",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 252236
+	},
+	"Anaheim": {
+		"image": "/assets/cities/anaheim.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Sleeping_beauty_castle_dlr_2019.jpg",
+		"author": "CrispyCream27",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 424206
+	},
+	"Glendale": {
+		"image": "/assets/cities/glendale.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:AmericanaBrandSign.jpg",
+		"author": "Minnaert",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"bytes": 266452,
+		"position": "50% 25%"
+	},
+	"Pittsburg": {
+		"image": "/assets/cities/pittsburg.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Pittsburg_Boardwalk.jpg",
+		"author": "Thomas Savage",
+		"license": "CC BY-SA 2.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+		"bytes": 171565
+	},
+	"Clovis": {
+		"image": "/assets/cities/clovis.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Old_Town_Clovis%2C_California%2C_Pollasky_Ave%2C_2026.jpg",
+		"author": "Aaron T Harris",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 278831
+	},
+	"El Segundo": {
+		"image": "/assets/cities/el-segundo.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:New_El_Segundo_welcome_sign.jpg",
+		"author": "EEJCC",
+		"license": "CC0",
+		"licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+		"bytes": 272016
+	},
+	"Lancaster": {
+		"image": "/assets/cities/lancaster.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:California_Poppies1.jpg",
+		"author": "Boris D (talk · contribs)",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 351163,
+		"position": "50% 65%"
+	},
+	"Rosemead": {
+		"image": "/assets/cities/rosemead.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Dinsmoor_Heritage_House_and_Museum_Rosemead_California.jpg",
+		"author": "Ghostgrrrl626",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 483486
+	},
+	"Mission Viejo": {
+		"image": "/assets/cities/mission-viejo.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Snow_at_Lake_Mission_Viejo_005.jpg",
+		"author": "User:Wikpe44",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"bytes": 431615
+	},
+	"Elk Grove": {
+		"image": "/assets/cities/elk-grove.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Elk_Grove_Historic_District_-_Sarah_Stierch_-_2.jpg",
+		"author": "SarahStierch",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+		"bytes": 368903
+	},
+	"Hollister": {
+		"image": "/assets/cities/hollister.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:DSC00736_east_side_of_San_Benito_Street_at_Fifth_Street%2C_Hollister%2C_California%2C_June_16%2C_2007.JPG",
+		"author": "BrendelSignature",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 261489
+	},
+	"Daly City": {
+		"image": "/assets/cities/daly-city.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Cow_Palace_(front).jpg",
+		"author": "Dante Alighieri",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 234214,
+		"position": "50% 32%"
+	},
+	"Half Moon Bay": {
+		"image": "/assets/cities/half-moon-bay.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:2009_aerial_view_of_Pillar_Point_Harbor_and_Bluff.jpg",
+		"author": "Doc Searls",
+		"license": "CC BY-SA 2.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+		"bytes": 242412
+	},
+	"Woodside": {
+		"image": "/assets/cities/woodside.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Filoli_Main_House_Entrance.jpg",
+		"author": "Coolcaesar",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+		"bytes": 384295
+	},
+	"Port Hueneme": {
+		"image": "/assets/cities/port-hueneme.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Point_Hueneme_Lighthouse.jpg",
+		"author": "Thomas from USA",
+		"license": "CC BY 2.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+		"bytes": 263171
+	},
+	"Ventura": {
+		"image": "/assets/cities/ventura.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Aerial_view_of_the_pier%2C_Ventura%2C_California_LCCN2013631292.tiff",
+		"author": "Carol M. Highsmith",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"bytes": 274226
+	}
+}
