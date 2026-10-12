@@ -150,9 +150,9 @@ Each response commits with its cache headers; failed transactions retain the
 previous validators. Match and roster imports separately track the metadata
 version applied to their records.
 
-The imports cover the current official-data tables. Rankings, awards, district
-points, Statbotics metrics, and practice matches need schema support before
-they can be persisted.
+The imports cover the current official-data tables, including alliance selections
+and awards. Rankings, district points, Statbotics metrics, and practice matches
+remain future work.
 
 ## Scheduler
 
@@ -272,3 +272,16 @@ import is interrupted, its lease expires and another process can retry it.
 GitHub CI runs fixture-based database tests, typechecks, and a Docker build for
 worker or shared database changes. Successful imports log their kind, target,
 and next refresh time without credentials or scouting content.
+
+## Tournament presentation data
+
+`tournament-details` imports TBA alliance selections and awards, preserving pick
+order, backups, and numeric participant remaps. It also imports raster avatars for
+the roster's `TeamSeason` records. The scheduler refreshes details at the roster
+cadence. Each event snapshot and its validators commit together; each team avatar
+commits separately so a failed media request can resume without discarding event
+data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
+
+### Historical seasons
+
+Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.

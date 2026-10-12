@@ -118,3 +118,15 @@ LOVAT_DB_TEST=1 npm run test:integration
 ```
 
 CI provisions PostgreSQL 16, replays the complete migration history, checks repeat deployment and schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, parameterized SQL, and report/event commit and cascade behavior. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.
+
+Tournament presentation snapshots use `Tournament.allianceSelections` and
+`Tournament.awards` (validated JSON) rather than extra recipient/pick tables.
+Selections contain ordered numeric teams and an optional backup in/out pair;
+awards contain their provider type, name, and numeric team/person recipients.
+`TeamSeason.avatar` stores a raster image data URI from that season's TBA media endpoint.
+These fields contain public official data and preserve the season context.
+
+`Tournament.week` stores TBA's zero-based regular-season week index. Public views
+display it as Week 1, Week 2, and so on; championship grouping uses `eventType`.
+The worker uses a versioned events cache key to refresh existing season records
+after this field is introduced.

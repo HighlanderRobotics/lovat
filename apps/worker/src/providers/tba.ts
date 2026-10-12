@@ -52,6 +52,7 @@ export const tbaTournamentSchema = z.object({
   end_date: z.iso.date(),
   timezone: z.string().nullable(),
   event_type: z.number().int(),
+  week: z.number().int().nonnegative().nullish(),
   playoff_type: z.number().int().nullable(),
   parent_event_key: z.string().nullable(),
   district: z
@@ -100,6 +101,37 @@ const tbaMatchEventSchema = z.object({
 });
 
 export type TbaMatch = z.infer<typeof tbaMatchSchema>;
+
+export const tbaSelectionsSchema = z.array(
+  z.object({
+    picks: z.array(z.string().min(1)),
+    backup: z.object({ in: z.string(), out: z.string() }).nullish(),
+  }),
+);
+
+export const tbaAwardsSchema = z.array(
+  z.object({
+    award_type: z.number().int(),
+    name: z.string(),
+    event_key: z.string(),
+    recipient_list: z.array(
+      z.object({
+        team_key: z.string().nullable(),
+        awardee: z.string().nullable(),
+      }),
+    ),
+  }),
+);
+
+const tbaMediaSchema = z.array(
+  z.object({
+    type: z.string(),
+    preferred: z.boolean().optional(),
+    details: z
+      .object({ base64Image: z.string().max(100_000).optional() })
+      .nullish(),
+  }),
+);
 
 export class TbaHttpError extends Error {
   constructor(
@@ -239,6 +271,32 @@ export function createTbaClient({
       return get(
         `event/${encodeURIComponent(eventKey)}/matches`,
         z.array(tbaMatchSchema),
+        options,
+      );
+    },
+
+    getSelections(eventKey: string, options?: RequestOptions) {
+      return get(
+        `event/${encodeURIComponent(eventKey)}/alliances`,
+        tbaSelectionsSchema,
+        options,
+      );
+    },
+
+    getAwards(eventKey: string, options?: RequestOptions) {
+      return get(
+        `event/${encodeURIComponent(eventKey)}/awards`,
+        tbaAwardsSchema,
+        options,
+      );
+    },
+
+    getTeamMedia(teamNumber: number, year: number, options?: RequestOptions) {
+      validateYear(year);
+
+      return get(
+        `team/frc${teamNumber}/media/${year}`,
+        tbaMediaSchema,
         options,
       );
     },

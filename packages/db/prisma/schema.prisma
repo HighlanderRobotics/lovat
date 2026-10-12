@@ -92,6 +92,7 @@ model TeamSeason {
   stateProvince     String?
   country           String?
   districtSeasonKey String?
+  avatar            String? // Raster avatar data URI from TBA season media.
 
   team     Team            @relation(fields: [teamNumber], references: [number])
   season   Season          @relation(fields: [seasonYear], references: [year])
@@ -119,6 +120,11 @@ model Tournament {
 
   eventType   Int?
   playoffType Int?
+  week        Int? // Provider week index; null outside the regular season.
+
+  // Validated official snapshots; selection order and backup participants are preserved.
+  allianceSelections Json?
+  awards             Json?
 
   officialDataUpdatedAt DateTime?
   officialDataRevision  Int       @default(0)
