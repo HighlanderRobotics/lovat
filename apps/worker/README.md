@@ -150,9 +150,9 @@ Each response commits with its cache headers; failed transactions retain the
 previous validators. Match and roster imports separately track the metadata
 version applied to their records.
 
-The imports cover the current official-data tables. Rankings, awards, district
-points, Statbotics metrics, and practice matches need schema support before
-they can be persisted.
+The imports cover the current official-data tables, including alliance selections
+and awards. Rankings, district points, Statbotics metrics, and practice matches
+remain future work.
 
 ## Scheduler
 
@@ -281,16 +281,6 @@ the roster's `TeamSeason` records. The scheduler refreshes details at the roster
 cadence. Each event snapshot and its validators commit together; each team avatar
 commits separately so a failed media request can resume without discarding event
 data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
-
-The public Website route `/tournaments/[key]` reads these snapshots from the
-Server. Schedule, Teams, and Alliances & bracket are inline views at the same
-URL. The bracket currently renders only TBA playoff type 10 (eight-alliance
-double elimination). Other formats still show schedules, teams, and selections.
-
-Districts are available at `/[district]/[year]` (for example `/ca/2026`).
-Events are grouped by the imported regular-season week, with district championships
-in a separate section. Town wallpapers currently cover California. District avatars
-load through the public image endpoint only near the viewport.
 
 ### Historical seasons
 
