@@ -87,6 +87,7 @@ const userId = randomUUID();
 const leadUserId = randomUUID();
 const otherUserId = randomUUID();
 const otherTeamNumber = teamNumber - 1;
+const robotTeamNumber = teamNumber - 2;
 const otherScouterUuid = randomUUID();
 
 const report = (uuid: string) => ({
@@ -109,7 +110,7 @@ const report = (uuid: string) => ({
   autoClimb: "NOT_ATTEMPTED",
   endgameClimb: "NOT_ATTEMPTED",
   scouterUuid,
-  teamNumber: 9999,
+  teamNumber: robotTeamNumber,
   events: [
     [0, 2, 8],
     [10, 0, 2],
@@ -187,12 +188,16 @@ beforeAll(async () => {
   await db.tournament.create({
     data: { key: tournamentKey, name: "Synthetic tournament" },
   });
+  await db.team.create({
+    data: { number: robotTeamNumber, name: "Synthetic report robot" },
+  });
+
   await db.teamMatchData.create({
     data: {
       key: matchKey,
       tournamentKey,
       matchNumber: 1,
-      teamNumber: 9999,
+      teamNumber: robotTeamNumber,
       matchType: "QUALIFICATION",
     },
   });
@@ -202,6 +207,8 @@ afterAll(async () => {
   await db.team.deleteMany({ where: { number: teamNumber } });
   await db.team.deleteMany({ where: { number: otherTeamNumber } });
   await db.tournament.deleteMany({ where: { key: tournamentKey } });
+  await db.team.deleteMany({ where: { number: robotTeamNumber } });
+
   await kv.del([`auth:team:${teamNumber}`, `auth:team:${otherTeamNumber}`]);
   await closeRedis();
   await db.$disconnect();
@@ -257,7 +264,7 @@ describe.sequential("report upload against disposable services", () => {
     await db.cachedAnalysis.create({
       data: {
         key: cacheKey,
-        teamDependencies: [9999],
+        teamDependencies: [robotTeamNumber],
         tournamentDependencies: [],
       },
     });

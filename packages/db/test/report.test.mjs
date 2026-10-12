@@ -125,8 +125,8 @@ test("report and event writes commit together, roll back together, and cascade",
       0,
     );
   } finally {
-    await db.team.deleteMany({ where: { number: teamNumber } });
     await db.tournament.deleteMany({ where: { key: tournamentKey } });
+    await db.team.deleteMany({ where: { number: teamNumber } });
     await db.$disconnect();
   }
 });

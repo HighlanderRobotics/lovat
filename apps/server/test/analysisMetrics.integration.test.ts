@@ -34,6 +34,7 @@ const fixtureId = randomUUID();
 const sourceTeam = -Math.floor(Math.random() * 1_000_000_000) - 1;
 const otherSourceTeam = sourceTeam - 1;
 const robot = sourceTeam - 2;
+const robotTeams = [robot];
 const missingRobot = sourceTeam - 3;
 const tournamentKey = `metrics-${fixtureId}`;
 const hiddenTournament = `hidden-${fixtureId}`;
@@ -112,6 +113,10 @@ beforeAll(async () => {
     await db.tournament.create({
       data: { key, name: "Synthetic metric tournament" },
     });
+  await db.team.create({
+    data: { number: robot, name: "Synthetic analysis robot" },
+  });
+
   await db.teamMatchData.create({
     data: {
       key: matchKey,
@@ -173,6 +178,8 @@ afterAll(async () => {
   await db.tournament.deleteMany({
     where: { key: { in: fixtureTournaments } },
   });
+  await db.team.deleteMany({ where: { number: { in: robotTeams } } });
+
   await closeRedis();
   await db.$disconnect();
 });
@@ -437,6 +444,11 @@ const edgeReport = async (
   edgeEvents: typeof events,
 ) => {
   const team = robot - edgeMatchNumber++;
+  await db.team.create({
+    data: { number: team, name: "Synthetic analysis edge robot" },
+  });
+  robotTeams.push(team);
+
   await db.teamMatchData.create({
     data: {
       key: `edge-${team}-${fixtureId}`,

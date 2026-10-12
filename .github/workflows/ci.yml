@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       server: ${{ steps.filter.outputs.server }}
+      worker: ${{ steps.filter.outputs.worker }}
       dashboard: ${{ steps.filter.outputs.dashboard }}
       collection: ${{ steps.filter.outputs.collection }}
       website: ${{ steps.filter.outputs.website }}
@@ -25,6 +26,10 @@ jobs:
         id: filter
         with:
           filters: |
+            worker:
+              - 'apps/worker/**'
+              - 'packages/db/**'
+              - '.github/workflows/ci.yml'
             server:
               - 'apps/server/**'
               - 'packages/db/**'
@@ -146,6 +151,51 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: apps/server/test-report/
+
+  worker:
+    name: Worker
+    needs: changes
+    if: ${{ needs.changes.outputs.worker == 'true' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lovat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: npm --prefix ../../packages/db ci --include=dev
+      - run: npm --prefix ../../packages/db run build
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run typecheck
+      - name: Test worker against disposable PostgreSQL
+        env:
+          DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+          LOVAT_DB_TEST: "1"
+        run: |
+          npm --prefix ../../packages/db run db:deploy
+          bun run test
+      - name: Build worker deployment image
+        working-directory: .
+        run: docker build -f apps/worker/Dockerfile -t lovat-worker:ci .
 
   test-report:
     name: Publish test report
@@ -270,12 +320,24 @@ jobs:
   gate:
     name: Monorepo CI
     if: ${{ always() }}
-    needs: [changes, structure, server, collection, dashboard-format, dashboard, website, learn]
+    needs:
+      [
+        changes,
+        structure,
+        server,
+        worker,
+        collection,
+        dashboard-format,
+        dashboard,
+        website,
+        learn,
+      ]
     runs-on: ubuntu-latest
     env:
       CHANGES_RESULT: ${{ needs.changes.result }}
       STRUCTURE_RESULT: ${{ needs.structure.result }}
       SERVER_RESULT: ${{ needs.server.result }}
+      WORKER_RESULT: ${{ needs.worker.result }}
       COLLECTION_RESULT: ${{ needs.collection.result }}
       WEBSITE_RESULT: ${{ needs.website.result }}
       LEARN_RESULT: ${{ needs.learn.result }}
@@ -288,6 +350,7 @@ jobs:
             "$CHANGES_RESULT" \
             "$STRUCTURE_RESULT" \
             "$SERVER_RESULT" \
+            "$WORKER_RESULT" \
             "$COLLECTION_RESULT" \
             "$DASHBOARD_FORMAT_RESULT" \
             "$DASHBOARD_RESULT" \

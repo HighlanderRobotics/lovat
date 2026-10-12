@@ -81,6 +81,10 @@ const fixtureId = randomUUID();
 const teamNumber = -Math.floor(Math.random() * 1_000_000_000) - 1;
 const otherTeamNumber = teamNumber - 1;
 const unverifiedTeamNumber = teamNumber - 2;
+const robotTeamNumbers = Array.from(
+  { length: 6 },
+  (_, slot) => teamNumber - 3 - slot,
+);
 const userIds = Object.fromEntries(
   ["owner", "peer", "lead", "otherLead", "noTeam", "unverified"].map((name) => [
     name,
@@ -103,6 +107,13 @@ beforeAll(async () => {
       },
     });
   }
+  await db.team.createMany({
+    data: robotTeamNumbers.map((number) => ({
+      number,
+      name: "Synthetic match result robot",
+    })),
+  });
+
   await db.tournament.create({
     data: { key: tournamentKey, name: "Synthetic picklist tournament" },
   });
@@ -136,6 +147,10 @@ afterAll(async () => {
     },
   });
   await db.tournament.deleteMany({ where: { key: tournamentKey } });
+  await db.team.deleteMany({
+    where: { number: { in: robotTeamNumbers } },
+  });
+
   await kv.del([
     ...rateKeys,
     ...[teamNumber, otherTeamNumber, unverifiedTeamNumber].map(
@@ -623,7 +638,7 @@ it("filters match-result reports by the authenticated viewer's source rules", as
     await db.teamMatchData.create({
       data: {
         key: `${matchKey}_${slot}`,
-        teamNumber: slot + 1,
+        teamNumber: robotTeamNumbers[slot],
         tournamentKey,
         matchNumber: 1,
         matchType: "QUALIFICATION",

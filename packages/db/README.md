@@ -66,6 +66,45 @@ Railway must use repository root `/` and `apps/server/Dockerfile` so both direct
 
 ## Integration checks
 
+### Competition-data migration
+
+`20261010193000_add_import_fetch_state_and_jobs` adds minimal `FetchState`
+and `ImportJob` tables. Fetch state is keyed by provider and endpoint (including
+meaningful query parameters). Workers must commit new HTTP validators with the
+imported data, not before it. Jobs are unique by kind and target; successful jobs
+can be deleted or rescheduled by the worker. Claiming, leases, retries,
+and scheduling are worker responsibilities, not implemented by this migration.
+Existing tournament ETags are retained until ingestion moves to endpoint state.
+
+`20261010220000_add_tournament_gaps` adds worker-inferred pauses with lunch,
+overnight (EOD/new-day), playoff-transition, delay, and generic-break types.
+Each row links its preceding and following canonical matches and records
+whether inference used actual, scheduled, or predicted times. Interval
+boundaries are estimates, not official announcements or exact match end times.
+
+The additive migration preserves existing reports and match data. Composite
+foreign keys enforce that both boundary matches belong to the gap's tournament.
+SQL CHECK constraints enforce positive intervals and distinct boundary matches;
+preserve these constraints in later migrations. Gaps cascade when their
+tournament or boundary matches are deleted. Existing tournaments acquire gaps
+on the next match refresh, including a cached response, or through the worker's
+explicit gap backfill.
+
+`20261010180215_add_season_match_and_more` adds seasons, districts, rosters,
+canonical matches, and alliance results without changing existing report keys
+or measurements. It runs in one transaction and creates missing `Team` parents
+for existing scouting slots before adding the team foreign key. Those parents
+use an explicit `Team <number>` fallback name; official team ingestion can
+replace it later. Existing team names are preserved. Canonical match links and
+other imported metadata remain null until a verified backfill or import.
+
+The migration enforces stations 1–3 with a SQL CHECK constraint that Prisma
+cannot express. Keep that constraint in future migrations. Test coverage checks
+populated current-season report/action preservation, missing-team backfill,
+station and team constraints, and atomic rollback. Verify migration history on
+a staging clone before production deployment; these local checks do not prove
+that a particular deployed database is ready to migrate.
+
 Use only a disposable local database named `lovat_test`:
 
 ```bash
@@ -79,3 +118,15 @@ LOVAT_DB_TEST=1 npm run test:integration
 ```
 
 CI provisions PostgreSQL 16, replays the complete migration history, checks repeat deployment and schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, parameterized SQL, and report/event commit and cascade behavior. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.
+
+Tournament presentation snapshots use `Tournament.allianceSelections` and
+`Tournament.awards` (validated JSON) rather than extra recipient/pick tables.
+Selections contain ordered numeric teams and an optional backup in/out pair;
+awards contain their provider type, name, and numeric team/person recipients.
+`TeamSeason.avatar` stores a raster image data URI from that season's TBA media endpoint.
+These fields contain public official data and preserve the season context.
+
+`Tournament.week` stores TBA's zero-based regular-season week index. Public views
+display it as Week 1, Week 2, and so on; championship grouping uses `eventType`.
+The worker uses a versioned events cache key to refresh existing season records
+after this field is introduced.
