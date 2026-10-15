@@ -47,6 +47,7 @@ export const invoke = async (
         `attachment; filename="${name}"`;
       return response;
     }),
+    end: vi.fn(() => response),
     redirect: vi.fn((url: string) => {
       response.statusCode = 302;
       response.headers.Location = url;

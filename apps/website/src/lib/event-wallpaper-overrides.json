@@ -1,0 +1,110 @@
+{
+	"2026arc": {
+		"image": "/assets/worlds/icons/arc.svg",
+		"source": "https://www.youtube.com/watch?v=265TvNiCV94",
+		"author": "Lovat (matching FIRST broadcast symbol)",
+		"license": "Original SVG",
+		"licenseUrl": "",
+		"streamSource": "https://www.youtube.com/watch?v=265TvNiCV94",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026cur": {
+		"image": "/assets/worlds/icons/cur.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/radiation.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=0ZeAiI7iPPA",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026dal": {
+		"image": "/assets/worlds/icons/dal.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/flask.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=MF80hJ8VsKs",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026gal": {
+		"image": "/assets/worlds/icons/gal.svg",
+		"source": "https://www.youtube.com/watch?v=g1iPzNURUgY",
+		"author": "Lovat (matching FIRST broadcast symbol)",
+		"license": "Original SVG",
+		"licenseUrl": "",
+		"streamSource": "https://www.youtube.com/watch?v=g1iPzNURUgY",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026hop": {
+		"image": "/assets/worlds/icons/hop.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/bug.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=rLmphTvtQ7w",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026joh": {
+		"image": "/assets/worlds/icons/joh.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/rocket.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=PqyFF_0QMTE",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026mil": {
+		"image": "/assets/worlds/icons/mil.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/staff-snake.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=b0MqgiYCM1k",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026new": {
+		"image": "/assets/worlds/icons/new.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/apple-whole.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=_BBiWP_tyK8",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	},
+	"2026cmptx": {
+		"image": "/assets/worlds/icons/cmptx.svg",
+		"source": "https://github.com/FortAwesome/Font-Awesome/blob/6.x/svgs/solid/atom.svg",
+		"author": "Font Awesome (recolored by Lovat)",
+		"license": "CC BY 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+		"streamSource": "https://www.youtube.com/watch?v=EjF9we707DA",
+		"background": "linear-gradient(110deg, #242328, #353026)",
+		"position": "center",
+		"fit": "contain",
+		"symbol": true
+	}
+}

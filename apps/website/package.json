@@ -12,7 +12,8 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"start": "node build"
+		"start": "node build",
+		"test:prediction": "node --test scripts/prediction.test.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-netlify": "^4.0.0",
@@ -39,6 +40,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@auth0/auth0-spa-js": "^2.28.3",
 		"@tanstack/svelte-query": "^5.66.11",
 		"magnolia-ui-svelte": "github:highlanderrobotics/magnolia-ui-svelte#production",
 		"qrcode": "^1.5.3",
