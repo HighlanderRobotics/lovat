@@ -7,6 +7,7 @@ const teamSchema = z.object({
 	teamNumber: z.number().int(),
 	seasonYear: z.number().int(),
 	name: z.string(),
+	usesLovat: z.boolean().default(false),
 	city: z.string().nullable(),
 	stateProvince: z.string().nullable(),
 	country: z.string().nullable(),

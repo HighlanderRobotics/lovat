@@ -148,7 +148,15 @@
 					{#if !team.avatar || failedAvatar}<span>{team.teamNumber}</span>{/if}
 				</div>
 				<div>
-					<span class="number">{team.teamNumber}</span>
+					<div class="team-heading">
+						<span class="number">{team.teamNumber}</span>
+						{#if team.usesLovat}
+							<span class="lovat-badge" title="Registered Lovat team">
+								<img src="/favicon-dark.png" alt="" />
+								Uses Lovat
+							</span>
+						{/if}
+					</div>
 					<h1>{team.name}</h1>
 					<p>{location}</p>
 				</div>
@@ -411,6 +419,30 @@
 	}
 	.team-logo img[hidden] {
 		display: none;
+	}
+	.team-heading {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+	.lovat-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 10px;
+		border: 1px solid #74658b;
+		border-radius: 999px;
+		background: #292438;
+		color: #e2d6fb;
+		font-size: 12px;
+		font-weight: 500;
+		white-space: nowrap;
+	}
+	.lovat-badge img {
+		width: 18px;
+		height: 18px;
+		object-fit: contain;
 	}
 	.number {
 		font-size: 24px;

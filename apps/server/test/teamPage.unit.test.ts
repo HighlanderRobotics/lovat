@@ -19,6 +19,11 @@ it("returns public season data and only this team's awards", async () => {
     avatar: null,
     district: null,
     team: {
+      registeredTeam: {
+        teamApproved: true,
+        code: "private-code",
+        email: "private@example.com",
+      },
       seasons: [{ seasonYear: 2026 }, { seasonYear: 2025 }],
       tournamentTeams: [
         {
@@ -51,10 +56,16 @@ it("returns public season data and only this team's awards", async () => {
   expect(JSON.stringify(query)).not.toContain("matchData");
   expect(res.body).toMatchObject({
     teamNumber: 8033,
+    usesLovat: true,
     seasonYears: [2026, 2025],
     tournaments: [{ key: "2026cancmp", awards: ["Winner"] }],
   });
+  expect(query.select.team.select.registeredTeam).toEqual({
+    select: { teamApproved: true },
+  });
   expect(res.body).not.toHaveProperty("team");
+  expect(JSON.stringify(res.body)).not.toContain("private-code");
+  expect(JSON.stringify(res.body)).not.toContain("private@example.com");
   expect(res.headers["Cache-Control"]).toBe("public, max-age=300");
 });
 
@@ -90,3 +101,21 @@ it("does not expose private database errors", async () => {
   expect(res.statusCode).toBe(503);
   expect(res.body).toEqual({ error: "Team data is temporarily unavailable" });
 });
+
+it.each([null, { teamApproved: false }])(
+  "does not mark unregistered or unapproved teams as Lovat users: %s",
+  async (registeredTeam) => {
+    findUnique.mockResolvedValue({
+      teamNumber: 8033,
+      seasonYear: 2026,
+      team: { registeredTeam, seasons: [], tournamentTeams: [] },
+    });
+
+    const res = await invoke(getTeamSeason, {
+      params: { number: "8033", year: "2026" },
+    });
+
+    expect(res.body).toMatchObject({ usesLovat: false });
+    expect(res.body).not.toHaveProperty("registeredTeam");
+  },
+);

@@ -58,6 +58,7 @@ export async function getTeamSeason(
         district: { select: { key: true, abbreviation: true, name: true } },
         team: {
           select: {
+            registeredTeam: { select: { teamApproved: true } },
             seasons: {
               orderBy: { seasonYear: "desc" },
               select: { seasonYear: true },
@@ -95,6 +96,7 @@ export async function getTeamSeason(
     res.set("Cache-Control", "public, max-age=300");
     res.json({
       ...profile,
+      usesLovat: history.registeredTeam?.teamApproved === true,
       seasonYears: history.seasons.map((season) => season.seasonYear),
       tournaments: history.tournamentTeams.map(({ tournament }) => ({
         ...tournament,
