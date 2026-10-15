@@ -355,7 +355,7 @@
 				<div class="chart-legend">
 					<span>● Qualifications</span><span class="elims-key">● Eliminations</span><span
 						class="broken-key">┆ Reported broken</span
-					><span class="tournament-key-color">┆ New tournament</span><span class="elims-key"
+					><span class="tournament-key-color">│ New tournament</span><span class="elims-key"
 						>┆ Eliminations begin</span
 					><span>— Tournament average</span><span>○ Unscouted</span>
 				</div>
@@ -503,8 +503,10 @@
 	.breakdown-boundary,
 	.event-boundary {
 		stroke: #e08b8b;
-		stroke-dasharray: 5 5;
 		stroke-width: 2;
+	}
+	.breakdown-boundary {
+		stroke-dasharray: 5 5;
 	}
 	.data-point.elimination {
 		fill: #82b8f8;
