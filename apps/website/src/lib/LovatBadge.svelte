@@ -9,7 +9,7 @@
 	aria-label="Uses Lovat"
 	title="Registered Lovat team"
 >
-	<img src="/favicon-dark.png" alt="" />
+	<img src="/assets/icons/lovat.png" alt="" />
 	{#if !compact}<span>Uses Lovat</span>{/if}
 </span>
 
@@ -32,6 +32,7 @@
 		width: 18px;
 		height: 18px;
 		object-fit: contain;
+		border-radius: 3px;
 	}
 	.compact {
 		padding: 3px;
