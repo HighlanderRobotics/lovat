@@ -2,14 +2,8 @@
 	export let compact = false;
 </script>
 
-<span
-	class="lovat-badge"
-	class:compact
-	role="img"
-	aria-label="Uses Lovat"
-	title="Registered Lovat team"
->
-	<img src="/assets/icons/lovat.png" alt="" />
+<span class="lovat-badge" class:compact role="img" aria-label="Uses Lovat" title="Registered Lovat team">
+	<span class="mark" aria-hidden="true"></span>
 	{#if !compact}<span>Uses Lovat</span>{/if}
 </span>
 
@@ -18,26 +12,24 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		padding: 5px 10px;
-		border: 1px solid #74658b;
-		border-radius: 999px;
-		background: #292438;
-		color: #e2d6fb;
+		color: var(--body);
 		font-size: 12px;
 		font-weight: 500;
 		white-space: nowrap;
 		flex-shrink: 0;
+		opacity: 0.65;
 	}
-	img {
+	.mark {
 		width: 18px;
 		height: 18px;
-		object-fit: contain;
-		border-radius: 3px;
+		background: currentColor;
+		mask: url('/assets/icons/lovat-mark.png') center / 170% no-repeat;
 	}
 	.compact {
-		padding: 3px;
+		color: inherit;
+		opacity: 0.55;
 	}
-	.compact img {
+	.compact .mark {
 		width: 14px;
 		height: 14px;
 	}
