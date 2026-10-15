@@ -2,7 +2,7 @@
 FROM node:20.19.6-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/apps/website
-COPY apps/website/package.json apps/website/package-lock.json ./
+COPY apps/website/package.json apps/website/package-lock.json apps/website/.npmrc ./
 RUN npm ci
 COPY apps/website/ ./
 COPY CHANGELOG.md /app/CHANGELOG.md
