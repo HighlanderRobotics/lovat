@@ -2,7 +2,13 @@
 	export let compact = false;
 </script>
 
-<span class="lovat-badge" class:compact role="img" aria-label="Uses Lovat" title="Registered Lovat team">
+<span
+	class="lovat-badge"
+	class:compact
+	role="img"
+	aria-label="Uses Lovat"
+	title="Registered Lovat team"
+>
 	<span class="mark" aria-hidden="true"></span>
 	{#if !compact}<span>Uses Lovat</span>{/if}
 </span>
