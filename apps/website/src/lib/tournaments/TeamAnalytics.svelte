@@ -475,7 +475,7 @@
 		stroke-width: 2;
 	}
 	.tournament-key-color {
-		color: #e08b8b;
+		color: var(--body);
 	}
 	.statistics {
 		display: grid;
@@ -500,13 +500,15 @@
 		align-items: center;
 		gap: 8px;
 	}
-	.breakdown-boundary,
 	.event-boundary {
-		stroke: #e08b8b;
+		stroke: var(--body);
+		stroke-dasharray: none;
 		stroke-width: 2;
 	}
 	.breakdown-boundary {
+		stroke: #e08b8b;
 		stroke-dasharray: 5 5;
+		stroke-width: 2;
 	}
 	.data-point.elimination {
 		fill: #82b8f8;
