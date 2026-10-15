@@ -20,6 +20,7 @@ export const districtSchema = z.object({
 	teamSeasons: z.array(
 		z.object({
 			teamNumber: z.number().int(),
+			usesLovat: z.boolean().default(false),
 			name: z.string(),
 			city: z.string().nullable(),
 			stateProvince: z.string().nullable()

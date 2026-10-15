@@ -12,7 +12,19 @@
 	}[] = [];
 	let loading = true;
 	let failed = false;
-	let metric: 'points' | 'auto' | 'teleop' = 'points';
+	type SortMetric = 'points' | 'auto' | 'teleop' | 'matches';
+	let metric: SortMetric = 'points';
+	let descending = true;
+	const columns: { key: SortMetric; label: string }[] = [
+		{ key: 'matches', label: 'Matches' },
+		{ key: 'points', label: 'Points' },
+		{ key: 'auto', label: 'Auto' },
+		{ key: 'teleop', label: 'Teleop' }
+	];
+	function sortBy(key: SortMetric) {
+		descending = metric === key ? !descending : true;
+		metric = key;
+	}
 	let controller: AbortController;
 	async function load() {
 		controller?.abort();
@@ -35,17 +47,19 @@
 		void load();
 		return () => controller?.abort();
 	});
-	$: sorted = [...teams].sort((a, b) => b[metric] - a[metric] || a.number - b.number);
+	$: sorted = [...teams].sort(
+		(a, b) => (descending ? b[metric] - a[metric] : a[metric] - b[metric]) || a.number - b.number
+	);
 </script>
 
 <section aria-label="District leaderboard">
 	<div class="heading">
 		<h2>Lovat leaderboard</h2>
 		<label
-			>Rank by <select bind:value={metric}
-				><option value="points">Points</option><option value="auto">Auto</option><option
-					value="teleop">Teleop</option
-				></select
+			>Rank by <select bind:value={metric} on:change={() => (descending = true)}
+				><option value="matches">Matches</option><option value="points">Points</option><option
+					value="auto">Auto</option
+				><option value="teleop">Teleop</option></select
 			></label
 		>
 	</div>
@@ -58,8 +72,16 @@
 			<table>
 				<thead
 					><tr
-						><th>Rank</th><th>Team</th><th>Matches</th><th>Points</th><th>Auto</th><th>Teleop</th
-						></tr
+						><th>Rank</th><th>Team</th>{#each columns as column}<th
+								aria-sort={metric === column.key
+									? descending
+										? 'descending'
+										: 'ascending'
+									: 'none'}
+								><button on:click={() => sortBy(column.key)}
+									>{column.label}{metric === column.key ? (descending ? ' ↓' : ' ↑') : ''}</button
+								></th
+							>{/each}</tr
 					></thead
 				><tbody>
 					{#each sorted as team, index}<tr
@@ -124,6 +146,13 @@
 	th:nth-child(2),
 	td:nth-child(2) {
 		text-align: left;
+	}
+	th button {
+		border: 0;
+		padding: 0;
+		background: transparent;
+		font: inherit;
+		cursor: pointer;
 	}
 	a {
 		color: var(--victory-purple);

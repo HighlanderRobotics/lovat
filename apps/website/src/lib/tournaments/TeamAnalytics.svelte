@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import MatchPredictor from './MatchPredictor.svelte';
-	import RoleIcon from './RoleIcon.svelte';
 	import {
 		rollingValues,
 		consistency,
@@ -34,11 +32,11 @@
 		feeding: 'Fuel fed'
 	};
 	const roles: Record<string, { label: string; color: string }> = {
-		CYCLING: { label: 'Cycling', color: '#b9a3f5' },
-		SCORING: { label: 'Scoring', color: '#75c6a0' },
-		FEEDING: { label: 'Feeding', color: '#82b8f8' },
-		DEFENDING: { label: 'Defending', color: '#edb476' },
-		IMMOBILE: { label: 'Immobile', color: '#e08ba0' }
+		CYCLING: { label: 'Cycling', color: '#a78bfa' },
+		SCORING: { label: 'Scoring', color: '#7c3aed' },
+		FEEDING: { label: 'Feeding', color: '#c026d3' },
+		DEFENDING: { label: 'Defending', color: '#5b21b6' },
+		IMMOBILE: { label: 'Immobile', color: '#dbb4ff' }
 	};
 
 	async function load() {
@@ -105,6 +103,7 @@
 	$: right = (end: number) =>
 		end === filtered.length - 1 ? chartWidth - 22 : (x(end) + x(end + 1)) / 2;
 	$: distribution = roleDistribution(filtered);
+	$: labels = pieLabels(distribution);
 	$: if (filtered && metric && window) active = -1;
 	$: selected = filtered[active];
 
@@ -123,7 +122,30 @@
 			Math.PI / 2;
 		const end = start + (entries[index].percentage / 100) * Math.PI * 2;
 
-		return `M150 150 L${150 + 132 * Math.cos(start)} ${150 + 132 * Math.sin(start)} A132 132 0 ${end - start > Math.PI ? 1 : 0} 1 ${150 + 132 * Math.cos(end)} ${150 + 132 * Math.sin(end)} Z`;
+		return `M300 170 L${300 + 110 * Math.cos(start)} ${170 + 110 * Math.sin(start)} A110 110 0 ${end - start > Math.PI ? 1 : 0} 1 ${300 + 110 * Math.cos(end)} ${170 + 110 * Math.sin(end)} Z`;
+	}
+
+	function pieLabels(entries: { role: string; percentage: number }[]) {
+		let angle = -Math.PI / 2;
+		const labels = entries.map((entry) => {
+			const middle = angle + (entry.percentage / 100) * Math.PI;
+			angle += (entry.percentage / 100) * Math.PI * 2;
+			return {
+				...entry,
+				right: Math.cos(middle) >= 0,
+				edgeX: 300 + 112 * Math.cos(middle),
+				edgeY: 170 + 112 * Math.sin(middle),
+				y: 170 + 138 * Math.sin(middle)
+			};
+		});
+		for (const side of [true, false]) {
+			const items = labels.filter((label) => label.right === side).sort((a, b) => a.y - b.y);
+			for (let i = 0; i < items.length; i++)
+				items[i].y = Math.max(35, items[i].y, i ? items[i - 1].y + 42 : 35);
+			for (let i = items.length - 1; i >= 0; i--)
+				items[i].y = Math.min(305, items[i].y, i < items.length - 1 ? items[i + 1].y - 42 : 305);
+		}
+		return labels;
 	}
 
 	function link(match: SeriesMatch) {
@@ -283,6 +305,17 @@
 						{/each}
 						{#if chart === 'line'}<path d={path} class="data-line" />{/if}
 						{#each values as value, index}
+							{#if filtered[index].reports === 0}
+								<a
+									href={link(filtered[index])}
+									aria-label={`${filtered[index].label}, ${filtered[index].eventName}: unscouted`}
+									on:focus={() => (active = index)}
+									on:mouseenter={() => (active = index)}
+									><circle cx={x(index)} cy="278" r="4" class="unscouted-point"
+										><title>{filtered[index].label} · Unscouted</title></circle
+									></a
+								>
+							{/if}
 							{#if value !== null}
 								<a
 									href={link(filtered[index])}
@@ -324,18 +357,20 @@
 						class="broken-key">┆ Reported broken</span
 					><span class="tournament-key-color">┆ New tournament</span><span class="elims-key"
 						>┆ Eliminations begin</span
-					><span>— Tournament average</span>
+					><span>— Tournament average</span><span>○ Unscouted</span>
 				</div>
 				<div class="match-caption">
 					{#if selected}<a href={link(selected)}>{selected.label} · {selected.eventName}</a>
 						<span
-							>{selected.reportedBroken ? 'Reported broken · ' : ''}{selected.coverage?.complete
+							>{selected.reports === 0 ? 'Unscouted · ' : ''}{selected.reportedBroken
+								? 'Reported broken · '
+								: ''}{selected.coverage?.complete
 								? 'Fully scouted'
 								: selected.coverage
 									? `${selected.coverage.reported}/${selected.coverage.expected} teams scouted`
 									: ''}</span
 						><strong>{values[active]?.toFixed(1)} {metrics[metric]}</strong>{:else}<span
-							>Scouted matches</span
+							>Matches</span
 						>{/if}
 				</div>
 			{:else}<p>No values available.</p>{/if}
@@ -344,12 +379,12 @@
 			<h3>Roles</h3>
 			{#if distribution.length}
 				<div class="role-breakdown">
-					<svg class="pie" viewBox="0 0 300 300" role="img" aria-label="Scouting role breakdown">
+					<svg class="pie" viewBox="0 0 600 340" role="img" aria-label="Scouting role breakdown">
 						{#each distribution as entry, index}
 							{#if distribution.length === 1}<circle
-									cx="150"
-									cy="150"
-									r="132"
+									cx="300"
+									cy="170"
+									r="110"
 									fill={roles[entry.role].color}
 									><title>{roles[entry.role].label}: {entry.percentage.toFixed(1)}%</title></circle
 								>
@@ -357,18 +392,29 @@
 									><title>{roles[entry.role].label}: {entry.percentage.toFixed(1)}%</title></path
 								>{/if}
 						{/each}
+						{#each labels as label}
+							<path
+								d={`M${label.edgeX} ${label.edgeY} L${label.right ? 450 : 150} ${label.y}`}
+								class="role-leader"
+							/>
+							<text
+								x={label.right ? 460 : 140}
+								y={label.y - 4}
+								text-anchor={label.right ? 'start' : 'end'}
+								class="role-name">{roles[label.role].label}</text
+							>
+							<text
+								x={label.right ? 460 : 140}
+								y={label.y + 13}
+								text-anchor={label.right ? 'start' : 'end'}
+								class="role-percentage">{label.percentage.toFixed(1)}%</text
+							>
+						{/each}
 					</svg>
-					<ul>
-						{#each distribution as entry}<li>
-								<span class="role-label" style:color={roles[entry.role].color}
-									><RoleIcon role={entry.role} /><span>{roles[entry.role].label}</span></span
-								><strong>{entry.percentage.toFixed(1)}%</strong>
-							</li>{/each}
-					</ul>
 				</div>
 			{:else}<p>No roles available.</p>{/if}
 		</div>
-		<MatchPredictor {number} />
+		<a class="predictor-link" href={`/predictor?team=${number}`}>Match predictor →</a>
 		<details class="values-table">
 			<summary>Match values</summary>
 			<div class="table-scroll">
@@ -378,9 +424,9 @@
 					><tbody
 						>{#each filtered as match}<tr
 								><td><a href={link(match)}>{match.label}</a></td><td>{match.eventName}</td><td
-									>{match.elimination ? 'Eliminations' : 'Qualifications'}{match.reportedBroken
-										? ' · Reported broken'
-										: ''}{match.coverage?.complete
+									>{match.elimination ? 'Eliminations' : 'Qualifications'}{match.reports === 0
+										? ' · Unscouted'
+										: ''}{match.reportedBroken ? ' · Reported broken' : ''}{match.coverage?.complete
 										? ' · Fully scouted'
 										: match.coverage
 											? ` · ${match.coverage.reported}/${match.coverage.expected} scouted`
@@ -395,6 +441,10 @@
 </section>
 
 <style>
+	.predictor-link {
+		display: inline-block;
+		margin-top: 24px;
+	}
 	.plot {
 		overflow-x: auto;
 		min-width: 0;
@@ -539,6 +589,11 @@
 		stroke: var(--light-gray);
 		stroke-width: 1;
 	}
+	.unscouted-point {
+		fill: var(--secondary-container);
+		stroke: var(--body);
+		stroke-width: 1.5;
+	}
 	.data-line {
 		stroke: var(--victory-purple);
 		stroke-width: 3;
@@ -568,35 +623,25 @@
 	}
 	.role-breakdown {
 		display: flex;
-		align-items: center;
-		gap: 40px;
+		justify-content: center;
 	}
 	.pie {
-		width: 240px;
-		max-width: 100%;
-		flex-shrink: 0;
+		width: min(100%, 680px);
+		display: block;
 	}
-	ul {
-		padding: 0;
-		margin: 0;
-		list-style: none;
-		width: min(100%, 360px);
+	.role-leader {
+		stroke: var(--body);
+		stroke-width: 1;
+		fill: none;
+		opacity: 0.6;
 	}
-	li {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 24px;
-		padding: 12px 0;
-	}
-	.role-label {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
-	li strong {
+	.role-name {
+		fill: var(--on-background);
 		font-size: 14px;
-		font-weight: 500;
+	}
+	.role-percentage {
+		fill: var(--body);
+		font-size: 12px;
 	}
 	.values-table {
 		margin: 24px 0;

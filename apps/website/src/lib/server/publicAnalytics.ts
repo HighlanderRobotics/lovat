@@ -101,6 +101,7 @@ export const teamSeriesSchema = z.object({
 	matches: z.array(
 		z.object({
 			matchKey: z.string().nullable(),
+			reports: z.number().int().nonnegative().default(1),
 			elimination: z.boolean().default(false),
 			reportedBroken: z.boolean().default(false),
 			coverage: coverageSchema.nullable().default(null),

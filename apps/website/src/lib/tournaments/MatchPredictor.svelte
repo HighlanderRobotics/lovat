@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	export let number: number;
+	export let number: number | undefined = undefined;
+	export let heading = true;
 	let teams: (number | undefined)[] = [
 		number,
 		undefined,
@@ -54,7 +55,7 @@
 </script>
 
 <section aria-label="Match predictor">
-	<h3>Match predictor</h3>
+	{#if heading}<h3>Match predictor</h3>{/if}
 	<form on:submit|preventDefault={predict}>
 		<div class="alliances">
 			{#each ['Blue', 'Red'] as color, side}<fieldset>

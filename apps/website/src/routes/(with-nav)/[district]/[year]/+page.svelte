@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LovatBadge from '$lib/LovatBadge.svelte';
 	import DistrictLeaderboard from '$lib/tournaments/DistrictLeaderboard.svelte';
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
@@ -212,7 +213,10 @@
 								/><span class="logo-fallback">{team.teamNumber}</span>
 							</div>
 							<div class="team-identity">
-								<strong>{team.teamNumber}</strong><span>{team.name}</span>
+								<div class="team-number">
+									<strong>{team.teamNumber}</strong>{#if team.usesLovat}<LovatBadge compact />{/if}
+								</div>
+								<span>{team.name}</span>
 							</div>
 						</a>
 					{:else}<p>No teams found.</p>{/each}
@@ -384,6 +388,11 @@
 		width: 32px;
 		height: 32px;
 		object-fit: contain;
+	}
+	.team-number {
+		display: flex;
+		align-items: center;
+		gap: 7px;
 	}
 	.team-identity strong {
 		font-size: 16px;

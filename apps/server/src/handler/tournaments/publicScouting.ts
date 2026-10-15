@@ -429,7 +429,7 @@ export async function getPublicTeamSeries(
 
   try {
     const matches = await publicCache(
-      `scouting:team-series:v2:${number}:${year}`,
+      `scouting:team-series:v3:${number}:${year}`,
       async () => {
         if (year !== 2026) return [];
 
@@ -437,7 +437,6 @@ export async function getPublicTeamSeries(
           where: {
             teamNumber: number,
             tournament: { seasonYear: year },
-            scoutReports: { some: {} },
           },
           select: {
             key: true,
@@ -511,7 +510,9 @@ export async function getPublicTeamSeries(
 
         return slots.map((slot) => {
           const value = (index: number) => {
-            const result = timelines[index]?.get(slot.key);
+            const result = slot.scoutReports.length
+              ? timelines[index]?.get(slot.key)
+              : null;
             return typeof result === "number" && Number.isFinite(result)
               ? result
               : null;
@@ -519,6 +520,7 @@ export async function getPublicTeamSeries(
 
           return {
             matchKey: slot.matchKey,
+            reports: slot.scoutReports.length,
             elimination: slot.matchType !== "QUALIFICATION",
             reportedBroken: slot.scoutReports.some(
               (report) => !!report.robotBrokeDescription?.trim(),

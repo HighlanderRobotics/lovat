@@ -394,6 +394,7 @@ describe("public team series", () => {
       matches: [
         {
           matchKey: "2026casnf_qm1",
+          reports: 2,
           elimination: false,
           reportedBroken: true,
           coverage: { reported: 0, expected: 0, complete: false },
@@ -408,6 +409,7 @@ describe("public team series", () => {
         },
         {
           matchKey: "2026casnf_qm2",
+          reports: 1,
           elimination: false,
           reportedBroken: false,
           coverage: { reported: 0, expected: 0, complete: false },
@@ -425,7 +427,6 @@ describe("public team series", () => {
     expect(mocks.events.mock.calls[0]![0].where).toEqual({
       teamNumber: 8033,
       tournament: { seasonYear: 2026 },
-      scoutReports: { some: {} },
     });
     expect(mocks.events.mock.calls[0]![0].select.scoutReports).toEqual({
       select: { robotRoles: true, robotBrokeDescription: true },
@@ -462,6 +463,7 @@ describe("public team series", () => {
       matches: [
         {
           matchKey: null,
+          reports: 0,
           elimination: true,
           reportedBroken: false,
           coverage: null,
@@ -633,4 +635,56 @@ describe("custom public predictor", () => {
       error: "Prediction unavailable",
     });
   });
+});
+
+it("keeps unscouted matches in the series as gaps even if a metric result exists", async () => {
+  mocks.events.mockResolvedValueOnce([
+    {
+      key: "unscouted",
+      matchKey: "2026casnf_qm2",
+      matchNumber: 2,
+      matchType: "QUALIFICATION",
+      tournamentKey: "2026casnf",
+      tournament: { name: "SF", startDate: null },
+      match: null,
+      scoutReports: [],
+    },
+    {
+      key: "scouted",
+      matchKey: "2026casnf_qm1",
+      matchNumber: 1,
+      matchType: "QUALIFICATION",
+      tournamentKey: "2026casnf",
+      tournament: { name: "SF", startDate: null },
+      match: null,
+      scoutReports: [{ robotRoles: [], robotBrokeDescription: null }],
+    },
+  ]);
+  mocks.events.mockResolvedValueOnce([{ tournamentKey: "2026casnf" }]);
+  mocks.metrics.mockResolvedValue({
+    8033: {
+      timeLine: [
+        { match: "unscouted", dataPoint: 999 },
+        { match: "scouted", dataPoint: 0 },
+      ],
+    },
+  });
+  const response = await invoke(getPublicTeamSeries, {
+    params: { number: "8033", year: "2026" },
+  });
+  expect(response.body).toMatchObject({
+    matches: [
+      { matchKey: "2026casnf_qm1", points: 0, reports: 1 },
+      {
+        matchKey: "2026casnf_qm2",
+        points: null,
+        auto: null,
+        feeding: null,
+        reports: 0,
+      },
+    ],
+  });
+  expect(mocks.events.mock.calls[0]![0].where).not.toHaveProperty(
+    "scoutReports",
+  );
 });

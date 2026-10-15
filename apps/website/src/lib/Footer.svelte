@@ -5,6 +5,7 @@
 <footer>
 	<a class="brand" href="/">Lovat</a>
 	<nav aria-label="Footer">
+		<a href="/predictor">Match predictor</a>
 		<a href="/about">About</a>
 		<a href="/download">Download</a>
 		<a href="https://www.youtube.com/watch?v=LYKE8soFBJ8" target="_blank" rel="noreferrer"

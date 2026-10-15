@@ -34,6 +34,9 @@ export async function getDistrict(req: Request, res: Response): Promise<void> {
           orderBy: { teamNumber: "asc" },
           select: {
             teamNumber: true,
+            team: {
+              select: { registeredTeam: { select: { teamApproved: true } } },
+            },
             name: true,
             city: true,
             stateProvince: true,
@@ -48,7 +51,13 @@ export async function getDistrict(req: Request, res: Response): Promise<void> {
     }
 
     res.set("Cache-Control", "public, max-age=300");
-    res.json(district);
+    res.json({
+      ...district,
+      teamSeasons: district.teamSeasons.map(({ team, ...season }) => ({
+        ...season,
+        usesLovat: team.registeredTeam?.teamApproved === true,
+      })),
+    });
   } catch {
     res.status(503).json({ error: "District data is temporarily unavailable" });
   }
