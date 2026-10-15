@@ -5,6 +5,7 @@
 	import {
 		rollingValues,
 		consistency,
+		tournamentRanges,
 		roleDistribution,
 		type SeriesMatch,
 		type GraphMetric
@@ -23,7 +24,8 @@
 	let chart = 'line';
 	let window = 1;
 	let active = -1;
-	let chartWidth = 900;
+	let availableWidth = 900;
+	$: chartWidth = Math.max(availableWidth, tournaments.length * 160);
 
 	const metrics = {
 		points: 'Points',
@@ -98,20 +100,16 @@
 				: `${result} ${index === 0 || values[index - 1] === null || filtered[index].eventKey !== filtered[index - 1].eventKey ? 'M' : 'L'}${x(index)},${y(value)}`,
 		''
 	);
-	$: segments = filtered
-		.map((match, index) => ({ match, index }))
-		.filter(
-			({ match, index }) =>
-				index === 0 ||
-				match.eventKey !== filtered[index - 1].eventKey ||
-				match.elimination !== filtered[index - 1].elimination
-		);
+	$: tournaments = tournamentRanges(filtered, metric, includeBroken);
+	$: left = (start: number) => (start === 0 ? 58 : (x(start - 1) + x(start)) / 2);
+	$: right = (end: number) =>
+		end === filtered.length - 1 ? chartWidth - 22 : (x(end) + x(end + 1)) / 2;
 	$: distribution = roleDistribution(filtered);
 	$: if (filtered && metric && window) active = -1;
 	$: selected = filtered[active];
 
 	function measure(node: HTMLElement) {
-		const observer = new ResizeObserver(() => (chartWidth = Math.max(280, node.clientWidth)));
+		const observer = new ResizeObserver(() => (availableWidth = Math.max(280, node.clientWidth)));
 		observer.observe(node);
 
 		return { destroy: () => observer.disconnect() };
@@ -201,7 +199,8 @@
 				<div class="plot" use:measure>
 					<svg
 						class="performance"
-						viewBox={`0 0 ${chartWidth} 320`}
+						viewBox={`0 0 ${chartWidth} 360`}
+						style:width={`${chartWidth}px`}
 						role="img"
 						aria-label={`${metrics[metric]} per scouted match`}
 					>
@@ -219,12 +218,68 @@
 								})}</text
 							>
 						{/each}
-						{#each filtered as match, index}
-							{#if index === 0 || match.eventKey !== filtered[index - 1].eventKey}
-								<line x1={x(index)} x2={x(index)} y1="18" y2="278" class="event-boundary"
-									><title>New tournament: {match.eventName}</title></line
+						{#each tournaments as tournament, index}
+							<rect
+								x={left(tournament.start)}
+								y="18"
+								width={right(tournament.end) - left(tournament.start)}
+								height="330"
+								class="tournament-box"
+								class:alternate={index % 2 === 1}
+							/>
+							{#if index > 0}
+								<line
+									x1={left(tournament.start)}
+									x2={left(tournament.start)}
+									y1="18"
+									y2="348"
+									class="event-boundary"><title>New tournament: {tournament.name}</title></line
 								>
 							{/if}
+							{#if tournament.eliminationIndex !== null}
+								<line
+									x1={x(tournament.eliminationIndex)}
+									x2={x(tournament.eliminationIndex)}
+									y1="18"
+									y2="278"
+									class="elimination-boundary"
+									><title>Eliminations begin: {tournament.name}</title></line
+								>
+							{/if}
+							{#if tournament.average !== null}
+								<line
+									x1={left(tournament.start) + 4}
+									x2={right(tournament.end) - 4}
+									y1={y(tournament.average)}
+									y2={y(tournament.average)}
+									class="tournament-average"
+									><title
+										>{tournament.key} average: {tournament.average.toFixed(1)}
+										{metrics[metric]}</title
+									></line
+								>
+							{/if}
+							<text
+								x={(left(tournament.start) + right(tournament.end)) / 2}
+								y="324"
+								text-anchor="middle"
+								class="tournament-key"><title>{tournament.name}</title>{tournament.key}</text
+							>
+							<text
+								x={(left(tournament.start) + right(tournament.end)) / 2}
+								y="341"
+								text-anchor="middle"
+								class="average-caption">Avg {tournament.average?.toFixed(1) ?? '—'}</text
+							>
+						{/each}
+						{#each filtered as match, index}
+							{#if match.reportedBroken}<line
+									x1={x(index)}
+									x2={x(index)}
+									y1="18"
+									y2="278"
+									class="breakdown-boundary"><title>Reported broken: {match.label}</title></line
+								>{/if}
 						{/each}
 						{#if chart === 'line'}<path d={path} class="data-line" />{/if}
 						{#each values as value, index}
@@ -264,17 +319,12 @@
 						{/each}
 					</svg>
 				</div>
-				<div class="chart-context">
-					{#each segments as { match, index }}<span
-							>{index + 1}: {match.eventName} · {match.elimination
-								? 'Eliminations begin'
-								: 'Qualifications'}</span
-						>{/each}
-				</div>
 				<div class="chart-legend">
 					<span>● Qualifications</span><span class="elims-key">● Eliminations</span><span
-						class="broken-key">● Reported broken</span
-					><span>┆ New tournament</span>
+						class="broken-key">┆ Reported broken</span
+					><span class="tournament-key-color">┆ New tournament</span><span class="elims-key"
+						>┆ Eliminations begin</span
+					><span>— Tournament average</span>
 				</div>
 				<div class="match-caption">
 					{#if selected}<a href={link(selected)}>{selected.label} · {selected.eventName}</a>
@@ -345,13 +395,37 @@
 </section>
 
 <style>
-	.chart-context {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px 20px;
-		color: var(--body);
-		font-size: 12px;
-		margin: 12px 0;
+	.plot {
+		overflow-x: auto;
+		min-width: 0;
+	}
+	.tournament-box {
+		fill: transparent;
+		stroke: var(--light-gray);
+		stroke-width: 1;
+	}
+	.tournament-box.alternate {
+		fill: rgba(255, 255, 255, 0.02);
+	}
+	.tournament-average {
+		stroke: var(--body);
+		stroke-width: 1.5;
+		opacity: 0.65;
+	}
+	.tournament-key {
+		font-size: 11px;
+	}
+	.average-caption {
+		font-size: 11px;
+		fill: var(--victory-purple);
+	}
+	.elimination-boundary {
+		stroke: #82b8f8;
+		stroke-dasharray: 5 5;
+		stroke-width: 2;
+	}
+	.tournament-key-color {
+		color: #e08b8b;
 	}
 	.statistics {
 		display: grid;
@@ -376,16 +450,17 @@
 		align-items: center;
 		gap: 8px;
 	}
+	.breakdown-boundary,
 	.event-boundary {
-		stroke: var(--body);
-		stroke-dasharray: 4 5;
-		opacity: 0.5;
+		stroke: #e08b8b;
+		stroke-dasharray: 5 5;
+		stroke-width: 2;
 	}
 	.data-point.elimination {
 		fill: #82b8f8;
 	}
 	.data-point.broken {
-		fill: #edb476;
+		fill: #e08b8b;
 		stroke: var(--background);
 		stroke-width: 2;
 	}
@@ -401,7 +476,7 @@
 		color: #82b8f8;
 	}
 	.broken-key {
-		color: #edb476;
+		color: #e08b8b;
 	}
 
 	section {

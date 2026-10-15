@@ -57,3 +57,43 @@ export function consistency(values: (number | null)[]) {
 		count: sample.length
 	};
 }
+
+export function tournamentRanges(
+	matches: SeriesMatch[],
+	metric: GraphMetric,
+	includeBroken: boolean
+) {
+	const ranges: {
+		key: string;
+		name: string;
+		start: number;
+		end: number;
+		average: number | null;
+		eliminationIndex: number | null;
+	}[] = [];
+
+	for (let start = 0; start < matches.length;) {
+		const first = matches[start];
+		let end = start + 1;
+
+		while (end < matches.length && matches[end].eventKey === first.eventKey) end++;
+
+		const sample = matches.slice(start, end);
+		const statistics = consistency(
+			sample.map((match) => (!includeBroken && match.reportedBroken ? null : match[metric]))
+		);
+		const elimination = sample.findIndex((match) => match.elimination);
+
+		ranges.push({
+			key: first.eventKey,
+			name: first.eventName,
+			start,
+			end: end - 1,
+			average: statistics?.average ?? null,
+			eliminationIndex: elimination === -1 ? null : start + elimination
+		});
+		start = end;
+	}
+
+	return ranges;
+}
