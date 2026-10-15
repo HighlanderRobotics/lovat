@@ -58,7 +58,7 @@ export function scoutingCoverage(
     alliance: string | null;
     scoutReports: unknown[];
   }[],
-): {reported: number; expected: number; complete: boolean} {
+): { reported: number; expected: number; complete: boolean } {
   const participants = slots.filter(
     (slot) => slot.alliance === "BLUE" || slot.alliance === "RED",
   );
