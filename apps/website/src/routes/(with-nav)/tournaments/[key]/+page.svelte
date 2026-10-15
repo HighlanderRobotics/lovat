@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LovatBadge from '$lib/LovatBadge.svelte';
 	import { teamRecords } from '$lib/tournaments/teamRecords';
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
 	import { tick } from 'svelte';
@@ -378,7 +379,11 @@
 									/>{:else}<span>{team.number}</span>{/if}
 							</div>
 							<div class="team-identity">
-								<strong>{team.number}</strong><span>{team.name}</span>
+								<div class="team-number">
+									<strong>{team.number}</strong>
+									{#if team.usesLovat}<LovatBadge compact />{/if}
+								</div>
+								<span>{team.name}</span>
 							</div>
 						</div>
 						<span
@@ -644,6 +649,11 @@
 	.team-identity strong {
 		font-size: 16px;
 		font-weight: 500;
+	}
+	.team-number {
+		display: flex;
+		align-items: center;
+		gap: 7px;
 	}
 	.team-identity span {
 		font-size: 12px;

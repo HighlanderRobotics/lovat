@@ -13,7 +13,7 @@ export async function getTournament(
   }
 
   try {
-    // Public official data only: never include scouting reports or team strategy.
+    // Public competition data and registration status; no reports or strategy.
     const tournament = await prismaClient.tournament.findUnique({
       where: { key },
       select: {
@@ -37,6 +37,7 @@ export async function getTournament(
               select: {
                 number: true,
                 name: true,
+                registeredTeam: { select: { teamApproved: true } },
                 seasons: {
                   where: { seasonYear: Number(key.slice(0, 4)) },
                   select: { name: true, avatar: true },
@@ -99,6 +100,7 @@ export async function getTournament(
       teams: tournament.teams.map(({ team }) => ({
         team: {
           number: team.number,
+          usesLovat: team.registeredTeam?.teamApproved === true,
           name: team.seasons[0]?.name ?? team.name,
           avatar: team.seasons[0]?.avatar ?? null,
         },

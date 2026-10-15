@@ -38,6 +38,7 @@ export const tournamentSchema = z.object({
 		z.object({
 			team: z.object({
 				number: z.number().int(),
+				usesLovat: z.boolean().default(false),
 				name: z.string(),
 				avatar: z
 					.string()

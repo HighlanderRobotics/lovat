@@ -91,9 +91,49 @@ it("uses the event season name and avatar without exposing season metadata", asy
         team: {
           number: 254,
           name: "Season name",
+          usesLovat: false,
           avatar: "data:image/png;base64,abc",
         },
       },
     ],
   });
 });
+
+it.each([true, false, null])(
+  "projects only a public Lovat status for event teams: %s",
+  async (approved) => {
+    findUnique.mockResolvedValue({
+      key: "2026casnf",
+      teams: [
+        {
+          team: {
+            number: 8033,
+            name: "Highlander Robotics",
+            seasons: [],
+            registeredTeam:
+              approved === null
+                ? null
+                : {
+                    teamApproved: approved,
+                    code: "private-code",
+                    email: "private@example.com",
+                  },
+          },
+        },
+      ],
+    });
+
+    const res = await invoke(getTournament, { params: { key: "2026casnf" } });
+
+    expect(
+      findUnique.mock.calls[0]![0].select.teams.select.team.select
+        .registeredTeam,
+    ).toEqual({ select: { teamApproved: true } });
+    expect(res.body).toMatchObject({
+      teams: [{ team: { usesLovat: approved === true } }],
+    });
+    expect(JSON.stringify(res.body)).not.toContain("private-code");
+    expect(JSON.stringify(res.body)).not.toContain("private@example.com");
+    expect(JSON.stringify(res.body)).not.toContain("registeredTeam");
+  },
+);
