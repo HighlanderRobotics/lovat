@@ -9,6 +9,7 @@
 	export let matchKey: string;
 	const dispatch = createEventDispatcher<{ roles: { teamNumber: number; role: string }[] }>();
 	let publicPrediction = true;
+	let coverage: { reported: number; expected: number; complete: boolean } | undefined;
 
 	let element: HTMLDivElement;
 	let visible = false;
@@ -42,6 +43,7 @@
 		const current = ++requestId;
 
 		prediction = null;
+		coverage = undefined;
 
 		if (!inView) return;
 
@@ -51,6 +53,7 @@
 			if (current !== requestId) return;
 
 			prediction = result.prediction;
+			coverage = result.coverage;
 			publicPrediction = true;
 			dispatch('roles', result.roles);
 		} catch {
@@ -77,6 +80,17 @@
 </script>
 
 <div bind:this={element}>
+	{#if coverage && coverage.expected > 0}
+		<div
+			class="coverage"
+			class:complete={coverage.complete}
+			title="At least one scouting report per team"
+		>
+			{coverage.complete
+				? 'Fully scouted'
+				: `${coverage.reported}/${coverage.expected} teams scouted`}
+		</div>
+	{/if}
 	{#if prediction}
 		<div
 			class="prediction"
@@ -94,6 +108,15 @@
 </div>
 
 <style>
+	.coverage {
+		padding: 6px 12px;
+		font-size: 11px;
+		color: var(--body);
+		text-align: right;
+	}
+	.coverage.complete {
+		color: #75c6a0;
+	}
 	.prediction {
 		position: relative;
 		display: flex;

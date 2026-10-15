@@ -52,6 +52,35 @@ export function mostCommonRoles(
     .sort();
 }
 
+export function scoutingCoverage(
+  slots: {
+    teamNumber: number;
+    alliance: string | null;
+    scoutReports: unknown[];
+  }[],
+): {reported: number; expected: number; complete: boolean} {
+  const participants = slots.filter(
+    (slot) => slot.alliance === "BLUE" || slot.alliance === "RED",
+  );
+  const reported = new Set(
+    participants
+      .filter((slot) => slot.scoutReports.length > 0)
+      .map((slot) => slot.teamNumber),
+  );
+  const expected = new Set(participants.map((slot) => slot.teamNumber)).size;
+
+  return {
+    reported: reported.size,
+    expected,
+    complete:
+      expected === 6 &&
+      participants.length === 6 &&
+      reported.size === 6 &&
+      participants.filter((slot) => slot.alliance === "BLUE").length === 3 &&
+      participants.filter((slot) => slot.alliance === "RED").length === 3,
+  };
+}
+
 // Midrank percentile: ties share a rank, with the lowest/highest unique values at 0/100.
 export function metricPercentile(
   value: number,
@@ -199,7 +228,7 @@ export async function getPublicMatchAnalysis(
   }
 
   try {
-    const analysis = await publicCache(`scouting:match:v2:${key}`, async () => {
+    const analysis = await publicCache(`scouting:match:v3:${key}`, async () => {
       const match = await prisma.match.findUnique({
         where: { key },
         select: {
@@ -257,7 +286,7 @@ export async function getPublicMatchAnalysis(
         }
       }
 
-      return { prediction, roles };
+      return { prediction, roles, coverage: scoutingCoverage(match.teamSlots) };
     });
 
     if (!analysis) {
@@ -400,7 +429,7 @@ export async function getPublicTeamSeries(
 
   try {
     const matches = await publicCache(
-      `scouting:team-series:v1:${number}:${year}`,
+      `scouting:team-series:v2:${number}:${year}`,
       async () => {
         if (year !== 2026) return [];
 
@@ -422,9 +451,18 @@ export async function getPublicTeamSeries(
                 displayOrder: true,
                 actualTime: true,
                 scheduledTime: true,
+                teamSlots: {
+                  select: {
+                    teamNumber: true,
+                    alliance: true,
+                    scoutReports: { select: { uuid: true } },
+                  },
+                },
               },
             },
-            scoutReports: { select: { robotRoles: true } },
+            scoutReports: {
+              select: { robotRoles: true, robotBrokeDescription: true },
+            },
           },
         });
 
@@ -481,6 +519,13 @@ export async function getPublicTeamSeries(
 
           return {
             matchKey: slot.matchKey,
+            elimination: slot.matchType !== "QUALIFICATION",
+            reportedBroken: slot.scoutReports.some(
+              (report) => !!report.robotBrokeDescription?.trim(),
+            ),
+            coverage: slot.match
+              ? scoutingCoverage(slot.match.teamSlots ?? [])
+              : null,
             eventKey: slot.tournamentKey,
             eventName: slot.tournament.name,
             label: `${slot.matchType === "QUALIFICATION" ? "Qualification" : "Elimination"} ${slot.matchNumber}`,
@@ -498,5 +543,112 @@ export async function getPublicTeamSeries(
     res.json({ matches });
   } catch {
     res.status(503).json({ error: "Team analytics unavailable" });
+  }
+}
+
+export async function getPublicDistrictLeaderboard(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const key = req.params.key;
+
+  if (typeof key !== "string" || !/^\d{4}[a-z0-9]+$/.test(key)) {
+    res.status(400).json({ error: "Invalid district" });
+    return;
+  }
+
+  try {
+    const leaderboard = await publicCache(
+      `scouting:district:v1:${key}`,
+      async () => {
+        const district = await prisma.districtSeason.findUnique({
+          where: { key },
+          select: {
+            seasonYear: true,
+            teamSeasons: { select: { teamNumber: true, name: true } },
+          },
+        });
+
+        if (!district) return null;
+        if (district.seasonYear !== 2026) return [];
+
+        const cohort = await seasonTeamMetrics(district.seasonYear);
+        const members = new Map(
+          district.teamSeasons.map((team) => [team.teamNumber, team.name]),
+        );
+
+        return cohort
+          .filter((team) => members.has(team.number))
+          .map((team) => ({
+            ...team,
+            name: members.get(team.number)!,
+          }));
+      },
+    );
+
+    if (leaderboard === null) {
+      res.status(404).json({ error: "District not found" });
+      return;
+    }
+
+    res.set("Cache-Control", "public, max-age=60");
+    res.json({ teams: leaderboard });
+  } catch {
+    res.status(503).json({ error: "Leaderboard unavailable" });
+  }
+}
+
+export async function getPublicPrediction(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const raw = req.query.teams;
+  const teams =
+    typeof raw === "string" && /^\d+(,\d+){5}$/.test(raw)
+      ? raw.split(",").map(Number)
+      : [];
+
+  if (
+    teams.length !== 6 ||
+    new Set(teams).size !== 6 ||
+    teams.some(
+      (team) => !Number.isInteger(team) || team <= 0 || team > 2_147_483_647,
+    ) ||
+    req.query.year !== "2026"
+  ) {
+    res.status(400).json({ error: "Choose six distinct teams in 2026" });
+    return;
+  }
+
+  try {
+    const prediction = await publicCache(
+      `scouting:prediction:v1:2026:${teams.join(",")}`,
+      async () => {
+        const user = await publicContext(2026, teams);
+
+        try {
+          const result = await matchPredictionLogic(user, {
+            blue1: teams[0]!,
+            blue2: teams[1]!,
+            blue3: teams[2]!,
+            red1: teams[3]!,
+            red2: teams[4]!,
+            red3: teams[5]!,
+          });
+          return {
+            blueWinning: result.blueWinning,
+            redWinning: result.redWinning,
+          };
+        } catch (error) {
+          if (error === "not enough data") return null;
+          throw error;
+        }
+      },
+    );
+
+    res.set("Cache-Control", "public, max-age=60");
+    res.json({ prediction });
+  } catch {
+    res.status(503).json({ error: "Prediction unavailable" });
   }
 }

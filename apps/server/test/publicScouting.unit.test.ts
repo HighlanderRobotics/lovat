@@ -6,12 +6,14 @@ const mocks = vi.hoisted(() => ({
   events: vi.fn(),
   predict: vi.fn(),
   metrics: vi.fn(),
+  district: vi.fn(),
 }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
     team: { findMany: vi.fn().mockResolvedValue([]) },
     tournament: { findMany: vi.fn().mockResolvedValue([]) },
     match: { findUnique: mocks.match },
+    districtSeason: { findUnique: mocks.district },
     teamMatchData: { findMany: mocks.events },
   },
 }));
@@ -32,6 +34,9 @@ import {
   getPublicMatchMetrics,
   mostCommonRoles,
   metricPercentile,
+  scoutingCoverage,
+  getPublicDistrictLeaderboard,
+  getPublicPrediction,
 } from "../src/handler/tournaments/publicScouting.js";
 import { chooseRobotPhoto } from "../src/handler/tournaments/getRobotPhoto.js";
 
@@ -64,6 +69,7 @@ describe("public scouting projections", () => {
       params: { key: "2026casnf_qm4" },
     });
     expect(response.body).toEqual({
+      coverage: { reported: 6, expected: 6, complete: true },
       prediction: { blueWinning: 0.7, redWinning: 0.3 },
       roles: [1, 2, 3, 4, 5, 6].map((teamNumber) => ({
         teamNumber,
@@ -358,6 +364,8 @@ describe("public team series", () => {
       },
       scoutReports: roles.map((role) => ({
         robotRoles: [role],
+        robotBrokeDescription:
+          role === "FEEDING" ? "private failure details" : null,
         notes: "private",
         scouterUuid: "private",
       })),
@@ -386,6 +394,9 @@ describe("public team series", () => {
       matches: [
         {
           matchKey: "2026casnf_qm1",
+          elimination: false,
+          reportedBroken: true,
+          coverage: { reported: 0, expected: 0, complete: false },
           eventKey: "2026casnf",
           eventName: "San Francisco",
           label: "Qualification 1",
@@ -397,6 +408,9 @@ describe("public team series", () => {
         },
         {
           matchKey: "2026casnf_qm2",
+          elimination: false,
+          reportedBroken: false,
+          coverage: { reported: 0, expected: 0, complete: false },
           eventKey: "2026casnf",
           eventName: "San Francisco",
           label: "Qualification 2",
@@ -414,7 +428,7 @@ describe("public team series", () => {
       scoutReports: { some: {} },
     });
     expect(mocks.events.mock.calls[0]![0].select.scoutReports).toEqual({
-      select: { robotRoles: true },
+      select: { robotRoles: true, robotBrokeDescription: true },
     });
     expect(mocks.metrics.mock.calls[0]![0]).toMatchObject({
       teamSourceRule: { mode: "EXCLUDE", items: [] },
@@ -448,6 +462,9 @@ describe("public team series", () => {
       matches: [
         {
           matchKey: null,
+          elimination: true,
+          reportedBroken: false,
+          coverage: null,
           eventKey: "2026casnf",
           eventName: "San Francisco",
           label: "Elimination 3",
@@ -495,5 +512,125 @@ describe("public team series", () => {
     });
     expect(response.statusCode).toBe(503);
     expect(response.body).toEqual({ error: "Team analytics unavailable" });
+  });
+});
+
+describe("scouting coverage", () => {
+  const slots = () =>
+    [1, 2, 3, 4, 5, 6].map((teamNumber) => ({
+      teamNumber,
+      alliance: teamNumber <= 3 ? "BLUE" : "RED",
+      scoutReports: [{}],
+    }));
+  it("requires six distinct participants with a report each, not six reports", () => {
+    expect(scoutingCoverage(slots())).toEqual({
+      reported: 6,
+      expected: 6,
+      complete: true,
+    });
+    const partial = slots();
+    partial[5]!.scoutReports = [];
+    partial[0]!.scoutReports = [{}, {}, {}];
+    expect(scoutingCoverage(partial)).toEqual({
+      reported: 5,
+      expected: 6,
+      complete: false,
+    });
+    expect(scoutingCoverage([]).complete).toBe(false);
+    const duplicate = slots();
+    duplicate[5]!.teamNumber = 1;
+    expect(scoutingCoverage(duplicate).complete).toBe(false);
+  });
+});
+
+describe("district scouting leaderboard", () => {
+  it("filters cached season metrics to district members only", async () => {
+    mocks.district.mockResolvedValue({
+      seasonYear: 2026,
+      teamSeasons: [{ teamNumber: 8033, name: "Highlander Robotics" }],
+    });
+    mocks.events.mockImplementation(async (args) =>
+      args.distinct[0] === "teamNumber"
+        ? [{ teamNumber: 8033 }, { teamNumber: 1 }]
+        : [{ tournamentKey: "2026casnf" }],
+    );
+    mocks.metrics.mockResolvedValue({
+      8033: { average: 42, timeLine: [{}] },
+      1: { average: 99, timeLine: [{}] },
+    });
+    const response = await invoke(getPublicDistrictLeaderboard, {
+      params: { key: "2026ca" },
+    });
+    expect(response.body).toEqual({
+      teams: [
+        {
+          number: 8033,
+          name: "Highlander Robotics",
+          matches: 1,
+          points: 42,
+          auto: 42,
+          teleop: 42,
+        },
+      ],
+    });
+  });
+  it("handles unsupported seasons, missing districts, invalid keys, and errors", async () => {
+    expect(
+      (await invoke(getPublicDistrictLeaderboard, { params: { key: "bad" } }))
+        .statusCode,
+    ).toBe(400);
+    mocks.district.mockResolvedValue(null);
+    expect(
+      (
+        await invoke(getPublicDistrictLeaderboard, {
+          params: { key: "2026ca" },
+        })
+      ).statusCode,
+    ).toBe(404);
+    mocks.district.mockResolvedValue({ seasonYear: 2025, teamSeasons: [] });
+    expect(
+      (
+        await invoke(getPublicDistrictLeaderboard, {
+          params: { key: "2025ca" },
+        })
+      ).body,
+    ).toEqual({ teams: [] });
+    expect(mocks.metrics).not.toHaveBeenCalled();
+    mocks.district.mockRejectedValue(new Error("private"));
+    expect(
+      (
+        await invoke(getPublicDistrictLeaderboard, {
+          params: { key: "2026ca" },
+        })
+      ).body,
+    ).toEqual({ error: "Leaderboard unavailable" });
+  });
+});
+
+describe("custom public predictor", () => {
+  it("validates six distinct teams and the supported game before querying", async () => {
+    for (const query of [
+      { teams: "1,1,2,3,4,5", year: "2026" },
+      { teams: "1,2,3,4,5,6", year: "2025" },
+      { teams: "1,2,3,4,5,2147483648", year: "2026" },
+    ])
+      expect((await invoke(getPublicPrediction, { query })).statusCode).toBe(
+        400,
+      );
+    expect(mocks.predict).not.toHaveBeenCalled();
+  });
+  it("returns only prediction probabilities and handles unavailable data", async () => {
+    const query = { teams: "1,2,3,4,5,6", year: "2026" };
+    expect((await invoke(getPublicPrediction, { query })).body).toEqual({
+      prediction: { blueWinning: 0.7, redWinning: 0.3 },
+    });
+    mocks.predict.mockRejectedValue("not enough data");
+    expect((await invoke(getPublicPrediction, { query })).body).toEqual({
+      prediction: null,
+    });
+    mocks.predict.mockRejectedValue(new Error("private"));
+    expect((await invoke(getPublicPrediction, { query })).body).toEqual({
+      error: "Prediction unavailable",
+    });
   });
 });

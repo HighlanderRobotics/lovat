@@ -20,6 +20,8 @@ import {
   getPublicMatchMetrics,
   getPublicTeamMetrics,
   getPublicTeamSeries,
+  getPublicDistrictLeaderboard,
+  getPublicPrediction,
 } from "../handler/tournaments/publicScouting.js";
 
 const router = Router();
@@ -35,6 +37,8 @@ router.get("/seasons/:year", getSeason);
 router.get("/teams/:number/avatar/:year", getTeamAvatar);
 router.get("/teams/:number/seasons/:year", getTeamSeason);
 router.get("/search", getSearch);
+router.get("/public/prediction", getPublicPrediction);
+router.get("/public/districts/:key/leaderboard", getPublicDistrictLeaderboard);
 router.get("/public/matches/:key", getPublicMatchAnalysis);
 router.get("/public/matches/:key/metrics", getPublicMatchMetrics);
 router.get("/public/teams/:number/:year/metrics", getPublicTeamMetrics);

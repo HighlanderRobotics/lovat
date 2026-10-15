@@ -1,4 +1,5 @@
 <script lang="ts">
+	import DistrictLeaderboard from '$lib/tournaments/DistrictLeaderboard.svelte';
 	import { Button, DensityProvider } from 'magnolia-ui-svelte';
 	import { avatarGradient, lazyAvatar } from '$lib/tournaments/branding';
 	import { districtWallpaper, eventWallpaper } from '$lib/tournaments/wallpaper';
@@ -133,88 +134,102 @@
 					view = 'teams';
 				}}>Teams</Button
 			>
+			<Button
+				variant={view === 'leaderboard' ? 'primary' : 'text-only-secondary'}
+				on:click={() => (view = 'leaderboard')}>Leaderboard</Button
+			>
 		</DensityProvider>
 	</div>
 
-	<section aria-labelledby="list-heading">
-		<div class="section-heading">
-			<h2 id="list-heading">{view === 'events' ? 'Events' : 'Teams'}</h2>
-			<span
-				>{view === 'events' ? events.length : teams.length}
-				{view === 'events' ? 'events' : 'teams'}</span
-			>
-		</div>
+	{#if view === 'leaderboard'}
+		{#key district.key}<DistrictLeaderboard
+				districtKey={district.key}
+				year={district.seasonYear}
+			/>{/key}
+	{:else}
+		<section aria-labelledby="list-heading">
+			<div class="section-heading">
+				<h2 id="list-heading">{view === 'events' ? 'Events' : 'Teams'}</h2>
+				<span
+					>{view === 'events' ? events.length : teams.length}
+					{view === 'events' ? 'events' : 'teams'}</span
+				>
+			</div>
 
-		<div class="list">
-			{#if view === 'events'}
-				{#each eventGroups as group (group.label)}
-					<div class="event-group">
-						<h3>{group.label}</h3>
-						{#each nestedEvents(group.events) as { event, nested, name } (event.key)}
-							{@const photo = eventWallpaper(district.abbreviation, event.location, event.key)}
-							<a
-								class="event-row"
-								class:nested
-								class:has-wallpaper={!!photo}
-								href={`/tournaments/${event.key}`}
-							>
-								{#if photo}<img
-										class="town-wallpaper"
-										src={photo.image}
-										style:object-position={photo.position}
-										alt=""
-										loading="lazy"
-									/>{/if}
-								<div>
-									<strong>{name}</strong><span>{event.location ?? ''}</span>
-								</div>
-								<span class="dates">
-									<span>{date(event.startDate)}</span>
-									{#if event.endDate && event.endDate !== event.startDate}
-										<span class="date-separator">–</span>
-										<span>{date(event.endDate)}</span>
-									{/if}
-								</span>
-							</a>
-						{/each}
-					</div>
-				{:else}<p>No events found.</p>{/each}
-			{:else}
-				{#each teams as team (`${district.key}:${team.teamNumber}`)}
-					<a
-						class="team-row"
-						href={`/teams/${team.teamNumber}/${district.seasonYear}`}
-						use:avatarGradient
-					>
-						<div class="team-logo">
-							<img
-								use:lazyAvatar
-								data-src={`/team-avatars/${district.seasonYear}/${team.teamNumber}`}
-								alt=""
-								hidden={failedAvatars.has(`${district.key}:${team.teamNumber}`)}
-								on:error={() => {
-									failedAvatars = new Set([...failedAvatars, `${district.key}:${team.teamNumber}`]);
-								}}
-							/><span class="logo-fallback">{team.teamNumber}</span>
+			<div class="list">
+				{#if view === 'events'}
+					{#each eventGroups as group (group.label)}
+						<div class="event-group">
+							<h3>{group.label}</h3>
+							{#each nestedEvents(group.events) as { event, nested, name } (event.key)}
+								{@const photo = eventWallpaper(district.abbreviation, event.location, event.key)}
+								<a
+									class="event-row"
+									class:nested
+									class:has-wallpaper={!!photo}
+									href={`/tournaments/${event.key}`}
+								>
+									{#if photo}<img
+											class="town-wallpaper"
+											src={photo.image}
+											style:object-position={photo.position}
+											alt=""
+											loading="lazy"
+										/>{/if}
+									<div>
+										<strong>{name}</strong><span>{event.location ?? ''}</span>
+									</div>
+									<span class="dates">
+										<span>{date(event.startDate)}</span>
+										{#if event.endDate && event.endDate !== event.startDate}
+											<span class="date-separator">–</span>
+											<span>{date(event.endDate)}</span>
+										{/if}
+									</span>
+								</a>
+							{/each}
 						</div>
-						<div class="team-identity">
-							<strong>{team.teamNumber}</strong><span>{team.name}</span>
-						</div>
-					</a>
-				{:else}<p>No teams found.</p>{/each}
+					{:else}<p>No events found.</p>{/each}
+				{:else}
+					{#each teams as team (`${district.key}:${team.teamNumber}`)}
+						<a
+							class="team-row"
+							href={`/teams/${team.teamNumber}/${district.seasonYear}`}
+							use:avatarGradient
+						>
+							<div class="team-logo">
+								<img
+									use:lazyAvatar
+									data-src={`/team-avatars/${district.seasonYear}/${team.teamNumber}`}
+									alt=""
+									hidden={failedAvatars.has(`${district.key}:${team.teamNumber}`)}
+									on:error={() => {
+										failedAvatars = new Set([
+											...failedAvatars,
+											`${district.key}:${team.teamNumber}`
+										]);
+									}}
+								/><span class="logo-fallback">{team.teamNumber}</span>
+							</div>
+							<div class="team-identity">
+								<strong>{team.teamNumber}</strong><span>{team.name}</span>
+							</div>
+						</a>
+					{:else}<p>No teams found.</p>{/each}
+				{/if}
+			</div>
+			{#if view === 'events' && photoCredits.length}
+				<details class="photo-credits">
+					<summary>Photo credits</summary>
+					{#each photoCredits as photo}<p>
+							<a href={photo.source}>{photo.label}</a> · {photo.author} · {#if photo.licenseUrl}<a
+									href={photo.licenseUrl}>{photo.license}</a
+								>{:else}{photo.license}{/if}
+						</p>{/each}
+				</details>
 			{/if}
-		</div>
-		{#if view === 'events' && photoCredits.length}
-			<details class="photo-credits">
-				<summary>Photo credits</summary>
-				{#each photoCredits as photo}<p>
-						<a href={photo.source}>{photo.label}</a> · {photo.author} · {#if photo.licenseUrl}<a
-								href={photo.licenseUrl}>{photo.license}</a
-							>{:else}{photo.license}{/if}
-					</p>{/each}
-			</details>
-		{/if}
-	</section>
+		</section>
+	{/if}
 </main>
 
 <style>

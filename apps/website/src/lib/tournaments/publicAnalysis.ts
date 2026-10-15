@@ -1,4 +1,5 @@
 export type PublicAnalysis = {
+	coverage?: { reported: number; expected: number; complete: boolean };
 	prediction: { blueWinning: number; redWinning: number } | null;
 	roles: { teamNumber: number; role: string }[];
 };

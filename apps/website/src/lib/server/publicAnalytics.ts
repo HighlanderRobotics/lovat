@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { env } from '$env/dynamic/private';
 
+const coverageSchema = z.object({
+	reported: z.number().int().nonnegative(),
+	expected: z.number().int().nonnegative(),
+	complete: z.boolean()
+});
+
 export const publicMatchSchema = z.object({
+	coverage: coverageSchema.optional(),
 	prediction: z
 		.object({
 			blueWinning: z.number().finite().min(0).max(1),
@@ -94,6 +101,9 @@ export const teamSeriesSchema = z.object({
 	matches: z.array(
 		z.object({
 			matchKey: z.string().nullable(),
+			elimination: z.boolean().default(false),
+			reportedBroken: z.boolean().default(false),
+			coverage: coverageSchema.nullable().default(null),
 			eventKey: z.string(),
 			eventName: z.string(),
 			label: z.string(),
@@ -102,6 +112,19 @@ export const teamSeriesSchema = z.object({
 			teleop: z.number().finite().nullable(),
 			feeding: z.number().finite().nullable(),
 			roles: z.array(z.enum(['CYCLING', 'SCORING', 'FEEDING', 'DEFENDING', 'IMMOBILE']))
+		})
+	)
+});
+
+export const leaderboardSchema = z.object({
+	teams: z.array(
+		z.object({
+			number: z.number().int().positive(),
+			name: z.string(),
+			matches: z.number().int().positive(),
+			points: z.number().finite(),
+			auto: z.number().finite(),
+			teleop: z.number().finite()
 		})
 	)
 });

@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import MatchPredictor from './MatchPredictor.svelte';
 	import RoleIcon from './RoleIcon.svelte';
 	import {
 		rollingValues,
+		consistency,
 		roleDistribution,
 		type SeriesMatch,
 		type GraphMetric
@@ -17,6 +19,7 @@
 	let controller: AbortController;
 	let metric: GraphMetric = 'points';
 	let eventKey = '';
+	let includeBroken = true;
 	let chart = 'line';
 	let window = 1;
 	let active = -1;
@@ -69,9 +72,18 @@
 	$: events = [...new Map(matches.map((match) => [match.eventKey, match.eventName])).entries()];
 	$: filtered = matches.filter((match) => !eventKey || match.eventKey === eventKey);
 	$: values = rollingValues(
-		filtered.map((match) => match[metric]),
-		Number(window)
+		filtered.map((match) => (!includeBroken && match.reportedBroken ? null : match[metric])),
+		Number(window),
+		filtered.map((match) => match.eventKey)
 	);
+	$: statistics = consistency(
+		filtered.map((match) => (!includeBroken && match.reportedBroken ? null : match[metric]))
+	);
+	$: bestMatch = statistics
+		? filtered.find(
+				(match) => (!match.reportedBroken || includeBroken) && match[metric] === statistics.best
+			)
+		: undefined;
 	$: maximum = Math.max(1, ...values.filter((value): value is number => value !== null));
 	$: step = maximum >= 20 ? 10 : maximum >= 5 ? 5 : 1;
 	$: ceiling = Math.ceil(maximum / step) * step;
@@ -83,9 +95,17 @@
 		(result, value, index) =>
 			value === null
 				? result
-				: `${result} ${index === 0 || values[index - 1] === null ? 'M' : 'L'}${x(index)},${y(value)}`,
+				: `${result} ${index === 0 || values[index - 1] === null || filtered[index].eventKey !== filtered[index - 1].eventKey ? 'M' : 'L'}${x(index)},${y(value)}`,
 		''
 	);
+	$: segments = filtered
+		.map((match, index) => ({ match, index }))
+		.filter(
+			({ match, index }) =>
+				index === 0 ||
+				match.eventKey !== filtered[index - 1].eventKey ||
+				match.elimination !== filtered[index - 1].elimination
+		);
 	$: distribution = roleDistribution(filtered);
 	$: if (filtered && metric && window) active = -1;
 	$: selected = filtered[active];
@@ -148,6 +168,33 @@
 				></label
 			>
 		</div>
+		<label class="breakdown-toggle"
+			><input type="checkbox" bind:checked={includeBroken} /> Include reported breakdowns</label
+		>
+		{#if statistics}
+			<div class="statistics" aria-label="Consistency metrics">
+				<div><span>Average</span><strong>{statistics.average.toFixed(1)}</strong></div>
+				<div><span>Median</span><strong>{statistics.median.toFixed(1)}</strong></div>
+				<div title="Middle 50% of match values">
+					<span>Spread (25–75%)</span><strong
+						>{statistics.lower.toFixed(1)}–{statistics.upper.toFixed(1)}</strong
+					>
+				</div>
+				<div>
+					<span>Best match</span><strong
+						>{#if bestMatch}<a
+								href={link(bestMatch)}
+								title={`${bestMatch.label} · ${bestMatch.eventName}`}
+								>{statistics.best.toFixed(1)}</a
+							>{:else}{statistics.best.toFixed(1)}{/if}</strong
+					>
+				</div>
+				<div>
+					<span>Recent {statistics.recentCount}</span><strong>{statistics.recent.toFixed(1)}</strong
+					>
+				</div>
+			</div>
+		{/if}
 		<div class="chart-panel">
 			<h3>{metrics[metric]} per match</h3>
 			{#if values.some((value) => value !== null)}
@@ -172,6 +219,13 @@
 								})}</text
 							>
 						{/each}
+						{#each filtered as match, index}
+							{#if index === 0 || match.eventKey !== filtered[index - 1].eventKey}
+								<line x1={x(index)} x2={x(index)} y1="18" y2="278" class="event-boundary"
+									><title>New tournament: {match.eventName}</title></line
+								>
+							{/if}
+						{/each}
 						{#if chart === 'line'}<path d={path} class="data-line" />{/if}
 						{#each values as value, index}
 							{#if value !== null}
@@ -193,6 +247,8 @@
 										cy={y(value)}
 										r={active === index ? 7 : chart === 'bar' ? 3 : 4}
 										class="data-point"
+										class:elimination={filtered[index].elimination}
+										class:broken={filtered[index].reportedBroken}
 										><title
 											>{filtered[index].label} · {filtered[index].eventName}: {value.toFixed(1)}
 											{metrics[metric]}</title
@@ -208,10 +264,29 @@
 						{/each}
 					</svg>
 				</div>
+				<div class="chart-context">
+					{#each segments as { match, index }}<span
+							>{index + 1}: {match.eventName} · {match.elimination
+								? 'Eliminations begin'
+								: 'Qualifications'}</span
+						>{/each}
+				</div>
+				<div class="chart-legend">
+					<span>● Qualifications</span><span class="elims-key">● Eliminations</span><span
+						class="broken-key">● Reported broken</span
+					><span>┆ New tournament</span>
+				</div>
 				<div class="match-caption">
-					{#if selected}<a href={link(selected)}>{selected.label} · {selected.eventName}</a><strong
-							>{values[active]?.toFixed(1)} {metrics[metric]}</strong
-						>{:else}<span>Scouted matches</span>{/if}
+					{#if selected}<a href={link(selected)}>{selected.label} · {selected.eventName}</a>
+						<span
+							>{selected.reportedBroken ? 'Reported broken · ' : ''}{selected.coverage?.complete
+								? 'Fully scouted'
+								: selected.coverage
+									? `${selected.coverage.reported}/${selected.coverage.expected} teams scouted`
+									: ''}</span
+						><strong>{values[active]?.toFixed(1)} {metrics[metric]}</strong>{:else}<span
+							>Scouted matches</span
+						>{/if}
 				</div>
 			{:else}<p>No values available.</p>{/if}
 		</div>
@@ -243,15 +318,24 @@
 				</div>
 			{:else}<p>No roles available.</p>{/if}
 		</div>
+		<MatchPredictor {number} />
 		<details class="values-table">
 			<summary>Match values</summary>
 			<div class="table-scroll">
 				<table>
-					<thead><tr><th>Match</th><th>Event</th><th>{metrics[metric]}</th></tr></thead><tbody
+					<thead
+						><tr><th>Match</th><th>Event</th><th>Context</th><th>{metrics[metric]}</th></tr></thead
+					><tbody
 						>{#each filtered as match}<tr
 								><td><a href={link(match)}>{match.label}</a></td><td>{match.eventName}</td><td
-									>{match[metric]?.toFixed(1) ?? '—'}</td
-								></tr
+									>{match.elimination ? 'Eliminations' : 'Qualifications'}{match.reportedBroken
+										? ' · Reported broken'
+										: ''}{match.coverage?.complete
+										? ' · Fully scouted'
+										: match.coverage
+											? ` · ${match.coverage.reported}/${match.coverage.expected} scouted`
+											: ''}</td
+								><td>{match[metric]?.toFixed(1) ?? '—'}</td></tr
 							>{/each}</tbody
 					>
 				</table>
@@ -261,6 +345,65 @@
 </section>
 
 <style>
+	.chart-context {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		color: var(--body);
+		font-size: 12px;
+		margin: 12px 0;
+	}
+	.statistics {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 16px;
+		margin: 24px 0;
+	}
+	.statistics div {
+		display: grid;
+		gap: 8px;
+	}
+	.statistics span {
+		color: var(--body);
+		font-size: 12px;
+	}
+	.statistics strong {
+		font-size: 22px;
+		font-weight: 500;
+	}
+	.breakdown-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.event-boundary {
+		stroke: var(--body);
+		stroke-dasharray: 4 5;
+		opacity: 0.5;
+	}
+	.data-point.elimination {
+		fill: #82b8f8;
+	}
+	.data-point.broken {
+		fill: #edb476;
+		stroke: var(--background);
+		stroke-width: 2;
+	}
+	.chart-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+		font-size: 12px;
+		color: var(--body);
+		margin: 12px 0;
+	}
+	.elims-key {
+		color: #82b8f8;
+	}
+	.broken-key {
+		color: #edb476;
+	}
+
 	section {
 		margin-top: 28px;
 	}
