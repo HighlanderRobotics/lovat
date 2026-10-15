@@ -41,7 +41,10 @@ export const deleteMutablePicklist = async (
       res.status(404).send("Picklist not found");
       return;
     }
-    if (user.teamNumber === picklist.author.teamNumber) {
+    if (
+      user.teamNumber !== null &&
+      user.teamNumber === picklist.author.teamNumber
+    ) {
       await prismaClient.mutablePicklist.delete({
         where: {
           uuid: params.data.uuid,
@@ -53,6 +56,6 @@ export const deleteMutablePicklist = async (
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

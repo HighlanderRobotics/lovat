@@ -1,6 +1,5 @@
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
-import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import { UserRole } from "@lovat/db";
 
@@ -34,10 +33,6 @@ export const getApiKeys = async (
 
     res.status(200).json({ apiKeys });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: "Invalid request parameters" });
-      return;
-    }
     res.status(500).json({ error: "Internal server error" });
     console.error(error);
     return;

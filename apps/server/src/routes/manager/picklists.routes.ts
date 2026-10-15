@@ -52,6 +52,7 @@ const PicklistDetailSchema = z.object({
   uuid: z.string(),
   name: z.string(),
   authorId: z.string(),
+  driverAbility: z.number(),
   totalPoints: z.number(),
   autoPoints: z.number(),
   teleopPoints: z.number(),
@@ -135,7 +136,7 @@ registry.registerPath({
     },
     400: { description: "Invalid UUID" },
     401: { description: "Unauthorized" },
-    403: { description: "Picklist not found or not on same team" },
+    404: { description: "Picklist not found or not on same team" },
     500: { description: "Server error" },
   },
   security: [{ bearerAuth: [] }],
@@ -158,6 +159,7 @@ registry.registerPath({
       content: { "text/plain": { schema: z.string() } },
     },
     400: { description: "Invalid input" },
+    404: { description: "Picklist not found or not on same team" },
     401: { description: "Unauthorized" },
     403: {
       description:

@@ -30,11 +30,7 @@ export const getScouterTournaments = async (
             res.status(400).send(params);
             return;
           }
-          if (!params.success) {
-            res.status(400).send(params);
-            return;
-          }
-          await prismaClient.tournament.findMany({
+          rows = await prismaClient.tournament.findMany({
             take: params.data.take,
             skip: params.data.skip,
             where: {
@@ -57,10 +53,6 @@ export const getScouterTournaments = async (
               skip: Number(req.query.skip),
               filter: req.query.filter,
             });
-          if (!params.success) {
-            res.status(400).send(params);
-            return;
-          }
           if (!params.success) {
             res.status(400).send(params);
             return;
@@ -257,6 +249,6 @@ export const getScouterTournaments = async (
     res.status(200).send({ tournaments: rows, count: count });
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
