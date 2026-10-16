@@ -5,6 +5,11 @@ const mocks = vi.hoisted(() => ({
   listen: vi.fn(),
   create: vi.fn(),
   disconnect: vi.fn(),
+  sockets: vi.fn(),
+  server: { on: vi.fn() },
+}));
+vi.mock("../src/handler/training/trainingSockets.js", () => ({
+  attachTrainingSockets: mocks.sockets,
 }));
 vi.mock("../src/app.js", () => ({ app: { listen: mocks.listen } }));
 vi.mock("../src/lib/scheduleJobs.js", () => ({ default: mocks.schedule }));
@@ -20,7 +25,10 @@ beforeEach(() => {
   vi.resetModules();
   vi.spyOn(console, "log").mockImplementation(() => undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
-  mocks.listen.mockImplementation((_port, callback) => callback());
+  mocks.listen.mockImplementation((_port, callback) => {
+    callback();
+    return mocks.server;
+  });
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -31,6 +39,7 @@ it.each([undefined, "4321"])(
   async (port) => {
     vi.stubEnv("PORT", port);
     await import("../src/server.js");
+    expect(mocks.sockets).toHaveBeenCalledWith(mocks.server);
     expect(mocks.schedule).toHaveBeenCalledOnce();
     expect(mocks.clear).toHaveBeenCalledOnce();
     expect(mocks.listen).toHaveBeenCalledWith(

@@ -91,7 +91,7 @@ describe("analysis result caching", () => {
       score: 1.23,
     });
     const cacheKey =
-      "analysis:v2:function:analysis-user:test:{INCLUDE:[8033]}:{EXCLUDE:[private]}";
+      "analysis:v3:function:analysis-user:test:{INCLUDE:[8033]}:{EXCLUDE:[private]}";
     expect(mocks.get).toHaveBeenCalledWith(cacheKey);
     expect(mocks.set).toHaveBeenCalledWith(cacheKey, '{"score":1.23}');
     expect(mocks.create).toHaveBeenCalledWith({
@@ -114,7 +114,7 @@ describe("analysis result caching", () => {
     );
     expect(mocks.create).toHaveBeenCalledWith({
       data: {
-        key: "analysis:v2:function:analysis-user:test",
+        key: "analysis:v3:function:analysis-user:test",
         teamDependencies: [],
         tournamentDependencies: [],
       },

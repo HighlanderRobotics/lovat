@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "build": "expo export --platform web",
     "ts:check": "tsc",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

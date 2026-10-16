@@ -105,6 +105,7 @@ export function Game() {
       }
     }
 
+    reportState.endMatch();
     router.replace("/game/post-match");
   };
   const onRestart = () => {

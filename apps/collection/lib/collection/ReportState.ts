@@ -50,7 +50,8 @@ export type ReportState = {
   // Actions
   scoutMatch: (meta: ScoutReportMeta) => void;
   restartMatch: () => void;
-  initializeMatchTimestamp: () => void;
+  initializeMatchTimestamp: (startTime?: number) => void;
+  endMatch: () => void;
 
   setStartPosition: (value: StartingPosition) => void;
   setGamePhase: (value: GamePhase) => void;

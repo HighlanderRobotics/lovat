@@ -13,9 +13,7 @@ export const scoutReportForMatch = createAnalysisHandler({
   shouldCache: false,
   calculateAnalysis: async ({ params }, ctx) => {
     const scoutReports = await prismaClient.scoutReport.findMany({
-      where: {
-        teamMatchKey: params.match,
-      },
+      where: { training: false, teamMatchKey: params.match },
 
       select: {
         uuid: true,
