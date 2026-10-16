@@ -217,6 +217,7 @@ it.each([true, false])(
         teamMatchData: {
           teamNumber: 254,
           ...(filtered ? { tournamentKey: { in: ["2026test"] } } : {}),
+          matchType: { not: "PRACTICE" },
         },
         ...(filtered ? { scouter: { sourceTeamNumber: { in: [8033] } } } : {}),
       },

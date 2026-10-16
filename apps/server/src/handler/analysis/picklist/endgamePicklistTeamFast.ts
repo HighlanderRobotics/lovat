@@ -34,6 +34,7 @@ export const endgamePicklistTeamFast = async (
       where: {
         teamMatchData: {
           teamNumber: team,
+          matchType: { not: "PRACTICE" },
           ...(sourceTnmtFilter && { tournamentKey: sourceTnmtFilter }),
         },
         ...(sourceTeamFilter && {

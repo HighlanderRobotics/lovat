@@ -85,6 +85,7 @@ const config = {
       await prismaClient.teamMatchData.findFirstOrThrow({
         where: {
           tournamentKey: args.tournamentKey,
+          matchType: "QUALIFICATION",
           scoutReports: {
             some: {},
           },

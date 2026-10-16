@@ -160,7 +160,7 @@ it("supports unrestricted source rules for many-team analysis", async () => {
   );
   expect(db.teamMatchData.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
-      where: { teamNumber: { in: [254] } },
+      where: { teamNumber: { in: [254] }, matchType: { not: "PRACTICE" } },
       select: expect.objectContaining({
         scoutReports: expect.objectContaining({ where: {} }),
       }),
@@ -441,7 +441,7 @@ it("permits unrestricted timeline tournament selection", async () => {
   );
   expect(db.teamMatchData.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
-      where: { teamNumber: { in: [254] } },
+      where: { teamNumber: { in: [254] }, matchType: { not: "PRACTICE" } },
       select: expect.objectContaining({
         scoutReports: expect.objectContaining({
           where: { scouter: { sourceTeamNumber: { in: [8033] } } },
@@ -691,13 +691,21 @@ it("restricts tournament selections consistently for batch and timeline analyses
   expect(db.teamMatchData.findMany).toHaveBeenNthCalledWith(
     1,
     expect.objectContaining({
-      where: { teamNumber: { in: [254] }, tournamentKey: { in: ["2026test"] } },
+      where: {
+        teamNumber: { in: [254] },
+        tournamentKey: { in: ["2026test"] },
+        matchType: { not: "PRACTICE" },
+      },
     }),
   );
   expect(db.teamMatchData.findMany).toHaveBeenNthCalledWith(
     2,
     expect.objectContaining({
-      where: { teamNumber: { in: [254] }, tournamentKey: { in: ["2026test"] } },
+      where: {
+        teamNumber: { in: [254] },
+        tournamentKey: { in: ["2026test"] },
+        matchType: { not: "PRACTICE" },
+      },
     }),
   );
 });

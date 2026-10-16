@@ -560,4 +560,5 @@ enum UserRole {
 enum MatchType {
   QUALIFICATION
   ELIMINATION
+  PRACTICE
 }

@@ -139,6 +139,7 @@ export const getTeamCSV = async (
     const datapoints = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: params.data.tournamentKey,
+        matchType: { not: "PRACTICE" },
       },
       select: {
         teamNumber: true,
@@ -213,6 +214,7 @@ export const getTeamCSV = async (
                 ...(tournamentFilter
                   ? { tournamentKey: tournamentFilter }
                   : {}),
+                matchType: { not: "PRACTICE" },
               },
               ...(teamFilter
                 ? { scouter: { sourceTeamNumber: teamFilter } }
@@ -286,6 +288,7 @@ export const getTeamCSV = async (
                   ? { scouter: { sourceTeamNumber: teamFilter } }
                   : {},
               },
+              matchType: { not: "PRACTICE" },
             },
             _count: {
               key: true,

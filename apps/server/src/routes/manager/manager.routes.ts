@@ -111,6 +111,18 @@ const MatchSchema = z.object({
   team6: MatchTeamSchema,
 });
 
+const PracticeMatchSchema = z.object({
+  matchNumber: z.number().int(),
+  matchType: z.literal(2),
+  scouted: z.boolean(),
+  finished: z.literal(false),
+  teams: z
+    .array(MatchTeamSchema)
+    .describe(
+      "Reported practice teams, sorted by team number; no alliance slots",
+    ),
+});
+
 registry.registerPath({
   method: "get",
   path: "/v1/manager/matches/{tournament}",
@@ -118,12 +130,24 @@ registry.registerPath({
   summary: "List matches for a tournament",
   request: {
     params: z.object({ tournament: z.string() }),
-    query: z.object({ teams: z.string().optional() }),
+    query: z.object({
+      teams: z.string().optional(),
+      includePractice: z
+        .enum(["true", "false"])
+        .optional()
+        .describe(
+          "Defaults to false. When true, append practice matches (matchType 2) with a teams array instead of team1–team6. Official scouting-shift numbering is unchanged.",
+        ),
+    }),
   },
   responses: {
     200: {
       description: "Formatted match list",
-      content: { "application/json": { schema: z.array(MatchSchema) } },
+      content: {
+        "application/json": {
+          schema: z.array(z.union([MatchSchema, PracticeMatchSchema])),
+        },
+      },
     },
     400: { description: "Invalid parameters" },
     401: { description: "Unauthorized" },

@@ -33,6 +33,7 @@ export const breakdownMetrics = createAnalysisHandler({
       where: {
         teamMatchData: {
           teamNumber: params.team,
+          matchType: { not: "PRACTICE" },
         },
       },
     });

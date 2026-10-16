@@ -279,6 +279,7 @@ it("exports visible history for TBA teams without current event match data", asy
         teamMatchData: {
           teamNumber: { in: [254] },
           tournamentKey: { in: ["2025history"] },
+          matchType: { not: "PRACTICE" },
         },
         scouter: { sourceTeamNumber: { in: [8033] } },
       },
@@ -364,7 +365,12 @@ it("exports historical reports without restricting either source dimension", asy
   ).toBe(200);
   expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
-      where: { teamMatchData: { teamNumber: { in: [254] } } },
+      where: {
+        teamMatchData: {
+          teamNumber: { in: [254] },
+          matchType: { not: "PRACTICE" },
+        },
+      },
     }),
   );
 });

@@ -106,7 +106,22 @@ export const addScoutReportDashboard = async (
     });
 
     if (!matchRow) {
-      await addTournamentMatches(paramsScoutReport.tournamentKey);
+      if (paramsScoutReport.matchType === MatchType.PRACTICE) {
+        const practiceKey = `${paramsScoutReport.tournamentKey}_pm${paramsScoutReport.matchNumber}_${paramsScoutReport.teamNumber}`;
+        matchRow = await prismaClient.teamMatchData.upsert({
+          where: { key: practiceKey },
+          update: {},
+          create: {
+            key: practiceKey,
+            tournamentKey: paramsScoutReport.tournamentKey,
+            matchNumber: paramsScoutReport.matchNumber,
+            teamNumber: paramsScoutReport.teamNumber,
+            matchType: MatchType.PRACTICE,
+          },
+        });
+      } else {
+        await addTournamentMatches(paramsScoutReport.tournamentKey);
+      }
 
       matchRow = await prismaClient.teamMatchData.findFirst({
         where: {
