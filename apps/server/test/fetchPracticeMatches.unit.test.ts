@@ -26,6 +26,64 @@ describe("Nexus practice schedule fetching", () => {
     await expect(fetchPracticeMatches("2026casf")).resolves.toEqual([]);
   });
 
+  it("skips network requests when Nexus is not configured", async () => {
+    vi.stubEnv("NEXUS_API_KEY", "   ");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchPracticeMatches("2026casf")).resolves.toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("ignores non-practice labels, invalid match numbers, and matches with no valid teams", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          matches: [
+            { label: "Qualification 1", redTeams: ["8033"] },
+            { label: "Practice 0", redTeams: ["8033"] },
+            { label: "Practice 32768", redTeams: ["8033"] },
+            { label: "Practice 3" },
+            { label: "Practice 4", redTeams: ["9".repeat(400)] },
+          ],
+        }),
+      ),
+    );
+
+    await expect(fetchPracticeMatches("2026casf")).resolves.toEqual([]);
+  });
+
+  it("does not cache malformed successful responses", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ matches: "not an array" }))
+      .mockResolvedValueOnce(Response.json({ matches: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchPracticeMatches("2026casf")).rejects.toThrow();
+    await expect(fetchPracticeMatches("2026casf")).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("evicts the oldest cached event when the cache reaches its limit", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(0);
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async () => Response.json({ matches: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    for (let index = 0; index < 101; index++) {
+      await fetchPracticeMatches(`2026fixture${index}`);
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(101);
+    await fetchPracticeMatches("2026fixture1");
+    expect(fetchMock).toHaveBeenCalledTimes(101);
+    await fetchPracticeMatches("2026fixture0");
+    expect(fetchMock).toHaveBeenCalledTimes(102);
+  });
+
   it("skips invalid team entries while keeping valid teams in partial schedules", async () => {
     vi.stubGlobal(
       "fetch",

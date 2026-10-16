@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const database = vi.hoisted(() => ({ upsert: vi.fn() }));
+const database = vi.hoisted(() => ({ upsert: vi.fn(), createTeams: vi.fn() }));
 
 vi.mock("../src/prismaClient.js", () => ({
-  default: { teamMatchData: { upsert: database.upsert } },
+  default: {
+    teamMatchData: { upsert: database.upsert },
+    team: { createMany: database.createTeams },
+  },
 }));
 vi.mock("../src/lib/fetchPracticeMatches.js", () => ({
   fetchPracticeMatches: vi.fn(),
@@ -26,6 +29,13 @@ describe("saving imported practice matches", () => {
     await addPracticeMatches("2026test");
 
     expect(database.upsert).toHaveBeenCalledTimes(4);
+    expect(database.createTeams).toHaveBeenCalledWith({
+      data: [
+        { number: 8033, name: "Team 8033" },
+        { number: 254, name: "Team 254" },
+      ],
+      skipDuplicates: true,
+    });
     for (const teamNumber of [8033, 254]) {
       const key = `2026test_pm4_${teamNumber}`;
       const expected = {
@@ -55,5 +65,6 @@ describe("saving imported practice matches", () => {
     await addPracticeMatches("2026test");
 
     expect(database.upsert).not.toHaveBeenCalled();
+    expect(database.createTeams).not.toHaveBeenCalled();
   });
 });

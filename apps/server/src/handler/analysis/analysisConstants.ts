@@ -158,9 +158,8 @@ const accuracyToPercentage: Record<number, number> = {
 export const accuracyToPercentageInterpolated = (
   avg: number | null | undefined,
 ): number => {
+  if (avg === null || avg === undefined || !Number.isFinite(avg)) return 0;
   avg = Math.max(0, Math.min(5, avg));
-
-  if (avg === null || avg === undefined) return 0;
   const lower = Math.floor(avg);
   const upper = Math.ceil(avg);
 

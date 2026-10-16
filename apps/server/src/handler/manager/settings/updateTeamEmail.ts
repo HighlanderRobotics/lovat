@@ -33,7 +33,7 @@ export const updateTeamEmail = async (
       return;
     }
 
-    sendVerificationEmail(params.email, req.user.teamNumber);
+    await sendVerificationEmail(params.email, req.user.teamNumber);
 
     res.status(200).send("verification email sent");
   } catch (error) {

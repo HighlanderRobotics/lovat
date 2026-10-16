@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import axios from "axios";
 
 const database = vi.hoisted(() => ({
   findTournament: vi.fn(),
   updateTournament: vi.fn(),
   upsertMatch: vi.fn(),
+  enqueue: vi.fn(),
 }));
 
 vi.mock("../src/prismaClient.js", () => ({
@@ -14,6 +14,7 @@ vi.mock("../src/prismaClient.js", () => ({
       update: database.updateTournament,
     },
     teamMatchData: { upsert: database.upsertMatch },
+    importJob: { upsert: database.enqueue },
   },
 }));
 vi.mock("../src/handler/manager/addPracticeMatches.js", () => ({
@@ -23,23 +24,15 @@ vi.mock("../src/handler/manager/addPracticeMatches.js", () => ({
 import { addPracticeMatches } from "../src/handler/manager/addPracticeMatches.js";
 import { addTournamentMatches } from "../src/handler/manager/addTournamentMatches.js";
 
-describe("coordinating TBA and practice imports", () => {
+describe("coordinating official refreshes and practice imports", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.stubEnv("TBA_KEY", "synthetic-test-key");
     database.findTournament.mockResolvedValue({
       key: "2026test",
       latestFetchETag: "stored-etag",
     });
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({})));
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    // Axios identifies this as an HTTP 304 response from its match request.
-    const unchanged = Object.assign(new Error("Not modified"), {
-      isAxiosError: true,
-      response: { status: 304 },
-    });
-    vi.spyOn(axios, "get").mockRejectedValue(unchanged);
   });
 
   afterEach(() => {
@@ -48,26 +41,51 @@ describe("coordinating TBA and practice imports", () => {
     vi.restoreAllMocks();
   });
 
-  it("imports practice even when TBA's schedule has not changed", async () => {
+  it("imports practice while leaving official schedules and refresh backoff to the worker", async () => {
     await addTournamentMatches("2026test");
 
-    expect(axios.get).toHaveBeenCalledWith(
-      "https://www.thebluealliance.com/api/v3/event/2026test/matches",
-      expect.objectContaining({
-        headers: expect.objectContaining({ "If-None-Match": "stored-etag" }),
-      }),
-    );
+    expect(database.enqueue).toHaveBeenCalledWith({
+      where: { kind_targetKey: { kind: "matches", targetKey: "2026test" } },
+      update: {},
+      create: {
+        kind: "matches",
+        targetKey: "2026test",
+        runAt: expect.any(Date),
+      },
+    });
     expect(database.updateTournament).not.toHaveBeenCalled();
     expect(database.upsertMatch).not.toHaveBeenCalled();
     expect(addPracticeMatches).toHaveBeenCalledExactlyOnceWith("2026test");
   });
 
-  it("still attempts practice import when TBA fails", async () => {
-    vi.mocked(axios.get).mockRejectedValue(new Error("TBA unavailable"));
+  it("still attempts practice import when queueing the official refresh fails", async () => {
+    database.enqueue.mockRejectedValue(new Error("Queue unavailable"));
 
     await addTournamentMatches("2026test");
 
     expect(addPracticeMatches).toHaveBeenCalledExactlyOnceWith("2026test");
+  });
+
+  it("does not import practice for unknown tournaments", async () => {
+    database.findTournament.mockResolvedValue(null);
+
+    await addTournamentMatches("2026missing");
+
+    expect(database.enqueue).not.toHaveBeenCalled();
+    expect(addPracticeMatches).not.toHaveBeenCalled();
+  });
+
+  it("keeps reads available if the tournament lookup fails", async () => {
+    database.findTournament.mockRejectedValue(
+      new Error("Database unavailable"),
+    );
+
+    await expect(addTournamentMatches("2026test")).resolves.toBeUndefined();
+
+    expect(addPracticeMatches).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      "Unable to queue tournament match refresh",
+    );
   });
 
   it("logs a practice import failure without rejecting the overall import", async () => {

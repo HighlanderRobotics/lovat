@@ -69,11 +69,15 @@ registry.registerPath({
   security: [{ slackToken: [] }],
 });
 
-router.use(requireSlackToken);
 router.get("/add-workspace", addSlackWorkspace);
 
-router.post("/command", express.urlencoded({ extended: true }), processCommand);
+router.post(
+  "/command",
+  express.urlencoded({ extended: true }),
+  requireSlackToken,
+  processCommand,
+);
 
-router.post("/event", processEvent);
+router.post("/event", requireSlackToken, processEvent);
 
 export default router;

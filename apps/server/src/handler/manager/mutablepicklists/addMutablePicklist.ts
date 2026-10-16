@@ -19,7 +19,7 @@ export const addMutablePicklist = async (
     const params = z
       .object({
         name: z.string(),
-        teams: z.array(z.number().min(0)),
+        teams: z.array(z.number().int().min(0)),
         authorId: z.string(),
         tournamentKey: z.string().optional(),
       })
@@ -53,6 +53,6 @@ export const addMutablePicklist = async (
     res.status(200).send("mutable picklist added");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

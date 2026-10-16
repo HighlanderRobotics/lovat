@@ -51,8 +51,9 @@ export const fetchPracticeMatches = async (
   try {
     const matches = await request;
     if (scheduleCache.size >= MAX_CACHED_EVENTS) {
-      const oldestKey = scheduleCache.keys().next().value;
-      if (oldestKey !== undefined) scheduleCache.delete(oldestKey);
+      // The size check guarantees this map has an oldest entry.
+      const oldestKey = scheduleCache.keys().next().value!;
+      scheduleCache.delete(oldestKey);
     }
     scheduleCache.set(tournamentKey, {
       expiresAt: Date.now() + CACHE_DURATION_MS,

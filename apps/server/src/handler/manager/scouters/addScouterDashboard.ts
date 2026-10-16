@@ -40,6 +40,6 @@ export const addScouterDashboard = async (
     res.status(201).send(scouter);
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

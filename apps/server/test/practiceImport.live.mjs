@@ -26,6 +26,7 @@ const { default: prisma } = await import("../dist/src/prismaClient.js");
 const { addPracticeMatches } =
   await import("../dist/src/handler/manager/addPracticeMatches.js");
 const fixtureName = `LVT-285 live test ${randomUUID()}`;
+const teamNumbers = [...new Set(matches.flatMap((match) => match.teamNumbers))];
 let created = false;
 
 try {
@@ -41,6 +42,12 @@ try {
     data: { key: eventKey, name: fixtureName },
   });
   created = true;
+
+  // Seed missing catalog teams with a unique name so cleanup owns them precisely.
+  await prisma.team.createMany({
+    data: teamNumbers.map((number) => ({ number, name: fixtureName })),
+    skipDuplicates: true,
+  });
 
   await addPracticeMatches(eventKey);
   const rows = await prisma.teamMatchData.findMany({
@@ -88,6 +95,16 @@ try {
         1,
         "Could not remove this run's test fixture",
       );
+      await prisma.team.deleteMany({
+        where: {
+          number: { in: teamNumbers },
+          name: fixtureName,
+          matchData: { none: {} },
+          seasons: { none: {} },
+          tournamentTeams: { none: {} },
+          registeredTeam: null,
+        },
+      });
       console.log("Temporary test records removed.");
     }
   } finally {
