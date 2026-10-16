@@ -391,7 +391,7 @@ const config = {
          JOIN "Scouter" sct ON sct."uuid" = sr."scouterUuid"
          LEFT JOIN "Event" e ON e."scoutReportUuid" = sr."uuid"
            AND e."action" IN ('START_FEEDING'::"EventAction", 'STOP_FEEDING'::"EventAction")
-         WHERE 1=1 ${t.clause} ${s.clause}`,
+         WHERE tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}`,
         ...buildParams(t.param, s.param),
       );
       const byReport: Record<string, typeof rows> = {};

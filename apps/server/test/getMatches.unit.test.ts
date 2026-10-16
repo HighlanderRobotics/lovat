@@ -198,4 +198,41 @@ describe("Practice match listing", () => {
       expect(prismaClient.teamMatchData.findMany).not.toHaveBeenCalled();
     },
   );
+
+  it("orders practice matches numerically and supports more than six teams", async () => {
+    const teams = [9133, 8033, 254, 971, 1678, 1, 2];
+    vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue([
+      { ...practiceRow(8033), matchNumber: 10 },
+      ...teams.map((team) => ({ ...practiceRow(team), matchNumber: 2 })),
+    ] as never);
+    vi.mocked(prismaClient.scouterScheduleShift.findMany).mockResolvedValue([]);
+
+    const response = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .query({ includePractice: "true" });
+
+    expect(response.status).toBe(200);
+    expect(
+      response.body.map((match: { matchNumber: number }) => match.matchNumber),
+    ).toEqual([2, 10]);
+    expect(
+      response.body[0].teams.map((team: { number: number }) => team.number),
+    ).toEqual([1, 2, 254, 971, 1678, 8033, 9133]);
+    expect(
+      response.body.every((match: { finished: boolean }) => !match.finished),
+    ).toBe(true);
+  });
+
+  it("returns no practice matches when every report is outside the allowed sources", async () => {
+    vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue([
+      { ...practiceRow(8033), _count: { scoutReports: 0 }, scoutReports: [] },
+    ] as never);
+
+    const response = await request(appFor(null))
+      .get(`/matches/${tournament}`)
+      .query({ includePractice: "true", teams: "[]" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
 });

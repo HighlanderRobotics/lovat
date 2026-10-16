@@ -90,6 +90,7 @@ const leadUserId = randomUUID();
 const otherUserId = randomUUID();
 const otherTeamNumber = teamNumber - 1;
 const robotTeamNumber = teamNumber - 2;
+const practiceOnlyTeamNumber = teamNumber - 3;
 const otherScouterUuid = randomUUID();
 
 const report = (uuid: string) => ({
@@ -193,6 +194,12 @@ beforeAll(async () => {
   await db.team.create({
     data: { number: robotTeamNumber, name: "Synthetic report robot" },
   });
+  await db.team.create({
+    data: {
+      number: practiceOnlyTeamNumber,
+      name: "Synthetic practice-only robot",
+    },
+  });
 
   await db.teamMatchData.create({
     data: {
@@ -206,10 +213,20 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  const cacheRows = await db.cachedAnalysis.findMany({
+    where: { key: { contains: tournamentKey } },
+    select: { key: true },
+  });
+  if (cacheRows.length) await kv.del(cacheRows.map((row) => row.key));
+  await db.cachedAnalysis.deleteMany({
+    where: { key: { contains: tournamentKey } },
+  });
   await db.team.deleteMany({ where: { number: teamNumber } });
   await db.team.deleteMany({ where: { number: otherTeamNumber } });
   await db.tournament.deleteMany({ where: { key: tournamentKey } });
-  await db.team.deleteMany({ where: { number: robotTeamNumber } });
+  await db.team.deleteMany({
+    where: { number: { in: [robotTeamNumber, practiceOnlyTeamNumber] } },
+  });
 
   await kv.del([`auth:team:${teamNumber}`, `auth:team:${otherTeamNumber}`]);
   await closeRedis();
@@ -293,12 +310,14 @@ describe.sequential("report upload against disposable services", () => {
     };
 
     const args = {
-      teams: [9999],
+      teams: [robotTeamNumber],
       metrics: [Metric.driverAbility],
     };
 
     const before = await averageManyFast(user, args);
-    expect(before[String(Metric.driverAbility)]["9999"]).toBe(3);
+    expect(before[String(Metric.driverAbility)][String(robotTeamNumber)]).toBe(
+      3,
+    );
 
     const response = await request(app)
       .post("/v1/manager/scoutreports")
@@ -312,13 +331,15 @@ describe.sequential("report upload against disposable services", () => {
     expect(response.status).toBe(200);
 
     const after = await averageManyFast(user, args);
-    expect(after[String(Metric.driverAbility)]["9999"]).toBe(3);
+    expect(after[String(Metric.driverAbility)][String(robotTeamNumber)]).toBe(
+      3,
+    );
 
     const practiceOnlyResponse = await request(app)
       .post("/v1/manager/scoutreports")
       .send({
         ...report(randomUUID()),
-        teamNumber: 9998,
+        teamNumber: practiceOnlyTeamNumber,
         matchType: "PRACTICE",
         matchNumber: 100,
         driverAbility: 5,
@@ -327,11 +348,15 @@ describe.sequential("report upload against disposable services", () => {
     expect(practiceOnlyResponse.status).toBe(200);
 
     const practiceOnly = await averageManyFast(user, {
-      teams: [9998],
+      teams: [practiceOnlyTeamNumber],
       metrics: [Metric.driverAbility],
     });
 
-    expect(practiceOnly[String(Metric.driverAbility)]["9998"]).toBe(-1);
+    expect(
+      practiceOnly[String(Metric.driverAbility)][
+        String(practiceOnlyTeamNumber)
+      ],
+    ).toBe(-1);
   });
 
   it("limits repeated API-key requests using disposable Redis", async () => {

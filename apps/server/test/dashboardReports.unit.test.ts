@@ -3,7 +3,7 @@ import { Prisma } from "@lovat/db";
 import { invoke, testUser } from "./helpers/handlerHarness.js";
 const db = vi.hoisted(() => ({
   scouter: { findFirst: vi.fn(), findFirstOrThrow: vi.fn() },
-  teamMatchData: { findFirst: vi.fn() },
+  teamMatchData: { findFirst: vi.fn(), upsert: vi.fn() },
   scoutReport: { create: vi.fn() },
   event: { createMany: vi.fn() },
   $transaction: vi.fn(),
@@ -278,6 +278,58 @@ it("native uploads return not found when imported schedules omit the match", asy
   db.teamMatchData.findFirst.mockResolvedValue(null);
   expect((await native()).statusCode).toBe(404);
 });
+it.each([addScoutReport, addScoutReportDashboard])(
+  "%s creates practice matches without importing an official schedule",
+  async (handler) => {
+    const key = "2026test_pm100_254";
+    db.teamMatchData.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ key });
+    db.teamMatchData.upsert.mockResolvedValue({ key });
+
+    const response = await invoke(handler, {
+      body: { ...body(), matchType: "PRACTICE", matchNumber: 100 },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(db.importMatches).not.toHaveBeenCalled();
+    expect(db.teamMatchData.upsert).toHaveBeenCalledWith({
+      where: { key },
+      update: {},
+      create: {
+        key,
+        tournamentKey: "2026test",
+        matchNumber: 100,
+        teamNumber: 254,
+        matchType: "PRACTICE",
+      },
+    });
+    expect(db.scoutReport.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ teamMatchData: { connect: { key } } }),
+      }),
+    );
+  },
+);
+it.each([addScoutReport, addScoutReportDashboard])(
+  "%s reuses an existing practice match",
+  async (handler) => {
+    db.teamMatchData.findFirst.mockResolvedValue({ key: "2026test_pm1_254" });
+    const response = await invoke(handler, {
+      body: { ...body(), matchType: "PRACTICE" },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(db.teamMatchData.upsert).not.toHaveBeenCalled();
+    expect(db.importMatches).not.toHaveBeenCalled();
+    expect(db.scoutReport.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          teamMatchData: { connect: { key: "2026test_pm1_254" } },
+        }),
+      }),
+    );
+  },
+);
 it("native uploads remain successful if cache invalidation fails after persistence", async () => {
   db.invalidate.mockRejectedValue(new Error("redis"));
   expect((await native()).statusCode).toBe(200);
