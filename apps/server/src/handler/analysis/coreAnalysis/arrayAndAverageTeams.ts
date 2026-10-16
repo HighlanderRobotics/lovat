@@ -437,7 +437,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         // Assign helper output directly; it's Prisma-compatible
         tmdFilter.tournamentKey = sourceTnmtFilter;
       }
-      const srFilter: Prisma.ScoutReportWhereInput = {};
+      const srFilter: Prisma.ScoutReportWhereInput = { training: false };
       if (sourceTeamFilter) {
         srFilter.scouter = {
           sourceTeamNumber: sourceTeamFilter,

@@ -1,9 +1,16 @@
+import {
+  FRC_TEAMS_PER_MATCH,
+  FRC_TEAMS_PER_ALLIANCE,
+} from "../../lib/frcConstants.js";
 import { Request, Response } from "express";
-import prismaClient from "../../../prismaClient.js";
+import prismaClient from "../../prismaClient.js";
 import z from "zod";
-import { MatchTypeMap, ScouterScheduleMap } from "../managerConstants.js";
+import {
+  MatchTypeMap,
+  ScouterScheduleMap,
+} from "../manager/managerConstants.js";
 import SHA256 from "crypto-js/sha256.js";
-import { addTournamentMatches } from "../addTournamentMatches.js";
+import { addTournamentMatches } from "../manager/addTournamentMatches.js";
 
 export const getScheduleForScouter = async (
   req: Request,
@@ -102,16 +109,16 @@ export const getScheduleForScouter = async (
           },
         });
         //if its 0 just skipp over
-        if (matchRows.length !== 6 && matchRows.length > 0) {
+        if (matchRows.length !== FRC_TEAMS_PER_MATCH && matchRows.length > 0) {
           //could be a server issue or an ordinal number problem
           res.status(400).send("Match has not imported correctly");
           return;
         }
-        if (matchRows.length === 6) {
+        if (matchRows.length === FRC_TEAMS_PER_MATCH) {
           const scouterMap = {};
-          for (let j = 0; j < 6; j++) {
+          for (let j = 0; j < FRC_TEAMS_PER_MATCH; j++) {
             for (const scouter of element[ScouterScheduleMap[j]]) {
-              if (j <= 2) {
+              if (j < FRC_TEAMS_PER_ALLIANCE) {
                 scouterMap[scouter.uuid] = {
                   team: matchRows[j].teamNumber,
                   alliance: "red",

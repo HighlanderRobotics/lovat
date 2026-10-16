@@ -86,7 +86,7 @@ const config = {
         where: {
           tournamentKey: args.tournamentKey,
           scoutReports: {
-            some: {},
+            some: { training: false },
           },
         },
         orderBy: {

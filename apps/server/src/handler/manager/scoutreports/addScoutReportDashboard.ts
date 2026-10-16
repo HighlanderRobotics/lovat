@@ -25,7 +25,7 @@ import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import {
   checkForInvalidEvents,
   removeOrphanedStartEvents,
-} from "./addScoutReport.js";
+} from "../../collection/addScoutReport.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 

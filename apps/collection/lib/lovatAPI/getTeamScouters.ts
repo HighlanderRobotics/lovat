@@ -3,7 +3,7 @@ import { scouterSchema } from "../models/scouter";
 import { z } from "zod";
 
 export const getTeamScouters = async () => {
-  const response = await get(`/v1/manager/scouters`);
+  const response = await get(`/collection/scouter`);
 
   if (!response.ok) {
     throw new Error("Error fetching scouters");

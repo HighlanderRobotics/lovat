@@ -139,6 +139,16 @@ beforeAll(async () => {
   await db.scoutReport.create({
     data: {
       ...reportData,
+      training: true,
+      driverAbility: 100,
+      scouterUuid: scouterId,
+      teamMatchKey: matchKey,
+      events: { create: [event("STOP_SCORING", 20, 10000, 10000)] },
+    },
+  });
+  await db.scoutReport.create({
+    data: {
+      ...reportData,
       scouterUuid: otherScouterId,
       teamMatchKey: matchKey,
       events: { create: [event("STOP_SCORING", 20, 999, 999)] },

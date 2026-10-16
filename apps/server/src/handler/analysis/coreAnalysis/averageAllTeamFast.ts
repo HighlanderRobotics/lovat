@@ -117,7 +117,7 @@ const config = {
          FROM "TeamMatchData" tmd
          JOIN "ScoutReport" sr ON sr."teamMatchKey" = tmd."key"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE 1=1 ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND 1=1 ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -148,7 +148,7 @@ const config = {
          FROM "TeamMatchData" tmd
          JOIN "ScoutReport" sr ON sr."teamMatchKey" = tmd."key"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE 1=1 ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND 1=1 ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -181,7 +181,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -203,7 +203,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -258,7 +258,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -310,7 +310,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -357,7 +357,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" = 'INTAKE'::"EventAction" AND e."position" = 'OUTPOST'::"Position"
+         WHERE sr."training" = false AND e."action" = 'INTAKE'::"EventAction" AND e."position" = 'OUTPOST'::"Position"
            ${t.clause} ${s.clause}
          GROUP BY e."scoutReportUuid"`,
         ...params,
@@ -386,7 +386,7 @@ const config = {
          JOIN "Scouter" sct ON sct."uuid" = sr."scouterUuid"
          LEFT JOIN "Event" e ON e."scoutReportUuid" = sr."uuid"
            AND e."action" IN ('START_FEEDING'::"EventAction", 'STOP_FEEDING'::"EventAction")
-         WHERE 1=1 ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND 1=1 ${t.clause} ${s.clause}`,
         ...buildParams(t.param, s.param),
       );
       const byReport: Record<string, typeof rows> = {};
@@ -438,7 +438,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('START_FEEDING'::"EventAction",'STOP_FEEDING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('START_FEEDING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -490,7 +490,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" IN ('START_DEFENDING'::"EventAction",'STOP_DEFENDING'::"EventAction",'START_CAMPING'::"EventAction",'STOP_CAMPING'::"EventAction")
+         WHERE sr."training" = false AND e."action" IN ('START_DEFENDING'::"EventAction",'STOP_DEFENDING'::"EventAction",'START_CAMPING'::"EventAction",'STOP_CAMPING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
       );
@@ -548,7 +548,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" = 'CLIMB'::"EventAction"
+         WHERE sr."training" = false AND e."action" = 'CLIMB'::"EventAction"
            AND e."time" <= ${autoEnd}
            AND sr."autoClimb" = 'SUCCEEDED'::"AutoClimb"
            ${t.clause} ${s.clause}`,
@@ -599,7 +599,7 @@ const config = {
          JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE e."action" = 'CLIMB'::"EventAction"
+         WHERE sr."training" = false AND e."action" = 'CLIMB'::"EventAction"
            AND e."time" > ${autoEnd}
            AND e."time" <= 158
            AND sr."endgameClimb" = $${climbIdx}::"EndgameClimb"
@@ -636,7 +636,7 @@ const config = {
          FROM "ScoutReport" sr
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE 1=1 ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND 1=1 ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -688,7 +688,7 @@ const config = {
                                AND e."action" = 'STOP_SCORING'::"EventAction"
                                ${timeFilter}
          JOIN "Scouter" sct     ON sct."uuid" = sr."scouterUuid"
-         WHERE 1=1 ${t.clause} ${s.clause}
+         WHERE sr."training" = false AND 1=1 ${t.clause} ${s.clause}
          GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb", sr."accuracy"`,
         ...params,
       );
@@ -735,7 +735,7 @@ const config = {
        JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
        JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
        JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-       WHERE e."action" = $${actionIdx}::"EventAction"
+       WHERE sr."training" = false AND e."action" = $${actionIdx}::"EventAction"
          ${t.clause} ${s.clause}
        GROUP BY e."scoutReportUuid"`,
       ...params,

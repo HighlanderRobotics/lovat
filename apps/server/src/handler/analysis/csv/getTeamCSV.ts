@@ -145,7 +145,9 @@ export const getTeamCSV = async (
         scoutReports: {
           where: (() => {
             const filter = dataSourceRuleToPrismaFilter(sourceRule);
-            return filter ? { scouter: { sourceTeamNumber: filter } } : {};
+            return filter
+              ? { training: false, scouter: { sourceTeamNumber: filter } }
+              : { training: false };
           })(),
           select: {
             uuid: true,
@@ -208,6 +210,7 @@ export const getTeamCSV = async (
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
             where: {
+              training: false,
               teamMatchData: {
                 teamNumber: { in: teams },
                 ...(tournamentFilter
@@ -283,8 +286,11 @@ export const getTeamCSV = async (
               ...(tournamentFilter ? { tournamentKey: tournamentFilter } : {}),
               scoutReports: {
                 some: teamFilter
-                  ? { scouter: { sourceTeamNumber: teamFilter } }
-                  : {},
+                  ? {
+                      training: false,
+                      scouter: { sourceTeamNumber: teamFilter },
+                    }
+                  : { training: false },
               },
             },
             _count: {

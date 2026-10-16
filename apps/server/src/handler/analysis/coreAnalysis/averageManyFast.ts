@@ -73,8 +73,8 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
     };
 
     const srWhere: Prisma.ScoutReportWhereInput = teamFilter
-      ? { scouter: { sourceTeamNumber: teamFilter } }
-      : {};
+      ? { training: false, scouter: { sourceTeamNumber: teamFilter } }
+      : { training: false };
 
     const tmd = await prismaClient.teamMatchData.findMany({
       where: tmdWhere,
