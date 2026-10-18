@@ -26,6 +26,10 @@ See [Railway web hosting](../../docs/railway-web-hosting.md) for Docker builds, 
 
 The Website service must use repository root `/` and config file `/apps/website/railway.json` so its Docker build can include the root changelog. Build locally from the repository root:
 
+Check these settings in each PR environment too. An inherited `/apps/website`
+root hides the repository-level files and causes Docker `COPY` steps for
+`apps/website` and `CHANGELOG.md` to fail before the application build starts.
+
 ```bash
 docker build -f apps/website/Dockerfile -t lovat-website .
 ```

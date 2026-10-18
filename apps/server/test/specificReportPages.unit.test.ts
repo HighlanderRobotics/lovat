@@ -70,6 +70,29 @@ beforeEach(() => {
   );
 });
 afterEach(() => vi.restoreAllMocks());
+it("returns no autonomous data for a missing or excluded report", async () => {
+  db.scoutReport.findUnique.mockResolvedValue(null);
+  db.event.findMany.mockResolvedValue([]);
+
+  expect(
+    await autoPathScouter(testUser, {
+      matchKey: "m1",
+      scoutReportUuid: "report",
+    }),
+  ).toEqual({
+    autoPoints: 0,
+    positions: [],
+    match: "m1",
+    tournamentName: "",
+  });
+  expect(db.scoutReport.findUnique).toHaveBeenCalledWith({
+    where: {
+      uuid: "report",
+      reliability: { in: ["VERIFIED", "UNVERIFIED"] },
+    },
+  });
+  expect(db.teamMatchData.findUnique).not.toHaveBeenCalled();
+});
 it("summarizes one scouter's autonomous events and caches by report", async () => {
   expect(
     await autoPathScouter(testUser, {
