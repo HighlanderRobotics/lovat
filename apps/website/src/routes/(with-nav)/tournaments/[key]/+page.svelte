@@ -2,6 +2,7 @@
 	import LovatBadge from '$lib/LovatBadge.svelte';
 	import { teamRecords } from '$lib/tournaments/teamRecords';
 	import MatchCard from '$lib/tournaments/MatchCard.svelte';
+	import TournamentRanking from '$lib/tournaments/TournamentRanking.svelte';
 	import { tick } from 'svelte';
 	import { Button, DensityProvider, Select, TextField } from 'magnolia-ui-svelte';
 	import TournamentAlliances from './TournamentAlliances.svelte';
@@ -226,6 +227,10 @@
 				variant={view === 'alliances' ? 'primary' : 'text-only-secondary'}
 				on:click={() => (view = 'alliances')}>Alliances & bracket</Button
 			>
+			<Button
+				variant={view === 'analytics' ? 'primary' : 'text-only-secondary'}
+				on:click={() => (view = 'analytics')}>Analytics</Button
+			>
 		</DensityProvider>
 	</div>
 
@@ -346,6 +351,8 @@
 		</section>
 	{:else if view === 'alliances'}
 		<TournamentAlliances {data} />
+	{:else if view === 'analytics'}
+		{#key tournament.key}<TournamentRanking tournamentKey={tournament.key} {year} />{/key}
 	{:else}
 		<section aria-labelledby="teams-heading">
 			<div class="section-heading">

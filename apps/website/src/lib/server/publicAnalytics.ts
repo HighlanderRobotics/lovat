@@ -129,3 +129,14 @@ export const leaderboardSchema = z.object({
 		})
 	)
 });
+
+export const tournamentRankingSchema = z.object({
+	teams: z.array(
+		z.object({
+			number: z.number().int().positive(),
+			name: z.string(),
+			matches: z.number().int().positive(),
+			points: z.number().finite()
+		})
+	)
+});

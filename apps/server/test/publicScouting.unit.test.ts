@@ -7,11 +7,15 @@ const mocks = vi.hoisted(() => ({
   predict: vi.fn(),
   metrics: vi.fn(),
   district: vi.fn(),
+  tournament: vi.fn(),
 }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
     team: { findMany: vi.fn().mockResolvedValue([]) },
-    tournament: { findMany: vi.fn().mockResolvedValue([]) },
+    tournament: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findUnique: mocks.tournament,
+    },
     match: { findUnique: mocks.match },
     districtSeason: { findUnique: mocks.district },
     teamMatchData: { findMany: mocks.events },
@@ -36,6 +40,7 @@ import {
   metricPercentile,
   scoutingCoverage,
   getPublicDistrictLeaderboard,
+  getPublicTournamentRanking,
   getPublicPrediction,
 } from "../src/handler/tournaments/publicScouting.js";
 import { chooseRobotPhoto } from "../src/handler/tournaments/getRobotPhoto.js";
@@ -687,4 +692,67 @@ it("keeps unscouted matches in the series as gaps even if a metric result exists
   expect(mocks.events.mock.calls[0]![0].where).not.toHaveProperty(
     "scoutReports",
   );
+});
+
+it("ranks only event scouting averages and keeps zero-point teams", async () => {
+  mocks.tournament.mockResolvedValue({ seasonYear: 2026 });
+  mocks.events.mockResolvedValue([
+    { teamNumber: 8033, team: { name: "Highlander Robotics" } },
+    { teamNumber: 254, team: { name: "The Cheesy Poofs" } },
+    { teamNumber: 840, team: { name: "ART" } },
+  ]);
+  mocks.metrics.mockResolvedValue({
+    8033: { average: 0, timeLine: [{ match: "a", dataPoint: 0 }] },
+    254: { average: 120, timeLine: [{ match: "b", dataPoint: 120 }] },
+    840: { average: 999, timeLine: [] },
+  });
+
+  const response = await invoke(getPublicTournamentRanking, {
+    params: { key: "2026casnf" },
+  });
+
+  expect(response.body).toEqual({
+    teams: [
+      { number: 254, name: "The Cheesy Poofs", matches: 1, points: 120 },
+      { number: 8033, name: "Highlander Robotics", matches: 1, points: 0 },
+    ],
+  });
+  expect(mocks.events.mock.calls[0]![0].where).toEqual({
+    tournamentKey: "2026casnf",
+    scoutReports: { some: {} },
+  });
+  expect(mocks.metrics.mock.calls[0]![0]).toMatchObject({
+    teamSourceRule: { mode: "EXCLUDE", items: [] },
+    tournamentSourceRule: { mode: "INCLUDE", items: ["2026casnf"] },
+  });
+});
+
+it("validates tournament rankings and handles missing or unsupported events", async () => {
+  expect(
+    (await invoke(getPublicTournamentRanking, { params: { key: "bad/key" } }))
+      .statusCode,
+  ).toBe(400);
+  expect(mocks.tournament).not.toHaveBeenCalled();
+
+  mocks.tournament.mockResolvedValue(null);
+  expect(
+    (
+      await invoke(getPublicTournamentRanking, {
+        params: { key: "2026missing" },
+      })
+    ).statusCode,
+  ).toBe(404);
+
+  mocks.tournament.mockResolvedValue({ seasonYear: 2025 });
+  expect(
+    (await invoke(getPublicTournamentRanking, { params: { key: "2025casf" } }))
+      .body,
+  ).toEqual({ teams: [] });
+  expect(mocks.metrics).not.toHaveBeenCalled();
+
+  mocks.tournament.mockRejectedValue(new Error("private database error"));
+  expect(
+    (await invoke(getPublicTournamentRanking, { params: { key: "2026casnf" } }))
+      .body,
+  ).toEqual({ error: "Tournament ranking unavailable" });
 });

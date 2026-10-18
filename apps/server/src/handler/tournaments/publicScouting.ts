@@ -548,6 +548,92 @@ export async function getPublicTeamSeries(
   }
 }
 
+export async function getPublicTournamentRanking(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const key = req.params.key;
+
+  if (typeof key !== "string" || !/^\d{4}[a-z0-9]+$/.test(key)) {
+    res.status(400).json({ error: "Invalid tournament" });
+    return;
+  }
+
+  try {
+    const teams = await publicCache(
+      `scouting:tournament-ranking:v1:${key}`,
+      async () => {
+        const tournament = await prisma.tournament.findUnique({
+          where: { key },
+          select: { seasonYear: true },
+        });
+
+        if (!tournament) return null;
+        if (tournament.seasonYear !== 2026) return [];
+
+        const rows = await prisma.teamMatchData.findMany({
+          where: { tournamentKey: key, scoutReports: { some: {} } },
+          distinct: ["teamNumber"],
+          select: { teamNumber: true, team: { select: { name: true } } },
+          orderBy: { teamNumber: "asc" },
+        });
+        const user: User = {
+          id: `public-tournament:${key}`,
+          email: "public@example.invalid",
+          emailVerified: false,
+          username: null,
+          teamNumber: null,
+          role: "ANALYST",
+          teamSourceRule: { mode: "EXCLUDE", items: [] },
+          tournamentSourceRule: { mode: "INCLUDE", items: [key] },
+        };
+        const result: {
+          number: number;
+          name: string;
+          matches: number;
+          points: number;
+        }[] = [];
+
+        for (let start = 0; start < rows.length; start += 100) {
+          const batch = rows.slice(start, start + 100);
+          const values = await arrayAndAverageTeams(user, {
+            teams: batch.map((team) => team.teamNumber),
+            metric: Metric.totalPoints,
+          });
+
+          for (const team of batch) {
+            const value = values[team.teamNumber];
+
+            if (!value?.timeLine?.length || !Number.isFinite(value.average))
+              continue;
+
+            result.push({
+              number: team.teamNumber,
+              name: team.team.name,
+              matches: value.timeLine.length,
+              points: value.average,
+            });
+          }
+        }
+
+        return result.sort(
+          (a, b) => b.points - a.points || a.number - b.number,
+        );
+      },
+    );
+
+    if (teams === null) {
+      res.status(404).json({ error: "Tournament not found" });
+      return;
+    }
+
+    res.set("Cache-Control", "public, max-age=60");
+    res.json({ teams });
+  } catch {
+    res.status(503).json({ error: "Tournament ranking unavailable" });
+  }
+}
+
 export async function getPublicDistrictLeaderboard(
   req: Request,
   res: Response,
