@@ -292,7 +292,8 @@ model MutablePicklist {
 }
 
 model ScoutReport {
-  uuid                  String        @id @default(uuid())
+  reliability           ReportReliability @default(UNVERIFIED)
+  uuid                  String            @id @default(uuid())
   teamMatchKey          String
   startTime             DateTime
   notes                 String
@@ -301,8 +302,8 @@ model ScoutReport {
   scouterUuid           String
   robotBrokeDescription String?
   events                Event[]
-  scouter               Scouter       @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
-  teamMatchData         TeamMatchData @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
+  scouter               Scouter           @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
+  teamMatchData         TeamMatchData     @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
 
   // year specific fields
   accuracy             Int?
@@ -458,6 +459,14 @@ model CachedAnalysis {
   key                    String   @id
   teamDependencies       Int[]    @default([])
   tournamentDependencies String[] @default([])
+}
+
+enum ReportReliability {
+  VERIFIED
+  UNVERIFIED
+  FLAGGED_USER
+  FLAGGED_SYSTEM
+  BAD_REPORT
 }
 
 enum Position {

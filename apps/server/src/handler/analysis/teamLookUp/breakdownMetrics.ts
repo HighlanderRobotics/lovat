@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import z from "zod";
 import prismaClient from "../../../prismaClient.js";
 import { nonEventMetric } from "../coreAnalysis/nonEventMetric.js";
@@ -31,6 +32,7 @@ export const breakdownMetrics = createAnalysisHandler({
 
     const reportCount = await prismaClient.scoutReport.count({
       where: {
+        ...analysisReportFilter,
         teamMatchData: {
           teamNumber: params.team,
           matchType: { not: "PRACTICE" },

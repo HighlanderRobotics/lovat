@@ -244,6 +244,49 @@ it("dashboard rejects overlapping event actions before creating a report", async
 });
 const native = (overrides = {}) =>
   invoke(addScoutReport, { body: { ...body(), ...overrides } });
+it.each([
+  [799, "UNVERIFIED"],
+  [800, "UNVERIFIED"],
+  [801, "FLAGGED_SYSTEM"],
+])(
+  "native uploads classify %i total points as %s",
+  async (points, reliability) => {
+    expect(
+      (
+        await native({
+          events: [
+            [10, 0, 2],
+            [20, 1, 2, 400],
+            [30, 0, 2],
+            [40, 1, 2, points - 400],
+            [50, 12, 2],
+            [60, 13, 2, 1000],
+          ],
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(db.scoutReport.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ reliability }),
+    });
+  },
+);
+it("native uploads include climb points when flagging reports", async () => {
+  expect(
+    (
+      await native({
+        autoClimb: "SUCCEEDED",
+        endgameClimb: "L3",
+        events: [
+          [10, 0, 2],
+          [20, 1, 2, 799],
+        ],
+      })
+    ).statusCode,
+  ).toBe(200);
+  expect(db.scoutReport.create).toHaveBeenCalledWith({
+    data: expect.objectContaining({ reliability: "FLAGGED_SYSTEM" }),
+  });
+});
 it("native uploads persist report and feeding quantities atomically and send break warnings", async () => {
   expect(
     (

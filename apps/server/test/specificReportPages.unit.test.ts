@@ -114,6 +114,7 @@ it("returns report page metrics and translated categorical values", async () => 
   expect(db.scoutReport.findFirst).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         uuid: "report",
         scouter: { sourceTeamNumber: { in: [8033] } },
         teamMatchData: { tournamentKey: undefined },
@@ -201,6 +202,7 @@ it("adds points to scored timeline events and omits zero-point values", async ()
     where: {
       scoutReportUuid: "report",
       scoutReport: {
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         scouter: { sourceTeamNumber: { in: [8033] } },
         teamMatchData: { tournamentKey: undefined },
       },
@@ -225,6 +227,7 @@ it.each([undefined, "2026test"])(
     expect(db.scoutReport.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
+          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
           scouterUuid: "scouter",
           ...(tournamentKey ? { teamMatchData: { tournamentKey } } : {}),
         },

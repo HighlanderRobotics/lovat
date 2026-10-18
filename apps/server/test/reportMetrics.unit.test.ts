@@ -219,7 +219,12 @@ describe("single-report scoring metrics", () => {
       computeAverageScoutReport("synthetic-report", [Metric.totalPoints]),
     ).resolves.toEqual({ [Metric.totalPoints]: 17 });
     expect(mocks.findUniqueOrThrow).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { uuid: "synthetic-report" } }),
+      expect.objectContaining({
+        where: {
+          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
+          uuid: "synthetic-report",
+        },
+      }),
     );
   });
 });

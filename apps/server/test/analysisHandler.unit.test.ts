@@ -5,13 +5,16 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   set: vi.fn(),
   create: vi.fn(),
+  findUnique: vi.fn(),
   calculate: vi.fn(),
 }));
 vi.mock("../src/redisClient.js", () => ({
   kv: { get: mocks.get, set: mocks.set },
 }));
 vi.mock("../src/prismaClient.js", () => ({
-  default: { cachedAnalysis: { create: mocks.create } },
+  default: {
+    cachedAnalysis: { create: mocks.create, findUnique: mocks.findUnique },
+  },
 }));
 import { createAnalysisHandler } from "../src/handler/analysis/analysisHandler.js";
 const base = {
@@ -51,10 +54,17 @@ const run = (
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.get.mockResolvedValue(null);
+  mocks.findUnique.mockResolvedValue({ key: "cached" });
   mocks.calculate.mockResolvedValue({ score: 12 });
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 });
 afterEach(() => vi.restoreAllMocks());
+it("recalculates a Redis result when the worker invalidated its registration", async () => {
+  mocks.get.mockResolvedValue(JSON.stringify({ score: 999 }));
+  mocks.findUnique.mockResolvedValue(null);
+  expect((await run()).body).toEqual({ score: 12 });
+  expect(mocks.calculate).toHaveBeenCalledOnce();
+});
 it("validates all input locations and passes source context", async () => {
   const result = await run();
   expect(result.statusCode).toBe(200);
@@ -75,7 +85,7 @@ it("validates all input locations and passes source context", async () => {
   );
   expect(result.headers["X-Lovat-Cache"]).toBe("miss");
   const key =
-    "analysis:v2:handler:test-user:metric:{INCLUDE:[8033]}:{EXCLUDE:[]}";
+    "analysis:v3:handler:test-user:metric:{INCLUDE:[8033]}:{EXCLUDE:[]}";
   expect(mocks.get).toHaveBeenCalledWith(key);
   expect(mocks.set).toHaveBeenCalledWith(key, '{"score":12}');
   expect(mocks.create).toHaveBeenCalledWith({
@@ -98,7 +108,7 @@ it("handles handlers without schemas or source-dependent keys", async () => {
   expect(result.statusCode).toBe(200);
   expect(mocks.create).toHaveBeenCalledWith({
     data: {
-      key: "analysis:v2:handler:test-user:plain",
+      key: "analysis:v3:handler:test-user:plain",
       teamDependencies: [],
       tournamentDependencies: [],
     },
