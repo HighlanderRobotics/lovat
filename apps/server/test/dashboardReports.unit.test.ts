@@ -244,16 +244,22 @@ it("dashboard rejects overlapping event actions before creating a report", async
 });
 const native = (overrides = {}) =>
   invoke(addScoutReport, { body: { ...body(), ...overrides } });
-it.each([
-  [799, "UNVERIFIED"],
-  [800, "UNVERIFIED"],
-  [801, "FLAGGED_SYSTEM"],
-])(
-  "native uploads classify %i total points as %s",
-  async (points, reliability) => {
+it.each(
+  [native, run].flatMap((upload) =>
+    (
+      [
+        [799, "UNVERIFIED"],
+        [800, "UNVERIFIED"],
+        [801, "FLAGGED_SYSTEM"],
+      ] as const
+    ).map(([points, reliability]) => ({ upload, points, reliability })),
+  ),
+)(
+  "$upload uploads classify $points total points as $reliability",
+  async ({ upload, points, reliability }) => {
     expect(
       (
-        await native({
+        await upload({
           events: [
             [10, 0, 2],
             [20, 1, 2, 400],
@@ -270,23 +276,26 @@ it.each([
     });
   },
 );
-it("native uploads include climb points when flagging reports", async () => {
-  expect(
-    (
-      await native({
-        autoClimb: "SUCCEEDED",
-        endgameClimb: "L3",
-        events: [
-          [10, 0, 2],
-          [20, 1, 2, 799],
-        ],
-      })
-    ).statusCode,
-  ).toBe(200);
-  expect(db.scoutReport.create).toHaveBeenCalledWith({
-    data: expect.objectContaining({ reliability: "FLAGGED_SYSTEM" }),
-  });
-});
+it.each([native, run])(
+  "%s uploads include climb points when flagging reports",
+  async (upload) => {
+    expect(
+      (
+        await upload({
+          autoClimb: "SUCCEEDED",
+          endgameClimb: "L3",
+          events: [
+            [10, 0, 2],
+            [20, 1, 2, 799],
+          ],
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(db.scoutReport.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ reliability: "FLAGGED_SYSTEM" }),
+    });
+  },
+);
 it("native uploads persist report and feeding quantities atomically and send break warnings", async () => {
   expect(
     (

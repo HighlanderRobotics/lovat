@@ -236,7 +236,14 @@ it("adds points to scored timeline events and omits zero-point values", async ()
 it.each([undefined, "2026test"])(
   "lists a lead's own scouter reports with optional tournament restriction (%s)",
   async (tournamentKey) => {
-    db.scoutReport.findMany.mockResolvedValue([{ uuid: "report" }]);
+    const reports = [
+      "VERIFIED",
+      "UNVERIFIED",
+      "FLAGGED_USER",
+      "FLAGGED_SYSTEM",
+      "BAD_REPORT",
+    ].map((reliability) => ({ uuid: `report-${reliability}`, reliability }));
+    db.scoutReport.findMany.mockResolvedValue(reports);
     const result = await invoke(
       (req, res) => scouterScoutReports(req, res, vi.fn()),
       {
@@ -246,14 +253,14 @@ it.each([undefined, "2026test"])(
         },
       },
     );
-    expect(result.body).toEqual([{ uuid: "report" }]);
+    expect(result.body).toEqual(reports);
     expect(db.scoutReport.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
           scouterUuid: "scouter",
           ...(tournamentKey ? { teamMatchData: { tournamentKey } } : {}),
         },
+        select: expect.objectContaining({ reliability: true }),
       }),
     );
     expect(db.get).not.toHaveBeenCalled();

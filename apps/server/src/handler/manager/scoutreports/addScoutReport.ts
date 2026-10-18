@@ -17,13 +17,10 @@ import {
   ClimbPosition,
   ClimbSide,
   EndgameClimb,
-  ReportReliability,
 } from "@lovat/db";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
-import { calculateReportTotalPoints } from "../../analysis/reportPoints.js";
-
-const TOTAL_POINTS_FLAG_THRESHOLD = 800;
+import { classifyReportReliability } from "./reportReliability.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 
@@ -269,20 +266,15 @@ export const addScoutReport = async (
       });
     }
 
-    const totalPoints = calculateReportTotalPoints({
-      ...paramsScoutReport,
-      events: eventDataArray,
-    });
-
     // The report and its events must either both persist or both roll back.
     await prismaClient.$transaction([
       prismaClient.scoutReport.create({
         data: {
           uuid: paramsScoutReport.uuid,
-          reliability:
-            totalPoints > TOTAL_POINTS_FLAG_THRESHOLD
-              ? ReportReliability.FLAGGED_SYSTEM
-              : ReportReliability.UNVERIFIED,
+          reliability: classifyReportReliability({
+            ...paramsScoutReport,
+            events: eventDataArray,
+          }),
           startTime: new Date(paramsScoutReport.startTime),
           teamMatchData: { connect: { key: matchKey } },
           scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },

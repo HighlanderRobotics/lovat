@@ -1,4 +1,3 @@
-import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { createAnalysisHandler } from "../analysisHandler.js";
@@ -29,8 +28,9 @@ export const scouterScoutReports = createAnalysisHandler({
 
     if (!query.tournamentKey) {
       const allScoutReports = await prismaClient.scoutReport.findMany({
-        where: { ...analysisReportFilter, scouterUuid: query.scouterUuid },
+        where: { scouterUuid: query.scouterUuid },
         select: {
+          reliability: true,
           scouter: { select: { name: true } },
           teamMatchData: {
             select: {
@@ -54,11 +54,11 @@ export const scouterScoutReports = createAnalysisHandler({
 
     const tournamentScoutReports = await prismaClient.scoutReport.findMany({
       where: {
-        ...analysisReportFilter,
         scouterUuid: query.scouterUuid,
         teamMatchData: { tournamentKey: query.tournamentKey },
       },
       select: {
+        reliability: true,
         scouter: { select: { name: true } },
         teamMatchData: {
           select: {
