@@ -24,15 +24,22 @@ The migration baseline records existing Svelte check and formatting failures. Ra
 
 See [Railway web hosting](../../docs/railway-web-hosting.md) for Docker builds, PR environment variables, validation, and cutover.
 
-The Website service must use repository root `/` and config file `/apps/website/railway.json` so its Docker build can include the root changelog. Build locally from the repository root:
+The Website service must use repository root `/` and config file `/apps/website/railway.json` so its Docker build can include the root changelog.
 
 Check these settings in each PR environment too. An inherited `/apps/website`
 root hides the repository-level files and causes Docker `COPY` steps for
 `apps/website` and `CHANGELOG.md` to fail before the application build starts.
 
+Build locally from the repository root:
+
 ```bash
 docker build -f apps/website/Dockerfile -t lovat-website .
 ```
+
+Magnolia is installed from an archive of the commit recorded in the lockfile.
+That commit includes its built `dist` files. Using the archive avoids npm's Git
+dependency preparation, which resolves the library's development dependencies
+independently and can fail even when the website lockfile is unchanged.
 
 ## Changelog page
 
