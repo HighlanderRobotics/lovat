@@ -12,6 +12,10 @@
 	let failed = false;
 	let selected: (Team & { rank: number }) | null = null;
 	let controller: AbortController;
+	let showFit = true;
+	let showAverage = true;
+	let showTeamLabels = true;
+	let visibleCohorts = [true, true, true, true];
 
 	async function load() {
 		controller?.abort();
@@ -77,7 +81,24 @@
 	{:else if !teams.length}
 		<p>No scouting points available for this tournament.</p>
 	{:else}
-		{#if fit}
+		<fieldset class="chart-toggles" aria-label="Chart overlays">
+			<label style:--toggle-color="#5eead4">
+				<input type="checkbox" bind:checked={showFit} disabled={!fit} /> Best fit
+			</label>
+			<label><input type="checkbox" bind:checked={showAverage} /> Average</label>
+			<label><input type="checkbox" bind:checked={showTeamLabels} /> Team labels</label>
+			{#each cohorts as cohort}
+				<label style:--toggle-color={cohortColors[cohort.index]}>
+					<input
+						type="checkbox"
+						bind:checked={visibleCohorts[cohort.index]}
+						aria-label={`Ranks ${cohort.start}–${cohort.end}`}
+					/>
+					{cohort.start}{cohort.end !== cohort.start ? `–${cohort.end}` : ''}
+				</label>
+			{/each}
+		</fieldset>
+		{#if fit && showFit}
 			<div class="fit-caption">
 				<span class="fit-swatch" aria-hidden="true"></span>
 				<span title="Least-squares exponential fit in points, including zero scores">
@@ -97,38 +118,40 @@
 				aria-label="Total Points Dropoff"
 			>
 				{#each cohorts as cohort}
-					<rect
-						x={Math.max(72, x(cohort.start) - halfSlot)}
-						y="48"
-						width={Math.min(chartWidth - 40, x(cohort.end) + halfSlot) -
-							Math.max(72, x(cohort.start) - halfSlot)}
-						height="244"
-						fill={cohortColors[cohort.index]}
-						opacity="0.07"
-					/>
-					<text
-						x={cohort.end - cohort.start < 3
-							? x(cohort.end)
-							: (x(cohort.start) + x(cohort.end)) / 2}
-						y="18"
-						text-anchor={cohort.end - cohort.start < 3 ? 'end' : 'middle'}
-						style:fill={cohortColors[cohort.index]}
-						class="cohort-label"
-						>{cohort.start}{cohort.end !== cohort.start ? `–${cohort.end}` : ''} · Avg {cohort.average.toFixed(
-							1
-						)}</text
-					>
-					<line
-						x1={Math.max(72, x(cohort.start) - halfSlot)}
-						x2={Math.min(chartWidth - 40, x(cohort.end) + halfSlot)}
-						y1={y(cohort.average)}
-						y2={y(cohort.average)}
-						stroke={cohortColors[cohort.index]}
-						stroke-width="2"
-						><title
-							>Ranks {cohort.start}–{cohort.end}: average {cohort.average.toFixed(1)} points</title
-						></line
-					>
+					{#if visibleCohorts[cohort.index]}
+						<rect
+							x={Math.max(72, x(cohort.start) - halfSlot)}
+							y="48"
+							width={Math.min(chartWidth - 40, x(cohort.end) + halfSlot) -
+								Math.max(72, x(cohort.start) - halfSlot)}
+							height="244"
+							fill={cohortColors[cohort.index]}
+							opacity="0.07"
+						/>
+						<text
+							x={cohort.end - cohort.start < 3
+								? x(cohort.end)
+								: (x(cohort.start) + x(cohort.end)) / 2}
+							y="18"
+							text-anchor={cohort.end - cohort.start < 3 ? 'end' : 'middle'}
+							style:fill={cohortColors[cohort.index]}
+							class="cohort-label"
+							>{cohort.start}{cohort.end !== cohort.start ? `–${cohort.end}` : ''} · Avg {cohort.average.toFixed(
+								1
+							)}</text
+						>
+						<line
+							x1={Math.max(72, x(cohort.start) - halfSlot)}
+							x2={Math.min(chartWidth - 40, x(cohort.end) + halfSlot)}
+							y1={y(cohort.average)}
+							y2={y(cohort.average)}
+							stroke={cohortColors[cohort.index]}
+							stroke-width="2"
+							><title
+								>Ranks {cohort.start}–{cohort.end}: average {cohort.average.toFixed(1)} points</title
+							></line
+						>
+					{/if}
 				{/each}
 				{#each ticks as value}
 					<line x1="72" x2={chartWidth - 40} y1={y(value)} y2={y(value)} class="grid" />
@@ -146,9 +169,11 @@
 					>Total points</text
 				>
 
-				<line x1="72" x2={chartWidth - 40} y1={y(average)} y2={y(average)} class="average-line" />
-				<text x="80" y={y(average) - 8} class="average-label">Average {average.toFixed(1)}</text>
-				{#if fit}<path d={fitPath} class="regression-line" />{/if}
+				{#if showAverage}
+					<line x1="72" x2={chartWidth - 40} y1={y(average)} y2={y(average)} class="average-line" />
+					<text x="80" y={y(average) - 8} class="average-label">Average {average.toFixed(1)}</text>
+				{/if}
+				{#if fit && showFit}<path d={fitPath} class="regression-line" />{/if}
 
 				{#each ranked as team, index}
 					<a
@@ -161,16 +186,21 @@
 							cx={x(team.rank)}
 							cy={y(team.points)}
 							r={selected?.number === team.number ? 6 : 4}
-							style:fill={index < 32 ? cohortColors[Math.floor(index / 8)] : 'var(--body)'}
+							style:fill={index < 32
+								? visibleCohorts[Math.floor(index / 8)]
+									? cohortColors[Math.floor(index / 8)]
+									: 'var(--victory-purple)'
+								: 'var(--body)'}
 						>
 							<title
 								>{team.number} · {team.name}: {team.points.toFixed(1)} points · Rank {team.rank}</title
 							>
 						</circle>
-						<text
-							transform={`translate(${x(index + 1) + 4} ${y(team.points) - 12}) rotate(-55)`}
-							class="team-label">{team.number}</text
-						>
+						{#if showTeamLabels}<text
+								transform={`translate(${x(index + 1) + 4} ${y(team.points) - 12}) rotate(-55)`}
+								class="team-label">{team.number}</text
+							>
+						{/if}
 					</a>
 				{/each}
 			</svg>
@@ -194,6 +224,27 @@
 	p {
 		color: var(--body);
 		font-size: 13px;
+	}
+	.chart-toggles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		border: 0;
+		padding: 0;
+		margin: 16px 0 0;
+		min-width: 0;
+	}
+	.chart-toggles label {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--toggle-color, var(--body));
+		font-size: 12px;
+		cursor: pointer;
+	}
+	.chart-toggles input {
+		accent-color: var(--toggle-color, var(--victory-purple));
+		margin: 0;
 	}
 
 	.chart-scroll {
