@@ -45,17 +45,19 @@
 	}));
 	$: maximum = Math.max(10, ...teams.map((team) => team.points)) * 1.1;
 	$: minimum = Math.min(0, ...teams.map((team) => team.points));
+	$: average = teams.length ? teams.reduce((sum, team) => sum + team.points, 0) / teams.length : 0;
+	$: chartWidth = Math.max(900, teams.length * 24 + 112);
 	$: ticks = Array.from({ length: 5 }, (_, index) => minimum + ((maximum - minimum) * index) / 4);
 	$: rankTicks = [
 		...new Set([1, ...[0.25, 0.5, 0.75, 1].map((f) => Math.max(1, Math.round(teams.length * f)))])
 	];
-	$: x = (rank: number) => (teams.length > 1 ? 72 + ((rank - 1) / (teams.length - 1)) * 800 : 472);
+	$: x = (rank: number) =>
+		teams.length > 1 ? 72 + ((rank - 1) / (teams.length - 1)) * (chartWidth - 112) : chartWidth / 2;
 	$: y = (points: number) => 292 - ((points - minimum) / (maximum - minimum)) * 264;
 </script>
 
 <section aria-labelledby="points-ranking-heading">
-	<h2 id="points-ranking-heading">Total points ranking</h2>
-	<p>Lovat scouting · Average points per match at this event</p>
+	<h2 id="points-ranking-heading">Total Points Dropoff</h2>
 
 	{#if loading}
 		<p>Loading rankings…</p>
@@ -65,9 +67,14 @@
 		<p>No scouting points available for this tournament.</p>
 	{:else}
 		<div class="chart-scroll">
-			<svg viewBox="0 0 900 360" role="img" aria-label="Total points by tournament ranking">
+			<svg
+				viewBox={`0 0 ${chartWidth} 360`}
+				style:min-width={`${chartWidth}px`}
+				role="img"
+				aria-label="Total Points Dropoff"
+			>
 				{#each ticks as value}
-					<line x1="72" x2="872" y1={y(value)} y2={y(value)} class="grid" />
+					<line x1="72" x2={chartWidth - 40} y1={y(value)} y2={y(value)} class="grid" />
 					<text x="60" y={y(value) + 4} text-anchor="end">{value.toFixed(0)}</text>
 				{/each}
 
@@ -75,12 +82,17 @@
 					<text x={x(rank)} y="315" text-anchor="middle">{rank}</text>
 				{/each}
 
-				<text x="472" y="346" text-anchor="middle" class="axis-title">Total points rank</text>
+				<text x={chartWidth / 2} y="346" text-anchor="middle" class="axis-title"
+					>Total points rank</text
+				>
 				<text transform="translate(18 160) rotate(-90)" text-anchor="middle" class="axis-title"
 					>Total points</text
 				>
 
-				{#each ranked as team}
+				<line x1="72" x2={chartWidth - 40} y1={y(average)} y2={y(average)} class="average-line" />
+				<text x="80" y={y(average) - 8} class="average-label">Average {average.toFixed(1)}</text>
+
+				{#each ranked as team, index}
 					<a
 						href={`/teams/${team.number}/${year}`}
 						aria-label={`${team.number} ${team.name}, rank ${team.rank}, ${team.points.toFixed(1)} points`}
@@ -96,20 +108,22 @@
 								>{team.number} · {team.name}: {team.points.toFixed(1)} points · Rank {team.rank}</title
 							>
 						</circle>
+						{#if team.rank !== index + 1}
+							<line
+								x1={x(team.rank)}
+								x2={x(index + 1)}
+								y1={y(team.points)}
+								y2={y(team.points) - 10}
+								class="label-leader"
+							/>
+						{/if}
+						<text
+							transform={`translate(${x(index + 1) + 4} ${y(team.points) - 12}) rotate(-55)`}
+							class="team-label">{team.number}</text
+						>
 					</a>
 				{/each}
 			</svg>
-		</div>
-
-		<div class="selection" aria-live="polite">
-			{#if selected}
-				<a href={`/teams/${selected.number}/${year}`}>{selected.number} · {selected.name}</a>
-				<span
-					>#{selected.rank} · {selected.points.toFixed(1)} points · {selected.matches} matches</span
-				>
-			{:else}
-				<span>Hover or focus a team to see its points.</span>
-			{/if}
 		</div>
 	{/if}
 </section>
@@ -127,8 +141,7 @@
 		font-weight: 500;
 	}
 
-	p,
-	.selection {
+	p {
 		color: var(--body);
 		font-size: 13px;
 	}
@@ -141,7 +154,6 @@
 	svg {
 		display: block;
 		width: 100%;
-		min-width: 500px;
 	}
 
 	text {
@@ -157,6 +169,25 @@
 		stroke: var(--light-gray);
 		stroke-width: 1;
 	}
+	.average-line {
+		stroke: var(--body);
+		stroke-width: 1.5;
+		stroke-dasharray: 6 5;
+	}
+	.average-label,
+	.team-label {
+		paint-order: stroke;
+		stroke: var(--secondary-container);
+		stroke-width: 3px;
+		stroke-linejoin: round;
+	}
+	.team-label {
+		font-size: 11px;
+	}
+	.label-leader {
+		stroke: var(--body);
+		opacity: 0.5;
+	}
 
 	circle {
 		fill: var(--victory-purple);
@@ -170,15 +201,6 @@
 	a {
 		color: var(--victory-purple);
 		text-decoration: none;
-	}
-
-	.selection {
-		display: flex;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: 12px;
-		min-height: 20px;
-		margin-top: 16px;
 	}
 
 	button {
