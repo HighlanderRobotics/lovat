@@ -15,7 +15,6 @@ import {
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
-import { StatusBar } from "expo-status-bar";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
@@ -39,7 +38,6 @@ export const GameViewTemplate = (props: {
 
   return (
     <>
-      <StatusBar hidden={true} backgroundColor={colors.background.default} />
       <GameViewOverlay overlay={props.overlay} setOverlay={props.setOverlay} />
       <View
         style={{
@@ -51,8 +49,11 @@ export const GameViewTemplate = (props: {
         }}
       >
         <SafeAreaView
-          edges={["top", "left", "right"]}
+          // This landscape screen hides the status bar. A portrait top inset can
+          // otherwise remain here during the first orientation transition.
+          edges={["left", "right"]}
           style={{
+            flex: 1,
             flexDirection: "row",
             alignItems: "center",
           }}
