@@ -15,6 +15,7 @@ import { getTournaments } from "../../handler/manager/getTournaments.js";
 import { getTeams } from "../../handler/manager/getTeams.js";
 import { requireAuth } from "../../lib/middleware/requireAuth.js";
 import { getMatches } from "../../handler/manager/getMatches.js";
+import { getMatchSchedule } from "../../handler/manager/getMatchSchedule.js";
 import { updateNotes } from "../../handler/manager/updateNotes.js";
 import { getScouters } from "../../handler/manager/scouters/getScouters.js";
 import { getProfile } from "../../handler/manager/getProfile.js";
@@ -167,7 +168,12 @@ registry.registerPath({
       matchNumber: z.coerce.number().int(),
       isElim: z
         .union([z.literal("true"), z.literal("false"), z.boolean()])
-        .transform((value) => value === true || value === "true"),
+        .transform((value) => value === true || value === "true")
+        .optional()
+        .describe("Legacy match selector; provide this or matchType."),
+      matchType: z
+        .enum(["QUALIFICATION", "ELIMINATION", "PRACTICE"])
+        .optional(),
     }),
   },
   responses: {
@@ -177,13 +183,54 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             match: TeamMatchDataSchema,
-            alliance: z.string(),
+            alliance: z.enum(["red", "blue"]).nullable(),
           }),
         },
       },
     },
     400: { description: "Invalid parameters" },
     404: { description: "Match not found" },
+  },
+  security: [],
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/matchschedule/{tournament}",
+  tags: ["Manager - Matches"],
+  summary:
+    "Fetch public match assignments for Collection, including scheduled practice matches",
+  request: {
+    params: z.object({ tournament: z.string().min(1) }),
+    headers: z.object({ "x-team-code": z.string().min(1) }),
+  },
+  responses: {
+    200: {
+      description:
+        "Official and publicly scheduled practice assignments, without private scouting data",
+      content: {
+        "application/json": {
+          schema: z.object({
+            tournamentKey: z.string(),
+            matches: z.array(
+              z.object({
+                matchNumber: z.number().int(),
+                matchType: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+                teams: z.array(
+                  z.object({
+                    number: z.number().int(),
+                    alliance: z.enum(["red", "blue"]).nullable(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    400: { description: "Missing team code or tournament" },
+    401: { description: "Invalid team code" },
+    500: { description: "Unable to fetch schedule" },
   },
   security: [],
 });
@@ -481,6 +528,7 @@ router.get("/teams", requireAuth, getTeams);
 router.get("/tournaments", requireAuth, getTournaments);
 
 router.get("/checkmatch", checkMatchExists);
+router.get("/matchschedule/:tournament", getMatchSchedule);
 
 router.get(
   "/matches/:tournament",
