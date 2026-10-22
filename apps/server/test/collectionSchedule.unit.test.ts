@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { invoke } from "./helpers/handlerHarness.js";
 const db = vi.hoisted(() => ({
   registeredTeam: { findUnique: vi.fn() },
@@ -14,6 +14,7 @@ import { checkMatchExists } from "../src/handler/manager/checkMatchExists.js";
 beforeEach(() => {
   vi.resetAllMocks();
 });
+afterEach(() => vi.restoreAllMocks());
 const request = {
   params: { tournament: "2026test" },
   headers: { "x-team-code": "test-code" },
@@ -106,5 +107,17 @@ it("checks scheduled practice membership without treating a team number as an al
       matchType: "PRACTICE",
       practiceScheduled: true,
     },
+  });
+});
+it("returns a retryable server error when the schedule cannot be read", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
+  db.registeredTeam.findUnique.mockResolvedValue({ number: 8033 });
+  db.teamMatchData.findMany.mockRejectedValue(
+    new Error("Schedule unavailable"),
+  );
+  const response = await invoke(getMatchSchedule, request);
+  expect(response.statusCode).toBe(500);
+  expect(response.body).toEqual({
+    displayError: "Unable to fetch the match schedule.",
   });
 });
