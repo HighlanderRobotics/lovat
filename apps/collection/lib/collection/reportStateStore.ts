@@ -332,12 +332,14 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
       // Map MatchType to string
       const matchTypeToString = (
         matchType: MatchType,
-      ): "QUALIFICATION" | "ELIMINATION" => {
+      ): "QUALIFICATION" | "ELIMINATION" | "PRACTICE" => {
         switch (matchType) {
           case MatchType.Qualifier:
             return "QUALIFICATION";
           case MatchType.Elimination:
             return "ELIMINATION";
+          case MatchType.Practice:
+            return "PRACTICE";
         }
       };
 

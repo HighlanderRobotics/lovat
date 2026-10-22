@@ -43,7 +43,6 @@ export const GameViewTemplate = (props: {
         style={{
           backgroundColor: colors.secondaryContainer.default,
           paddingVertical: 7,
-          paddingHorizontal: 14,
           flexDirection: "row",
           alignItems: "center",
         }}
@@ -54,6 +53,8 @@ export const GameViewTemplate = (props: {
           edges={["left", "right"]}
           style={{
             flex: 1,
+            // Keep the icons and their expanded touch areas inside the safe edges.
+            paddingHorizontal: 28,
             flexDirection: "row",
             alignItems: "center",
           }}
