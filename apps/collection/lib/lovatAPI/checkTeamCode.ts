@@ -7,7 +7,10 @@ export const checkTeamCode = async (code: string) => {
   );
 
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error(
+      response.statusText ||
+        `Unable to check team code (HTTP ${response.status}). Please try again.`,
+    );
   }
 
   const responseSchema = z.union([
