@@ -17,6 +17,10 @@ npm run build
 npm run preview
 ```
 
+Magnolia is pinned to an archive of the same commit previously recorded in the lockfile.
+The archive includes its compiled `dist` files, so clean installs avoid preparing the
+library's development dependencies. Keep the archive URL pinned when updating Magnolia.
+
 Production server routes require provider-managed values such as `SLACK_SIGNING_SECRET`, `SLACK_WEBHOOK`, `RESEND_KEY`, and `LOVAT_SIGNING_KEY`. Never expose them to browser code or commit them.
 
 The migration baseline records existing Svelte check and formatting failures. Railway builds do not require private environment configuration; provide it at runtime. Netlify must use `apps/website` as the repository base directory.
