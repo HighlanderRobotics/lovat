@@ -1,0 +1,114 @@
+{
+	"ca": {
+		"image": "/assets/cities/san-francisco.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_as_seen_from_Battery_East.jpg",
+		"author": "Frank Schulenburg",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 252236
+	},
+	"ont": {
+		"image": "/assets/districts/ont.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Toronto_Skyline.jpg",
+		"author": "Bill Wrigley",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+		"bytes": 82207
+	},
+	"fch": {
+		"image": "/assets/districts/fch.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Chesapeake_Bay_Bridge_from_Annapolis_to_Maryland%27s_Eastern_Shore_LCCN2011632486-2.jpg",
+		"author": "Carol M. Highsmith",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"bytes": 334895
+	},
+	"fim": {
+		"image": "/assets/districts/fim.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Renaissance_Center,_Detroit,_Michigan_from_S_2014-12-07.jpg",
+		"author": "Crisco 1492",
+		"license": "Public domain",
+		"licenseUrl": "",
+		"bytes": 257414
+	},
+	"fit": {
+		"image": "/assets/districts/fit.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:TexasStateCapitol-2010-01.JPG",
+		"author": "LoneStarMike",
+		"license": "CC BY 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+		"bytes": 357572
+	},
+	"isr": {
+		"image": "/assets/districts/isr.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:The_Bahai_Temple_in_Haifa_Israel.jpg",
+		"author": "Dani Lavi 0007",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 480465
+	},
+	"fma": {
+		"image": "/assets/districts/fma.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Philadelphia_city_hall.jpg",
+		"author": "Toniklemm",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 770119
+	},
+	"fnc": {
+		"image": "/assets/districts/fnc.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Uptown_Charlotte_2018_taking_by_DJI_Phantom_4_pro.jpg",
+		"author": "Precisionviews",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 419619
+	},
+	"fsc": {
+		"image": "/assets/districts/fsc.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Rainbow_Row_Panorama.jpg",
+		"author": "Something Original (talk)",
+		"license": "CC BY-SA 3.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+		"bytes": 148183
+	},
+	"win": {
+		"image": "/assets/districts/win.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Milwaukee_Skyline_w_New_NW_Mutual_Building_2025_by_Isaac_Rowlett.jpg",
+		"author": "Bfkenney",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 377950
+	},
+	"fin": {
+		"image": "/assets/districts/fin.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Indianapolis_skyline_-_2014_April_-_Chris_Bowman.jpg",
+		"author": "Chris Bowman",
+		"license": "CC BY 2.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+		"bytes": 235510
+	},
+	"ne": {
+		"image": "/assets/districts/ne.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Boston_skyline_from_Longfellow_Bridge_September_2017_panorama_2.jpg",
+		"author": "King of Hearts",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 196387
+	},
+	"pnw": {
+		"image": "/assets/districts/pnw.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Rainier_Aerial_West_Close_Washington_Mar23_R16_07149.jpg",
+		"author": "Timothy A. Gonsalves",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 175139
+	},
+	"pch": {
+		"image": "/assets/districts/pch.jpg",
+		"source": "https://commons.wikimedia.org/wiki/File:Atlanta_skyline_from_Jackson_Street_Bridge_2020.jpg",
+		"author": "Marc Merlin",
+		"license": "CC BY-SA 4.0",
+		"licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+		"bytes": 269657
+	}
+}

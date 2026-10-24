@@ -1,7 +1,31 @@
 <script>
+	import { onMount } from 'svelte';
+	import { scoutingSession, restoreScoutingSession, signIn, signOut } from '$lib/scoutingSession';
 	import { learnUrl } from '$lib/siteUrls';
 	import { onNavigate } from '$app/navigation';
 	import { Button, DensityProvider, Icon } from 'magnolia-ui-svelte';
+	import SiteSearch from '$lib/SiteSearch.svelte';
+
+	let authBusy = false;
+	let authError = false;
+
+	onMount(() => {
+		void restoreScoutingSession();
+	});
+
+	async function authenticate() {
+		authBusy = true;
+		authError = false;
+
+		try {
+			if ($scoutingSession.signedIn) await signOut();
+			else await signIn();
+		} catch {
+			authError = true;
+		} finally {
+			authBusy = false;
+		}
+	}
 
 	let expanded = false;
 
@@ -38,9 +62,14 @@
 				<Button variant="text-only-secondary" element="a" href="/changelog">Changelog</Button>
 				<Button variant="text-only-secondary" element="a" href="/contact">Contact</Button>
 				<Button variant="secondary" element="a" href="/download">Get Started</Button>
+				<Button variant="text-only-secondary" disabled={authBusy} on:click={authenticate}
+					>{authBusy ? 'Signing in…' : $scoutingSession.signedIn ? 'Sign out' : 'Sign in'}</Button
+				>
+				{#if authError}<span role="alert">Sign-in failed. Try again.</span>{/if}
 			</div>
 		</DensityProvider>
 	</nav>
+	<SiteSearch />
 
 	{#if hasBanner}
 		<div class="secondary-container">

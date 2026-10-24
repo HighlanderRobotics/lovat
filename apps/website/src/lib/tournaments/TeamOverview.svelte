@@ -1,0 +1,104 @@
+<script lang="ts">
+	import { onMount, createEventDispatcher } from 'svelte';
+	import type { z } from 'zod';
+	import type { metricsSchema } from '$lib/server/publicAnalytics';
+	export let number: number;
+	export let year: number;
+	let metrics: z.infer<typeof metricsSchema>['metrics'] = null;
+	const dispatch = createEventDispatcher<{ photo: { image: string; source: string } | null }>();
+	let disposed = false;
+
+	onMount(() => {
+		const controller = new AbortController();
+
+		void fetch(`/api/public/teams/${number}/${year}`, { signal: controller.signal })
+			.then(async (response) => {
+				if (!response.ok) return;
+
+				const result = await response.json();
+
+				if (!disposed) {
+					metrics = result.metrics;
+					dispatch('photo', result.photo);
+				}
+			})
+			.catch(() => {
+				/* Optional media and metrics do not block the team profile. */
+			});
+
+		return () => {
+			disposed = true;
+			controller.abort();
+		};
+	});
+	function ordinal(value: number) {
+		const rank = Math.round(value);
+		const suffix =
+			rank % 100 >= 11 && rank % 100 <= 13
+				? 'th'
+				: (({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[rank % 10] ?? 'th');
+
+		return `${rank}${suffix}`;
+	}
+</script>
+
+{#if metrics}
+	<section class="overview" aria-label="Public scouting metrics">
+		{#if metrics}<div class="metrics">
+				<h2>Lovat scouting metrics</h2>
+				<div class="values">
+					{#each [['Points', metrics.points, metrics.percentiles?.points], ['Auto', metrics.auto, metrics.percentiles?.auto], ['Teleop', metrics.teleop, metrics.percentiles?.teleop]] as [label, value, percentile]}<div
+						>
+							<strong>{Number(value).toFixed(1)}</strong><span>{label}</span>
+							{#if typeof percentile === 'number'}<span
+									class="percentile"
+									title={`Compared with other teams scouted in ${year}; tied values share a rank`}
+									>{ordinal(percentile)} percentile</span
+								>{/if}
+						</div>{/each}
+				</div>
+			</div>{/if}
+	</section>
+{/if}
+
+<style>
+	.overview {
+		display: flex;
+		gap: 24px;
+		margin: 28px 0;
+		align-items: stretch;
+	}
+	.metrics {
+		flex: 1;
+		background: var(--secondary-container);
+		border-radius: 7px;
+		padding: 24px;
+	}
+	h2 {
+		font-weight: 500;
+		font-size: 20px;
+		margin: 0 0 20px;
+	}
+	.values {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 16px;
+	}
+	.values > div {
+		display: grid;
+		gap: 8px;
+		text-align: center;
+	}
+	strong {
+		font-size: 28px;
+		font-weight: 500;
+	}
+	span {
+		font-size: 13px;
+		color: var(--body);
+	}
+	.percentile {
+		color: var(--victory-purple);
+		font-size: 12px;
+	}
+</style>
