@@ -1,7 +1,7 @@
-import * as DropdownMenu from "zeego/dropdown-menu";
+import { SelectMenu } from "../../lib/components/SelectMenu";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import React, { useState } from "react";
-import { Alert, View, Pressable } from "react-native";
+import { Alert, View } from "react-native";
 import { Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
@@ -275,44 +275,12 @@ function Choice<T extends string>({
     <View style={{ gap: 7 }}>
       <LabelSmall>{label}</LabelSmall>
       <BodyMedium>{caption}</BodyMedium>
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${label}: ${choiceLabel(selected)}`}
-            style={{
-              backgroundColor: colors.secondaryContainer.default,
-              padding: 14,
-              borderRadius: 7,
-            }}
-          >
-            <BodyMedium>{choiceLabel(selected)} ▾</BodyMedium>
-          </Pressable>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content
-          loop={false}
-          side="bottom"
-          align="end"
-          alignOffset={0}
-          avoidCollisions
-          collisionPadding={8}
-          sideOffset={4}
-        >
-          {values.map((value) => (
-            <DropdownMenu.CheckboxItem
-              key={value}
-              value={selected === value ? "on" : "off"}
-              shouldDismissMenuOnSelect
-              onValueChange={() => onChange(value)}
-            >
-              <DropdownMenu.ItemTitle>
-                {choiceLabel(value)}
-              </DropdownMenu.ItemTitle>
-              <DropdownMenu.ItemIndicator />
-            </DropdownMenu.CheckboxItem>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+      <SelectMenu
+        label={label}
+        value={selected}
+        onChange={onChange}
+        options={values.map((value) => ({ value, label: choiceLabel(value) }))}
+      />
     </View>
   );
 }
