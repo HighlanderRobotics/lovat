@@ -103,7 +103,7 @@ test("upstream errors preserve imported fixtures and an unavailable schedule is 
 test("does not merge different match types and leaves unknown alliance positions unset", () => {
   const schedule = formatMatchSchedule("2023mock", [
     rows[0],
-    { ...rows[0], key: "custom_unknown", matchType: "PRACTICE" },
+    { ...rows[0], key: "custom-practice-1", matchType: "PRACTICE" },
     { ...rows[0], key: "elim_3", matchType: "ELIMINATION" },
   ]);
   assert.equal(schedule.matches.length, 3);

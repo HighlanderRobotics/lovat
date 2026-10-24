@@ -43,7 +43,7 @@ export function formatMatchSchedule(
       matchType,
       teams: [],
     };
-    const suffix = row.key.at(-1);
+    const suffix = row.key.match(/_([0-5])$/)?.[1];
     const alliance =
       suffix && /^[0-5]$/.test(suffix)
         ? Number(suffix) < 3
