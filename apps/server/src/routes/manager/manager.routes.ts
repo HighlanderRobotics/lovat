@@ -35,6 +35,7 @@ import {
   TournamentSchema,
 } from "../../lib/prisma-zod.js";
 import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js";
+import { getFullMatchSchedule } from "../../handler/manager/getFullMatchSchedule.js";
 import { checkMatchExists } from "../../handler/manager/checkMatchExists.js";
 
 const router = Router();
@@ -160,6 +161,46 @@ registry.registerPath({
     },
     400: { description: "Invalid parameters" },
     404: { description: "Match not found" },
+  },
+  security: [],
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/matchschedule/{tournament}",
+  tags: ["Manager - Matches"],
+  summary: "Download the complete fixture schedule for offline Collection use",
+  request: {
+    params: z.object({ tournament: z.string() }),
+    headers: z.object({ "x-team-code": z.string().min(1) }),
+  },
+  responses: {
+    200: {
+      description:
+        "Every imported match, including every team and its alliance",
+      content: {
+        "application/json": {
+          schema: z.object({
+            tournamentKey: z.string(),
+            matches: z.array(
+              z.object({
+                matchNumber: z.number().int(),
+                matchType: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+                teams: z.array(
+                  z.object({
+                    number: z.number().int(),
+                    alliance: z.enum(["red", "blue"]).nullable(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    400: { description: "Missing tournament or team code" },
+    401: { description: "Invalid team code" },
+    404: { description: "Schedule not imported yet" },
   },
   security: [],
 });
@@ -457,6 +498,7 @@ router.get("/teams", requireAuth, getTeams);
 router.get("/tournaments", requireAuth, getTournaments);
 
 router.get("/checkmatch", checkMatchExists);
+router.get("/matchschedule/:tournament", getFullMatchSchedule);
 
 router.get(
   "/matches/:tournament",
