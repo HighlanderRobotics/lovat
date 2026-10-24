@@ -1,4 +1,3 @@
-import { SelectMenu } from "../../lib/components/SelectMenu";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import React, { useState } from "react";
 import { Alert, View, Text } from "react-native";
@@ -11,7 +10,7 @@ import Button from "../../lib/components/Button";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import TextField from "../../lib/components/TextField";
 import { Checkbox } from "../../lib/components/Checkbox";
-import { Picker } from "../../lib/components/Picker";
+import { Picker, PickerOption } from "../../lib/components/Picker";
 import { useReportStateStore } from "../../lib/collection/reportStateStore";
 import { PostMatchData } from "../../lib/collection/ChargedUp";
 import { driverAbilityDescriptions } from "../../lib/collection/DriverAbility";
@@ -295,11 +294,14 @@ function Choice<T extends string>({
     <View style={{ gap: 7 }}>
       <QuestionLabel>{label}</QuestionLabel>
       <BodyMedium>{caption}</BodyMedium>
-      <SelectMenu
+      <Picker
+        style="vertical-group"
         label={label}
-        value={selected}
+        selected={selected}
         onChange={onChange}
-        options={values.map((value) => ({ value, label: choiceLabel(value) }))}
+        options={values.map(
+          (value) => ({ value, label: choiceLabel(value) }) as PickerOption<T>,
+        )}
       />
     </View>
   );

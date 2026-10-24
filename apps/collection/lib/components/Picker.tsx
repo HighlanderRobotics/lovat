@@ -1,4 +1,4 @@
-import { Platform, Pressable, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { colors } from "../colors";
 import { Key } from "react";
 import Button from "./Button";
@@ -22,6 +22,7 @@ export type PickerOption<T> =
   | (KeyedPickerOption<T> & { disabled?: boolean });
 
 type PickerProps<T> = {
+  label?: string;
   options: PickerOption<T>[];
   selected: T | T[];
   onChange: (value: T) => void;
@@ -41,6 +42,7 @@ export function Picker<T = string>(props: PickerProps<T>) {
     onChange,
     multiSelect = false,
     style = "horizontal-group",
+    label,
   } = props;
 
   const isSelected = (value: T) => {
@@ -50,7 +52,66 @@ export function Picker<T = string>(props: PickerProps<T>) {
     return value === selected;
   };
 
-  if (style === "inset-picker") {
+  if (style === "vertical-group") {
+    return (
+      <View
+        accessibilityRole={multiSelect ? undefined : "radiogroup"}
+        accessibilityLabel={label}
+        style={{
+          backgroundColor: colors.gray.hover,
+          borderRadius: 7,
+          overflow: "hidden",
+          gap: 2,
+        }}
+      >
+        {options.map((option) => (
+          <Pressable
+            key={option.key ?? option.value}
+            accessibilityRole={multiSelect ? "checkbox" : "radio"}
+            accessibilityLabel={option.label}
+            aria-checked={isSelected(option.value)}
+            accessibilityState={{
+              checked: isSelected(option.value),
+              disabled: option.disabled,
+            }}
+            disabled={option.disabled}
+            onPress={() => {
+              if (Platform.OS === "ios")
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onChange(option.value);
+            }}
+            style={({ pressed }) => ({
+              minHeight: 46,
+              paddingVertical: 11,
+              paddingHorizontal: 20,
+              justifyContent: "center",
+              backgroundColor: isSelected(option.value)
+                ? colors.victoryPurple.default
+                : pressed
+                  ? colors.gray.hover
+                  : colors.gray.default,
+            })}
+          >
+            <Text
+              style={{
+                fontFamily: "Heebo_500Medium",
+                fontSize: 16,
+                lineHeight: 24,
+                textAlign: "center",
+                color: option.disabled
+                  ? colors.gray.hover
+                  : isSelected(option.value)
+                    ? colors.background.default
+                    : colors.onBackground.default,
+              }}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    );
+  } else if (style === "inset-picker") {
     return (
       <View
         style={{
@@ -115,11 +176,11 @@ export function Picker<T = string>(props: PickerProps<T>) {
         ))}
       </View>
     );
-  } else if (style === "horizontal-group" || style === "vertical-group") {
+  } else if (style === "horizontal-group") {
     return (
       <View
         style={{
-          flexDirection: style === "horizontal-group" ? "row" : "column",
+          flexDirection: "row",
           gap: 2,
           backgroundColor: colors.gray.hover,
           borderRadius: 7,
