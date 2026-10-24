@@ -29,6 +29,7 @@ export const GameViewTemplate = (props: {
   topLeftReplacement?: React.ReactNode;
   gamePhaseMessage: string;
   startEnabled?: boolean;
+  fieldControlsLocked?: boolean;
   onExit: () => void;
   onEnd: () => void;
   onRestart: () => void;
@@ -78,6 +79,7 @@ export const GameViewTemplate = (props: {
                 color={colors.onBackground.default}
                 disabled={
                   reportState.events.length === 0 ||
+                  props.fieldControlsLocked ||
                   !!activeActivity(reportState.events)
                 }
                 onPress={() => {

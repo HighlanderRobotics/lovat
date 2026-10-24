@@ -25,6 +25,7 @@ export const actionSchema = z.enum([
   "INTAKE_CUBE",
   "START_POSITION",
   "ENDGAME",
+  "LEAVE_CHARGER",
   "DROP",
   "START_DEFENDING",
   "STOP_DEFENDING",
@@ -147,6 +148,13 @@ export function activeActivity(events: ChargedUpEvent[]): HoldActivity | null {
   }
   return null;
 }
+export function onCharger(events: ChargedUpEvent[]): boolean {
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i].action === "LEAVE_CHARGER") return false;
+    if (events[i].action === "ENDGAME") return true;
+  }
+  return false;
+}
 // Rows 1 and 2 are high/middle; row 3 is the hybrid row. B/E/H are cube columns.
 export function canScoreAt(
   piece: GamePiece | null,
@@ -164,6 +172,15 @@ export function canRecordEvent(
 ): boolean {
   const piece = heldPiece(events, preload);
   const activity = activeActivity(events);
+  if (onCharger(events))
+    return event.action === "LEAVE_CHARGER" && event.location === "CHARGER";
+  if (event.action === "LEAVE_CHARGER") return false;
+  if (event.action === "ENDGAME")
+    return (
+      !activity &&
+      currentLocation(events) === "ALLIANCE_ZONE" &&
+      event.location === "CHARGER"
+    );
   if (event.action === "STOP_DEFENDING" || event.action === "STOP_CAMPING")
     return (
       activity ===

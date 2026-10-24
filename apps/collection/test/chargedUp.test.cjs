@@ -333,3 +333,131 @@ test("previously saved camping events remain readable", () => {
   );
   assert.deepEqual(chargedUpReportSchema.parse(report), report);
 });
+
+test("charge station locks actions until a recorded exit, survives phase changes and supports re-entry", () => {
+  start();
+  const state = () => store.getState();
+  const { onCharger } = require("../lib/collection/ChargedUp.ts");
+  assert.equal(
+    state().addEvent({ action: "LEAVE_CHARGER", location: "CHARGER" }),
+    false,
+  );
+  assert.equal(
+    state().addEvent({ action: "ENDGAME", location: "CHARGER" }),
+    true,
+  );
+  assert.equal(onCharger(state().events), true);
+  for (const event of [
+    { action: "ENDGAME", location: "CHARGER" },
+    { action: "LEAVE_CHARGER", location: "CENTER" },
+    { action: "LEAVE_ZONE", location: "ALLIANCE_ZONE" },
+    { action: "INTAKE_CUBE", location: "ALLIANCE_ZONE" },
+    { action: "START_DEFENDING", location: "OPPONENT_ZONE" },
+  ])
+    assert.equal(state().addEvent(event), false);
+  state().undoEvent();
+  assert.equal(onCharger(state().events), true);
+  assert.equal(
+    state().addEvent({ action: "LEAVE_CHARGER", location: "CHARGER" }),
+    true,
+  );
+  assert.equal(onCharger(state().events), false);
+  assert.equal(
+    state().addEvent({ action: "INTAKE_CUBE", location: "ALLIANCE_ZONE" }),
+    true,
+  );
+  assert.equal(
+    state().addEvent({ action: "ENDGAME", location: "CHARGER" }),
+    true,
+  );
+  const report = state().exportScoutReport();
+  assert.ok(chargedUpReportSchema.safeParse(report).success);
+  state().restartMatch();
+  assert.equal(onCharger(state().events), false);
+});
+
+test("post-match suggestions use observed pieces, sources, scoring and defence durations", () => {
+  const {
+    postMatchDefaults,
+  } = require("../lib/collection/postMatchDefaults.ts");
+  const result = postMatchDefaults(
+    [
+      { time: 1, action: "INTAKE_CONE", location: "CENTER" },
+      {
+        time: 5,
+        action: "SCORE_CONE",
+        location: "SCORE",
+        scoringLocation: "A1",
+      },
+      { time: 10, action: "INTAKE_CUBE", location: "ALLIANCE_STATION" },
+      { time: 20, action: "START_DEFENDING", location: "OPPONENT_ZONE" },
+      { time: 50, action: "STOP_DEFENDING", location: "OPPONENT_ZONE" },
+      { time: 60, action: "START_DEFENDING", location: "OPPONENT_STATION" },
+      { time: 70, action: "STOP_DEFENDING", location: "OPPONENT_STATION" },
+      { time: 125, action: "ENDGAME", location: "CHARGER" },
+    ],
+    150,
+  );
+  assert.equal(result.intakePieces, "BOTH");
+  assert.equal(result.intakeType, "BOTH");
+  assert.deepEqual(result.robotRoles, ["OFFENCE", "DEFENCE"]);
+  assert.equal(result.activeDefensePercentage, 75);
+  assert.equal(result.endgameResult, "SUCCEEDED");
+  for (const field of [
+    "defenseEffectiveness",
+    "driverAbility",
+    "coopertition",
+    "robotBrokeDescription",
+    "mobility",
+    "links",
+  ])
+    assert.equal(field in result, false);
+});
+
+test("endgame suggestions distinguish auto-only pad activity, endgame exits and staying on the pad", () => {
+  const {
+    postMatchDefaults,
+  } = require("../lib/collection/postMatchDefaults.ts");
+  const pad = (time) => ({ time, action: "ENDGAME", location: "CHARGER" });
+  const leave = (time) => ({
+    time,
+    action: "LEAVE_CHARGER",
+    location: "CHARGER",
+  });
+  assert.equal(
+    postMatchDefaults([pad(10), leave(14)], 150).endgameResult,
+    "NOT_ATTEMPTED",
+  );
+  assert.equal(postMatchDefaults([pad(10)], 150).endgameResult, "SUCCEEDED");
+  assert.equal(postMatchDefaults([pad(10)], 14).endgameResult, "NOT_ATTEMPTED");
+  assert.equal(
+    postMatchDefaults([pad(125), leave(140)], 150).endgameResult,
+    "FAILED",
+  );
+  assert.equal(
+    postMatchDefaults([pad(125), leave(140), pad(145)], 150).endgameResult,
+    "SUCCEEDED",
+  );
+});
+
+test("post-match prefilling runs once, closes defence and preserves manual corrections", () => {
+  start();
+  const state = () => store.getState();
+  state().addEvent({ action: "INTAKE_CONE", location: "CENTER" });
+  state().startHold("OPPONENT_ZONE");
+  state().preparePostMatch();
+  assert.equal(activeActivity(state().events), null);
+  assert.equal(state().intakePieces, "CONE");
+  assert.deepEqual(state().robotRoles, ["DEFENCE"]);
+  state().setPostMatch({
+    intakePieces: "BOTH",
+    robotRoles: ["FEEDING"],
+    endgameResult: "FAILED",
+  });
+  state().preparePostMatch();
+  assert.equal(state().intakePieces, "BOTH");
+  assert.deepEqual(state().robotRoles, ["FEEDING"]);
+  assert.equal(state().endgameResult, "FAILED");
+  state().restartMatch();
+  assert.equal(state().postMatchPrepared, false);
+});

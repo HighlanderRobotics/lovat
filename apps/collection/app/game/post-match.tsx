@@ -1,5 +1,5 @@
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, View, Text } from "react-native";
 import { Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,6 +22,9 @@ export default function PostMatch() {
   const training = useTrainingModeStore((s) => s.value);
   const [links, setLinks] = useState(String(state.links));
   const set = state.setPostMatch;
+  useEffect(() => {
+    useReportStateStore.getState().preparePostMatch();
+  }, []);
   const validLinks = /^\d+$/.test(links) && Number.isSafeInteger(Number(links));
   if (!state.meta) return null;
   return (
@@ -117,10 +120,6 @@ export default function PostMatch() {
           </View>
           <View style={{ gap: 7 }}>
             <QuestionLabel>Defence effectiveness</QuestionLabel>
-            <BodyMedium>
-              Choose the rating that best describes this robot’s impact on
-              opponents, from 1 to 5.
-            </BodyMedium>
             <Picker
               style="inset-picker"
               selected={state.defenseEffectiveness}
@@ -128,7 +127,6 @@ export default function PostMatch() {
               options={defenseEffectivenessDescriptions.map((d) => ({
                 value: d.num + 1,
                 label: `${d.num + 1} · ${d.localizedDescription}`,
-                description: d.localizedLongDescription,
               }))}
             />
           </View>
@@ -145,28 +143,24 @@ export default function PostMatch() {
           />
           <Choice
             label="Intake sources"
-            caption="Choose where this robot collected pieces: the ground, human-player station, both, or neither."
             values={["GROUND", "STATION", "BOTH", "NEITHER"] as const}
             selected={state.intakeType}
             onChange={(intakeType) => set({ intakeType })}
           />
           <Choice
-            label="Game pieces they can intake"
-            caption="Choose which pieces this robot demonstrated it could collect."
+            label="Game pieces"
             values={["CONE", "CUBE", "BOTH", "NEITHER"] as const}
             selected={state.intakePieces}
             onChange={(intakePieces) => set({ intakePieces })}
           />
           <Choice
             label="Paths into alliance zone"
-            caption="Choose the routes this robot used to enter its community: the middle route over the charge station, the top route around it, both, or neither."
             values={["MIDDLE", "TOP", "BOTH", "NEITHER"] as const}
             selected={state.mobility}
             onChange={(mobility) => set({ mobility })}
           />
           <Choice
             label="Endgame result"
-            caption="Choose whether this robot successfully completed its endgame charge-station attempt, failed, or did not attempt it."
             values={["NOT_ATTEMPTED", "FAILED", "SUCCEEDED"] as const}
             selected={state.endgameResult}
             onChange={(endgameResult) => set({ endgameResult })}
@@ -177,10 +171,6 @@ export default function PostMatch() {
               checked={state.coopertition}
               onChange={(coopertition) => set({ coopertition })}
             />
-            <BodyMedium>
-              Describe the whole alliance: did it complete the coopertition
-              requirement in its cooperation grid?
-            </BodyMedium>
           </View>
           <View style={{ gap: 7 }}>
             <QuestionLabel>Links scored by the whole alliance</QuestionLabel>
@@ -210,10 +200,6 @@ export default function PostMatch() {
                 set({ robotBrokeDescription: checked ? "" : null })
               }
             />
-            <BodyMedium>
-              Check if a mechanical or electrical failure affected this robot,
-              and describe what happened.
-            </BodyMedium>
           </View>
           {state.robotBrokeDescription !== null && (
             <TextField
@@ -279,13 +265,11 @@ export default function PostMatch() {
 }
 function Choice<T extends string>({
   label,
-  caption,
   values,
   selected,
   onChange,
 }: {
   label: string;
-  caption: string;
   values: readonly T[];
   selected: T;
   onChange: (value: T) => void;
@@ -293,7 +277,6 @@ function Choice<T extends string>({
   return (
     <View style={{ gap: 7 }}>
       <QuestionLabel>{label}</QuestionLabel>
-      <BodyMedium>{caption}</BodyMedium>
       <Picker
         style="vertical-group"
         label={label}

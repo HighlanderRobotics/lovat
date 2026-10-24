@@ -29,6 +29,8 @@ export type ReportState = PostMatchData & {
   setStartPosition: (value: number) => void;
   setGamePhase: (value: GamePhase) => void;
   setPostMatch: (value: Partial<PostMatchData>) => void;
+  postMatchPrepared: boolean;
+  preparePostMatch: () => void;
   addEvent: (event: Omit<ChargedUpEvent, "time">) => boolean;
   undoEvent: () => void;
   exportScoutReport: () => ChargedUpReport | null;

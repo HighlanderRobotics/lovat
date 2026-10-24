@@ -11,9 +11,12 @@ import {
   activeActivity,
   canRecordEvent,
   GamePiece,
+  onCharger,
 } from "./ChargedUp";
+import { postMatchDefaults } from "./postMatchDefaults";
 const initialState = {
   ...initialPostMatch,
+  postMatchPrepared: false,
   fieldPieces: ["UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN"] as (
     | "CONE"
     | "CUBE"
@@ -77,6 +80,21 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   },
   setGamePhase: (gamePhase) => set({ gamePhase }),
   setPostMatch: (value) => set(value),
+  preparePostMatch: () => {
+    if (get().postMatchPrepared) return;
+    get().stopHold();
+    const state = get();
+    const endedAt = state.startTimestamp
+      ? Math.min(
+          MATCH_END_SECONDS,
+          (Date.now() - state.startTimestamp.getTime()) / 1000,
+        )
+      : 0;
+    set({
+      ...postMatchDefaults(state.events, endedAt),
+      postMatchPrepared: true,
+    });
+  },
   addEvent: (event) => {
     const start = get().startTimestamp;
     if (!start || !canRecordEvent(get().events, get().preloadedPiece, event))
@@ -90,7 +108,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   },
   undoEvent: () => {
     const events = get().events;
-    if (activeActivity(events)) return;
+    if (activeActivity(events) || onCharger(events)) return;
     const last = events.at(-1);
     if (last?.action === "STOP_DEFENDING" || last?.action === "STOP_CAMPING") {
       const startAction =

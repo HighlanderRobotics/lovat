@@ -24,6 +24,7 @@ import {
   FieldLocation,
   activeActivity,
   canScoreAt,
+  onCharger,
 } from "../ChargedUp";
 import { IconButton } from "../../components/IconButton";
 import { colors } from "../../colors";
@@ -108,6 +109,7 @@ export function Game() {
   const location = currentLocation(state.events);
   const piece = heldPiece(state.events, state.preloadedPiece);
   const activity = activeActivity(state.events);
+  const charging = onCharger(state.events);
   const started = !!state.startTimestamp;
   const inZone = location === "ALLIANCE_ZONE";
   const orientation = useFieldOrientationStore((s) => s.value);
@@ -173,7 +175,7 @@ export function Game() {
     );
   };
   const intake = (at: FieldLocation) => {
-    if (piece || activity) return;
+    if (piece || activity || charging) return;
     setIntakeLocation(at);
     setPanel("intake");
   };
@@ -184,7 +186,7 @@ export function Game() {
     });
   };
   const score = (area: number) => {
-    if (!piece || activity) return;
+    if (!piece || activity || charging) return;
     setScoringArea(area);
     setPanel("score");
   };
@@ -193,6 +195,7 @@ export function Game() {
 
   return (
     <GameViewTemplate
+      fieldControlsLocked={charging}
       gamePhaseMessage={
         !started ? "Pre-match" : elapsed < AUTO_END_SECONDS ? "Auto" : "Teleop"
       }
@@ -222,7 +225,7 @@ export function Game() {
               size={30}
               label="Undo"
               color={colors.onBackground.default}
-              disabled={state.events.length === 0}
+              disabled={state.events.length === 0 || charging}
               onPress={state.undoEvent}
             />
           </View>
@@ -234,13 +237,14 @@ export function Game() {
               size={30}
               label="Undo"
               color={colors.onBackground.default}
-              disabled={state.events.length === 0}
+              disabled={state.events.length === 0 || charging}
               onPress={state.undoEvent}
             />
             <IconButton
               icon="upload"
               size={30}
               label="Intake from alliance zone"
+              disabled={charging}
               color={colors.onBackground.default}
               onPress={() => intake("ALLIANCE_ZONE")}
             />
@@ -489,7 +493,7 @@ export function Game() {
                       h={91}
                       reversed={reversed}
                       label={`Scoring area ${index + 1}`}
-                      disabled={!piece || !!activity}
+                      disabled={!piece || !!activity || charging}
                       color={
                         state.meta?.allianceColor === AllianceColor.Blue
                           ? "transparent"
@@ -505,24 +509,29 @@ export function Game() {
                     h={295}
                     reversed={reversed}
                     label="Leave alliance zone"
-                    disabled={!!activity}
+                    disabled={!!activity || charging}
                     color={purple}
                     asset={assets.rightArrow}
                     assetOffset={{ x: 0, y: 3.5 }}
                     onPress={() => move("CENTER")}
                   />
-                  {endgameAvailable && (
+                  {(endgameAvailable || charging) && (
                     <BoardButton
                       x={242}
                       y={96}
-                      w={128}
+                      w={116}
                       h={115}
                       reversed={reversed}
-                      label="Charge station"
+                      label={
+                        charging ? "Leave charge station" : "Charge station"
+                      }
+                      active={charging}
+                      activeColor="rgba(181,154,255,0.6)"
+                      raised={charging}
                       color={purple}
                       onPress={() =>
                         state.addEvent({
-                          action: "ENDGAME",
+                          action: charging ? "LEAVE_CHARGER" : "ENDGAME",
                           location: "CHARGER",
                         })
                       }
@@ -690,6 +699,16 @@ export function Game() {
               </View>
             </>
           )}
+          {charging && (
+            <View
+              pointerEvents="none"
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: "rgba(31,31,31,0.65)",
+                zIndex: 1,
+              }}
+            />
+          )}
         </ScaledBoard>
       }
     />
@@ -741,6 +760,8 @@ function BoardButton({
   onPressOut,
   disabled = false,
   active = false,
+  activeColor = colors.danger.default,
+  raised = false,
   reversed = false,
 }: {
   x: number;
@@ -758,6 +779,8 @@ function BoardButton({
   onPressOut?: () => void;
   disabled?: boolean;
   active?: boolean;
+  activeColor?: string;
+  raised?: boolean;
   reversed?: boolean;
 }) {
   const orientation = useFieldOrientationStore((s) => s.value);
@@ -786,7 +809,8 @@ function BoardButton({
         top: orientation === FieldOrientation.Sinister ? 334 - y - h : y,
         width: w,
         height: h,
-        backgroundColor: color,
+        backgroundColor: active ? activeColor : color,
+        zIndex: raised ? 2 : 0,
         opacity: disabled ? 0.35 : 1,
         borderWidth: active ? 3 : 0,
         borderColor: "#e0e0e0",
