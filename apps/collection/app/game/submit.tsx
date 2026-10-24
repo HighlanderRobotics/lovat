@@ -11,7 +11,7 @@ import {
 } from "../../lib/models/match";
 import { Suspense, useEffect, useState } from "react";
 import { ScoutReport } from "../../lib/collection/ScoutReport";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { uploadReport } from "../../lib/lovatAPI/uploadReport";
 import { Icon } from "../../lib/components/Icon";
 import { useHistoryStore } from "../../lib/storage/historyStore";
@@ -19,10 +19,24 @@ import { ScoutReportMeta } from "../../lib/models/ScoutReportMeta";
 import { ScoutReportCode } from "../../lib/collection/ui/ScoutReportCode";
 import { CommonActions } from "@react-navigation/native";
 import React from "react";
+import { useScouterScheduleStore } from "../../lib/services";
+import {
+  useScouterStore,
+  useTournamentStore,
+} from "../../lib/storage/userStores";
+import { nextScouterAssignment } from "../../lib/collection/nextScouterAssignment";
+import { SubmissionActions } from "../../lib/collection/ui/SubmissionActions";
 
 export default function Submit() {
-  const reportState = useReportStateStore();
-  const [scoutReport, setScoutReport] = useState<ScoutReport | null>(null);
+  // Keep this submission fixed while the next match initializes the live store.
+  const [submission] = useState(() => {
+    const state = useReportStateStore.getState();
+    return state.meta
+      ? { meta: state.meta, scoutReport: state.exportScoutReport() }
+      : null;
+  });
+  const scoutReport = submission?.scoutReport;
+  const meta = submission?.meta;
 
   const [uploaded, setUploaded] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -50,34 +64,30 @@ export default function Submit() {
 
   useEffect(() => {
     if (scoutReport && !uploaded && !uploading && !uploadError) {
-      upsertMatchToHistory(scoutReport, false, reportState.meta!);
+      upsertMatchToHistory(scoutReport, false, meta!);
       setUploading(true);
 
       uploadReport(scoutReport)
         .then(() => {
           setUploading(false);
           setUploaded(true);
-          upsertMatchToHistory(scoutReport, true, reportState.meta!);
+          upsertMatchToHistory(scoutReport, true, meta!);
         })
         .catch((e) => {
           console.error(e);
           setUploading(false);
           setUploadError(e);
-          upsertMatchToHistory(scoutReport, false, reportState.meta!);
+          upsertMatchToHistory(scoutReport, false, meta!);
         });
     }
   }, [scoutReport]);
 
-  useEffect(() => {
-    if (reportState.meta) {
-      setScoutReport(reportState.exportScoutReport());
-    }
-  }, [reportState]);
+  if (!meta) return null;
 
   return (
     <>
       <NavBar
-        title={`${reportState.meta!.teamNumber} in ${localizeMatchIdentity(reportState.meta!.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
+        title={`${meta.teamNumber} in ${localizeMatchIdentity(meta.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
       />
       <SafeAreaView
         edges={["bottom", "left", "right"]}
@@ -110,7 +120,7 @@ export default function Submit() {
                   <DoneButton
                     scoutReport={scoutReport!}
                     uploadState={uploadState}
-                    meta={reportState.meta!}
+                    meta={meta}
                   />
                 )}
               </Suspense>
@@ -134,16 +144,34 @@ const DoneButton = ({
   const resetReportState = useReportStateStore((state) => state.reset);
   const upsertMatchToHistory = useHistoryStore((state) => state.upsertMatch);
   const navigation = useNavigation();
+  const schedule = useScouterScheduleStore((state) => state.data);
+  const history = useHistoryStore((state) => state.history);
+  const scouter = useScouterStore((state) => state.value);
+  const tournament = useTournamentStore((state) => state.value);
+  const nextMatch =
+    scouter?.uuid === meta.scouterUUID &&
+    tournament?.key === meta.matchIdentity.tournamentKey
+      ? nextScouterAssignment(schedule, meta, history)
+      : null;
+  const preserveSubmission = () =>
+    upsertMatchToHistory(
+      scoutReport,
+      uploadState === UploadState.Uploaded ||
+        uploadState === UploadState.AlreadyUploaded,
+      meta,
+    );
 
   return (
-    <Button
-      variant="primary"
-      onPress={() => {
-        upsertMatchToHistory(
-          scoutReport,
-          uploadState === UploadState.Uploaded,
-          meta,
-        );
+    <SubmissionActions
+      nextMatch={nextMatch}
+      onNext={() => {
+        if (!nextMatch) return;
+        preserveSubmission();
+        useReportStateStore.getState().scoutMatch(nextMatch);
+        router.replace("/game");
+      }}
+      onHome={() => {
+        preserveSubmission();
         resetReportState();
         navigation.dispatch(
           CommonActions.reset({
@@ -151,9 +179,7 @@ const DoneButton = ({
           }),
         );
       }}
-    >
-      Done
-    </Button>
+    />
   );
 };
 
