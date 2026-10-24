@@ -59,7 +59,9 @@
             "targetSdkVersion": 35
           }
         }
-      ]
+      ],
+      "./plugins/with-ios-resource-targets.cjs",
+      "./plugins/with-ios-menu-availability.cjs"
     ],
     "scheme": "lovat-collection"
   }

@@ -60,3 +60,13 @@ it does not establish native device compatibility. The existing web export has a
 runtime script-loading issue (`import.meta` in a classic script) and references a
 missing favicon. A temporary generated-output workaround was used for visual QA;
 no workaround or preview route is part of the source changes.
+
+### iPhone preview build
+
+Run `npm run build-ios-preview` for an internally signed IPA using the existing
+registered-device provisioning profile. Local Xcode 27 builds use two Expo config
+plugins: one aligns pod resource targets with React Native's iOS minimum, and one
+corrects the context-menu dependency's subtitle availability guards to iOS 16.
+These preserve the app's existing iOS 15.1 minimum, signing configuration, and
+dependency versions. Revisit the availability patch when updating that dependency;
+it fails explicitly if the expected source has changed.
