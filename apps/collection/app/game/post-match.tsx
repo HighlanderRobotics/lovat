@@ -1,14 +1,13 @@
 import { SelectMenu } from "../../lib/components/SelectMenu";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import React, { useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, View, Text } from "react-native";
 import { Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Slider from "@react-native-community/slider";
 import { NavBar } from "../../lib/components/NavBar";
 import Button from "../../lib/components/Button";
-import LabelSmall from "../../lib/components/text/LabelSmall";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import TextField from "../../lib/components/TextField";
 import { Checkbox } from "../../lib/components/Checkbox";
@@ -51,7 +50,7 @@ export default function PostMatch() {
           style={{ width: "100%", gap: 14, maxWidth: 550 }}
         >
           <View style={{ gap: 7 }}>
-            <LabelSmall>Roles performed</LabelSmall>
+            <QuestionLabel>Roles performed</QuestionLabel>
             <BodyMedium>
               Select every role this robot performed during the match.
             </BodyMedium>
@@ -60,13 +59,34 @@ export default function PostMatch() {
               multiSelect
               options={
                 [
-                  { value: "OFFENCE", label: "Offence" },
-                  { value: "DEFENCE", label: "Defence" },
-                  { value: "FEEDING", label: "Feeding" },
-                  { value: "IMMOBILE", label: "Immobile" },
+                  {
+                    value: "OFFENCE",
+                    label: "Offence",
+                    description:
+                      "Collected and scored cones or cubes in the alliance grid.",
+                  },
+                  {
+                    value: "DEFENCE",
+                    label: "Defence",
+                    description:
+                      "Blocked opponents or disrupted their routes and scoring.",
+                  },
+                  {
+                    value: "FEEDING",
+                    label: "Feeding",
+                    description:
+                      "Moved pieces for alliance partners without scoring them.",
+                  },
+                  {
+                    value: "IMMOBILE",
+                    label: "Immobile",
+                    description:
+                      "Could not move for a significant part of the match.",
+                  },
                 ] as {
                   value: PostMatchData["robotRoles"][number];
                   label: string;
+                  description: string;
                 }[]
               }
               selected={state.robotRoles}
@@ -80,7 +100,7 @@ export default function PostMatch() {
             />
           </View>
           <View style={{ gap: 7 }}>
-            <LabelSmall>Driver ability</LabelSmall>
+            <QuestionLabel>Driver ability</QuestionLabel>
             <BodyMedium>
               Rate how consistently the driver controlled and positioned this
               robot, from 1 to 5.
@@ -97,7 +117,7 @@ export default function PostMatch() {
             />
           </View>
           <View style={{ gap: 7 }}>
-            <LabelSmall>Defence effectiveness</LabelSmall>
+            <QuestionLabel>Defence effectiveness</QuestionLabel>
             <BodyMedium>
               Choose the rating that best describes this robot’s impact on
               opponents, from 1 to 5.
@@ -164,7 +184,7 @@ export default function PostMatch() {
             </BodyMedium>
           </View>
           <View style={{ gap: 7 }}>
-            <LabelSmall>Links scored by the whole alliance</LabelSmall>
+            <QuestionLabel>Links scored by the whole alliance</QuestionLabel>
             <BodyMedium>
               Count all links completed by the alliance. A link is three
               adjacent scored nodes in the same row.
@@ -207,7 +227,7 @@ export default function PostMatch() {
             />
           )}
           <View style={{ gap: 7 }}>
-            <LabelSmall>Notes</LabelSmall>
+            <QuestionLabel>Notes</QuestionLabel>
             <TextField
               multiline
               value={state.notes}
@@ -273,7 +293,7 @@ function Choice<T extends string>({
 }) {
   return (
     <View style={{ gap: 7 }}>
-      <LabelSmall>{label}</LabelSmall>
+      <QuestionLabel>{label}</QuestionLabel>
       <BodyMedium>{caption}</BodyMedium>
       <SelectMenu
         label={label}
@@ -309,9 +329,9 @@ function RatingSlider({
 }) {
   return (
     <View style={{ gap: 7 }}>
-      <LabelSmall>
+      <QuestionLabel>
         {label}: {value} {suffix}
-      </LabelSmall>
+      </QuestionLabel>
       <BodyMedium>{caption}</BodyMedium>
       <View
         style={{
@@ -334,5 +354,19 @@ function RatingSlider({
         />
       </View>
     </View>
+  );
+}
+
+function QuestionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Text
+      style={{
+        fontFamily: "Heebo_500Medium",
+        fontSize: 16,
+        color: colors.onBackground.default,
+      }}
+    >
+      {children}
+    </Text>
   );
 }

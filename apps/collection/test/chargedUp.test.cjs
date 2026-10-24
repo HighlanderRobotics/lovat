@@ -260,13 +260,18 @@ test("all 27 nodes follow the manual's cone, cube and hybrid restrictions", () =
 test("holds record paired intervals, ignore duplicate release, block actions and undo together", () => {
   start();
   const state = () => store.getState();
-  for (const [activity, location] of [
-    ["DEFENDING", "OPPONENT_ZONE"],
-    ["CAMPING", "OPPONENT_STATION"],
-  ]) {
-    state().startHold(activity, location);
-    state().startHold(activity, location);
-    assert.equal(activeActivity(state().events), activity);
+  for (const location of ["OPPONENT_ZONE", "OPPONENT_STATION"]) {
+    state().startHold(location);
+    state().startHold(location);
+    assert.equal(activeActivity(state().events), "DEFENDING");
+    assert.equal(
+      state().addEvent({
+        action: "STOP_DEFENDING",
+        location:
+          location === "OPPONENT_ZONE" ? "OPPONENT_STATION" : "OPPONENT_ZONE",
+      }),
+      false,
+    );
     assert.equal(
       state().addEvent({ action: "INTAKE_CONE", location: "CENTER" }),
       false,
@@ -281,8 +286,50 @@ test("holds record paired intervals, ignore duplicate release, block actions and
     state().stopHold();
     assert.equal(activeActivity(state().events), null);
     assert.equal(state().events.length, 2);
+    assert.deepEqual(
+      state().events.map(({ action, location: at }) => [action, at]),
+      [
+        ["START_DEFENDING", location],
+        ["STOP_DEFENDING", location],
+      ],
+    );
     assert.ok(state().events[1].time >= state().events[0].time);
     state().undoEvent();
     assert.equal(state().events.length, 0);
   }
+});
+
+test("switching defence locations closes the first interval and starts another", () => {
+  start();
+  const state = () => store.getState();
+  state().startHold("OPPONENT_ZONE");
+  state().startHold("OPPONENT_STATION");
+  state().stopHold("OPPONENT_ZONE");
+  assert.equal(activeActivity(state().events), "DEFENDING");
+  state().stopHold("OPPONENT_STATION");
+  assert.deepEqual(
+    state().events.map(({ action, location }) => [action, location]),
+    [
+      ["START_DEFENDING", "OPPONENT_ZONE"],
+      ["STOP_DEFENDING", "OPPONENT_ZONE"],
+      ["START_DEFENDING", "OPPONENT_STATION"],
+      ["STOP_DEFENDING", "OPPONENT_STATION"],
+    ],
+  );
+  state().undoEvent();
+  assert.equal(state().events.length, 2);
+  assert.equal(activeActivity(state().events), null);
+  assert.equal(
+    state().addEvent({ action: "START_CAMPING", location: "OPPONENT_STATION" }),
+    false,
+  );
+});
+test("previously saved camping events remain readable", () => {
+  start();
+  const report = store.getState().exportScoutReport();
+  report.events.push(
+    { time: 5, action: "START_CAMPING", location: "OPPONENT_STATION" },
+    { time: 10, action: "STOP_CAMPING", location: "OPPONENT_STATION" },
+  );
+  assert.deepEqual(chargedUpReportSchema.parse(report), report);
 });

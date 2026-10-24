@@ -40,15 +40,20 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   setPreloadedPiece: (preloadedPiece) => {
     if (!get().startTimestamp) set({ preloadedPiece });
   },
-  startHold: (activity, location) => {
-    if (activeActivity(get().events) === activity) return;
+  startHold: (location) => {
+    if (
+      activeActivity(get().events) === "DEFENDING" &&
+      get().events.at(-1)?.location === location
+    )
+      return;
     get().stopHold();
     get().addEvent({
-      action: activity === "DEFENDING" ? "START_DEFENDING" : "START_CAMPING",
+      action: "START_DEFENDING",
       location,
     });
   },
-  stopHold: () => {
+  stopHold: (location) => {
+    if (location && get().events.at(-1)?.location !== location) return;
     const activity = activeActivity(get().events);
     if (!activity) return;
     get().addEvent({

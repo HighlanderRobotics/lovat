@@ -4,8 +4,6 @@ import {
   ChargedUpReport,
   PostMatchData,
   GamePiece,
-  HoldActivity,
-  FieldLocation,
 } from "./ChargedUp";
 export enum GamePhase {
   Auto,
@@ -19,8 +17,8 @@ export type ReportState = PostMatchData & {
   startPosition?: number;
   preloadedPiece: GamePiece | null;
   setPreloadedPiece: (piece: GamePiece | null) => void;
-  startHold: (activity: HoldActivity, location: FieldLocation) => void;
-  stopHold: () => void;
+  startHold: (location: "OPPONENT_ZONE" | "OPPONENT_STATION") => void;
+  stopHold: (location?: "OPPONENT_ZONE" | "OPPONENT_STATION") => void;
   fieldPieces: ("CONE" | "CUBE" | "UNKNOWN")[];
   setFieldPiece: (index: number) => void;
   events: ChargedUpEvent[];

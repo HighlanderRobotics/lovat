@@ -1,4 +1,4 @@
-import { Platform, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { colors } from "../colors";
 import { Key } from "react";
 import Button from "./Button";
@@ -54,69 +54,65 @@ export function Picker<T = string>(props: PickerProps<T>) {
     return (
       <View
         style={{
-          borderRadius: 7,
+          borderRadius: 10,
           overflow: "hidden",
+          paddingVertical: 8,
+          backgroundColor: colors.secondaryContainer.default,
         }}
       >
-        {options.map((option, i) => {
-          return (
-            <Button
-              key={option.key ?? option.value}
-              backgroundColorSet={{
-                default: colors.secondaryContainer.default,
-                hover: colors.gray.default,
-                faded: colors.secondaryContainer.default,
-              }}
-              borderRadius={0}
+        {options.map((option) => (
+          <Pressable
+            key={option.key ?? option.value}
+            accessibilityRole={multiSelect ? "checkbox" : "radio"}
+            accessibilityLabel={option.label}
+            aria-checked={isSelected(option.value)}
+            accessibilityState={{
+              checked: isSelected(option.value),
+              disabled: option.disabled,
+            }}
+            disabled={option.disabled}
+            onPress={() => {
+              if (Platform.OS === "ios")
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onChange(option.value);
+            }}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 12,
+              paddingLeft: 14,
+              paddingRight: 18,
+              paddingVertical: 6,
+              backgroundColor: pressed ? colors.gray.default : "transparent",
+            })}
+          >
+            <SelectionIndicator
+              type={multiSelect ? "checkbox" : "radio"}
+              selected={isSelected(option.value)}
               disabled={option.disabled}
-              onPress={() => {
-                if (option.disabled) return;
-                if (Platform.OS === "ios") {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            />
+            <View style={{ flex: 1 }}>
+              <LabelSmall
+                color={
+                  option.disabled
+                    ? colors.gray.hover
+                    : colors.onBackground.default
                 }
-                onChange(option.value);
-              }}
-              style={{
-                paddingHorizontal: 14,
-                paddingTop: i === 0 ? 14 : 8,
-                paddingBlock: i === options.length - 1 ? 14 : 8,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 12,
-                }}
               >
-                <SelectionIndicator
-                  type={multiSelect ? "checkbox" : "radio"}
-                  selected={isSelected(option.value)}
-                  disabled={option.disabled}
-                />
-                <View style={{ flex: 1 }}>
-                  <LabelSmall
-                    color={
-                      option.disabled
-                        ? colors.gray.hover
-                        : colors.onBackground.default
-                    }
-                  >
-                    {option.label}
-                  </LabelSmall>
-                  <BodyMedium
-                    style={{
-                      color: option.disabled
-                        ? colors.gray.hover
-                        : colors.body.default,
-                    }}
-                  >
-                    {option.description}
-                  </BodyMedium>
-                </View>
-              </View>
-            </Button>
-          );
-        })}
+                {option.label}
+              </LabelSmall>
+              {option.description && (
+                <BodyMedium
+                  color={
+                    option.disabled ? colors.gray.hover : colors.body.default
+                  }
+                >
+                  {option.description}
+                </BodyMedium>
+              )}
+            </View>
+          </Pressable>
+        ))}
       </View>
     );
   } else if (style === "horizontal-group" || style === "vertical-group") {

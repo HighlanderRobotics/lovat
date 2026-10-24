@@ -28,6 +28,7 @@ export const actionSchema = z.enum([
   "DROP",
   "START_DEFENDING",
   "STOP_DEFENDING",
+  // Retain camping actions for reports saved by earlier mock-game builds.
   "START_CAMPING",
   "STOP_CAMPING",
 ]);
@@ -165,9 +166,16 @@ export function canRecordEvent(
   const activity = activeActivity(events);
   if (event.action === "STOP_DEFENDING" || event.action === "STOP_CAMPING")
     return (
-      activity === (event.action === "STOP_DEFENDING" ? "DEFENDING" : "CAMPING")
+      activity ===
+        (event.action === "STOP_DEFENDING" ? "DEFENDING" : "CAMPING") &&
+      event.location === events.at(-1)?.location
     );
-  if (activity) return false;
+  if (activity || event.action === "START_CAMPING") return false;
+  if (event.action === "START_DEFENDING")
+    return (
+      event.location === "OPPONENT_ZONE" ||
+      event.location === "OPPONENT_STATION"
+    );
   if (event.action === "INTAKE_CONE" || event.action === "INTAKE_CUBE")
     return piece === null;
   if (event.action === "DROP") return piece !== null;

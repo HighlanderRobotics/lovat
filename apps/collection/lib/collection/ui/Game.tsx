@@ -13,7 +13,7 @@ import {
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useReportStateStore } from "../reportStateStore";
-import { GameViewTemplate } from "./GameViewTemplate";
+import { gameHeaderAssets, GameViewTemplate } from "./GameViewTemplate";
 import { GamePhase } from "../ReportState";
 import {
   AUTO_END_SECONDS,
@@ -48,9 +48,53 @@ const assets = {
   rightArrow: require("../../../assets/charged-up/right-arrow.png"),
   arrow: require("../../../assets/charged-up/arrow.png"),
   shield: require("../../../assets/charged-up/shield.png"),
-  camp: require("../../../assets/charged-up/camp.png"),
 };
-type Panel = null | "intake" | "score" | "charger";
+type Panel = null | "intake" | "score";
+// Figma uses a fixed 852 × 393 canvas, including its 59 px top bar.
+const gridColumns = [
+  { x: 15, width: 253 },
+  { x: 300, width: 252 },
+  { x: 584, width: 253 },
+];
+const gridRows = [
+  { y: 2.921, height: 97.957 },
+  { y: 116.026, height: 98.967 },
+  { y: 229.132, height: 97.957 },
+];
+const coneIconPositions = [
+  [
+    [123, 97],
+    [407, 94],
+    [692, 94],
+  ],
+  [
+    [123, 207],
+    [407, 207],
+    [692, 204],
+  ],
+  [
+    [120, 312],
+    [406, 319],
+    [692, 313],
+  ],
+];
+const cubeIconPositions = [
+  [
+    [123, 94],
+    [407, 94],
+    [692, 94],
+  ],
+  [
+    [123, 207],
+    [407, 207],
+    [692, 207],
+  ],
+  [
+    [120, 312],
+    [406, 319],
+    [692, 313],
+  ],
+];
 const green = "rgba(156,255,154,0.3)";
 const purple = "rgba(181,154,255,0.3)";
 const yellow = "rgba(193,195,55,0.3)";
@@ -163,6 +207,44 @@ export function Game() {
               onPress={exit}
             />
           </View>
+        ) : panel ? (
+          <View style={{ flex: 1, flexDirection: "row", gap: 16 }}>
+            <IconButton
+              icon="arrow_back"
+              size={30}
+              label="Close selection"
+              color={colors.onBackground.default}
+              onPress={() => setPanel(null)}
+            />
+            <IconButton
+              icon="undo"
+              image={gameHeaderAssets.undo}
+              size={30}
+              label="Undo"
+              color={colors.onBackground.default}
+              disabled={state.events.length === 0}
+              onPress={state.undoEvent}
+            />
+          </View>
+        ) : inZone && !piece ? (
+          <View style={{ flex: 1, flexDirection: "row", gap: 16 }}>
+            <IconButton
+              icon="undo"
+              image={gameHeaderAssets.undo}
+              size={30}
+              label="Undo"
+              color={colors.onBackground.default}
+              disabled={state.events.length === 0}
+              onPress={state.undoEvent}
+            />
+            <IconButton
+              icon="upload"
+              size={30}
+              label="Intake from alliance zone"
+              color={colors.onBackground.default}
+              onPress={() => intake("ALLIANCE_ZONE")}
+            />
+          </View>
         ) : undefined
       }
       onEnd={() => {
@@ -202,74 +284,64 @@ export function Game() {
                   height: 307,
                 }}
               />
-              <View
-                style={{
-                  position: "absolute",
-                  left: 15,
-                  right: 15,
-                  top: 8,
-                  bottom: 8,
-                  gap: 14,
-                }}
-              >
-                {[1, 2, 3].map((row) => (
-                  <View
-                    key={row}
-                    style={{ flex: 1, flexDirection: "row", gap: 9 }}
-                  >
-                    {"ABCDEFGHI"
-                      .slice(scoringArea * 3, scoringArea * 3 + 3)
-                      .split("")
-                      .map((column) => (
-                        <Pressable
-                          key={column}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Score ${(piece ?? "piece").toLowerCase()} at ${column}${row}`}
-                          disabled={!canScoreAt(piece, `${column}${row}`)}
-                          accessibilityState={{
-                            disabled: !canScoreAt(piece, `${column}${row}`),
-                          }}
-                          style={[
-                            styles.cell,
-                            {
-                              backgroundColor: canScoreAt(
-                                piece,
-                                `${column}${row}`,
-                              )
-                                ? "rgba(156,255,154,0.5)"
-                                : green,
-                            },
-                          ]}
-                          onPress={() => {
+              {[1, 2, 3].flatMap((row, rowIndex) =>
+                "ABCDEFGHI"
+                  .slice(scoringArea * 3, scoringArea * 3 + 3)
+                  .split("")
+                  .map((column, columnIndex) => {
+                    const enabled = canScoreAt(piece, `${column}${row}`);
+                    const { x, width } = gridColumns[columnIndex];
+                    const { y, height } = gridRows[rowIndex];
+                    const cone = piece === "CONE";
+                    const [iconX, iconY] = (
+                      cone ? coneIconPositions : cubeIconPositions
+                    )[rowIndex][columnIndex];
+                    return (
+                      <Pressable
+                        key={`${column}${row}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Score ${(piece ?? "piece").toLowerCase()} at ${column}${row}`}
+                        accessibilityState={{ disabled: !enabled }}
+                        disabled={!enabled}
+                        style={{
+                          position: "absolute",
+                          left: x,
+                          top: y,
+                          width,
+                          height,
+                          borderRadius: 7,
+                          backgroundColor: enabled
+                            ? "rgba(156,255,154,0.5)"
+                            : green,
+                        }}
+                        onPress={() => {
+                          if (
                             state.addEvent({
-                              action:
-                                piece === "CONE" ? "SCORE_CONE" : "SCORE_CUBE",
+                              action: cone ? "SCORE_CONE" : "SCORE_CUBE",
                               location: "SCORE",
                               scoringLocation: `${column}${row}`,
-                            });
+                            })
+                          )
                             setPanel(null);
-                          }}
-                        >
-                          {canScoreAt(piece, `${column}${row}`) && (
-                            <Image
-                              source={
-                                piece === "CONE"
-                                  ? assets.scoreCone
-                                  : assets.scoreCube
-                              }
-                              resizeMode="contain"
-                              style={{ width: 40, height: 40 }}
-                            />
-                          )}
-                          <Text style={[styles.gridLabel, { fontSize: 18 }]}>
-                            {column}
-                            {row}
-                          </Text>
-                        </Pressable>
-                      ))}
-                  </View>
-                ))}
-              </View>
+                        }}
+                      >
+                        {enabled && (
+                          <Image
+                            source={cone ? assets.scoreCone : assets.scoreCube}
+                            resizeMode="contain"
+                            style={{
+                              position: "absolute",
+                              left: iconX - x - 1.75,
+                              top: iconY - 59 - y - 1.75,
+                              width: 41.5,
+                              height: 43.5,
+                            }}
+                          />
+                        )}
+                      </Pressable>
+                    );
+                  }),
+              )}
             </>
           ) : panel !== "intake" ? (
             <>
@@ -307,9 +379,9 @@ export function Game() {
                       state.meta?.allianceColor === AllianceColor.Red
                         ? -408
                         : 15,
-                    top: started && inZone ? -142 : 14,
+                    top: started && inZone ? -142.438 : started ? 14 : 1.5,
                     width: started && inZone ? 1245 : 822,
-                    height: started && inZone ? 460 : 304,
+                    height: started && inZone ? 460.438 : 304,
                   }}
                 />
               </View>
@@ -319,7 +391,10 @@ export function Game() {
                     style={{
                       position: "absolute",
                       left: reversed ? 700 : 92,
-                      top: orientation === FieldOrientation.Sinister ? 24 : 125,
+                      top:
+                        orientation === FieldOrientation.Sinister
+                          ? 38.5
+                          : 110.5,
                       width: 60,
                       height: 185,
                       borderRadius: 7,
@@ -380,12 +455,12 @@ export function Game() {
                     <BoardButton
                       key={i}
                       x={357}
-                      y={58 + i * 60}
+                      y={[58, 118, 180, 239][i]}
                       w={45}
                       h={45}
                       reversed={reversed}
                       label={`Pre-match piece ${i + 1}: ${fieldPiece.toLowerCase()}`}
-                      color={fieldPiece === "UNKNOWN" ? yellow : green}
+                      color={fieldPiece === "UNKNOWN" ? yellow : "transparent"}
                       asset={
                         fieldPiece === "CONE"
                           ? assets.cone
@@ -394,6 +469,11 @@ export function Game() {
                             : undefined
                       }
                       text={fieldPiece === "UNKNOWN" ? "?" : undefined}
+                      textStyle={{
+                        fontSize: 24,
+                        fontFamily: "Heebo_500Medium",
+                        color: "rgba(255,255,255,0.3)",
+                      }}
                       onPress={() => state.setFieldPiece(i)}
                     />
                   ))}
@@ -422,24 +502,30 @@ export function Game() {
                     x={394}
                     y={8}
                     w={228}
-                    h={294}
+                    h={295}
                     reversed={reversed}
                     label="Leave alliance zone"
                     disabled={!!activity}
                     color={purple}
                     asset={assets.rightArrow}
+                    assetOffset={{ x: 0, y: 3.5 }}
                     onPress={() => move("CENTER")}
                   />
                   {endgameAvailable && (
                     <BoardButton
                       x={242}
-                      y={97}
-                      w={129}
-                      h={122}
+                      y={96}
+                      w={128}
+                      h={115}
                       reversed={reversed}
                       label="Charge station"
                       color={purple}
-                      onPress={() => setPanel("charger")}
+                      onPress={() =>
+                        state.addEvent({
+                          action: "ENDGAME",
+                          location: "CHARGER",
+                        })
+                      }
                     />
                   )}
                 </>
@@ -452,11 +538,12 @@ export function Game() {
                     h={83}
                     reversed={reversed}
                     label="Hold to defend"
-                    active={activity === "DEFENDING"}
-                    onPressIn={() =>
-                      state.startHold("DEFENDING", "OPPONENT_ZONE")
+                    active={
+                      activity === "DEFENDING" &&
+                      state.events.at(-1)?.location === "OPPONENT_ZONE"
                     }
-                    onPressOut={state.stopHold}
+                    onPressIn={() => state.startHold("OPPONENT_ZONE")}
+                    onPressOut={() => state.stopHold("OPPONENT_ZONE")}
                     color="#292929"
                     asset={assets.shield}
                     onPress={() => {}}
@@ -488,17 +575,18 @@ export function Game() {
                   <BoardButton
                     x={515}
                     y={32}
-                    w={80}
+                    w={96}
                     h={272}
                     reversed={reversed}
-                    label="Hold to camp"
-                    active={activity === "CAMPING"}
-                    onPressIn={() =>
-                      state.startHold("CAMPING", "OPPONENT_STATION")
+                    label="Hold to defend at opponent station"
+                    active={
+                      activity === "DEFENDING" &&
+                      state.events.at(-1)?.location === "OPPONENT_STATION"
                     }
-                    onPressOut={state.stopHold}
-                    color="rgba(29,163,246,0.3)"
-                    asset={assets.camp}
+                    onPressIn={() => state.startHold("OPPONENT_STATION")}
+                    onPressOut={() => state.stopHold("OPPONENT_STATION")}
+                    color="#292929"
+                    asset={assets.shield}
                     onPress={() => {}}
                   />
                   <BoardButton
@@ -542,32 +630,6 @@ export function Game() {
               )}
             </>
           ) : null}
-          {started && inZone && !panel && (
-            <BoardButton
-              x={660}
-              y={230}
-              w={165}
-              h={70}
-              label="Select game piece"
-              disabled={!!piece || !!activity}
-              reversed={reversed}
-              color={yellow}
-              asset={assets.upload}
-              onPress={() => intake("ALLIANCE_ZONE")}
-            />
-          )}
-          {panel && panel !== "intake" && (
-            <BoardButton
-              x={795}
-              y={4}
-              w={42}
-              h={42}
-              label="Close selection"
-              color="#292929"
-              text="×"
-              onPress={() => setPanel(null)}
-            />
-          )}
           {panel === "intake" && (
             <>
               <Image
@@ -575,9 +637,9 @@ export function Game() {
                 style={{
                   position: "absolute",
                   left: 15,
-                  top: 3,
+                  top: 11,
                   width: 822,
-                  height: 311,
+                  height: 307,
                 }}
               />
               <View
@@ -615,36 +677,18 @@ export function Game() {
                         p === "CONE" ? assets.intakeCone : assets.intakeCube
                       }
                       resizeMode="contain"
-                      style={{ width: 83, height: 87 }}
+                      style={{
+                        position: "absolute",
+                        left: 161.5,
+                        top: p === "CONE" ? 121.5 : 122.5,
+                        width: 83,
+                        height: 87,
+                      }}
                     />
                   </Pressable>
                 ))}
               </View>
-              <BoardButton
-                x={795}
-                y={4}
-                w={42}
-                h={42}
-                label="Close selection"
-                color="#292929"
-                text="×"
-                onPress={() => setPanel(null)}
-              />
             </>
-          )}
-          {panel === "charger" && (
-            <View style={styles.overlay}>
-              <Pressable
-                style={styles.cell}
-                accessibilityRole="button"
-                onPress={() => {
-                  state.addEvent({ action: "ENDGAME", location: "CHARGER" });
-                  setPanel(null);
-                }}
-              >
-                <Text style={styles.gridLabel}>Attempt charge</Text>
-              </Pressable>
-            </View>
           )}
         </ScaledBoard>
       }
@@ -690,6 +734,8 @@ function BoardButton({
   color,
   asset,
   text,
+  textStyle,
+  assetOffset,
   onPress,
   onPressIn,
   onPressOut,
@@ -705,6 +751,8 @@ function BoardButton({
   color: string;
   asset?: ImageSourcePropType;
   text?: string;
+  textStyle?: import("react-native").TextStyle;
+  assetOffset?: { x: number; y: number };
   onPress: () => void;
   onPressIn?: () => void;
   onPressOut?: () => void;
@@ -755,7 +803,7 @@ function BoardButton({
             width:
               asset === assets.arrow || asset === assets.rightArrow
                 ? 32
-                : asset === assets.camp || asset === assets.shield
+                : asset === assets.shield
                   ? 40
                   : w === 45
                     ? 45
@@ -763,12 +811,14 @@ function BoardButton({
             height:
               asset === assets.arrow || asset === assets.rightArrow
                 ? 32
-                : asset === assets.camp || asset === assets.shield
+                : asset === assets.shield
                   ? 40
                   : w === 45
                     ? 45
                     : 42,
             transform: [
+              { translateX: assetOffset?.x ?? 0 },
+              { translateY: assetOffset?.y ?? 0 },
               {
                 rotate:
                   asset === assets.drop ||
@@ -781,7 +831,7 @@ function BoardButton({
           }}
         />
       )}
-      {text && <Text style={styles.gridLabel}>{text}</Text>}
+      {text && <Text style={[styles.gridLabel, textStyle]}>{text}</Text>}
     </Pressable>
   );
 }
@@ -794,16 +844,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   gridLabel: { color: "#e0e0e0", fontSize: 28, fontFamily: "Heebo_400Regular" },
-  overlay: {
-    position: "absolute",
-    left: 65,
-    right: 65,
-    top: 50,
-    bottom: 30,
-    backgroundColor: "#1f1f1f",
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: "row",
-    gap: 16,
-  },
 });

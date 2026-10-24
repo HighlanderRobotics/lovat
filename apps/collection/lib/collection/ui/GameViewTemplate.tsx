@@ -14,6 +14,11 @@ import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
 import { activeActivity, heldPiece } from "../ChargedUp";
+export const gameHeaderAssets = {
+  undo: require("../../../assets/ui/game-undo.png"),
+  stop: require("../../../assets/ui/game-stop.png"),
+  start: require("../../../assets/ui/game-start.png"),
+};
 const pieceImages = {
   CONE: require("../../../assets/charged-up/score-cone.png"),
   CUBE: require("../../../assets/charged-up/scoreCube.png"),
@@ -38,6 +43,8 @@ export const GameViewTemplate = (props: {
       <View
         style={{
           backgroundColor: colors.secondaryContainer.default,
+          height: 59,
+          flexShrink: 0,
           paddingVertical: 7,
           flexDirection: "row",
           alignItems: "center",
@@ -50,7 +57,7 @@ export const GameViewTemplate = (props: {
           style={{
             flex: 1,
             // Keep the icons and their expanded touch areas inside the safe edges.
-            paddingHorizontal: 28,
+            paddingHorizontal: 33,
             flexDirection: "row",
             alignItems: "center",
           }}
@@ -65,6 +72,8 @@ export const GameViewTemplate = (props: {
             >
               <IconButton
                 icon="undo"
+                image={gameHeaderAssets.undo}
+                size={30}
                 label="Undo"
                 color={colors.onBackground.default}
                 disabled={
@@ -151,7 +160,7 @@ export const GameViewTemplate = (props: {
                 ).backgroundColor,
                 borderRadius: 4,
                 paddingHorizontal: 6,
-                paddingVertical: 2,
+                paddingVertical: 3,
               }}
             >
               <Text
@@ -161,21 +170,31 @@ export const GameViewTemplate = (props: {
                   ).foregroundColor,
                   fontFamily: "Heebo_500Medium",
                   fontSize: 12,
+                  lineHeight: 16,
+                  letterSpacing: 0.5,
                 }}
               >
                 {reportState?.meta.teamNumber}
               </Text>
             </View>
-            <LabelSmall color={colors.body.default}>
+            <Text
+              style={{
+                fontFamily: "Heebo_400Regular",
+                fontSize: 14,
+                lineHeight: 21,
+                color: "#cac4d0",
+              }}
+            >
               {gamePhaseMessage} •{" "}
               <GameTimer startTime={reportState?.startTimestamp} />
-            </LabelSmall>
+            </Text>
           </View>
 
           {!reportState?.startTimestamp && (
             <IconButton
               label="Start match"
               icon="play_arrow"
+              image={gameHeaderAssets.start}
               color={colors.onBackground.default}
               size={30}
               disabled={!startEnabled}
@@ -193,6 +212,7 @@ export const GameViewTemplate = (props: {
                 <IconButton
                   label="End match"
                   icon="stop"
+                  image={gameHeaderAssets.stop}
                   color={colors.onBackground.default}
                   size={30}
                 />
