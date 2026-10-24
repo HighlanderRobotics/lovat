@@ -1,492 +1,734 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useReportStateStore } from "../reportStateStore";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Image,
+  ImageSourcePropType,
+  LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { router } from "expo-router";
-import { PreMatchActions } from "./actions/PreMatchActions";
+import * as Haptics from "expo-haptics";
+import { useReportStateStore } from "../reportStateStore";
 import { GameViewTemplate } from "./GameViewTemplate";
 import { GamePhase } from "../ReportState";
-import * as Haptics from "expo-haptics";
-import { Alert, View } from "react-native";
-import { colors } from "../../colors";
+import {
+  AUTO_END_SECONDS,
+  ENDGAME_START_SECONDS,
+  MATCH_END_SECONDS,
+  currentLocation,
+  heldPiece,
+  FieldLocation,
+  GamePiece,
+} from "../ChargedUp";
 import { IconButton } from "../../components/IconButton";
+import { colors } from "../../colors";
 import {
-  AutoFeedAction,
-  ScoreFuelInHubAction,
-  TeleopFeedAction,
-} from "./actions/FuelActions";
-import {
-  DepotIntakeAction,
-  NeutralZoneAutoIntakeAction,
-} from "./actions/AutoIntakeActions";
-import TraversalActions from "./actions/TraversalActions";
-import { ClimbAction } from "./actions/ClimbAction";
-import { AutoDisruptAction } from "./actions/AutoDisruptAction";
-import { OutpostAction } from "./actions/OutpostAction";
-import { CampAction } from "./actions/CampAction";
-import { DefendAction } from "./actions/DefendAction";
-import { MatchEventType } from "../MatchEventType";
-import { FieldTraversal } from "../FieldTraversal";
-import { IntakeType } from "../IntakeType";
+  FieldOrientation,
+  useFieldOrientationStore,
+} from "../../storage/userStores";
+import { AllianceColor } from "../../models/AllianceColor";
+
+const assets = {
+  field: require("../../../assets/charged-up/field.png"),
+  zone: require("../../../assets/charged-up/zone.png"),
+  cone: require("../../../assets/charged-up/cone.png"),
+  cube: require("../../../assets/charged-up/cube.png"),
+  scoreCube: require("../../../assets/charged-up/scoreCube.png"),
+  upload: require("../../../assets/charged-up/upload.png"),
+  drop: require("../../../assets/charged-up/drop.png"),
+  rightArrow: require("../../../assets/charged-up/right-arrow.png"),
+  arrow: require("../../../assets/charged-up/arrow.png"),
+  shield: require("../../../assets/charged-up/shield.png"),
+  camp: require("../../../assets/charged-up/camp.png"),
+};
+type Panel = null | "intake" | "score" | "charger";
+const green = "rgba(156,255,154,0.3)";
+const purple = "rgba(181,154,255,0.3)";
+const yellow = "rgba(193,195,55,0.3)";
 
 export function Game() {
-  const reportState = useReportStateStore();
-
-  const timeoutsRef = useRef<{
-    teleop?: NodeJS.Timeout;
-    endgame?: NodeJS.Timeout;
-  }>({});
-
-  const setPhase = reportState.setGamePhase;
+  const state = useReportStateStore();
+  const [panel, setPanel] = useState<Panel>(null);
+  const [intakeLocation, setIntakeLocation] = useState<FieldLocation>("CENTER");
+  const [scoringArea, setScoringArea] = useState(0);
+  const [scorePiece, setScorePiece] = useState<GamePiece>("CUBE");
+  const [elapsed, setElapsed] = useState(0);
+  const location = currentLocation(state.events);
+  const piece = heldPiece(state.events);
+  const started = !!state.startTimestamp;
+  const inZone = location === "ALLIANCE_ZONE";
+  const orientation = useFieldOrientationStore((s) => s.value);
+  const reversed =
+    (state.meta?.allianceColor === AllianceColor.Red) !==
+    (orientation === FieldOrientation.Sinister);
 
   useEffect(() => {
-    if (!reportState.meta) {
-      router.replace("/home");
-    }
-  }, [reportState]);
-
+    if (!state.meta) router.replace("/home");
+  }, [state.meta]);
   useEffect(() => {
-    if (
-      reportState?.gamePhase === GamePhase.Auto &&
-      reportState.startTimestamp &&
-      !timeoutsRef.current.teleop &&
-      !timeoutsRef.current.endgame
-    ) {
-      timeoutsRef.current.teleop = setTimeout(() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setPhase(GamePhase.Teleop);
-      }, 23 * 1000);
-
-      timeoutsRef.current.endgame = setTimeout(() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setPhase(GamePhase.Endgame);
-      }, 133 * 1000); // 40s teleop - 23s auto = last 30 seconds of match
+    if (!state.startTimestamp) {
+      setElapsed(0);
+      return;
     }
-  }, [reportState?.gamePhase, reportState?.startTimestamp]);
+    const start = state.startTimestamp.getTime();
+    const tick = () => {
+      const seconds = (Date.now() - start) / 1000;
+      setElapsed(seconds);
+      const phase =
+        seconds < AUTO_END_SECONDS
+          ? GamePhase.Auto
+          : seconds < ENDGAME_START_SECONDS
+            ? GamePhase.Teleop
+            : GamePhase.Endgame;
+      state.setGamePhase(phase);
+      if (seconds >= MATCH_END_SECONDS) router.replace("/game/post-match");
+    };
+    tick();
+    const interval = setInterval(tick, 250);
+    return () => clearInterval(interval);
+  }, [state.startTimestamp]);
 
-  const clearTimeouts = () => {
-    if (timeoutsRef.current.teleop) {
-      clearTimeout(timeoutsRef.current.teleop);
-      timeoutsRef.current.teleop = undefined;
+  const exit = () => {
+    if (!started) {
+      state.reset();
+      return;
     }
-    if (timeoutsRef.current.endgame) {
-      clearTimeout(timeoutsRef.current.endgame);
-      timeoutsRef.current.endgame = undefined;
-    }
-  };
-
-  const onEnd = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    clearTimeouts();
-
-    // Auto-set traversal type based on auto events
-    const autoTraversalTypes = reportState.getAutoTraversalTypes();
-
-    if (autoTraversalTypes.trench || autoTraversalTypes.bump) {
-      let newSelection = reportState.fieldTraversal;
-
-      if (autoTraversalTypes.trench && autoTraversalTypes.bump) {
-        newSelection = FieldTraversal.Both;
-      } else if (autoTraversalTypes.trench) {
-        newSelection = FieldTraversal.Trench;
-      } else if (autoTraversalTypes.bump) {
-        newSelection = FieldTraversal.Bump;
-      }
-
-      if (newSelection !== reportState.fieldTraversal) {
-        reportState.setFieldTraversal(newSelection);
-      }
-    }
-
-    // Set default intake type values
-    if (reportState.hasOutpostIntakeEvent()) {
-      if (reportState.intakeType === IntakeType.Ground) {
-        reportState.setIntakeType(IntakeType.Both);
-      } else if (reportState.intakeType === IntakeType.Neither) {
-        reportState.setIntakeType(IntakeType.Outpost);
-      }
-    }
-
-    router.replace("/game/post-match");
-  };
-  const onRestart = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert(
-      "Restart match?",
-      "You will lose all of the data you recorded.",
+      "Exit match?",
+      "This discards the current report and returns Home.",
       [
-        { text: "Cancel" },
+        { text: "Keep scouting", style: "cancel" },
         {
-          text: "Restart",
+          text: "Exit match",
           style: "destructive",
-          onPress: () => {
-            clearTimeouts();
-            reportState.restartMatch();
-          },
+          onPress: () => state.reset(),
         },
       ],
     );
   };
-
-  type GameState = {
-    gamePhaseMessage: string;
-    field: React.ReactNode;
-    topLeftReplacement?: React.ReactNode;
-    startEnabled?: boolean;
+  const intake = (at: FieldLocation) => {
+    setIntakeLocation(at);
+    setPanel("intake");
   };
+  const move = (to: FieldLocation) => {
+    state.addEvent({
+      action: to === "CENTER" ? "LEAVE_ZONE" : "ENTER_ZONE",
+      location: to === "CENTER" ? location : to,
+    });
+  };
+  const score = (area: number) => {
+    setScoringArea(area);
+    setScorePiece(piece ?? "CUBE");
+    setPanel("score");
+  };
+  const endgameAvailable =
+    elapsed < AUTO_END_SECONDS || elapsed >= ENDGAME_START_SECONDS;
 
-  const gameStates = {
-    preMatch: {
-      gamePhaseMessage: "Pre-Match",
-      topLeftReplacement: (
-        <View style={{ flex: 1 }}>
-          <IconButton
-            icon="close"
-            label="Exit scout report"
-            color={colors.onBackground.default}
-            onPress={() => {
-              // Clearing the report returns to Home through the guard above.
-              reportState.reset();
-            }}
-          />
-        </View>
-      ),
-      field: (
-        <>
-          <PreMatchActions />
-        </>
-      ),
-      startEnabled: reportState.startPosition !== undefined,
-    },
-    autoAllianceZone: {
-      gamePhaseMessage: "Auto",
-      field: (
-        <>
-          <ScoreFuelInHubAction />
-          <DepotIntakeAction />
-          <ClimbAction phase={GamePhase.Auto} />
-          <OutpostAction setOverlay={(value) => setOverlay(value)} />
-          <TraversalActions />
-        </>
-      ),
-    },
-    autoNeutralZone: {
-      gamePhaseMessage: "Auto",
-      field: (
-        <>
-          <TraversalActions />
-          <NeutralZoneAutoIntakeAction />
-          <AutoDisruptAction />
-          <AutoFeedAction />
-        </>
-      ),
-    },
-    teleop: {
-      gamePhaseMessage: "Teleop",
-      field: (
-        <>
-          <ScoreFuelInHubAction />
-          <OutpostAction setOverlay={(value) => setOverlay(value)} />
-          <TeleopFeedAction />
-          <CampAction />
-          <DefendAction />
-        </>
-      ),
-    },
-    endgame: {
-      gamePhaseMessage: "Teleop",
-      field: (
-        <>
-          <ScoreFuelInHubAction />
-          <OutpostAction setOverlay={(value) => setOverlay(value)} />
-          <TeleopFeedAction />
-          <CampAction />
-          <DefendAction />
-          <ClimbAction phase={GamePhase.Endgame} />
-        </>
-      ),
-    },
-
-    unknown: {
-      gamePhaseMessage: "Problem finding phase",
-      field: <></>,
-    },
-
-    testing: {
-      gamePhaseMessage: "Testing",
-      topLeftReplacement: (
-        <IconButton
-          icon="arrow_back_ios"
-          color={colors.onBackground.default}
-          onPress={() => {
-            reportState.reset();
-            router.push("../home");
-          }}
-          label=""
-        />
-      ),
-      field: (
-        <>
-          {/* <ScoreFuelInHubAction />
-          <DepotIntakeAction />
-          <TraversalActions />
-          <AutoClimbAction />
-          <AutoDisruptAction />
-          <NeutralZoneAutoIntakeAction />
-          <AutoFeedAction />
-          <OutpostAction setOverlay={(value) => setOverlay(value)} /> */}
-          <CampAction />
-        </>
-      ),
-    },
-  } as const satisfies Record<string, GameState>;
-
-  const gameState: GameState = (() => {
-    if (!reportState.startTimestamp) {
-      return gameStates.preMatch;
-    } else if (reportState.gamePhase === GamePhase.Auto) {
-      if (
-        reportState.events.filter(
-          (event) => event.type === MatchEventType.Cross,
-        ).length %
-          2 ==
-        0
-      ) {
-        return gameStates.autoAllianceZone;
-      } else {
-        return gameStates.autoNeutralZone;
-      }
-    } else if (reportState.gamePhase === GamePhase.Teleop) {
-      return gameStates.teleop;
-    } else if (reportState.gamePhase === GamePhase.Endgame) {
-      return gameStates.endgame;
-    }
-    return gameStates.unknown;
-  })();
-
-  const [overlay, setOverlay] = useState(false);
   return (
     <GameViewTemplate
-      {...{
-        overlay: overlay,
-        setOverlay: (value) => setOverlay(value),
-        onEnd: onEnd,
-        onRestart: onRestart,
-        ...gameState,
+      gamePhaseMessage={
+        !started ? "Pre-match" : elapsed < AUTO_END_SECONDS ? "Auto" : "Teleop"
+      }
+      startEnabled={state.startPosition !== undefined}
+      topLeftReplacement={
+        !started ? (
+          <View style={{ flex: 1 }}>
+            <IconButton
+              icon="close"
+              label="Exit scout report"
+              color={colors.onBackground.default}
+              onPress={exit}
+            />
+          </View>
+        ) : panel === "score" ? (
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <IconButton
+              icon="undo"
+              label="Undo"
+              color={colors.onBackground.default}
+              onPress={state.undoEvent}
+              disabled={state.events.length === 0}
+            />
+            {(["CONE", "CUBE"] as const).map((p) => (
+              <Pressable
+                key={p}
+                accessibilityRole="button"
+                accessibilityLabel={`Scoring ${p.toLowerCase()}`}
+                accessibilityState={{ selected: scorePiece === p }}
+                onPress={() => setScorePiece(p)}
+                style={{
+                  padding: 3,
+                  borderRadius: 4,
+                  backgroundColor: scorePiece === p ? green : "transparent",
+                }}
+              >
+                <Image
+                  source={p === "CONE" ? assets.cone : assets.cube}
+                  style={{ width: 30, height: 30 }}
+                />
+              </Pressable>
+            ))}
+          </View>
+        ) : undefined
+      }
+      onEnd={() => {
+        setPanel(null);
+        router.replace("/game/post-match");
       }}
+      onExit={exit}
+      onRestart={() =>
+        Alert.alert(
+          "Restart match?",
+          "You will lose all of the data you recorded.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Restart",
+              style: "destructive",
+              onPress: () => {
+                state.restartMatch();
+                setPanel(null);
+              },
+            },
+          ],
+        )
+      }
+      field={
+        <ScaledBoard>
+          {panel === "score" ? (
+            <>
+              <Image
+                source={assets.field}
+                style={{
+                  position: "absolute",
+                  left: 15,
+                  top: 11,
+                  width: 822,
+                  height: 307,
+                }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  left: 15,
+                  right: 15,
+                  top: 8,
+                  bottom: 8,
+                  gap: 14,
+                }}
+              >
+                {[1, 2, 3].map((row) => (
+                  <View
+                    key={row}
+                    style={{ flex: 1, flexDirection: "row", gap: 9 }}
+                  >
+                    {"ABCDEFGHI"
+                      .slice(scoringArea * 3, scoringArea * 3 + 3)
+                      .split("")
+                      .map((column) => (
+                        <Pressable
+                          key={column}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Score ${scorePiece.toLowerCase()} at ${column}${row}`}
+                          style={styles.cell}
+                          onPress={() => {
+                            state.addEvent({
+                              action:
+                                scorePiece === "CONE"
+                                  ? "SCORE_CONE"
+                                  : "SCORE_CUBE",
+                              location: "SCORE",
+                              scoringLocation: `${column}${row}`,
+                            });
+                            setPanel(null);
+                          }}
+                        >
+                          <Image
+                            source={
+                              scorePiece === "CONE"
+                                ? assets.cone
+                                : assets.scoreCube
+                            }
+                            resizeMode="contain"
+                            style={{ width: 40, height: 40 }}
+                          />
+                          <Text style={[styles.gridLabel, { fontSize: 18 }]}>
+                            {column}
+                            {row}
+                          </Text>
+                        </Pressable>
+                      ))}
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <>
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  width: 852,
+                  height: 334,
+                  overflow: "hidden",
+                  transform: [
+                    {
+                      rotate:
+                        orientation === FieldOrientation.Sinister
+                          ? "180deg"
+                          : "0deg",
+                    },
+                  ],
+                }}
+              >
+                <Image
+                  source={
+                    started &&
+                    inZone &&
+                    state.meta?.allianceColor === AllianceColor.Blue
+                      ? assets.zone
+                      : assets.field
+                  }
+                  resizeMode="stretch"
+                  style={{
+                    position: "absolute",
+                    left:
+                      started &&
+                      inZone &&
+                      state.meta?.allianceColor === AllianceColor.Red
+                        ? -408
+                        : 15,
+                    top: started && inZone ? -142 : 14,
+                    width: started && inZone ? 1245 : 822,
+                    height: started && inZone ? 460 : 304,
+                  }}
+                />
+              </View>
+              {!started ? (
+                <>
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: reversed ? 700 : 92,
+                      top: orientation === FieldOrientation.Sinister ? 24 : 125,
+                      width: 60,
+                      height: 185,
+                      borderRadius: 7,
+                      backgroundColor: "#e0e0e04d",
+                    }}
+                    accessibilityRole="adjustable"
+                    accessibilityLabel="Starting position"
+                    accessibilityValue={{
+                      min: 0,
+                      max: 100,
+                      now: state.startPosition ?? 50,
+                    }}
+                    accessibilityActions={[
+                      { name: "increment" },
+                      { name: "decrement" },
+                    ]}
+                    onAccessibilityAction={(e) =>
+                      state.setStartPosition(
+                        (state.startPosition ?? 50) +
+                          (e.nativeEvent.actionName === "increment" ? 5 : -5),
+                      )
+                    }
+                    onStartShouldSetResponder={() => true}
+                    onMoveShouldSetResponder={() => true}
+                    onResponderGrant={(e) =>
+                      state.setStartPosition(
+                        (orientation === FieldOrientation.Sinister
+                          ? 1 - e.nativeEvent.locationY / 185
+                          : e.nativeEvent.locationY / 185) * 100,
+                      )
+                    }
+                    onResponderMove={(e) =>
+                      state.setStartPosition(
+                        (orientation === FieldOrientation.Sinister
+                          ? 1 - e.nativeEvent.locationY / 185
+                          : e.nativeEvent.locationY / 185) * 100,
+                      )
+                    }
+                  >
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        position: "absolute",
+                        width: 60,
+                        height: 45,
+                        borderRadius: 7,
+                        backgroundColor: "#e0e0e0cc",
+                        top:
+                          ((orientation === FieldOrientation.Sinister
+                            ? 100 - (state.startPosition ?? 50)
+                            : (state.startPosition ?? 50)) /
+                            100) *
+                          140,
+                      }}
+                    />
+                  </View>
+                  {state.fieldPieces.map((fieldPiece, i) => (
+                    <BoardButton
+                      key={i}
+                      x={357}
+                      y={58 + i * 60}
+                      w={45}
+                      h={45}
+                      reversed={reversed}
+                      label={`Pre-match piece ${i + 1}: ${fieldPiece.toLowerCase()}`}
+                      color={fieldPiece === "UNKNOWN" ? yellow : green}
+                      asset={
+                        fieldPiece === "CONE"
+                          ? assets.cone
+                          : fieldPiece === "CUBE"
+                            ? assets.cube
+                            : undefined
+                      }
+                      text={fieldPiece === "UNKNOWN" ? "?" : undefined}
+                      onPress={() => state.setFieldPiece(i)}
+                    />
+                  ))}
+                </>
+              ) : inZone ? (
+                <>
+                  {[16, 113, 210].map((y, index) => (
+                    <BoardButton
+                      key={y}
+                      x={35}
+                      y={y}
+                      w={186}
+                      h={91}
+                      reversed={reversed}
+                      label={`Scoring area ${index + 1}`}
+                      color={
+                        state.meta?.allianceColor === AllianceColor.Blue
+                          ? "transparent"
+                          : green
+                      }
+                      onPress={() => score(index)}
+                    />
+                  ))}
+                  <BoardButton
+                    x={394}
+                    y={8}
+                    w={228}
+                    h={294}
+                    reversed={reversed}
+                    label="Leave alliance zone"
+                    color={purple}
+                    asset={assets.rightArrow}
+                    onPress={() => move("CENTER")}
+                  />
+                  {endgameAvailable && (
+                    <BoardButton
+                      x={242}
+                      y={97}
+                      w={129}
+                      h={122}
+                      reversed={reversed}
+                      label="Charge station"
+                      color={purple}
+                      onPress={() => setPanel("charger")}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <BoardButton
+                    x={33}
+                    y={23}
+                    w={232}
+                    h={83}
+                    reversed={reversed}
+                    label="Enter opponent zone"
+                    color="#292929"
+                    asset={assets.shield}
+                    onPress={() => move("OPPONENT_ZONE")}
+                  />
+                  <BoardButton
+                    x={33}
+                    y={122}
+                    w={232}
+                    h={184}
+                    reversed={reversed}
+                    label="Enter alliance zone"
+                    color={purple}
+                    asset={assets.arrow}
+                    onPress={() => move("ALLIANCE_ZONE")}
+                  />
+                  <BoardButton
+                    x={343}
+                    y={32}
+                    w={165}
+                    h={272}
+                    reversed={reversed}
+                    label="Intake from ground"
+                    color={yellow}
+                    asset={assets.upload}
+                    onPress={() => intake("CENTER")}
+                  />
+                  <BoardButton
+                    x={515}
+                    y={32}
+                    w={80}
+                    h={272}
+                    reversed={reversed}
+                    label="Enter opponent station"
+                    color="rgba(29,163,246,0.3)"
+                    asset={assets.camp}
+                    onPress={() => move("OPPONENT_STATION")}
+                  />
+                  <BoardButton
+                    x={687}
+                    y={23}
+                    w={133}
+                    h={85}
+                    reversed={reversed}
+                    label="Intake from alliance station"
+                    color={yellow}
+                    asset={assets.upload}
+                    onPress={() => intake("ALLIANCE_STATION")}
+                  />
+                  <BoardButton
+                    x={616}
+                    y={219}
+                    w={133}
+                    h={85}
+                    reversed={reversed}
+                    label="Drop game piece"
+                    color={green}
+                    asset={assets.drop}
+                    onPress={() => state.addEvent({ action: "DROP", location })}
+                  />
+                  {location !== "CENTER" && (
+                    <BoardButton
+                      x={622}
+                      y={122}
+                      w={198}
+                      h={83}
+                      reversed={reversed}
+                      label="Return to center"
+                      color={purple}
+                      text="Center"
+                      onPress={() => move("CENTER")}
+                    />
+                  )}
+                </>
+              )}
+            </>
+          )}
+          {started && inZone && !panel && (
+            <BoardButton
+              x={660}
+              y={230}
+              w={165}
+              h={70}
+              label="Select game piece"
+              reversed={reversed}
+              color={yellow}
+              asset={assets.upload}
+              onPress={() => intake("ALLIANCE_ZONE")}
+            />
+          )}
+          {panel && (
+            <BoardButton
+              x={795}
+              y={4}
+              w={42}
+              h={42}
+              label="Close selection"
+              color="#292929"
+              text="×"
+              onPress={() => setPanel(null)}
+            />
+          )}
+          {panel === "intake" && (
+            <View style={styles.overlay}>
+              {(["CONE", "CUBE"] as const).map((p) => (
+                <Pressable
+                  key={p}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Intake ${p.toLowerCase()}`}
+                  style={styles.cell}
+                  onPress={() => {
+                    state.addEvent({
+                      action: p === "CONE" ? "INTAKE_CONE" : "INTAKE_CUBE",
+                      location: intakeLocation,
+                    });
+                    setPanel(null);
+                  }}
+                >
+                  <Image
+                    source={p === "CONE" ? assets.cone : assets.cube}
+                    style={{ width: 90, height: 90 }}
+                  />
+                  <Text style={styles.gridLabel}>
+                    {p === "CONE" ? "Cone" : "Cube"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          {panel === "charger" && (
+            <View style={styles.overlay}>
+              <Pressable
+                style={styles.cell}
+                accessibilityRole="button"
+                onPress={() => {
+                  state.addEvent({ action: "ENDGAME", location: "CHARGER" });
+                  setPanel(null);
+                }}
+              >
+                <Text style={styles.gridLabel}>Attempt charge</Text>
+              </Pressable>
+            </View>
+          )}
+        </ScaledBoard>
+      }
     />
   );
 }
 
-// const FloatingActions = ({
-//   hasCoral = false,
-//   hasAlgae = false,
-//   gamePhase = GamePhase.Auto,
-// }: {
-//   hasCoral?: boolean;
-//   hasAlgae?: boolean;
-//   gamePhase?: GamePhase;
-// }) => {
-//   const reportState = useReportStateStore();
-//   const fieldOrientation = useFieldOrientationStore((state) => state.value);
-
-//   const [defenseHighlighted, setDefenseHighlighted] = useState(false);
-
-//   const addEvent = reportState.addEvent;
-
-//   const coralActive = !(gamePhase === GamePhase.Auto && !hasCoral);
-//   const algaeActive = !(gamePhase === GamePhase.Auto && !hasAlgae);
-
-//   return (
-//     <View
-//       pointerEvents="box-none"
-//       style={{
-//         position: "absolute",
-//         top: 0,
-//         right: 0,
-//         bottom: 0,
-//         left: 0,
-//         flexDirection:
-//           fieldOrientation === FieldOrientation.Auspicious
-//             ? reportState.meta?.allianceColor === AllianceColor.Blue
-//               ? "row"
-//               : "row-reverse"
-//             : reportState.meta?.allianceColor === AllianceColor.Blue
-//               ? "row-reverse"
-//               : "row",
-//         padding: 4,
-//         gap: 4,
-//       }}
-//     >
-//       <View
-//         key={"This view is for spacing purposes"}
-//         pointerEvents="none"
-//         style={{
-//           flex: 1.8,
-//         }}
-//       />
-//       <View
-//         style={{
-//           flexDirection: "column",
-//           gap: 4,
-//           flex: 1,
-//         }}
-//       >
-//         <View
-//           style={{
-//             flexDirection: "row",
-//             flex: 1,
-//             gap: 4,
-//           }}
-//         >
-//           {/* Coral */}
-//           <TouchableOpacity
-//             disabled={!coralActive}
-//             accessibilityLabel={
-//               gamePhase === GamePhase.Teleop
-//                 ? hasCoral
-//                   ? "Intake Coral"
-//                   : "Drop Coral"
-//                 : hasCoral
-//                   ? ""
-//                   : "Drop Coral"
-//             }
-//             style={{
-//               flex: 1,
-//               width: "50%",
-//               backgroundColor: "#ffffff4d",
-//               opacity: coralActive ? 1 : 0,
-//               borderRadius: 7,
-//               borderColor: "#ffffff" + (coralActive && !hasCoral ? "ff" : "00"),
-//               borderWidth: 2,
-//               gap: 2,
-//               alignItems: "center",
-//               justifyContent: "center",
-//             }}
-//             activeOpacity={0.9}
-//             onPress={() => {
-//               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-//               // TODO: Implement coral pickup/drop
-//             }}
-//           >
-//             <Icon
-//               name={coralActive && !hasCoral ? "frc_coral" : "output_circle"}
-//               color={"#ffffff"}
-//               size={40}
-//             />
-//             <LabelSmall color="#ffffff">
-//               {coralActive && !hasCoral ? "Intake Coral" : "Drop Coral"}
-//             </LabelSmall>
-//           </TouchableOpacity>
-//           {/* Algae */}
-//           <TouchableOpacity
-//             disabled={!algaeActive}
-//             accessibilityLabel={
-//               gamePhase === GamePhase.Teleop
-//                 ? hasAlgae
-//                   ? "Intake Algae"
-//                   : "Drop Algae"
-//                 : hasAlgae
-//                   ? ""
-//                   : "Drop Algae"
-//             }
-//             style={{
-//               flex: 1,
-//               width: "50%",
-//               backgroundColor: "#14ceac4d",
-//               opacity: algaeActive ? 1 : 0,
-//               borderRadius: 7,
-//               borderColor: "#14ceac" + (algaeActive && !hasAlgae ? "ff" : "00"),
-//               borderWidth: 2,
-//               gap: 2,
-//               alignItems: "center",
-//               justifyContent: "center",
-//             }}
-//             activeOpacity={0.9}
-//             onPress={() => {
-//               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-//               // TODO: Implement algae pickup/drop
-//             }}
-//           >
-//             <Icon
-//               name={algaeActive && !hasAlgae ? "frc_algae" : "output_circle"}
-//               color={"#14ceac"}
-//               size={40}
-//             />
-//             <LabelSmall color="#14ceac">
-//               {algaeActive && !hasAlgae ? "Intake Algae" : "Drop Algae"}
-//             </LabelSmall>
-//           </TouchableOpacity>
-//         </View>
-//         <TouchableOpacity
-//           disabled={gamePhase === GamePhase.Auto}
-//           accessibilityLabel="Defend"
-//           style={{
-//             flex: 1,
-//             backgroundColor: defenseHighlighted
-//               ? colors.danger.default
-//               : colors.secondaryContainer.default,
-//             opacity: gamePhase === GamePhase.Teleop ? 1 : 0,
-//             borderRadius: 7,
-//             alignItems: "center",
-//             justifyContent: "center",
-//           }}
-//           activeOpacity={0.9}
-//           onPress={() => {
-//             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-//             // TODO: Implement defend action
-
-//             setDefenseHighlighted(true);
-//             setTimeout(() => setDefenseHighlighted(false), 200);
-//           }}
-//         >
-//           <Icon name="shield" color={colors.onBackground.default} size={40} />
-//         </TouchableOpacity>
-//         <View
-//           style={{
-//             flexDirection: "row",
-//             flex: 1,
-//             gap: 4,
-//           }}
-//         >
-//           <TouchableOpacity
-//             disabled={reportState?.events.length === 0}
-//             accessibilityLabel="Undo"
-//             style={{
-//               flex: 1,
-//               backgroundColor: colors.secondaryContainer.default,
-//               opacity: reportState.events.length > 0 ? 1 : 0,
-//               borderRadius: 7,
-//               alignItems: "center",
-//               justifyContent: "center",
-//             }}
-//             activeOpacity={0.9}
-//             onPress={() => {
-//               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-//               reportState.undoEvent();
-//             }}
-//           >
-//             <Icon name="undo" color={colors.onBackground.default} size={40} />
-//           </TouchableOpacity>
-//           <TouchableOpacity
-//             disabled={!(hasAlgae && gamePhase === GamePhase.Teleop)}
-//             accessibilityLabel="Feed algae"
-//             style={{
-//               flex: 1,
-//               backgroundColor: colors.secondaryContainer.default,
-//               opacity: hasAlgae && gamePhase === GamePhase.Teleop ? 1 : 0,
-//               borderRadius: 7,
-//               alignItems: "center",
-//               justifyContent: "center",
-//             }}
-//             activeOpacity={0.9}
-//             onPress={() => {
-//               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-//               // TODO: Implement feed algae action
-//             }}
-//           >
-//             <Icon name="feeder" color={colors.onBackground.default} size={40} />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </View>
-//   );
-// };
+function ScaledBoard({ children }: { children: React.ReactNode }) {
+  const [size, setSize] = useState({ width: 852, height: 334 });
+  const scale = Math.min(size.width / 852, size.height / 334);
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}
+      onLayout={(e: LayoutChangeEvent) => setSize(e.nativeEvent.layout)}
+    >
+      <View style={{ width: 852 * scale, height: 334 * scale }}>
+        <View
+          style={{
+            width: 852,
+            height: 334,
+            overflow: "hidden",
+            transform: [{ scale }],
+            transformOrigin: "top left",
+          }}
+        >
+          {children}
+        </View>
+      </View>
+    </View>
+  );
+}
+function BoardButton({
+  x,
+  y,
+  w,
+  h,
+  label,
+  color,
+  asset,
+  text,
+  onPress,
+  reversed = false,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  color: string;
+  asset?: ImageSourcePropType;
+  text?: string;
+  onPress: () => void;
+  reversed?: boolean;
+}) {
+  const orientation = useFieldOrientationStore((s) => s.value);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      style={{
+        position: "absolute",
+        left: reversed ? 852 - x - w : x,
+        top: orientation === FieldOrientation.Sinister ? 334 - y - h : y,
+        width: w,
+        height: h,
+        backgroundColor: color,
+        borderRadius: 7,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {asset && (
+        <Image
+          source={asset}
+          resizeMode="contain"
+          style={{
+            width:
+              asset === assets.arrow || asset === assets.rightArrow
+                ? 32
+                : asset === assets.camp || asset === assets.shield
+                  ? 40
+                  : w === 45
+                    ? 45
+                    : 42,
+            height:
+              asset === assets.arrow || asset === assets.rightArrow
+                ? 32
+                : asset === assets.camp || asset === assets.shield
+                  ? 40
+                  : w === 45
+                    ? 45
+                    : 42,
+            transform: [
+              {
+                rotate:
+                  asset === assets.drop ||
+                  (asset === assets.rightArrow && !reversed) ||
+                  (asset === assets.arrow && reversed)
+                    ? "180deg"
+                    : "0deg",
+              },
+            ],
+          }}
+        />
+      )}
+      {text && <Text style={styles.gridLabel}>{text}</Text>}
+    </Pressable>
+  );
+}
+const styles = StyleSheet.create({
+  cell: {
+    flex: 1,
+    backgroundColor: green,
+    borderRadius: 7,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  gridLabel: { color: "#e0e0e0", fontSize: 28, fontFamily: "Heebo_400Regular" },
+  overlay: {
+    position: "absolute",
+    left: 65,
+    right: 65,
+    top: 50,
+    bottom: 30,
+    backgroundColor: "#1f1f1f",
+    borderRadius: 14,
+    padding: 16,
+    flexDirection: "row",
+    gap: 16,
+  },
+});

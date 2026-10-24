@@ -11,43 +11,41 @@ import { useQrCodeSizeStore } from "../../lib/storage/userStores";
 import Slider from "@react-native-community/slider";
 import LabelSmall from "../../lib/components/text/LabelSmall";
 import React from "react";
-import { MatchEventType } from "../../lib/collection/MatchEventType";
-import { MatchEventPosition } from "../../lib/collection/MatchEventPosition";
+import { initialPostMatch } from "../../lib/collection/ChargedUp";
 
 const EXAMPLE_SCOUT_REPORT: ScoutReport = {
+  ...initialPostMatch,
+  gameYear: 2023,
   uuid: "f23698c6-a084-4659-9644-fc91c9f88d14",
-  tournamentKey: "2026caoc",
-  matchType: "QUALIFICATION",
+  tournamentKey: "2023caoc",
+  matchType: "PRACTICE",
   matchNumber: 58,
-  startTime: 1711817590420,
-  notes: "",
-  robotBrokeDescription: null,
-  robotRoles: ["CYCLING", "FEEDING", "DEFENDING"],
-  mobility: "BUMP",
-  disrupts: false,
-  accuracy: 4,
-  autoClimb: "FAILED",
-  intakeType: "GROUND",
-  feederTypes: ["STOP_TO_SHOOT"],
-  beached: "ON_FUEL",
-  defenseEffectiveness: 4,
-  scoresWhileMoving: true,
-  endgameClimb: "L2",
-  driverAbility: 4,
+  startTime: 1680300000000,
+  teamNumber: 8033,
   scouterUuid: "034d8eda-d579-4e83-9ccf-53bebab38724",
-  teamNumber: 3476,
+  fieldPieces: ["CONE", "CUBE", "UNKNOWN", "CONE"],
   events: [
-    [0, MatchEventType.StartMatch, MatchEventPosition.Hub],
-    [1.234, MatchEventType.StartScoring, MatchEventPosition.None],
-    [2.991, MatchEventType.StopScoring, MatchEventPosition.None, 30],
-    [3.601, MatchEventType.Cross, MatchEventPosition.LeftBump],
-    [20.744, MatchEventType.StartFeeding, MatchEventPosition.None],
-    [25.265, MatchEventType.StopFeeding, MatchEventPosition.None, 22],
-    [26.165, MatchEventType.StartScoring, MatchEventPosition.None],
-    [26.592, MatchEventType.StopScoring, MatchEventPosition.None, 30],
-    [30.086, MatchEventType.StartDefending, MatchEventPosition.None],
-    [48.89, MatchEventType.StopDefending, MatchEventPosition.None],
-    [59.577, MatchEventType.Climb, MatchEventPosition.None],
+    {
+      time: 0,
+      action: "START_POSITION",
+      location: "START_POSITION",
+      position: 50,
+    },
+    {
+      time: 3.5,
+      action: "SCORE_CONE",
+      location: "SCORE",
+      scoringLocation: "A1",
+    },
+    { time: 7.2, action: "LEAVE_ZONE", location: "ALLIANCE_ZONE" },
+    { time: 10.1, action: "INTAKE_CUBE", location: "CENTER" },
+    { time: 14.9, action: "ENTER_ZONE", location: "ALLIANCE_ZONE" },
+    {
+      time: 18.1,
+      action: "SCORE_CUBE",
+      location: "SCORE",
+      scoringLocation: "H2",
+    },
   ],
 };
 

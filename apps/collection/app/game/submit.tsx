@@ -50,6 +50,7 @@ export default function Submit() {
 
   useEffect(() => {
     if (scoutReport && !uploaded && !uploading && !uploadError) {
+      upsertMatchToHistory(scoutReport, false, reportState.meta!);
       setUploading(true);
 
       uploadReport(scoutReport)

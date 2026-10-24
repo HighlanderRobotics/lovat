@@ -1,11 +1,6 @@
-import { Pressable, View, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  FieldImage,
-  fieldHeight,
-  fieldWidth,
-} from "../../components/FieldImage";
 import { Text } from "react-native";
 import LabelSmall from "../../components/text/LabelSmall";
 import {
@@ -18,17 +13,13 @@ import { GameTimer } from "./GameTimer";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
-import { Icon } from "../../components/Icon";
-import { MatchEventType } from "../MatchEventType";
-import { MatchEventPosition } from "../MatchEventPosition";
 
 export const GameViewTemplate = (props: {
   field: React.ReactNode;
   topLeftReplacement?: React.ReactNode;
   gamePhaseMessage: string;
   startEnabled?: boolean;
-  overlay: boolean;
-  setOverlay: (value: boolean) => void;
+  onExit: () => void;
   onEnd: () => void;
   onRestart: () => void;
 }) => {
@@ -38,7 +29,6 @@ export const GameViewTemplate = (props: {
 
   return (
     <>
-      <GameViewOverlay overlay={props.overlay} setOverlay={props.setOverlay} />
       <View
         style={{
           backgroundColor: colors.secondaryContainer.default,
@@ -149,6 +139,9 @@ export const GameViewTemplate = (props: {
                 <DropdownMenu.Item key="end" onSelect={props.onEnd}>
                   <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
                 </DropdownMenu.Item>
+                <DropdownMenu.Item key="exit" onSelect={props.onExit}>
+                  <DropdownMenu.ItemTitle>Exit match</DropdownMenu.ItemTitle>
+                </DropdownMenu.Item>
                 <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
                   <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
                 </DropdownMenu.Item>
@@ -158,154 +151,8 @@ export const GameViewTemplate = (props: {
         </SafeAreaView>
       </View>
       <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>
-        <View
-          style={{
-            height: "100%",
-            width: "100%",
-            flexDirection: "row",
-            alignItems: "stretch",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              position: "relative",
-              aspectRatio: fieldWidth / fieldHeight,
-              maxWidth: "100%",
-              maxHeight: "100%",
-            }}
-          >
-            <FieldImage />
-            {field}
-          </View>
-        </View>
+        {field}
       </SafeAreaView>
     </>
   );
 };
-
-function GameViewOverlay({
-  overlay,
-  setOverlay,
-}: {
-  overlay: boolean;
-  setOverlay: (value: boolean) => void;
-}) {
-  return (
-    <Pressable
-      pointerEvents={overlay ? "auto" : "none"}
-      disabled={overlay}
-      style={{
-        backgroundColor: "#45454540",
-        opacity: overlay ? 1 : 0,
-        position: "absolute",
-        zIndex: 50,
-        width: "100%",
-        height: "100%",
-      }}
-      onPress={() => {
-        setOverlay(false);
-      }}
-    >
-      <View
-        style={{
-          marginHorizontal: 40,
-          marginVertical: 20,
-          borderRadius: 14,
-          padding: 10,
-          backgroundColor: colors.background.default,
-          flexGrow: 1,
-          shadowColor: "#00000040",
-          elevation: 4,
-          shadowOpacity: 1,
-          shadowOffset: {
-            width: 0,
-            height: 4,
-          },
-          shadowRadius: 4,
-          flexDirection: "row",
-        }}
-      >
-        <TouchableOpacity
-          accessibilityLabel="Close Overlay"
-          style={{
-            position: "absolute",
-            right: 16,
-            top: 16,
-            width: 40,
-            height: 40,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 50,
-            backgroundColor: colors.secondaryContainer.default,
-            zIndex: 1,
-          }}
-          onPress={() => {
-            setOverlay(false);
-          }}
-          activeOpacity={0.1}
-        >
-          <Icon name="close" color={colors.onBackground.default} size={32} />
-        </TouchableOpacity>
-        <OutpostOverlay setOverlay={setOverlay} />
-      </View>
-    </Pressable>
-  );
-}
-
-function OutpostOverlay({
-  setOverlay,
-}: {
-  setOverlay: (value: boolean) => void;
-}) {
-  const reportState = useReportStateStore();
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 10,
-        width: "100%",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#3EE6794d",
-          borderRadius: 7,
-          flexGrow: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          reportState.addEvent({
-            type: MatchEventType.Outtake,
-            position: MatchEventPosition.Outpost,
-          });
-          setOverlay(false);
-        }}
-      >
-        <Icon name="download" size={100} color="#3EE679" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#c1c3374d",
-          borderRadius: 7,
-          flexGrow: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          reportState.addEvent({
-            type: MatchEventType.Intake,
-            position: MatchEventPosition.Outpost,
-          });
-          setOverlay(false);
-        }}
-      >
-        <Icon name="upload" size={100} color="#c1c337" />
-      </TouchableOpacity>
-    </View>
-  );
-}

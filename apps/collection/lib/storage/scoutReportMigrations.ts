@@ -1,4 +1,8 @@
-import { ScoutReport, ScoutReportEvent } from "../collection/ScoutReport";
+import { ScoutReport } from "../collection/ScoutReport";
+import {
+  ScoutReport as LegacyReport,
+  ScoutReportEvent,
+} from "../collection/ScoutReport2026";
 import { MatchEventType } from "../collection/MatchEventType";
 import Constants from "expo-constants";
 
@@ -94,7 +98,7 @@ function migrateBrokenUndoStartEvents(
 
 type ScoutReportMigration = {
   version: string;
-  migrate: (scoutReport: ScoutReport) => ScoutReport;
+  migrate: (scoutReport: LegacyReport) => LegacyReport;
 };
 
 const scoutReportMigrations: ScoutReportMigration[] = [
@@ -115,6 +119,7 @@ const scoutReportMigrations: ScoutReportMigration[] = [
 ];
 
 export function migrateScoutReport(scoutReport: ScoutReport): ScoutReport {
+  if ("gameYear" in scoutReport) return scoutReport;
   let migrated = scoutReport;
 
   for (const migration of scoutReportMigrations) {
