@@ -4,8 +4,15 @@ import { ActivityIndicator, Platform } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
 import { Stack, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useIsFocused } from "@react-navigation/native";
+import { useKeepAwake } from "expo-keep-awake";
+import { useReportStateStore } from "../../lib/collection/reportStateStore";
 
 export default function GamePage() {
+  const focused = useIsFocused();
+  const scouting = useReportStateStore(
+    (state) => !!state.meta && !!state.startTimestamp,
+  );
   useFocusEffect(
     useCallback(() => {
       (async () => {
@@ -26,6 +33,7 @@ export default function GamePage() {
 
   return (
     <>
+      {focused && scouting && <ScoutingKeepAwake />}
       {/* Expo manages the iOS status bar globally rather than per controller. */}
       <StatusBar hidden animated={false} />
       <Stack.Screen
@@ -43,4 +51,9 @@ export default function GamePage() {
       </Suspense>
     </>
   );
+}
+
+function ScoutingKeepAwake() {
+  useKeepAwake("collection-active-match", { suppressDeactivateWarnings: true });
+  return null;
 }

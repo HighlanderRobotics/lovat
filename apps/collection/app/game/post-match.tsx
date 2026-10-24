@@ -127,6 +127,7 @@ export default function PostMatch() {
               options={defenseEffectivenessDescriptions.map((d) => ({
                 value: d.num + 1,
                 label: `${d.num + 1} · ${d.localizedDescription}`,
+                description: d.localizedLongDescription,
               }))}
             />
           </View>
