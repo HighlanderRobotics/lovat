@@ -122,7 +122,16 @@ export const GameViewTemplate = (props: {
                 marginHorizontal: 12,
               }}
             >
-              <LabelSmall>Preload</LabelSmall>
+              <Text
+                style={{
+                  fontFamily: "Heebo_700Bold",
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: colors.victoryPurple.default,
+                }}
+              >
+                Preload
+              </Text>
               {([null, "CONE", "CUBE"] as const).map((value) => (
                 <Pressable
                   key={value ?? "none"}
@@ -146,7 +155,19 @@ export const GameViewTemplate = (props: {
                       style={{ width: 24, height: 24 }}
                     />
                   ) : (
-                    <LabelSmall>None</LabelSmall>
+                    <Text
+                      style={{
+                        fontFamily: "Heebo_500Medium",
+                        fontSize: 14,
+                        lineHeight: 24,
+                        color:
+                          piece === null
+                            ? colors.background.default
+                            : colors.onBackground.default,
+                      }}
+                    >
+                      None
+                    </Text>
                   )}
                 </Pressable>
               ))}
