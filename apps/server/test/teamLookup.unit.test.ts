@@ -164,6 +164,7 @@ it("shows scouter names only for notes from the viewer's own team", async () => 
   expect(db.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         teamMatchData: {
           teamNumber: 254,
           tournamentKey: undefined,

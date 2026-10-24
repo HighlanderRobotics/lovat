@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import { Response } from "express";
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
@@ -146,7 +147,10 @@ export const getTeamCSV = async (
         scoutReports: {
           where: (() => {
             const filter = dataSourceRuleToPrismaFilter(sourceRule);
-            return filter ? { scouter: { sourceTeamNumber: filter } } : {};
+            return {
+              ...analysisReportFilter,
+              ...(filter ? { scouter: { sourceTeamNumber: filter } } : {}),
+            };
           })(),
           select: {
             uuid: true,
@@ -209,6 +213,7 @@ export const getTeamCSV = async (
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
             where: {
+              ...analysisReportFilter,
               teamMatchData: {
                 teamNumber: { in: teams },
                 ...(tournamentFilter
@@ -284,9 +289,12 @@ export const getTeamCSV = async (
               teamNumber: { in: teams },
               ...(tournamentFilter ? { tournamentKey: tournamentFilter } : {}),
               scoutReports: {
-                some: teamFilter
-                  ? { scouter: { sourceTeamNumber: teamFilter } }
-                  : {},
+                some: {
+                  ...analysisReportFilter,
+                  ...(teamFilter
+                    ? { scouter: { sourceTeamNumber: teamFilter } }
+                    : {}),
+                },
               },
               matchType: { not: "PRACTICE" },
             },

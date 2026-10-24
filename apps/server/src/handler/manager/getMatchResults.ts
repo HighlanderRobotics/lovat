@@ -6,6 +6,7 @@ import { scoutReportSourceFilter } from "../analysis/scoutReportSourceFilter.js"
 import { TeamMatchData, ScoutReport } from "@lovat/db";
 import { computeAverageScoutReport } from "../analysis/coreAnalysis/averageScoutReport.js";
 import { Metric } from "../analysis/analysisConstants.js";
+import { analysisReportFilter } from "../analysis/reportReliability.js";
 
 export const getMatchResults = async (
   req: AuthenticatedRequest,
@@ -26,7 +27,12 @@ export const getMatchResults = async (
           key: `${params.matchKey}_${i}`,
         },
         include: {
-          scoutReports: { where: scoutReportSourceFilter(req.user) },
+          scoutReports: {
+            where: {
+              ...scoutReportSourceFilter(req.user),
+              ...analysisReportFilter,
+            },
+          },
         },
       });
     }

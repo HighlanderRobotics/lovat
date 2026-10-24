@@ -131,11 +131,29 @@ beforeAll(async () => {
     await db.scoutReport.create({
       data: {
         ...reportData,
+        reliability: i === 0 ? "VERIFIED" : "UNVERIFIED",
         scouterUuid: scouterId,
         teamMatchKey: matchKey,
         events: { create: events },
       },
     });
+  // Visible-source flagged/bad outliers must not affect any analysis path.
+  for (const reliability of [
+    "FLAGGED_USER",
+    "FLAGGED_SYSTEM",
+    "BAD_REPORT",
+  ] as const) {
+    await db.scoutReport.create({
+      data: {
+        ...reportData,
+        reliability,
+        driverAbility: 1000,
+        scouterUuid: scouterId,
+        teamMatchKey: matchKey,
+        events: { create: [event("STOP_SCORING", 20, 999, 999)] },
+      },
+    });
+  }
   await db.scoutReport.create({
     data: {
       ...reportData,

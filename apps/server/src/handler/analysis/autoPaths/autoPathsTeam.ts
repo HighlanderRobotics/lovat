@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
@@ -83,6 +84,7 @@ const config = {
 
     const autoData = await prismaClient.scoutReport.findMany({
       where: {
+        ...analysisReportFilter,
         teamMatchData: {
           teamNumber: teamNumber,
           tournamentKey: sourceTnmtFilter,

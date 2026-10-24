@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import {
@@ -27,6 +28,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
   calculateAnalysis: async ({ params }, ctx) => {
     const scoutReport = await prismaClient.scoutReport.findFirst({
       where: {
+        ...analysisReportFilter,
         uuid: params.uuid,
         ...scoutReportSourceFilter(ctx.user),
       },
