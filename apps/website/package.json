@@ -8,6 +8,7 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test:contact": "npm run build && node --test scripts/contact.test.mjs",
 		"test:changelog": "node --test scripts/changelog.test.mjs",
 		"lint": "eslint .",
 		"format": "prettier --write .",
@@ -40,7 +41,7 @@
 	"type": "module",
 	"dependencies": {
 		"@tanstack/svelte-query": "^5.66.11",
-		"magnolia-ui-svelte": "github:highlanderrobotics/magnolia-ui-svelte#production",
+		"magnolia-ui-svelte": "https://codeload.github.com/HighlanderRobotics/magnolia-ui-svelte/tar.gz/852aee5fd375aaaa31a2324135a1b8d9f711de46",
 		"qrcode": "^1.5.3",
 		"ua-parser-js": "^1.0.36",
 		"zod": "^4.6.5"
