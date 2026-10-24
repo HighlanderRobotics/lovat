@@ -16,14 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors } from "../lib/colors";
 import BodyMedium from "../lib/components/text/BodyMedium";
 import { IconButton } from "../lib/components/IconButton";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   getServiceLoader,
   useServiceErrorStore,
@@ -61,7 +54,8 @@ import {
   useMatchSelectionModeStore,
 } from "../lib/storage/userStores";
 import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
-import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
+import { useConnectivityStore } from "../lib/network/connectivity";
+import { Icon } from "../lib/components/Icon";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -73,13 +67,10 @@ export default function Home() {
         : MatchSelectionMode.Automatic,
     );
   const [meta, setMeta] = useState<ScoutReportMeta | null>(null);
-  const [checkingMatch, setCheckingMatch] = useState(false);
-  const checkingMatchRef = useRef(false);
-  const selectionVersion = useRef(0);
-  const onMetaChanged = useCallback((value: ScoutReportMeta | null) => {
-    selectionVersion.current++;
-    setMeta(value);
-  }, []);
+  const onMetaChanged = useCallback(
+    (value: ScoutReportMeta | null) => setMeta(value),
+    [],
+  );
   const reportState = useReportStateStore();
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
@@ -88,9 +79,6 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       loadServices();
-      return () => {
-        selectionVersion.current++;
-      };
     }, []),
   );
 
@@ -139,10 +127,7 @@ export default function Home() {
             style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}
           >
             <View style={{ alignItems: "stretch", flex: 1, maxWidth: 450 }}>
-              <View
-                style={{ flex: 1 }}
-                pointerEvents={checkingMatch ? "none" : "auto"}
-              >
+              <View style={{ flex: 1 }}>
                 <MatchSelection
                   matchSelectionMode={matchSelectionMode}
                   onMetaChanged={onMetaChanged}
@@ -151,34 +136,37 @@ export default function Home() {
               <View style={{ gap: 10 }}>
                 <Button
                   variant="primary"
-                  disabled={!meta || !startMatchEnabled || checkingMatch}
-                  loadingChildren="Checking match…"
-                  onPress={async () => {
-                    if (!meta || checkingMatchRef.current) return;
-                    checkingMatchRef.current = true;
+                  disabled={!meta || !startMatchEnabled}
+                  onPress={() => {
+                    if (!meta) return;
                     Keyboard.dismiss();
-                    setCheckingMatch(true);
-                    const version = selectionVersion.current;
-                    try {
-                      const result = await checkMatchExists(meta);
-                      // Ignore a response if the user changed details or left Home.
-                      if (version !== selectionVersion.current) return;
-                      if (result.status === "missing") {
-                        throw new Error(
-                          "This match does not exist, or this team is not in it. Check the match type, number, and team.",
-                        );
-                      }
-                      reportState.scoutMatch({
-                        ...meta,
-                        allianceColor:
-                          result.status === "exists"
-                            ? result.allianceColor
+                    const schedule = useMatchScheduleStore.getState().data;
+                    const match =
+                      schedule?.tournamentKey ===
+                      meta.matchIdentity.tournamentKey
+                        ? schedule.matches.find(
+                            (m) =>
+                              m.matchNumber ===
+                                meta.matchIdentity.matchNumber &&
+                              m.matchType ===
+                                matchTypes.find(
+                                  (t) =>
+                                    t.type === meta.matchIdentity.matchType,
+                                )?.num,
+                          )
+                        : undefined;
+                    const alliance = match?.teams.find(
+                      (team) => team.number === meta.teamNumber,
+                    )?.alliance;
+                    reportState.scoutMatch({
+                      ...meta,
+                      allianceColor:
+                        alliance === "red"
+                          ? AllianceColor.Red
+                          : alliance === "blue"
+                            ? AllianceColor.Blue
                             : meta.allianceColor,
-                      });
-                    } finally {
-                      checkingMatchRef.current = false;
-                      setCheckingMatch(false);
-                    }
+                    });
                   }}
                 >
                   Scout this match
@@ -186,7 +174,6 @@ export default function Home() {
                 <Button
                   variant="primary"
                   filled={false}
-                  disabled={checkingMatch}
                   onPress={onSwitchMatchSelectionMode}
                 >
                   {matchSelectionMode === MatchSelectionMode.Automatic
@@ -621,14 +608,15 @@ enum ServicesStatus {
 
 const ServiceStatus = () => {
   const servicesLoading = useServicesLoadingStore((state) => state.value);
+  const offline = useConnectivityStore((state) => state.status === "offline");
 
   const loadServices = getServiceLoader();
 
   const servicesCached = [
-    useTeamScoutersStore.getState(),
-    useScouterScheduleStore.getState(),
-    useTournamentsStore.getState(),
-    useMatchScheduleStore.getState(),
+    useTeamScoutersStore(),
+    useScouterScheduleStore(),
+    useTournamentsStore(),
+    useMatchScheduleStore(),
   ];
 
   const serviceCacheTimes = servicesCached.map((item) => item.timestamp);
@@ -641,13 +629,18 @@ const ServiceStatus = () => {
     status = ServicesStatus.Cached;
   }
 
-  if (!servicesCached.some((item) => item !== null)) {
+  if (!servicesCached.some((item) => item.data !== null)) {
     status = ServicesStatus.Unavailable;
   }
 
   return (
     <Pressable
       onPress={loadServices}
+      accessibilityLabel={
+        offline
+          ? "Offline. Cached schedules available; manual scouting enabled."
+          : "Refresh schedules"
+      }
       style={{
         alignItems: "center",
         flexDirection: "row",
@@ -661,7 +654,9 @@ const ServiceStatus = () => {
         overflow: "hidden",
       }}
     >
-      {servicesLoading ? (
+      {offline ? (
+        <Icon name="wifi_off" color={colors.danger.default} size={20} />
+      ) : servicesLoading ? (
         <ActivityIndicator />
       ) : (
         <View
@@ -678,11 +673,12 @@ const ServiceStatus = () => {
         />
       )}
       <View style={{ width: servicesLoading ? 2 : 9 }} />
-      {status === ServicesStatus.Connected && (
+      {offline && <BodyMedium>Offline</BodyMedium>}
+      {!offline && status === ServicesStatus.Connected && (
         <BodyMedium>Connected</BodyMedium>
       )}
 
-      {status === ServicesStatus.Cached && (
+      {!offline && status === ServicesStatus.Cached && (
         <BodyMedium>
           Updated{" "}
           <TimeAgo
@@ -699,7 +695,7 @@ const ServiceStatus = () => {
         </BodyMedium>
       )}
 
-      {status === ServicesStatus.Unavailable && (
+      {!offline && status === ServicesStatus.Unavailable && (
         <BodyMedium color={colors.danger.default}>Unavailable</BodyMedium>
       )}
     </Pressable>

@@ -21,6 +21,7 @@ import {
 } from "../../lib/storage/userStores";
 import { useHistoryStore } from "../../lib/storage/historyStore";
 import {
+  useMatchScheduleStore,
   useTeamScoutersStore,
   useTournamentsStore,
   useScouterScheduleStore,
@@ -46,6 +47,7 @@ export default function Reset() {
     useTeamScoutersStore.setState(useTeamScoutersStore.getInitialState());
     useTournamentsStore.setState(useTournamentsStore.getInitialState());
     useScouterScheduleStore.setState(useScouterScheduleStore.getInitialState());
+    useMatchScheduleStore.getState().clear();
     await AsyncStorage.clear();
     navigation.dispatch(
       CommonActions.reset({

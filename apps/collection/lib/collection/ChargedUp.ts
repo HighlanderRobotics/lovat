@@ -26,6 +26,10 @@ export const actionSchema = z.enum([
   "START_POSITION",
   "ENDGAME",
   "DROP",
+  "START_DEFENDING",
+  "STOP_DEFENDING",
+  "START_CAMPING",
+  "STOP_CAMPING",
 ]);
 export type ChargedUpAction = z.infer<typeof actionSchema>;
 export type GamePiece = "CONE" | "CUBE";
@@ -65,6 +69,7 @@ export const chargedUpReportSchema = z.object({
   startTime: z.number(),
   teamNumber: z.number().int().positive(),
   scouterUuid: z.string(),
+  preloadedPiece: z.enum(["CONE", "CUBE"]).nullable().optional(),
   fieldPieces: z.array(z.enum(["CONE", "CUBE", "UNKNOWN"])).length(4),
   robotRoles: z.array(z.enum(["OFFENCE", "DEFENCE", "FEEDING", "IMMOBILE"])),
   driverAbility: z.number().int().min(1).max(5),
@@ -118,12 +123,62 @@ export function currentLocation(events: ChargedUpEvent[]): FieldLocation {
   }
   return "ALLIANCE_ZONE";
 }
-export function heldPiece(events: ChargedUpEvent[]): GamePiece | null {
+export function heldPiece(
+  events: ChargedUpEvent[],
+  preload: GamePiece | null = null,
+): GamePiece | null {
   for (let i = events.length - 1; i >= 0; i--) {
     if (events[i].action === "INTAKE_CONE") return "CONE";
     if (events[i].action === "INTAKE_CUBE") return "CUBE";
     if (["SCORE_CONE", "SCORE_CUBE", "DROP"].includes(events[i].action))
       return null;
   }
+  return preload;
+}
+
+export type HoldActivity = "DEFENDING" | "CAMPING";
+export function activeActivity(events: ChargedUpEvent[]): HoldActivity | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const action = events[i].action;
+    if (action === "START_DEFENDING") return "DEFENDING";
+    if (action === "START_CAMPING") return "CAMPING";
+    if (action === "STOP_DEFENDING" || action === "STOP_CAMPING") return null;
+  }
   return null;
+}
+// Rows 1 and 2 are high/middle; row 3 is the hybrid row. B/E/H are cube columns.
+export function canScoreAt(
+  piece: GamePiece | null,
+  scoringLocation: string,
+): boolean {
+  if (!piece || !/^[A-I][1-3]$/.test(scoringLocation)) return false;
+  if (scoringLocation[1] === "3") return true;
+  const cubeNode = "BEH".includes(scoringLocation[0]);
+  return piece === "CUBE" ? cubeNode : !cubeNode;
+}
+export function canRecordEvent(
+  events: ChargedUpEvent[],
+  preload: GamePiece | null,
+  event: Omit<ChargedUpEvent, "time">,
+): boolean {
+  const piece = heldPiece(events, preload);
+  const activity = activeActivity(events);
+  if (event.action === "STOP_DEFENDING" || event.action === "STOP_CAMPING")
+    return (
+      activity === (event.action === "STOP_DEFENDING" ? "DEFENDING" : "CAMPING")
+    );
+  if (activity) return false;
+  if (event.action === "INTAKE_CONE" || event.action === "INTAKE_CUBE")
+    return piece === null;
+  if (event.action === "DROP") return piece !== null;
+  if (event.action === "SCORE_CONE" || event.action === "SCORE_CUBE") {
+    const expected = event.action === "SCORE_CONE" ? "CONE" : "CUBE";
+    return (
+      currentLocation(events) === "ALLIANCE_ZONE" &&
+      event.location === "SCORE" &&
+      piece === expected &&
+      canScoreAt(piece, event.scoringLocation ?? "")
+    );
+  }
+  return event.action !== "START_POSITION";
 }

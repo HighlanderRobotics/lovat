@@ -8,6 +8,9 @@ import {
   eventSchema,
   initialPostMatch,
   MATCH_END_SECONDS,
+  activeActivity,
+  canRecordEvent,
+  GamePiece,
 } from "./ChargedUp";
 const initialState = {
   ...initialPostMatch,
@@ -20,6 +23,7 @@ const initialState = {
   gamePhase: GamePhase.Auto,
   startTimestamp: undefined,
   startPosition: undefined,
+  preloadedPiece: null as GamePiece | null,
 };
 export const useReportStateStore = create<ReportState>((set, get) => ({
   ...initialState,
@@ -32,6 +36,25 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   setStartPosition: (value) => {
     if (!get().startTimestamp)
       set({ startPosition: Math.round(Math.max(0, Math.min(100, value))) });
+  },
+  setPreloadedPiece: (preloadedPiece) => {
+    if (!get().startTimestamp) set({ preloadedPiece });
+  },
+  startHold: (activity, location) => {
+    if (activeActivity(get().events) === activity) return;
+    get().stopHold();
+    get().addEvent({
+      action: activity === "DEFENDING" ? "START_DEFENDING" : "START_CAMPING",
+      location,
+    });
+  },
+  stopHold: () => {
+    const activity = activeActivity(get().events);
+    if (!activity) return;
+    get().addEvent({
+      action: activity === "DEFENDING" ? "STOP_DEFENDING" : "STOP_CAMPING",
+      location: get().events.at(-1)!.location,
+    });
   },
   setFieldPiece: (index) => {
     if (get().startTimestamp) return;
@@ -51,15 +74,32 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   setPostMatch: (value) => set(value),
   addEvent: (event) => {
     const start = get().startTimestamp;
-    if (!start) return;
+    if (!start || !canRecordEvent(get().events, get().preloadedPiece, event))
+      return false;
     const time = Math.max(
       0,
       Math.min(MATCH_END_SECONDS, (Date.now() - start.getTime()) / 1000),
     );
     set({ events: [...get().events, eventSchema.parse({ ...event, time })] });
+    return true;
   },
-  undoEvent: () => set({ events: get().events.slice(0, -1) }),
+  undoEvent: () => {
+    const events = get().events;
+    if (activeActivity(events)) return;
+    const last = events.at(-1);
+    if (last?.action === "STOP_DEFENDING" || last?.action === "STOP_CAMPING") {
+      const startAction =
+        last.action === "STOP_DEFENDING" ? "START_DEFENDING" : "START_CAMPING";
+      const index = events.findLastIndex(
+        (event) => event.action === startAction,
+      );
+      set({
+        events: events.filter((_, i) => i !== index && i !== events.length - 1),
+      });
+    } else set({ events: events.slice(0, -1) });
+  },
   exportScoutReport: () => {
+    get().stopHold();
     const state = get();
     if (
       !state.meta ||
@@ -77,6 +117,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
         ]),
       ),
       fieldPieces: state.fieldPieces,
+      preloadedPiece: state.preloadedPiece,
       gameYear: 2023,
       appVersion: Constants.expoConfig?.version,
       uuid: state.uuid,

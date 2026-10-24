@@ -1,5 +1,12 @@
 import { ScoutReportMeta } from "../models/ScoutReportMeta";
-import { ChargedUpEvent, ChargedUpReport, PostMatchData } from "./ChargedUp";
+import {
+  ChargedUpEvent,
+  ChargedUpReport,
+  PostMatchData,
+  GamePiece,
+  HoldActivity,
+  FieldLocation,
+} from "./ChargedUp";
 export enum GamePhase {
   Auto,
   Teleop,
@@ -10,6 +17,10 @@ export type ReportState = PostMatchData & {
   meta?: ScoutReportMeta;
   startTimestamp?: Date;
   startPosition?: number;
+  preloadedPiece: GamePiece | null;
+  setPreloadedPiece: (piece: GamePiece | null) => void;
+  startHold: (activity: HoldActivity, location: FieldLocation) => void;
+  stopHold: () => void;
   fieldPieces: ("CONE" | "CUBE" | "UNKNOWN")[];
   setFieldPiece: (index: number) => void;
   events: ChargedUpEvent[];
@@ -20,7 +31,7 @@ export type ReportState = PostMatchData & {
   setStartPosition: (value: number) => void;
   setGamePhase: (value: GamePhase) => void;
   setPostMatch: (value: Partial<PostMatchData>) => void;
-  addEvent: (event: Omit<ChargedUpEvent, "time">) => void;
+  addEvent: (event: Omit<ChargedUpEvent, "time">) => boolean;
   undoEvent: () => void;
   exportScoutReport: () => ChargedUpReport | null;
   reset: () => void;

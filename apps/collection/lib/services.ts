@@ -8,8 +8,9 @@ import {
 import { Scouter } from "./models/scouter";
 import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
-import { getMatchSchedule, MatchSchedule } from "./lovatAPI/getMatchSchedule";
-import { useTournamentStore } from "./storage/userStores";
+import { useMatchScheduleStore } from "./storage/matchScheduleStore";
+import { useConnectivityStore } from "./network/connectivity";
+export { useMatchScheduleStore } from "./storage/matchScheduleStore";
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
@@ -21,6 +22,8 @@ export function getServiceLoader() {
   const setServiceError = useServiceErrorStore.getInitialState().setValue;
 
   return async () => {
+    useMatchScheduleStore.getState().selectCurrentSchedule();
+    if (useConnectivityStore.getState().status === "offline") return;
     let error: string | null = null;
     try {
       setServicesLoading(true);
@@ -37,7 +40,6 @@ export function getServiceLoader() {
       console.error(e);
       error = JSON.stringify(e);
     } finally {
-      console.log("Fetch successful");
       setServicesLoading(false);
     }
     setServiceError(error);
@@ -101,10 +103,3 @@ export const useTournamentsStore = createGenericServiceStore<Tournament[]>(
   getTournaments,
   "tournamentsListStore",
 );
-
-export const useMatchScheduleStore = createGenericServiceStore<
-  MatchSchedule | undefined
->(async () => {
-  const tournament = useTournamentStore.getState().value;
-  return tournament ? getMatchSchedule(tournament.key) : undefined;
-}, "matchScheduleStore");

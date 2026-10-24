@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  AppState,
   Image,
   ImageSourcePropType,
   LayoutChangeEvent,
@@ -21,7 +22,8 @@ import {
   currentLocation,
   heldPiece,
   FieldLocation,
-  GamePiece,
+  activeActivity,
+  canScoreAt,
 } from "../ChargedUp";
 import { IconButton } from "../../components/IconButton";
 import { colors } from "../../colors";
@@ -32,6 +34,10 @@ import {
 import { AllianceColor } from "../../models/AllianceColor";
 
 const assets = {
+  selectionField: require("../../../assets/charged-up/selection-field.png"),
+  scoreCone: require("../../../assets/charged-up/score-cone.png"),
+  intakeCone: require("../../../assets/charged-up/intake-cone.png"),
+  intakeCube: require("../../../assets/charged-up/intake-cube.png"),
   field: require("../../../assets/charged-up/field.png"),
   zone: require("../../../assets/charged-up/zone.png"),
   cone: require("../../../assets/charged-up/cone.png"),
@@ -54,10 +60,10 @@ export function Game() {
   const [panel, setPanel] = useState<Panel>(null);
   const [intakeLocation, setIntakeLocation] = useState<FieldLocation>("CENTER");
   const [scoringArea, setScoringArea] = useState(0);
-  const [scorePiece, setScorePiece] = useState<GamePiece>("CUBE");
   const [elapsed, setElapsed] = useState(0);
   const location = currentLocation(state.events);
-  const piece = heldPiece(state.events);
+  const piece = heldPiece(state.events, state.preloadedPiece);
+  const activity = activeActivity(state.events);
   const started = !!state.startTimestamp;
   const inZone = location === "ALLIANCE_ZONE";
   const orientation = useFieldOrientationStore((s) => s.value);
@@ -65,6 +71,15 @@ export function Game() {
     (state.meta?.allianceColor === AllianceColor.Red) !==
     (orientation === FieldOrientation.Sinister);
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (next) => {
+      if (next !== "active") useReportStateStore.getState().stopHold();
+    });
+    return () => {
+      subscription.remove();
+      useReportStateStore.getState().stopHold();
+    };
+  }, []);
   useEffect(() => {
     if (!state.meta) router.replace("/home");
   }, [state.meta]);
@@ -84,7 +99,10 @@ export function Game() {
             ? GamePhase.Teleop
             : GamePhase.Endgame;
       state.setGamePhase(phase);
-      if (seconds >= MATCH_END_SECONDS) router.replace("/game/post-match");
+      if (seconds >= MATCH_END_SECONDS) {
+        useReportStateStore.getState().stopHold();
+        router.replace("/game/post-match");
+      }
     };
     tick();
     const interval = setInterval(tick, 250);
@@ -92,6 +110,7 @@ export function Game() {
   }, [state.startTimestamp]);
 
   const exit = () => {
+    state.stopHold();
     if (!started) {
       state.reset();
       return;
@@ -110,6 +129,7 @@ export function Game() {
     );
   };
   const intake = (at: FieldLocation) => {
+    if (piece || activity) return;
     setIntakeLocation(at);
     setPanel("intake");
   };
@@ -120,8 +140,8 @@ export function Game() {
     });
   };
   const score = (area: number) => {
+    if (!piece || activity) return;
     setScoringArea(area);
-    setScorePiece(piece ?? "CUBE");
     setPanel("score");
   };
   const endgameAvailable =
@@ -143,45 +163,10 @@ export function Game() {
               onPress={exit}
             />
           </View>
-        ) : panel === "score" ? (
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <IconButton
-              icon="undo"
-              label="Undo"
-              color={colors.onBackground.default}
-              onPress={state.undoEvent}
-              disabled={state.events.length === 0}
-            />
-            {(["CONE", "CUBE"] as const).map((p) => (
-              <Pressable
-                key={p}
-                accessibilityRole="button"
-                accessibilityLabel={`Scoring ${p.toLowerCase()}`}
-                accessibilityState={{ selected: scorePiece === p }}
-                onPress={() => setScorePiece(p)}
-                style={{
-                  padding: 3,
-                  borderRadius: 4,
-                  backgroundColor: scorePiece === p ? green : "transparent",
-                }}
-              >
-                <Image
-                  source={p === "CONE" ? assets.cone : assets.cube}
-                  style={{ width: 30, height: 30 }}
-                />
-              </Pressable>
-            ))}
-          </View>
         ) : undefined
       }
       onEnd={() => {
+        state.stopHold();
         setPanel(null);
         router.replace("/game/post-match");
       }}
@@ -208,7 +193,7 @@ export function Game() {
           {panel === "score" ? (
             <>
               <Image
-                source={assets.field}
+                source={assets.selectionField}
                 style={{
                   position: "absolute",
                   left: 15,
@@ -239,29 +224,43 @@ export function Game() {
                         <Pressable
                           key={column}
                           accessibilityRole="button"
-                          accessibilityLabel={`Score ${scorePiece.toLowerCase()} at ${column}${row}`}
-                          style={styles.cell}
+                          accessibilityLabel={`Score ${(piece ?? "piece").toLowerCase()} at ${column}${row}`}
+                          disabled={!canScoreAt(piece, `${column}${row}`)}
+                          accessibilityState={{
+                            disabled: !canScoreAt(piece, `${column}${row}`),
+                          }}
+                          style={[
+                            styles.cell,
+                            {
+                              backgroundColor: canScoreAt(
+                                piece,
+                                `${column}${row}`,
+                              )
+                                ? "rgba(156,255,154,0.5)"
+                                : green,
+                            },
+                          ]}
                           onPress={() => {
                             state.addEvent({
                               action:
-                                scorePiece === "CONE"
-                                  ? "SCORE_CONE"
-                                  : "SCORE_CUBE",
+                                piece === "CONE" ? "SCORE_CONE" : "SCORE_CUBE",
                               location: "SCORE",
                               scoringLocation: `${column}${row}`,
                             });
                             setPanel(null);
                           }}
                         >
-                          <Image
-                            source={
-                              scorePiece === "CONE"
-                                ? assets.cone
-                                : assets.scoreCube
-                            }
-                            resizeMode="contain"
-                            style={{ width: 40, height: 40 }}
-                          />
+                          {canScoreAt(piece, `${column}${row}`) && (
+                            <Image
+                              source={
+                                piece === "CONE"
+                                  ? assets.scoreCone
+                                  : assets.scoreCube
+                              }
+                              resizeMode="contain"
+                              style={{ width: 40, height: 40 }}
+                            />
+                          )}
                           <Text style={[styles.gridLabel, { fontSize: 18 }]}>
                             {column}
                             {row}
@@ -272,7 +271,7 @@ export function Game() {
                 ))}
               </View>
             </>
-          ) : (
+          ) : panel !== "intake" ? (
             <>
               <View
                 pointerEvents="none"
@@ -410,6 +409,7 @@ export function Game() {
                       h={91}
                       reversed={reversed}
                       label={`Scoring area ${index + 1}`}
+                      disabled={!piece || !!activity}
                       color={
                         state.meta?.allianceColor === AllianceColor.Blue
                           ? "transparent"
@@ -425,6 +425,7 @@ export function Game() {
                     h={294}
                     reversed={reversed}
                     label="Leave alliance zone"
+                    disabled={!!activity}
                     color={purple}
                     asset={assets.rightArrow}
                     onPress={() => move("CENTER")}
@@ -450,10 +451,15 @@ export function Game() {
                     w={232}
                     h={83}
                     reversed={reversed}
-                    label="Enter opponent zone"
+                    label="Hold to defend"
+                    active={activity === "DEFENDING"}
+                    onPressIn={() =>
+                      state.startHold("DEFENDING", "OPPONENT_ZONE")
+                    }
+                    onPressOut={state.stopHold}
                     color="#292929"
                     asset={assets.shield}
-                    onPress={() => move("OPPONENT_ZONE")}
+                    onPress={() => {}}
                   />
                   <BoardButton
                     x={33}
@@ -462,6 +468,7 @@ export function Game() {
                     h={184}
                     reversed={reversed}
                     label="Enter alliance zone"
+                    disabled={!!activity}
                     color={purple}
                     asset={assets.arrow}
                     onPress={() => move("ALLIANCE_ZONE")}
@@ -473,6 +480,7 @@ export function Game() {
                     h={272}
                     reversed={reversed}
                     label="Intake from ground"
+                    disabled={!!piece || !!activity}
                     color={yellow}
                     asset={assets.upload}
                     onPress={() => intake("CENTER")}
@@ -483,10 +491,15 @@ export function Game() {
                     w={80}
                     h={272}
                     reversed={reversed}
-                    label="Enter opponent station"
+                    label="Hold to camp"
+                    active={activity === "CAMPING"}
+                    onPressIn={() =>
+                      state.startHold("CAMPING", "OPPONENT_STATION")
+                    }
+                    onPressOut={state.stopHold}
                     color="rgba(29,163,246,0.3)"
                     asset={assets.camp}
-                    onPress={() => move("OPPONENT_STATION")}
+                    onPress={() => {}}
                   />
                   <BoardButton
                     x={687}
@@ -495,6 +508,7 @@ export function Game() {
                     h={85}
                     reversed={reversed}
                     label="Intake from alliance station"
+                    disabled={!!piece || !!activity}
                     color={yellow}
                     asset={assets.upload}
                     onPress={() => intake("ALLIANCE_STATION")}
@@ -506,6 +520,7 @@ export function Game() {
                     h={85}
                     reversed={reversed}
                     label="Drop game piece"
+                    disabled={!piece || !!activity}
                     color={green}
                     asset={assets.drop}
                     onPress={() => state.addEvent({ action: "DROP", location })}
@@ -526,7 +541,7 @@ export function Game() {
                 </>
               )}
             </>
-          )}
+          ) : null}
           {started && inZone && !panel && (
             <BoardButton
               x={660}
@@ -534,13 +549,14 @@ export function Game() {
               w={165}
               h={70}
               label="Select game piece"
+              disabled={!!piece || !!activity}
               reversed={reversed}
               color={yellow}
               asset={assets.upload}
               onPress={() => intake("ALLIANCE_ZONE")}
             />
           )}
-          {panel && (
+          {panel && panel !== "intake" && (
             <BoardButton
               x={795}
               y={4}
@@ -553,31 +569,68 @@ export function Game() {
             />
           )}
           {panel === "intake" && (
-            <View style={styles.overlay}>
-              {(["CONE", "CUBE"] as const).map((p) => (
-                <Pressable
-                  key={p}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Intake ${p.toLowerCase()}`}
-                  style={styles.cell}
-                  onPress={() => {
-                    state.addEvent({
-                      action: p === "CONE" ? "INTAKE_CONE" : "INTAKE_CUBE",
-                      location: intakeLocation,
-                    });
-                    setPanel(null);
-                  }}
-                >
-                  <Image
-                    source={p === "CONE" ? assets.cone : assets.cube}
-                    style={{ width: 90, height: 90 }}
-                  />
-                  <Text style={styles.gridLabel}>
-                    {p === "CONE" ? "Cone" : "Cube"}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <>
+              <Image
+                source={assets.selectionField}
+                style={{
+                  position: "absolute",
+                  left: 15,
+                  top: 3,
+                  width: 822,
+                  height: 311,
+                }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  left: 15,
+                  right: 15,
+                  top: 3,
+                  bottom: 20,
+                  flexDirection: "row",
+                  gap: 26,
+                }}
+              >
+                {(["CONE", "CUBE"] as const).map((p) => (
+                  <Pressable
+                    key={p}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Intake ${p.toLowerCase()}`}
+                    style={[
+                      styles.cell,
+                      { backgroundColor: "rgba(156,255,154,0.5)" },
+                    ]}
+                    onPress={() => {
+                      if (
+                        state.addEvent({
+                          action: p === "CONE" ? "INTAKE_CONE" : "INTAKE_CUBE",
+                          location: intakeLocation,
+                        })
+                      )
+                        setPanel(null);
+                    }}
+                  >
+                    <Image
+                      source={
+                        p === "CONE" ? assets.intakeCone : assets.intakeCube
+                      }
+                      resizeMode="contain"
+                      style={{ width: 83, height: 87 }}
+                    />
+                  </Pressable>
+                ))}
+              </View>
+              <BoardButton
+                x={795}
+                y={4}
+                w={42}
+                h={42}
+                label="Close selection"
+                color="#292929"
+                text="×"
+                onPress={() => setPanel(null)}
+              />
+            </>
           )}
           {panel === "charger" && (
             <View style={styles.overlay}>
@@ -638,6 +691,10 @@ function BoardButton({
   asset,
   text,
   onPress,
+  onPressIn,
+  onPressOut,
+  disabled = false,
+  active = false,
   reversed = false,
 }: {
   x: number;
@@ -649,6 +706,10 @@ function BoardButton({
   asset?: ImageSourcePropType;
   text?: string;
   onPress: () => void;
+  onPressIn?: () => void;
+  onPressOut?: () => void;
+  disabled?: boolean;
+  active?: boolean;
   reversed?: boolean;
 }) {
   const orientation = useFieldOrientationStore((s) => s.value);
@@ -656,6 +717,17 @@ function BoardButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled, selected: active }}
+      disabled={disabled}
+      onPressIn={
+        onPressIn
+          ? () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onPressIn();
+            }
+          : undefined
+      }
+      onPressOut={onPressOut}
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
@@ -667,6 +739,9 @@ function BoardButton({
         width: w,
         height: h,
         backgroundColor: color,
+        opacity: disabled ? 0.35 : 1,
+        borderWidth: active ? 3 : 0,
+        borderColor: "#e0e0e0",
         borderRadius: 7,
         alignItems: "center",
         justifyContent: "center",

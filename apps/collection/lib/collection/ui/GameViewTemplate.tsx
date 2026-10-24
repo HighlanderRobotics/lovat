@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, Image, Pressable } from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "react-native";
@@ -13,6 +13,11 @@ import { GameTimer } from "./GameTimer";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
+import { activeActivity, heldPiece } from "../ChargedUp";
+const pieceImages = {
+  CONE: require("../../../assets/charged-up/score-cone.png"),
+  CUBE: require("../../../assets/charged-up/scoreCube.png"),
+};
 
 export const GameViewTemplate = (props: {
   field: React.ReactNode;
@@ -25,6 +30,7 @@ export const GameViewTemplate = (props: {
 }) => {
   const reportState = useReportStateStore();
   const { gamePhaseMessage, field, startEnabled } = props;
+  const piece = heldPiece(reportState.events, reportState.preloadedPiece);
   if (!reportState.meta) return null;
 
   return (
@@ -61,7 +67,10 @@ export const GameViewTemplate = (props: {
                 icon="undo"
                 label="Undo"
                 color={colors.onBackground.default}
-                disabled={reportState.events.length === 0}
+                disabled={
+                  reportState.events.length === 0 ||
+                  !!activeActivity(reportState.events)
+                }
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   reportState.undoEvent();
@@ -70,6 +79,68 @@ export const GameViewTemplate = (props: {
             </View>
           )}
 
+          {reportState.startTimestamp ? (
+            <View
+              accessibilityLabel={
+                piece ? `Holding ${piece.toLowerCase()}` : "No game piece"
+              }
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                marginHorizontal: 12,
+              }}
+            >
+              {piece && (
+                <Image
+                  source={pieceImages[piece]}
+                  resizeMode="contain"
+                  style={{ width: 28, height: 28 }}
+                />
+              )}
+              <LabelSmall>
+                {piece ? (piece === "CONE" ? "Cone" : "Cube") : "No piece"}
+              </LabelSmall>
+            </View>
+          ) : (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginHorizontal: 12,
+              }}
+            >
+              <LabelSmall>Preload</LabelSmall>
+              {([null, "CONE", "CUBE"] as const).map((value) => (
+                <Pressable
+                  key={value ?? "none"}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Preload ${value?.toLowerCase() ?? "none"}`}
+                  accessibilityState={{ selected: piece === value }}
+                  onPress={() => reportState.setPreloadedPiece(value)}
+                  style={{
+                    padding: 5,
+                    borderRadius: 6,
+                    backgroundColor:
+                      piece === value
+                        ? colors.victoryPurple.default
+                        : "transparent",
+                  }}
+                >
+                  {value ? (
+                    <Image
+                      source={pieceImages[value]}
+                      resizeMode="contain"
+                      style={{ width: 24, height: 24 }}
+                    />
+                  ) : (
+                    <LabelSmall>None</LabelSmall>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          )}
           <View
             style={{ alignItems: "flex-end", gap: 2, flex: 1, marginRight: 13 }}
           >
