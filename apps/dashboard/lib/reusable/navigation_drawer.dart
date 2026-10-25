@@ -117,6 +117,16 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
                   icon: Icons.today,
                 ),
               ],
+              DrawerDestination(
+                label: "Home",
+                onTap: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, "/home", (route) => false);
+                },
+                isSelected: ModalRoute.of(context)?.settings.name == "/home",
+                icon: Icons.home_filled,
+              ),
+
               if (userProfile?.role == UserRole.scoutingLead &&
                   userProfile?.team != null) ...[
                 DrawerDestination(

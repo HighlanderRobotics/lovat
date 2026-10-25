@@ -30,13 +30,14 @@ import 'package:scouting_dashboard_app/pages/settings.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/edit_team_lookup_flag.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/team_lookup.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/team_lookup_details.dart';
-
+import 'package:scouting_dashboard_app/pages/home.dart';
 void main() async {
   runApp(MaterialApp(
     title: 'Lovat',
     onGenerateTitle: (context) => 'Lovat Dashboard',
-    initialRoute: "/loading",
+    initialRoute: "/home",
     routes: {
+      '/home': (context) => const HomePage(),
       '/loading': (context) => const InitialLoaderPage(),
       '/preview_over': (context) => const PreviewOverPage(),
       '/match_schedule': (context) => const MatchSchedulePage(),
