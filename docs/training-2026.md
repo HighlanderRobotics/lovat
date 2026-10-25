@@ -13,6 +13,8 @@ Training uses the existing 2026 report format. Training reports carry `training 
 - Deploy the eight additive report-lifecycle/training migrations in `packages/db/prisma/migrations/2026101400*` before deploying Server.
 - Set Website `LOVAT_API_BASE` to the Server URL. Set `LOVAT_PUBLIC_API_BASE` when the browser needs a different public Server URL. The public URL must support `/collection/training/socket` WebSocket upgrades.
 - Install a 2026 Collection build with the training deep link. The Charged Up app is maintained on a separate offseason branch.
+- For PR #93 device testing, use Collection's `training-pr-93` EAS profile. It targets `https://api-lovat-pr-93.up.railway.app` and inherits the internal preview signing configuration. Team/scouter credentials must belong to that preview environment.
+- The 2026 app stores history under `historyStore2026`. It imports valid 2026 entries from the older shared key while preserving the original Charged Up history.
 - Publish reviewed exercise records and their training answer keys in the target database. This PR does not populate or modify a deployed database. `tools/seed-training-exercise.ts` is restricted to the disposable local `lovat_test` database.
 
 ## Regression checks
