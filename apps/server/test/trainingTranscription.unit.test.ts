@@ -7,7 +7,10 @@ import { EventActionMap } from "../src/handler/manager/managerConstants.js";
 
 describe("118 Johnson qualification 19 transcription", () => {
   it("encodes observed post-match fields using the real report contract", () => {
-    expect(reportSchema.parse(report)).toEqual(report);
+    expect(reportSchema.parse(report)).toEqual({
+      ...report,
+      customPostMatch: [],
+    });
     expect(report).toMatchObject({
       teamNumber: 118,
       matchType: "QUALIFICATION",

@@ -12,9 +12,7 @@ import { IconButton } from "../../lib/components/IconButton";
 
 import {
   FieldOrientation,
-  ScoringMode,
   useFieldOrientationStore,
-  useScoringModeStore,
 } from "../../lib/storage/userStores";
 import { Picker } from "../../lib/components/Picker";
 import { colors } from "../../lib/colors";
@@ -72,7 +70,6 @@ export default function Settings() {
               }}
             >
               <FieldOrientationEditor />
-              <HubMode />
               <TournamentSelector />
               <TrainingModeSelector />
               <QRCodeSizeLink />
@@ -212,40 +209,6 @@ const FieldOrientationEditor = () => {
           ]}
           selected={fieldOrientation}
           onChange={setFieldOrientation}
-        />
-      </View>
-    </View>
-  );
-};
-
-const HubMode = () => {
-  const scoringMode = useScoringModeStore((state) => state.value);
-  const setScoringMode = useScoringModeStore((state) => state.setValue);
-  return (
-    <View>
-      <Heading1Small>Scoring mode</Heading1Small>
-      <View
-        style={{
-          marginTop: 7,
-          padding: 7,
-          borderRadius: 10,
-          backgroundColor: colors.secondaryContainer.default,
-          gap: 7,
-        }}
-      >
-        <Picker
-          options={[
-            {
-              label: "Rate",
-              value: ScoringMode.Rate,
-            },
-            {
-              label: "Count",
-              value: ScoringMode.Count,
-            },
-          ]}
-          selected={scoringMode}
-          onChange={(value) => setScoringMode(value)}
         />
       </View>
     </View>

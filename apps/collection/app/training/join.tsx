@@ -18,6 +18,7 @@ import { useReportStateStore } from "../../lib/collection/reportStateStore";
 import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 import { AllianceColor } from "../../lib/models/AllianceColor";
 import { MatchType } from "../../lib/models/match";
+import { useCustomPostMatchStore } from "../../lib/storage/customPostMatchStore";
 
 export default function JoinTraining() {
   const params = useLocalSearchParams<{ session?: string; token?: string }>();
@@ -62,6 +63,8 @@ export default function JoinTraining() {
             </BodyMedium>
             <TextField
               value={deviceName}
+              accessibilityLabel="Device name"
+              maxLength={80}
               onChangeText={setDeviceName}
               placeholder="Device name (for the website roster)"
             />
@@ -90,27 +93,38 @@ export default function JoinTraining() {
                         data.displayError ?? "Could not join training.",
                       );
                     const video = data.snapshot.video;
+                    if (video.gameYear !== 2023)
+                      throw new Error(
+                        "This Collection build requires a Charged Up training exercise.",
+                      );
                     useFieldOrientationStore
                       .getState()
                       .setValue(FieldOrientation.Auspicious);
-                    useReportStateStore.getState().scoutMatch({
-                      scouterUUID: scout.uuid,
-                      teamNumber: video.teamNumber,
-                      allianceColor: video.alliance as AllianceColor,
-                      matchIdentity: {
-                        tournamentKey: video.tournamentKey,
-                        matchType:
-                          video.matchType === "QUALIFICATION"
-                            ? MatchType.Qualifier
-                            : MatchType.Elimination,
-                        matchNumber: video.matchNumber,
+                    useReportStateStore.getState().scoutMatch(
+                      {
+                        scouterUUID: scout.uuid,
+                        teamNumber: video.teamNumber,
+                        allianceColor: video.alliance as AllianceColor,
+                        matchIdentity: {
+                          tournamentKey: video.tournamentKey,
+                          matchType:
+                            video.matchType === "QUALIFICATION"
+                              ? MatchType.Qualifier
+                              : video.matchType === "PRACTICE"
+                                ? MatchType.Practice
+                                : MatchType.Elimination,
+                          matchNumber: video.matchNumber,
+                        },
+                        collection: {
+                          sourceTeamNumber: team,
+                          trainingAttemptUuid: data.attemptUuid,
+                          trainingSessionUuid: valid.data.session,
+                        },
                       },
-                      collection: {
-                        sourceTeamNumber: team,
-                        trainingAttemptUuid: data.attemptUuid,
-                        trainingSessionUuid: valid.data.session,
-                      },
-                    });
+                      useCustomPostMatchStore.getState().getQuestions(),
+                    );
+                    if (data.reportUuid)
+                      useReportStateStore.setState({ uuid: data.reportUuid });
                     useTrainingSessionStore.getState().set({
                       credentials: {
                         sessionUuid: valid.data.session,

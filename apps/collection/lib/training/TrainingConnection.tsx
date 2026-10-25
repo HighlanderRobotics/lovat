@@ -1,3 +1,4 @@
+import { syncReportLifecycle } from "../lovatAPI/reportLifecycle";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import { useUrlPrefix } from "../lovatAPI/lovatAPI";
@@ -6,6 +7,17 @@ import { useTrainingSessionStore, TrainingSnapshot } from "./trainingStore";
 
 export function TrainingConnection() {
   const credentials = useTrainingSessionStore((state) => state.credentials);
+  const uuid = useReportStateStore((state) => state.uuid);
+  const meta = useReportStateStore((state) => state.meta);
+  const start = useReportStateStore((state) => state.startTimestamp);
+  const connected = useTrainingSessionStore((state) => state.connected);
+  useEffect(() => {
+    if (credentials?.reportUuid === uuid && uuid && meta?.collection) {
+      void syncReportLifecycle(uuid, meta, start?.getTime()).catch((error) =>
+        console.warn("Training sync pending", error.message),
+      );
+    }
+  }, [credentials, uuid, meta, start, connected]);
   useEffect(() => {
     if (!credentials) return;
     let disposed = false;
@@ -39,7 +51,25 @@ export function TrainingConnection() {
           }),
         );
       socket.onmessage = ({ data }) => {
-        const snapshot = JSON.parse(data) as TrainingSnapshot;
+        if (
+          disposed ||
+          useTrainingSessionStore.getState().credentials?.attemptUuid !==
+            credentials.attemptUuid
+        )
+          return;
+        let snapshot: TrainingSnapshot;
+        try {
+          snapshot = JSON.parse(data);
+        } catch {
+          return;
+        }
+        if (
+          !snapshot ||
+          snapshot.uuid !== credentials.sessionUuid ||
+          !Array.isArray(snapshot.participants) ||
+          !snapshot.video
+        )
+          return;
         set({ snapshot, connected: true, error: null });
         const report = useReportStateStore.getState();
         if (report.uuid !== credentials.reportUuid) return;
@@ -88,7 +118,9 @@ export function TrainingConnection() {
             error: "Training session is unavailable. Join a new session.",
           });
       };
-      socket.onerror = () => set({ connected: false });
+      socket.onerror = () => {
+        if (!disposed) set({ connected: false });
+      };
     };
     connect();
     return () => {

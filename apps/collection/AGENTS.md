@@ -6,4 +6,5 @@
 - Never put secrets in `EXPO_PUBLIC_*`; those values are compiled into client builds.
 - Report events, offline migrations, QR-code fallback, deep links, and upload payloads are compatibility-sensitive.
 - Preserve EAS project ownership, identifiers, profiles, and signing configuration.
+- Keep the app version at 26.1.0 for upcoming installs. Increment the iOS build number and Android version code for each new install build rather than bumping the app version.
 - Android and web have documented pre-existing issues; do not conceal them by weakening checks.

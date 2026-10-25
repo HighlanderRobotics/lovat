@@ -8,27 +8,40 @@ import {
 import { Scouter } from "./models/scouter";
 import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
+import { useMatchScheduleStore } from "./storage/matchScheduleStore";
+import { useConnectivityStore } from "./network/connectivity";
+import { useCustomPostMatchStore } from "./storage/customPostMatchStore";
+export { useMatchScheduleStore } from "./storage/matchScheduleStore";
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
     useScouterScheduleStore.getInitialState().fetchData;
   const fetchTeamScouters = useTeamScoutersStore.getInitialState().fetchData;
   const fetchTournaments = useTournamentsStore.getInitialState().fetchData;
+  const fetchMatchSchedule = useMatchScheduleStore.getInitialState().fetchData;
   const setServicesLoading = useServicesLoadingStore.getInitialState().setValue;
   const setServiceError = useServiceErrorStore.getInitialState().setValue;
 
   return async () => {
+    useMatchScheduleStore.getState().selectCurrentSchedule();
+    if (useConnectivityStore.getState().status === "offline") return;
     let error: string | null = null;
     try {
       setServicesLoading(true);
-      await fetchTournaments();
-      await fetchTeamScouters();
-      await fetchScouterSchedule();
+      // A missing scouter schedule must not stop the official schedule refresh.
+      const results = await Promise.allSettled([
+        fetchTournaments(),
+        fetchTeamScouters(),
+        fetchScouterSchedule(),
+        fetchMatchSchedule(),
+        useCustomPostMatchStore.getState().fetchData(),
+      ]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
     } catch (e) {
       console.error(e);
       error = JSON.stringify(e);
     } finally {
-      console.log("Fetch successful");
       setServicesLoading(false);
     }
     setServiceError(error);

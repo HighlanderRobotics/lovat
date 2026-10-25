@@ -12,6 +12,7 @@ import {
   RobotRole,
 } from "@lovat/db";
 import { EventActionMap, PositionMap } from "../manager/managerConstants.js";
+import { customPostMatchAnswersSchema } from "../../lib/customPostMatch.js";
 import { timestampSchema } from "./ownedReport.js";
 
 const eventSchema = z
@@ -46,6 +47,7 @@ const eventSchema = z
   });
 
 export const reportSchema = z.object({
+  customPostMatch: customPostMatchAnswersSchema.optional().default([]),
   uuid: z.uuid(),
   scouterUuid: z.uuid(),
   tournamentKey: z.string().min(1),

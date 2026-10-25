@@ -35,6 +35,7 @@ import {
   TournamentSchema,
 } from "../../lib/prisma-zod.js";
 import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js";
+import { getFullMatchSchedule } from "../../handler/manager/getFullMatchSchedule.js";
 import { checkMatchExists } from "../../handler/manager/checkMatchExists.js";
 
 const router = Router();
@@ -111,6 +112,18 @@ const MatchSchema = z.object({
   team6: MatchTeamSchema,
 });
 
+const PracticeMatchSchema = z.object({
+  matchNumber: z.number().int(),
+  matchType: z.literal(2),
+  scouted: z.boolean(),
+  finished: z.literal(false),
+  teams: z
+    .array(MatchTeamSchema)
+    .describe(
+      "Reported practice teams, sorted by team number; no alliance slots",
+    ),
+});
+
 registry.registerPath({
   method: "get",
   path: "/v1/manager/matches/{tournament}",
@@ -118,12 +131,24 @@ registry.registerPath({
   summary: "List matches for a tournament",
   request: {
     params: z.object({ tournament: z.string() }),
-    query: z.object({ teams: z.string().optional() }),
+    query: z.object({
+      teams: z.string().optional(),
+      includePractice: z
+        .enum(["true", "false"])
+        .optional()
+        .describe(
+          "Defaults to false. When true, append practice matches (matchType 2) with a teams array instead of team1–team6. Official scouting-shift numbering is unchanged.",
+        ),
+    }),
   },
   responses: {
     200: {
       description: "Formatted match list",
-      content: { "application/json": { schema: z.array(MatchSchema) } },
+      content: {
+        "application/json": {
+          schema: z.array(z.union([MatchSchema, PracticeMatchSchema])),
+        },
+      },
     },
     400: { description: "Invalid parameters" },
     401: { description: "Unauthorized" },
@@ -160,6 +185,46 @@ registry.registerPath({
     },
     400: { description: "Invalid parameters" },
     404: { description: "Match not found" },
+  },
+  security: [],
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/matchschedule/{tournament}",
+  tags: ["Manager - Matches"],
+  summary: "Download the complete fixture schedule for offline Collection use",
+  request: {
+    params: z.object({ tournament: z.string() }),
+    headers: z.object({ "x-team-code": z.string().min(1) }),
+  },
+  responses: {
+    200: {
+      description:
+        "Every imported match, including every team and its alliance",
+      content: {
+        "application/json": {
+          schema: z.object({
+            tournamentKey: z.string(),
+            matches: z.array(
+              z.object({
+                matchNumber: z.number().int(),
+                matchType: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+                teams: z.array(
+                  z.object({
+                    number: z.number().int(),
+                    alliance: z.enum(["red", "blue"]).nullable(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    400: { description: "Missing tournament or team code" },
+    401: { description: "Invalid team code" },
+    404: { description: "Schedule not imported yet" },
   },
   security: [],
 });
@@ -457,6 +522,7 @@ router.get("/teams", requireAuth, getTeams);
 router.get("/tournaments", requireAuth, getTournaments);
 
 router.get("/checkmatch", checkMatchExists);
+router.get("/matchschedule/:tournament", getFullMatchSchedule);
 
 router.get(
   "/matches/:tournament",

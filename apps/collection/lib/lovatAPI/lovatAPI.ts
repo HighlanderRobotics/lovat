@@ -7,7 +7,8 @@ import { useScouterStore, useTeamStore } from "../storage/userStores";
 import { persist } from "zustand/middleware";
 import { storage } from "../storage/zustandStorage";
 
-const defaultUrlPrefix = process.env.EXPO_PUBLIC_API_URL;
+const defaultUrlPrefix =
+  process.env.EXPO_PUBLIC_API_URL ?? "https://api.lovat.app";
 
 export const useUrlPrefix = create(
   persist<{
@@ -76,9 +77,10 @@ const getCommonHeaders = async () => {
   return headers;
 };
 
-export const get = async (url: string) => {
+export const get = async (url: string, options?: { signal?: AbortSignal }) => {
   return await fetch(useUrlPrefix.getState().getUrlPrefix() + url, {
     headers: await getCommonHeaders(),
+    signal: options?.signal,
   });
 };
 

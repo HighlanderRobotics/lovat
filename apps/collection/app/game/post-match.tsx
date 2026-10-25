@@ -1,496 +1,383 @@
-import { Alert, View } from "react-native";
-import { NavBar } from "../../lib/components/NavBar";
-import { Stack, router, useNavigation } from "expo-router";
+import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
+import React, { useEffect, useState } from "react";
+import { Alert, View, Text } from "react-native";
+import { Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import Slider from "@react-native-community/slider";
+import { NavBar } from "../../lib/components/NavBar";
 import Button from "../../lib/components/Button";
-import LabelSmall from "../../lib/components/text/LabelSmall";
+import BodyMedium from "../../lib/components/text/BodyMedium";
+import TextField from "../../lib/components/TextField";
+import { Checkbox } from "../../lib/components/Checkbox";
 import { Picker, PickerOption } from "../../lib/components/Picker";
 import { useReportStateStore } from "../../lib/collection/reportStateStore";
+import { PostMatchData } from "../../lib/collection/ChargedUp";
 import { driverAbilityDescriptions } from "../../lib/collection/DriverAbility";
-import { robotRoleDescriptions } from "../../lib/collection/RobotRole";
-import {
-  FieldTraversal,
-  fieldTraversalDescriptions,
-} from "../../lib/collection/FieldTraversal";
-import { accuracyDescriptions } from "../../lib/collection/Accuracy";
-import { autoClimbDescriptions } from "../../lib/collection/AutoClimb";
-import {
-  IntakeType,
-  intakeTypeDescriptions,
-} from "../../lib/collection/IntakeType";
-import { feederTypeDescriptions } from "../../lib/collection/FeederType";
-import { Beached, beachedDescriptions } from "../../lib/collection/Beached";
-import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
-import { scoresWhileMovingDescriptions } from "../../lib/collection/ScoresWhileMoving";
-import {
-  EndgameClimb,
-  endgameClimbDescriptions,
-} from "../../lib/collection/EndgameClimb";
-import TextField from "../../lib/components/TextField";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { CommonActions } from "@react-navigation/native";
-import BodyMedium from "../../lib/components/text/BodyMedium";
 import { useTrainingModeStore } from "../../lib/storage/userStores";
-import React from "react";
 import { useTrainingSessionStore } from "../../lib/training/trainingStore";
-import { Checkbox } from "../../lib/components/Checkbox";
-import { RobotRole } from "../../lib/collection/RobotRole";
-import { MatchEventType } from "../../lib/collection/MatchEventType";
+import { colors } from "../../lib/colors";
 
 export default function PostMatch() {
-  const reportState = useReportStateStore();
-  const localPractice = useTrainingModeStore((state) => state.value);
-  const training = useTrainingSessionStore();
-  const pairedTraining = !!reportState.meta?.collection?.trainingAttemptUuid;
-  const trainingModeEnabled = localPractice && !pairedTraining;
-  const interrupted =
-    pairedTraining && training.snapshot?.status === "INTERRUPTED";
-
-  const navigation = useNavigation();
-
-  if (!reportState) {
-    navigation.dispatch(
-      CommonActions.reset({
-        routes: [{ key: "index", name: "index" }],
-      }),
-    );
-    return null;
-  }
-
-  const shouldShowDefenseEffectiveness =
-    reportState.robotRole.includes(RobotRole.Defending) ||
-    reportState.hasEventOfType(
-      MatchEventType.StartDefending,
-      MatchEventType.StartCamping,
-    );
-
-  const hasEndgameClimbEvent = reportState.hasEndgameClimbEvent();
-
-  const endgameClimbIsMismatched =
-    hasEndgameClimbEvent &&
-    reportState.climbResult === EndgameClimb.NotAttempted;
-
-  const hasOutpostIntakeEvent = reportState.hasOutpostIntakeEvent();
-  const autoTraversalTypes = reportState.getAutoTraversalTypes();
-
+  const state = useReportStateStore();
+  const trainingSession = useTrainingSessionStore((s) => s.credentials);
+  const trainingError = useTrainingSessionStore((s) => s.error);
+  const interrupted = useTrainingSessionStore(
+    (s) => s.snapshot?.status === "INTERRUPTED",
+  );
+  const training = useTrainingModeStore((s) => s.value);
+  const [links, setLinks] = useState(String(state.links));
+  const set = state.setPostMatch;
+  useEffect(() => {
+    useReportStateStore.getState().endMatch();
+  }, []);
+  const validLinks = /^\d+$/.test(links) && Number.isSafeInteger(Number(links));
+  if (!state.meta) return null;
   return (
     <>
       <Stack.Screen
         options={{
           orientation: "portrait_up",
           animationDuration: 0,
-          animationTypeForReplace: "push",
           animation: "flip",
         }}
       />
       <NavBar title="Post match" />
       <KeyboardAwareScrollView
-        style={{ flex: 1, paddingVertical: 16, paddingHorizontal: 26, gap: 28 }}
+        style={{ flex: 1 }}
         contentContainerStyle={{
-          flexDirection: "row",
-          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: 16,
+          paddingHorizontal: 26,
         }}
         bottomOffset={48}
         keyboardDismissMode="interactive"
-        disableScrollOnKeyboardHide={true}
       >
         <SafeAreaView
           edges={["bottom", "left", "right"]}
-          style={{ flex: 1, gap: 14, paddingBottom: 200, maxWidth: 550 }}
+          style={{ width: "100%", gap: 14, maxWidth: 550 }}
         >
-          <PostMatchSelector
-            title="Robot roles"
-            items={robotRoleDescriptions.map((roleDescription) => ({
-              label: roleDescription.localizedDescription,
-              description: roleDescription.localizedLongDescription,
-              value: roleDescription.role,
-            }))}
-            selected={reportState.robotRole}
-            onChange={reportState.setRobotRole}
-            multiSelect
-          />
-          {reportState.hasEventOfType(MatchEventType.StartScoring) && (
-            <PostMatchSelector
-              title="Accuracy"
-              items={accuracyDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.accuracy,
-              }))}
-              selected={reportState.accuracy}
-              onChange={reportState.setAccuracy}
-            />
-          )}
-          {reportState.robotRole.includes(RobotRole.Feeding) && (
-            <PostMatchSelector
-              title="Feeder Type"
-              items={feederTypeDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.feederType,
-              }))}
-              selected={reportState.feederType}
-              onChange={reportState.setFeederType}
+          <View style={{ gap: 7 }}>
+            <QuestionLabel>Roles performed</QuestionLabel>
+            <BodyMedium>
+              Select every role this robot performed during the match.
+            </BodyMedium>
+            <Picker
+              style="inset-picker"
               multiSelect
+              options={
+                [
+                  {
+                    value: "OFFENCE",
+                    label: "Offence",
+                    description:
+                      "Collected and scored cones or cubes in the alliance grid.",
+                  },
+                  {
+                    value: "DEFENCE",
+                    label: "Defence",
+                    description:
+                      "Blocked opponents or disrupted their routes and scoring.",
+                  },
+                  {
+                    value: "FEEDING",
+                    label: "Feeding",
+                    description:
+                      "Moved pieces for alliance partners without scoring them.",
+                  },
+                  {
+                    value: "IMMOBILE",
+                    label: "Immobile",
+                    description:
+                      "Could not move for a significant part of the match.",
+                  },
+                ] as {
+                  value: PostMatchData["robotRoles"][number];
+                  label: string;
+                  description: string;
+                }[]
+              }
+              selected={state.robotRoles}
+              onChange={(value) =>
+                set({
+                  robotRoles: state.robotRoles.includes(value)
+                    ? state.robotRoles.filter((r) => r !== value)
+                    : [...state.robotRoles, value],
+                })
+              }
             />
-          )}
-          {shouldShowDefenseEffectiveness && (
-            <PostMatchSelector
-              title="Defense Effectiveness"
-              items={defenseEffectivenessDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.effectiveness,
+          </View>
+          <View style={{ gap: 7 }}>
+            <QuestionLabel>Driver ability</QuestionLabel>
+            <BodyMedium>
+              Rate how consistently the driver controlled and positioned this
+              robot, from 1 to 5.
+            </BodyMedium>
+            <Picker
+              style="inset-picker"
+              options={driverAbilityDescriptions.map((d) => ({
+                value: d.numericalRating,
+                label: `${d.numericalRating} · ${d.localizedDescription}`,
+                description: d.localizedLongDescription,
               }))}
-              selected={reportState.defenseEffectiveness}
-              onChange={reportState.setDefenseEffectiveness}
+              selected={state.driverAbility}
+              onChange={(driverAbility) => set({ driverAbility })}
             />
-          )}
-          <PostMatchSelector<string, IntakeType>
-            title="Intake Type"
-            items={intakeTypeDescriptions
-              .filter(
-                (desc) =>
-                  desc.intakeType === IntakeType.Ground ||
-                  desc.intakeType === IntakeType.Outpost,
-              )
-              .map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value:
-                  desc.intakeType === IntakeType.Ground ? "ground" : "outpost",
-                disabled:
-                  desc.intakeType === IntakeType.Outpost &&
-                  hasOutpostIntakeEvent,
+          </View>
+          <View style={{ gap: 7 }}>
+            <QuestionLabel>Defence effectiveness</QuestionLabel>
+            <Picker
+              style="inset-picker"
+              selected={state.defenseEffectiveness}
+              onChange={(defenseEffectiveness) => set({ defenseEffectiveness })}
+              options={defenseEffectivenessDescriptions.map((d) => ({
+                value: d.num + 1,
+                label: `${d.num + 1} · ${d.localizedDescription}`,
+                description: d.localizedLongDescription,
               }))}
-            selected={
-              reportState.intakeType === IntakeType.Both
-                ? ["ground", "outpost"]
-                : reportState.intakeType === IntakeType.Ground
-                  ? ["ground"]
-                  : reportState.intakeType === IntakeType.Outpost
-                    ? ["outpost"]
-                    : []
+            />
+          </View>
+          <RatingSlider
+            label="Active vs camping defence"
+            caption="Estimate the share of defence spent actively following or blocking opponents. 0% means all camping; 100% means all active."
+            value={state.activeDefensePercentage}
+            min={0}
+            max={100}
+            onChange={(activeDefensePercentage) =>
+              set({ activeDefensePercentage })
             }
-            onChange={reportState.setIntakeType}
-            multiSelect
-            mapSelection={(selected) => {
-              const hasGround = selected.includes("ground");
-              const hasOutpost = selected.includes("outpost");
-              if (hasGround && hasOutpost) return IntakeType.Both;
-              if (hasGround) return IntakeType.Ground;
-              if (hasOutpost) return IntakeType.Outpost;
-              return IntakeType.Neither;
-            }}
+            suffix="% active"
           />
-          <PostMatchSelector<string, FieldTraversal>
-            title="Field Traversal"
-            items={fieldTraversalDescriptions
-              .filter(
-                (desc) =>
-                  desc.traversal === FieldTraversal.Trench ||
-                  desc.traversal === FieldTraversal.Bump,
-              )
-              .map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value:
-                  desc.traversal === FieldTraversal.Trench ? "trench" : "bump",
-                disabled:
-                  (desc.traversal === FieldTraversal.Trench &&
-                    autoTraversalTypes.trench) ||
-                  (desc.traversal === FieldTraversal.Bump &&
-                    autoTraversalTypes.bump),
-              }))}
-            selected={
-              reportState.fieldTraversal === FieldTraversal.Both
-                ? ["trench", "bump"]
-                : reportState.fieldTraversal === FieldTraversal.Trench
-                  ? ["trench"]
-                  : reportState.fieldTraversal === FieldTraversal.Bump
-                    ? ["bump"]
-                    : []
-            }
-            onChange={reportState.setFieldTraversal}
-            multiSelect
-            mapSelection={(selected) => {
-              const hasTrench = selected.includes("trench");
-              const hasBump = selected.includes("bump");
-              if (hasTrench && hasBump) return FieldTraversal.Both;
-              if (hasTrench) return FieldTraversal.Trench;
-              if (hasBump) return FieldTraversal.Bump;
-              return FieldTraversal.None;
-            }}
+          <Choice
+            label="Intake sources"
+            values={["GROUND", "STATION", "BOTH", "NEITHER"] as const}
+            selected={state.intakeType}
+            onChange={(intakeType) => set({ intakeType })}
           />
-          <PostMatchSelector
-            title="Auto Climb"
-            items={autoClimbDescriptions.map((desc) => ({
-              label: desc.localizedDescription,
-              description: desc.localizedLongDescription,
-              value: desc.climb,
-            }))}
-            selected={reportState.autoClimb}
-            onChange={reportState.setAutoClimb}
+          <Choice
+            label="Game pieces"
+            values={["CONE", "CUBE", "BOTH", "NEITHER"] as const}
+            selected={state.intakePieces}
+            onChange={(intakePieces) => set({ intakePieces })}
           />
-          {hasEndgameClimbEvent && (
-            <PostMatchSelector
-              title="Endgame Climb"
-              items={endgameClimbDescriptions
-                .filter((desc) => desc.climb !== EndgameClimb.NotAttempted)
-                .map((desc) => ({
-                  label: desc.localizedDescription,
-                  description: desc.localizedLongDescription,
-                  value: desc.climb,
-                }))}
-              selected={reportState.climbResult}
-              onChange={reportState.setClimbResult}
+          <Choice
+            label="Paths into alliance zone"
+            values={["MIDDLE", "TOP", "BOTH", "NEITHER"] as const}
+            selected={state.mobility}
+            onChange={(mobility) => set({ mobility })}
+          />
+          <Choice
+            label="Endgame result"
+            values={["NOT_ATTEMPTED", "FAILED", "SUCCEEDED"] as const}
+            selected={state.endgameResult}
+            onChange={(endgameResult) => set({ endgameResult })}
+          />
+          <View style={{ gap: 7 }}>
+            <Checkbox
+              label="Alliance achieved coopertition"
+              checked={state.coopertition}
+              onChange={(coopertition) => set({ coopertition })}
             />
-          )}
-
-          <PostMatchSelector<string, Beached>
-            title="Beached"
-            items={beachedDescriptions
-              .filter(
-                (desc) =>
-                  desc.beached === Beached.OnFuel ||
-                  desc.beached === Beached.OnBump,
-              )
-              .map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.beached === Beached.OnFuel ? "fuel" : "bump",
-              }))}
-            selected={
-              reportState.beached === Beached.Both
-                ? ["fuel", "bump"]
-                : reportState.beached === Beached.OnFuel
-                  ? ["fuel"]
-                  : reportState.beached === Beached.OnBump
-                    ? ["bump"]
-                    : []
-            }
-            onChange={reportState.setBeached}
-            multiSelect
-            mapSelection={(selected) => {
-              const hasFuel = selected.includes("fuel");
-              const hasBump = selected.includes("bump");
-              if (hasFuel && hasBump) return Beached.Both;
-              if (hasFuel) return Beached.OnFuel;
-              if (hasBump) return Beached.OnBump;
-              return Beached.Neither;
-            }}
-          />
-          <PostMatchSelector
-            title="Driver ability"
-            items={driverAbilityDescriptions.map((desc) => ({
-              label: desc.localizedDescription,
-              description: desc.localizedLongDescription,
-              value: desc.ability,
-            }))}
-            selected={reportState.driverAbility}
-            onChange={reportState.setDriverAbility}
-          />
-          {reportState.hasEventOfType(
-            MatchEventType.StartScoring,
-            MatchEventType.StopScoring,
-            MatchEventType.StartFeeding,
-            MatchEventType.StopFeeding,
-          ) && (
-            <PostMatchSelector
-              title="Scores While Moving"
-              items={scoresWhileMovingDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.scoresWhileMoving,
-              }))}
-              selected={reportState.scoresWhileMoving}
-              onChange={reportState.setScoresWhileMoving}
+          </View>
+          <View style={{ gap: 7 }}>
+            <QuestionLabel>Links scored by the whole alliance</QuestionLabel>
+            <BodyMedium>
+              Count all links completed by the alliance. A link is three
+              adjacent scored nodes in the same row.
+            </BodyMedium>
+            <TextField
+              placeholder="Alliance links scored"
+              keyboardType="number-pad"
+              value={links}
+              onChangeText={(text) => {
+                setLinks(text);
+                if (/^\d+$/.test(text) && Number.isSafeInteger(Number(text)))
+                  set({ links: Number(text) });
+              }}
             />
-          )}
-          <View style={{ marginVertical: 18 }}>
+            {!validLinks && (
+              <BodyMedium>Enter a non-negative whole number.</BodyMedium>
+            )}
+          </View>
+          <View style={{ gap: 7 }}>
             <Checkbox
               label="Robot broke"
-              checked={reportState.robotBrokeDescription != null}
-              onChange={(checked) => {
-                reportState.setRobotBrokeDescription(checked ? "" : null);
-              }}
-            />
-            {reportState.robotBrokeDescription != null && (
-              <View style={{ gap: 7, marginTop: 7 }}>
-                <TextField
-                  value={reportState.robotBrokeDescription}
-                  onChangeText={reportState.setRobotBrokeDescription}
-                  multiline={true}
-                  returnKeyType="done"
-                  placeholder="How did it break?"
-                />
-              </View>
-            )}
-          </View>
-
-          <View style={{ gap: 7, marginBottom: 18 }}>
-            <LabelSmall>Notes</LabelSmall>
-            <TextField
-              value={reportState!.notes}
-              onChangeText={reportState.setNotes}
-              multiline={true}
-              returnKeyType="done"
-            />
-            <View
-              style={{
-                marginTop: -2,
-              }}
-            >
-              <BodyMedium>
-                Keep it helpful. Notes can be viewed by anyone.
-              </BodyMedium>
-            </View>
-          </View>
-          <View style={{ gap: 10 }}>
-            <Button
-              disabled={
-                interrupted ||
-                trainingModeEnabled ||
-                endgameClimbIsMismatched ||
-                (reportState.hasEventOfType(MatchEventType.StartScoring) &&
-                  reportState.accuracy === null)
+              checked={state.robotBrokeDescription !== null}
+              onChange={(checked) =>
+                set({ robotBrokeDescription: checked ? "" : null })
               }
-              variant="primary"
-              onPress={() => {
-                router.replace("/game/submit");
-              }}
-            >
-              {pairedTraining ? "Submit training report" : "Submit"}
-            </Button>
-            <Button
-              variant="secondary"
-              onPress={() => {
-                Alert.alert(
-                  "Discard match?",
-                  "You will lose all of the data that you recorded.",
-                  [
-                    {
-                      text: "Cancel",
-                    },
-                    {
-                      text: "Discard",
-                      style: "destructive",
-                      onPress: () => {
-                        useTrainingSessionStore.getState().clear();
-                        reportState.reset();
-                        navigation.dispatch(
-                          CommonActions.reset({
-                            routes: [{ key: "index", name: "index" }],
-                          }),
-                        );
-                      },
-                    },
-                  ],
-                );
-              }}
-            >
-              Discard match
-            </Button>
-
-            {interrupted && (
-              <BodyMedium>
-                Playback was interrupted. Join a new session to try again.
-              </BodyMedium>
-            )}
-            {trainingModeEnabled && (
-              <BodyMedium>
-                Disable training mode in settings to submit data.
-              </BodyMedium>
-            )}
+            />
           </View>
+          {state.robotBrokeDescription !== null && (
+            <TextField
+              multiline
+              placeholder="How did it break?"
+              value={state.robotBrokeDescription}
+              onChangeText={(robotBrokeDescription) =>
+                set({ robotBrokeDescription })
+              }
+            />
+          )}
+          <View style={{ gap: 7 }}>
+            <QuestionLabel>Notes</QuestionLabel>
+            <TextField
+              multiline
+              value={state.notes}
+              onChangeText={(notes) => set({ notes })}
+            />
+            <BodyMedium>
+              Describe useful observations about this robot that the other
+              answers do not cover. Keep it helpful; notes can be viewed by
+              anyone.
+            </BodyMedium>
+          </View>
+          {state.customPostMatch.map(({ question, answer }, index) => (
+            <View key={question} style={{ gap: 7 }}>
+              <QuestionLabel>{question}</QuestionLabel>
+              <TextField
+                multiline
+                accessibilityLabel={question}
+                placeholder="Answer (optional)"
+                maxLength={2000}
+                value={answer}
+                onChangeText={(value) =>
+                  state.setCustomPostMatchAnswer(index, value)
+                }
+              />
+            </View>
+          ))}
+          {trainingError && <BodyMedium>{trainingError}</BodyMedium>}
+          <Button
+            variant="primary"
+            disabled={
+              (training && !trainingSession) || interrupted || !validLinks
+            }
+            onPress={() => router.replace("/game/submit")}
+          >
+            Submit
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() =>
+              Alert.alert(
+                "Discard match?",
+                "You will lose all of the data that you recorded.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Discard",
+                    style: "destructive",
+                    onPress: () => {
+                      useTrainingSessionStore.getState().clear();
+                      state.reset();
+                      router.replace("/home");
+                    },
+                  },
+                ],
+              )
+            }
+          >
+            Discard match
+          </Button>
+          {training && (
+            <BodyMedium>
+              Disable training mode in settings to submit data.
+            </BodyMedium>
+          )}
         </SafeAreaView>
       </KeyboardAwareScrollView>
     </>
   );
 }
-
-// Base props shared by all variants
-type BaseProps<T> = {
-  title: string;
-  items: PickerOption<T>[];
-};
-
-// Single-select: multiSelect is false or undefined
-type SingleSelectProps<T> = BaseProps<T> & {
+function Choice<T extends string>({
+  label,
+  values,
+  selected,
+  onChange,
+}: {
+  label: string;
+  values: readonly T[];
   selected: T;
   onChange: (value: T) => void;
-  multiSelect?: false;
-  mapSelection?: undefined;
-};
-
-// True multi-select: multiSelect is true, no mapSelection
-type TrueMultiSelectProps<T> = BaseProps<T> & {
-  selected: T[];
-  onChange: (value: T[]) => void;
-  multiSelect: true;
-  mapSelection?: undefined;
-};
-
-// Pseudo multi-select: multiSelect is true with mapSelection
-type MappedMultiSelectProps<TItem, TOutput> = BaseProps<TItem> & {
-  selected: TItem[];
-  onChange: (value: TOutput) => void;
-  multiSelect: true;
-  mapSelection: (selected: TItem[]) => TOutput;
-};
-
-// Overloaded function signatures for proper type inference
-function PostMatchSelector<T>(props: SingleSelectProps<T>): React.ReactElement;
-function PostMatchSelector<T>(
-  props: TrueMultiSelectProps<T>,
-): React.ReactElement;
-function PostMatchSelector<TItem, TOutput>(
-  props: MappedMultiSelectProps<TItem, TOutput>,
-): React.ReactElement;
-function PostMatchSelector<TItem, TOutput = TItem>(
-  props:
-    | SingleSelectProps<TItem>
-    | TrueMultiSelectProps<TItem>
-    | MappedMultiSelectProps<TItem, TOutput>,
-) {
-  const { title, items, multiSelect, selected } = props;
-
-  const handleChange = (value: TItem) => {
-    if (!multiSelect) {
-      // Single select
-      (props as SingleSelectProps<TItem>).onChange(value);
-    } else {
-      // Multi-select
-      const selectedArray = selected as TItem[];
-      let newSelected: TItem[];
-      if (selectedArray.includes(value)) {
-        newSelected = selectedArray.filter((v) => v !== value);
-      } else {
-        newSelected = [...selectedArray, value];
-      }
-
-      if ("mapSelection" in props && props.mapSelection) {
-        // Pseudo multi-select: map to enum value
-        (props as MappedMultiSelectProps<TItem, TOutput>).onChange(
-          props.mapSelection(newSelected),
-        );
-      } else {
-        // True multi-select: pass array
-        (props as TrueMultiSelectProps<TItem>).onChange(newSelected);
-      }
-    }
-  };
-
+}) {
   return (
     <View style={{ gap: 7 }}>
-      <LabelSmall>{title}</LabelSmall>
+      <QuestionLabel>{label}</QuestionLabel>
       <Picker
-        style="inset-picker"
-        options={items}
+        style="vertical-group"
+        label={label}
         selected={selected}
-        onChange={handleChange}
-        multiSelect={multiSelect}
+        onChange={onChange}
+        options={values.map(
+          (value) => ({ value, label: choiceLabel(value) }) as PickerOption<T>,
+        )}
       />
     </View>
+  );
+}
+function choiceLabel(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/^./, (c) => c.toUpperCase());
+}
+function RatingSlider({
+  label,
+  caption,
+  value,
+  min,
+  max,
+  onChange,
+  suffix = "",
+}: {
+  label: string;
+  caption: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+  suffix?: string;
+}) {
+  return (
+    <View style={{ gap: 7 }}>
+      <QuestionLabel>
+        {label}: {value} {suffix}
+      </QuestionLabel>
+      <BodyMedium>{caption}</BodyMedium>
+      <View
+        style={{
+          backgroundColor: colors.secondaryContainer.default,
+          borderRadius: 10,
+          padding: 12,
+          overflow: "hidden",
+        }}
+      >
+        <Slider
+          accessibilityLabel={label}
+          minimumValue={min}
+          maximumValue={max}
+          step={1}
+          value={value}
+          onValueChange={onChange}
+          minimumTrackTintColor={colors.victoryPurple.default}
+          maximumTrackTintColor={colors.gray.default}
+          thumbTintColor={colors.onBackground.default}
+        />
+      </View>
+    </View>
+  );
+}
+
+function QuestionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Text
+      style={{
+        fontFamily: "Heebo_500Medium",
+        fontSize: 16,
+        color: colors.onBackground.default,
+      }}
+    >
+      {children}
+    </Text>
   );
 }

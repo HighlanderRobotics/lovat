@@ -1,4 +1,8 @@
 export type Video = {
+	gameYear?: number;
+	tournamentName?: string;
+	matchType?: string;
+	matchNumber?: number;
 	uuid: string;
 	matchKey: string;
 	videoLink: string;
@@ -21,6 +25,7 @@ export type Participant = {
 		breakdown: {
 			quantities: {
 				action: string;
+				score?: number;
 				expected: number;
 				actual: number;
 				differences?: { time: number; expected: number; actual: number | null }[];

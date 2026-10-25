@@ -59,7 +59,7 @@ export function TrainingReadyButton() {
           : ready
             ? "Ready · waiting for video"
             : report.startPosition === undefined
-              ? "Choose a starting pose"
+              ? "Choose a starting position"
               : "Ready"}
       </Button>
       {(error || training.error) && (

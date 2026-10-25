@@ -140,6 +140,16 @@ Build locally from the repository root:
 docker build -f apps/server/Dockerfile -t lovat-server .
 ```
 
+## Custom post-match questions
+
+Apply the `20261024000000_custom_post_match` database migration before running this version. `RegisteredTeam.customPostMatch` stores up to three question strings. Questions must be unique, nonempty, and at most 300 characters; free-text answers may contain up to 2,000 characters and can be left blank.
+
+- Collection: `GET /v1/manager/custom-post-match` authenticates with `X-Team-Code` and returns `{ teamNumber, customPostMatch: string[] }` for that team.
+- Dashboard: `GET /v1/manager/settings/custom-post-match` reads the current team's questions. `PUT` accepts `{ customPostMatch: string[] }`; only signed-in scouting leads can update it, not API keys.
+- Reports: optional `customPostMatch: { question: string, answer: string }[]` is accepted by the Collection and QR/Dashboard upload endpoints. Each report preserves its question wording; offline uploads are not compared against the team's latest settings. Older reports default to an empty list.
+
+Individual report responses and Dashboard overviews include these answers. Report CSV exports append three question/answer column pairs, preserving the existing source-team filter. CSV quoting preserves punctuation and multiline answers.
+
 ### Development without a Blue Alliance key
 
 In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance

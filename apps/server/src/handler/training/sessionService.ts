@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import db from "../../prismaClient.js";
 import { Prisma } from "@lovat/db";
+import { chargedUpAnswer } from "./chargedUpGrading.js";
 
 export const token = (): string => randomBytes(32).toString("base64url");
 export const hashToken = (value: string): string =>
@@ -15,15 +16,19 @@ export class TrainingError extends Error {
   }
 }
 
+export const trainingVideoInclude = {
+  answerKeyReports: { include: { teamMatchData: true } },
+  match: { include: { tournament: { select: { name: true } } } },
+} satisfies Prisma.TrainingVideoInclude;
+
 export const sessionInclude = {
-  trainingVideo: {
-    include: { answerKeyReports: { include: { teamMatchData: true } } },
-  },
+  trainingVideo: { include: trainingVideoInclude },
   attempts: {
     include: {
       scouter: { select: { name: true, sourceTeamNumber: true } },
       report: {
         select: {
+          uuid: true,
           status: true,
           finalizedReport: {
             select: {
@@ -45,6 +50,8 @@ export type SessionRecord = Prisma.TrainingSessionGetPayload<{
   include: typeof sessionInclude;
 }>;
 export type TrainingVideoDetails = {
+  gameYear: number;
+  tournamentName: string;
   uuid: string;
   matchKey: string;
   videoLink: string;
@@ -111,6 +118,23 @@ export async function readSession(
 export function videoDetails(
   video: NonNullable<Awaited<ReturnType<typeof readSession>>["trainingVideo"]>,
 ): TrainingVideoDetails {
+  const chargedUp = chargedUpAnswer(video.chargedUpAnswerKey);
+  if (chargedUp) {
+    return {
+      gameYear: 2023,
+      tournamentName: video.match?.tournament.name ?? chargedUp.tournamentKey,
+      uuid: video.uuid,
+      matchKey: video.matchKey,
+      videoLink: video.videoLink,
+      teamNumber: chargedUp.teamNumber,
+      tournamentKey: chargedUp.tournamentKey,
+      matchType: chargedUp.matchType,
+      matchNumber: chargedUp.matchNumber,
+      alliance: video.alliance,
+      startOffsetSeconds: video.startOffsetSeconds,
+      durationSeconds: video.durationSeconds,
+    };
+  }
   const key = video.answerKeyReports[0];
   if (!key || video.answerKeyReports.length !== 1) {
     throw new TrainingError(
@@ -119,6 +143,9 @@ export function videoDetails(
     );
   }
   return {
+    gameYear: 2026,
+    tournamentName:
+      video.match?.tournament.name ?? key.teamMatchData.tournamentKey,
     uuid: video.uuid,
     matchKey: video.matchKey,
     videoLink: video.videoLink,
@@ -159,15 +186,33 @@ export async function snapshot(
         ready: a.ready,
         connected: Date.now() - a.lastSeenAt.getTime() < 20_000,
         status: a.report?.status ?? "CONNECTING",
-        reportUuid: a.report?.finalizedReport?.uuid ?? null,
-        score: a.report?.finalizedReport?.trainingScores[0]
-          ? {
-              overallScore: Number(
-                a.report.finalizedReport.trainingScores[0].overallScore,
-              ),
-              breakdown: a.report.finalizedReport.trainingScores[0].breakdown,
-            }
-          : null,
+        reportUuid:
+          a.report?.finalizedReport?.uuid ??
+          (a.report?.status === "SUBMITTED" ? a.report.uuid : null),
+        score:
+          storedChargedUpScore(a.score) ??
+          (a.report?.finalizedReport?.trainingScores[0]
+            ? {
+                overallScore: Number(
+                  a.report.finalizedReport.trainingScores[0].overallScore,
+                ),
+                breakdown: a.report.finalizedReport.trainingScores[0].breakdown,
+              }
+            : null),
       })),
   };
+}
+
+function storedChargedUpScore(
+  value: Prisma.JsonValue | null,
+): { overallScore: number; breakdown: Prisma.JsonValue } | null {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    typeof value.overallScore !== "number"
+  ) {
+    return null;
+  }
+  return { overallScore: value.overallScore, breakdown: value.breakdown ?? {} };
 }

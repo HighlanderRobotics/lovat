@@ -35,6 +35,7 @@ export const endgamePicklistTeamFast = async (
         training: false,
         teamMatchData: {
           teamNumber: team,
+          matchType: { not: "PRACTICE" },
           ...(sourceTnmtFilter && { tournamentKey: sourceTnmtFilter }),
         },
         ...(sourceTeamFilter && {

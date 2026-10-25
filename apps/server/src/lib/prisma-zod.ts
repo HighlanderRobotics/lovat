@@ -65,7 +65,11 @@ export const RobotRoleSchema = z.enum([
 ]);
 export const WarningTypeSchema = z.enum(["BREAK"]);
 export const UserRoleSchema = z.enum(["ANALYST", "SCOUTING_LEAD"]);
-export const MatchTypeSchema = z.enum(["QUALIFICATION", "ELIMINATION"]);
+export const MatchTypeSchema = z.enum([
+  "QUALIFICATION",
+  "ELIMINATION",
+  "PRACTICE",
+]);
 
 // Common JSON rule shapes used in User
 export const DataSourceRuleNumberSchema = z.object({
@@ -110,6 +114,10 @@ export const MutablePicklistSchema = z.object({
 });
 
 export const ScoutReportSchema = z.object({
+  customPostMatch: z
+    .array(z.object({ question: z.string(), answer: z.string() }))
+    .max(3)
+    .optional(),
   uuid: z.string().uuid(),
   teamMatchKey: z.string(),
   startTime: z.string().datetime(),
@@ -178,6 +186,7 @@ export const TeamSchema = z.object({
 });
 
 export const RegisteredTeamSchema = z.object({
+  customPostMatch: z.array(z.string().min(1).max(300)).max(3).optional(),
   number: z.number().int(),
   code: z.string(),
   email: z.string(),

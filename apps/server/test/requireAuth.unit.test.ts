@@ -150,10 +150,13 @@ describe("authentication dependencies and failures", () => {
 
   it("rejects revoked or unknown keys", async () => {
     mocks.update.mockRejectedValue(new Error("not found"));
-    expect(
-      (await request(app).get("/protected").auth(apiKey, { type: "bearer" }))
-        .status,
-    ).toBe(401);
+    const res = await request(app)
+      .get("/protected")
+      .auth(apiKey, { type: "bearer" });
+    expect(res.status).toBe(401);
+    expect(res.text).toBe(
+      "Invalid API key. API keys were rotated recently. Please check your email for your replacement API key.",
+    );
   });
 
   it.each(["Redis", "user database"])(

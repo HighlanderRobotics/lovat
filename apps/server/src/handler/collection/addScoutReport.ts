@@ -20,6 +20,7 @@ import {
 } from "@lovat/db";
 import { sendWarningToSlack } from "../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../lib/clearCache.js";
+import { customPostMatchAnswersSchema } from "../../lib/customPostMatch.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 
@@ -132,15 +133,33 @@ export const addScoutReport = async (
         scouterUuid: z.string(),
         teamNumber: z.number(),
         appVersion: z.string().optional(),
+        customPostMatch: customPostMatchAnswersSchema.optional().default([]),
       })
       .parse(req.body);
 
     // Check that scouter exists
-    await prismaClient.scouter.findFirstOrThrow({
+    const scouter = await prismaClient.scouter.findFirstOrThrow({
       where: {
         uuid: paramsScoutReport.scouterUuid,
       },
     });
+
+    if (paramsScoutReport.customPostMatch.length) {
+      const code = req.headers["x-team-code"];
+      const team =
+        typeof code === "string"
+          ? await prismaClient.registeredTeam.findUnique({
+              where: { code },
+              select: { number: true },
+            })
+          : null;
+      if (!team || team.number !== scouter.sourceTeamNumber) {
+        res.status(403).json({
+          displayError: "The report's scouter must belong to your team.",
+        });
+        return;
+      }
+    }
 
     const eventDataArray: {
       time: number;
@@ -175,8 +194,22 @@ export const addScoutReport = async (
     });
 
     if (!matchRow) {
-      await addTournamentMatches(paramsScoutReport.tournamentKey);
-
+      if (paramsScoutReport.matchType === MatchType.PRACTICE) {
+        const practiceKey = `${paramsScoutReport.tournamentKey}_pm${paramsScoutReport.matchNumber}_${paramsScoutReport.teamNumber}`;
+        matchRow = await prismaClient.teamMatchData.upsert({
+          where: { key: practiceKey },
+          update: {},
+          create: {
+            key: practiceKey,
+            tournamentKey: paramsScoutReport.tournamentKey,
+            matchNumber: paramsScoutReport.matchNumber,
+            teamNumber: paramsScoutReport.teamNumber,
+            matchType: MatchType.PRACTICE,
+          },
+        });
+      } else {
+        await addTournamentMatches(paramsScoutReport.tournamentKey);
+      }
       matchRow = await prismaClient.teamMatchData.findFirst({
         where: {
           tournamentKey: paramsScoutReport.tournamentKey,
@@ -264,6 +297,7 @@ export const addScoutReport = async (
           driverAbility: paramsScoutReport.driverAbility,
           robotBrokeDescription:
             paramsScoutReport.robotBrokeDescription ?? null,
+          customPostMatch: paramsScoutReport.customPostMatch,
           autoClimb: paramsScoutReport.autoClimb,
           beached: paramsScoutReport.beached,
           feederTypes: paramsScoutReport.feederTypes,

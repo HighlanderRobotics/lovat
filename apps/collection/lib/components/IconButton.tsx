@@ -1,9 +1,10 @@
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Image, ImageSourcePropType, Pressable, View } from "react-native";
 import { Icon } from "./Icon";
 
 type IconButtonProps = {
   icon: string;
+  image?: ImageSourcePropType;
   label: string;
   color?: string;
   size?: number;
@@ -14,6 +15,7 @@ type IconButtonProps = {
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
+  image,
   label,
   color,
   size,
@@ -31,7 +33,15 @@ export const IconButton: React.FC<IconButtonProps> = ({
         style={{ padding: 10 }}
       >
         <View style={{ opacity: disabled ? 0.5 : 1 }}>
-          <Icon name={icon} color={color} size={size} />
+          {image ? (
+            <Image
+              source={image}
+              resizeMode="contain"
+              style={{ width: size ?? 24, height: size ?? 24 }}
+            />
+          ) : (
+            <Icon name={icon} color={color} size={size} />
+          )}
         </View>
       </Pressable>
     </View>

@@ -128,3 +128,12 @@ test("paired training uploads use their session endpoint", async () => {
   assert.equal(calls.at(-1).path, "/collection/training/session/submit");
   assert.ok(!calls.some(({ path }) => path === "/collection/scoutreports"));
 });
+
+test("practice lifecycle requests retain their match type", async () => {
+  const { post, calls } = recorder();
+  await sendReportLifecycle(post, report.uuid, {
+    ...meta,
+    matchIdentity: { ...meta.matchIdentity, matchType: "PRACTICE" },
+  });
+  assert.equal(calls[0].body.matchIdentity.matchType, "PRACTICE");
+});

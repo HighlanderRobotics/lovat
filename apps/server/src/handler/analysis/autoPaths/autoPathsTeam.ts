@@ -87,6 +87,7 @@ const config = {
         teamMatchData: {
           teamNumber: teamNumber,
           tournamentKey: sourceTnmtFilter,
+          matchType: { not: "PRACTICE" },
         },
         scouter: {
           sourceTeamNumber: sourceTeamFilter,

@@ -4,7 +4,10 @@ import type { RequestHandler } from './$types';
 
 const handle: RequestHandler = async ({ params, request, url, fetch }) => {
 	if (!env.LOVAT_API_BASE)
-		return json({ displayError: 'Training server is not configured.' }, { status: 503 });
+		return json(
+			{ displayError: 'Training is unavailable right now. Please try again later.' },
+			{ status: 503 }
+		);
 	if (params.path === 'config' && request.method === 'GET') {
 		const base = new URL(env.LOVAT_PUBLIC_API_BASE || env.LOVAT_API_BASE);
 		base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -28,13 +31,14 @@ const handle: RequestHandler = async ({ params, request, url, fetch }) => {
 	try {
 		const response = await fetch(`${env.LOVAT_API_BASE}/collection/training/${path}${url.search}`, {
 			method: request.method,
+			signal: AbortSignal.timeout(15000),
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: request.headers.get('authorization') ?? ''
 			},
 			body
 		});
-		return new Response(await response.text(), {
+		return new Response(response.status === 204 ? null : await response.text(), {
 			status: response.status,
 			headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
 		});

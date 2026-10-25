@@ -1,90 +1,42 @@
 import { ScoutReportMeta } from "../models/ScoutReportMeta";
-import { DriverAbility } from "./DriverAbility";
-import { MatchEvent } from "./MatchEvent";
-import { MatchEventPosition, startingPositions } from "./MatchEventPosition";
-import { MatchEventType } from "./MatchEventType";
-import { ScoutReport } from "./ScoutReport";
-import { RobotRole } from "./RobotRole";
-import { FieldTraversal } from "./FieldTraversal";
-import { Accuracy } from "./Accuracy";
-import { AutoClimb } from "./AutoClimb";
-import { IntakeType } from "./IntakeType";
-import { FeederType } from "./FeederType";
-import { Beached } from "./Beached";
-import { DefenseEffectiveness } from "./DefenseEffectiveness";
-import { ScoresWhileMoving } from "./ScoresWhileMoving";
-import { EndgameClimb } from "./EndgameClimb";
-
+import { CustomPostMatchAnswer } from "./CustomPostMatch";
+import {
+  ChargedUpEvent,
+  ChargedUpReport,
+  PostMatchData,
+  GamePiece,
+} from "./ChargedUp";
 export enum GamePhase {
   Auto,
   Teleop,
   Endgame,
 }
-
-export type StartingPosition =
-  (typeof startingPositions)[keyof typeof startingPositions];
-
-export type ReportState = {
+export type ReportState = PostMatchData & {
   uuid?: string;
   meta?: ScoutReportMeta;
-  events: MatchEvent[];
   startTimestamp?: Date;
-  startPosition?: StartingPosition;
+  startPosition?: number;
+  preloadedPiece: GamePiece | null;
+  setPreloadedPiece: (piece: GamePiece | null) => void;
+  startHold: (location: "OPPONENT_ZONE" | "OPPONENT_STATION") => void;
+  stopHold: (location?: "OPPONENT_ZONE" | "OPPONENT_STATION") => void;
+  fieldPieces: ("CONE" | "CUBE" | "UNKNOWN")[];
+  setFieldPiece: (index: number) => void;
+  events: ChargedUpEvent[];
   gamePhase: GamePhase;
-
-  // Post-match fields
-  robotRole: RobotRole[];
-  robotBrokeDescription: string | null;
-  fieldTraversal: FieldTraversal;
-  accuracy: Accuracy | null;
-  autoClimb: AutoClimb;
-  intakeType: IntakeType;
-  feederType: FeederType[];
-  beached: Beached;
-  defenseEffectiveness: DefenseEffectiveness;
-  scoresWhileMoving: ScoresWhileMoving;
-  climbResult: EndgameClimb;
-  driverAbility: DriverAbility;
-  notes: string;
-
-  // Actions
-  scoutMatch: (meta: ScoutReportMeta) => void;
+  scoutMatch: (meta: ScoutReportMeta, customQuestions?: string[]) => void;
+  customPostMatch: CustomPostMatchAnswer[];
+  setCustomPostMatchAnswer: (index: number, answer: string) => void;
   restartMatch: () => void;
   initializeMatchTimestamp: (startTime?: number) => void;
   endMatch: () => void;
-
-  setStartPosition: (value: StartingPosition) => void;
+  setStartPosition: (value: number) => void;
   setGamePhase: (value: GamePhase) => void;
-  setRobotRole: (value: RobotRole[]) => void;
-  setRobotBrokeDescription: (value: string | null) => void;
-  setFieldTraversal: (value: FieldTraversal) => void;
-  setAccuracy: (value: Accuracy | null) => void;
-  setAutoClimb: (value: AutoClimb) => void;
-  setIntakeType: (value: IntakeType) => void;
-  setFeederType: (value: FeederType[]) => void;
-  setBeached: (value: Beached) => void;
-  setDefenseEffectiveness: (value: DefenseEffectiveness) => void;
-  setScoresWhileMoving: (value: ScoresWhileMoving) => void;
-  setClimbResult: (value: EndgameClimb) => void;
-  setDriverAbility: (value: DriverAbility) => void;
-  setNotes: (value: string) => void;
-
-  stopClimbing: () => void;
-  hasEventOfType: (...types: MatchEventType[]) => boolean;
-  hasAutoClimbEvent: () => boolean;
-  hasEndgameClimbEvent: () => boolean;
-  hasOutpostIntakeEvent: () => boolean;
-  hasAutoTraversalEvent: () => boolean;
-  getAutoTraversalTypes: () => { trench: boolean; bump: boolean };
-
-  addEvent: (event: {
-    type: MatchEventType;
-    position?: MatchEventPosition;
-    quantity?: number;
-    timestamp?: number;
-  }) => void;
+  setPostMatch: (value: Partial<PostMatchData>) => void;
+  postMatchPrepared: boolean;
+  preparePostMatch: () => void;
+  addEvent: (event: Omit<ChargedUpEvent, "time">) => boolean;
   undoEvent: () => void;
-
-  exportScoutReport: () => ScoutReport | null;
+  exportScoutReport: () => ChargedUpReport | null;
   reset: () => void;
 };

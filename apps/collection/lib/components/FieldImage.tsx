@@ -5,8 +5,8 @@ import {
   useFieldOrientationStore,
 } from "../storage/userStores";
 
-export const fieldWidth = 1964;
-export const fieldHeight = 978;
+export const fieldWidth = 822;
+export const fieldHeight = 304;
 
 export const FieldImage = () => {
   const fieldOrientation = useFieldOrientationStore((state) => state.value);
@@ -28,7 +28,7 @@ export const FieldImage = () => {
       ]}
     >
       <Image
-        source={require("../../assets/field-2026.png")}
+        source={require("../../assets/charged-up/field.png")}
         style={styles.image}
         resizeMode="contain"
       />

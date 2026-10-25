@@ -10,10 +10,13 @@ import {
   readSession,
   snapshot,
   sessionInclude,
+  trainingVideoInclude,
   videoDetails,
   TrainingError,
 } from "./sessionService.js";
 import { gradeTrainingReport } from "./gradeReport.js";
+import { submitChargedUp } from "./submitChargedUp.js";
+import { chargedUpAnswer } from "./chargedUpGrading.js";
 import { submitReport } from "../collection/submitReport.js";
 
 export const trainingRoutes = Router();
@@ -21,16 +24,22 @@ const access = (req: Request) =>
   req.headers.authorization?.replace(/^Bearer /, "") ?? "";
 const id = (req: Request) => String(req.params.session);
 
-trainingRoutes.get("/training/videos", async (_req, res) => {
+trainingRoutes.get("/training/videos", async (req, res) => {
+  const gameYear = z
+    .enum(["2023", "2026"])
+    .optional()
+    .parse(req.query.gameYear);
   const rows = await db.trainingVideo.findMany({
-    include: { answerKeyReports: { include: { teamMatchData: true } } },
+    include: trainingVideoInclude,
     orderBy: { createdAt: "asc" },
   });
   res.json(
     rows
-      .filter(
-        (row) =>
-          row.answerKeyReports.length === 1 && row.answerKeyReports[0].training,
+      .filter((row) =>
+        gameYear === "2023"
+          ? chargedUpAnswer(row.chargedUpAnswerKey) !== null
+          : row.answerKeyReports.length === 1 &&
+            row.answerKeyReports[0].training,
       )
       .map(videoDetails),
   );
@@ -43,14 +52,40 @@ trainingRoutes.post(
     const { videoUuid } = z.object({ videoUuid: z.uuid() }).parse(req.body);
     const video = await db.trainingVideo.findUnique({
       where: { uuid: videoUuid },
-      include: { answerKeyReports: { include: { teamMatchData: true } } },
+      include: trainingVideoInclude,
     });
     if (
       !video ||
-      video.answerKeyReports.length !== 1 ||
-      !video.answerKeyReports[0].training
+      (!chargedUpAnswer(video.chargedUpAnswerKey) &&
+        (video.answerKeyReports.length !== 1 ||
+          !video.answerKeyReports[0].training))
     ) {
       throw new TrainingError(404, "Training exercise is unavailable.");
+    }
+    const details = videoDetails(video);
+    if (details.gameYear === 2023) {
+      const match = await db.match.findUnique({
+        where: { key: video.matchKey },
+        include: { teamSlots: true, tournament: true },
+      });
+      if (
+        video.durationSeconds !== 150 ||
+        !match ||
+        (match.tournament.seasonYear ??
+          Number(match.tournamentKey.slice(0, 4))) !== 2023 ||
+        match.tournamentKey !== details.tournamentKey ||
+        !match.teamSlots.some(
+          (slot) =>
+            slot.teamNumber === details.teamNumber &&
+            slot.matchType === details.matchType &&
+            slot.matchNumber === details.matchNumber,
+        )
+      ) {
+        throw new TrainingError(
+          409,
+          "The Charged Up answer key must match a 150-second match and robot.",
+        );
+      }
     }
     const browserToken = token(),
       pairingToken = token();
@@ -140,6 +175,7 @@ trainingRoutes.post("/train/:session", async (req, res) => {
     const data = {
       accessTokenHash: hashToken(attemptToken),
       deviceName: input.deviceName,
+      ready: false,
       lastSeenAt: new Date(),
     };
     return existing
@@ -153,7 +189,12 @@ trainingRoutes.post("/train/:session", async (req, res) => {
           },
         });
   });
+  const draft = await db.scoutReportInProgress.findUnique({
+    where: { trainingAttemptUuid: attempt.uuid },
+    select: { uuid: true },
+  });
   res.json({
+    reportUuid: draft?.uuid ?? null,
     attemptUuid: attempt.uuid,
     attemptToken,
     snapshot: await snapshot(id(req), attemptToken, attempt.uuid),
@@ -173,7 +214,7 @@ trainingRoutes.get("/training/sessions/:session", async (req, res) => {
 trainingRoutes.post("/training/sessions/:session/ready", async (req, res) => {
   const { attemptUuid } = z.object({ attemptUuid: z.uuid() }).parse(req.body);
   const session = await readSession(id(req), access(req), attemptUuid);
-  if (session.status !== "LOBBY") {
+  if (!["LOBBY", "ARMED"].includes(session.status)) {
     throw new TrainingError(409, "Session already started.");
   }
   const draft = await db.scoutReportInProgress.findUnique({
@@ -217,13 +258,10 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
         session.status !== "LOBBY" ||
         session.attempts.length === 0 ||
         session.attempts.some(
-          (a) => !a.ready || Date.now() - a.lastSeenAt.getTime() > 20_000,
+          (a) => Date.now() - a.lastSeenAt.getTime() > 20_000,
         )
       ) {
-        throw new TrainingError(
-          409,
-          "Every scout must be connected and ready.",
-        );
+        throw new TrainingError(409, "Every scout must be connected.");
       }
       await tx.trainingSession.update({
         where: { uuid: session.uuid },
@@ -235,6 +273,19 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
       }
       if (session.status !== "ARMED") {
         throw new TrainingError(409, "Start the session before playing.");
+      }
+      if (
+        !session.attempts.length ||
+        session.attempts.some(
+          (attempt) =>
+            !attempt.ready ||
+            Date.now() - attempt.lastSeenAt.getTime() > 20_000,
+        )
+      ) {
+        throw new TrainingError(
+          409,
+          "Every scout must be connected and ready before playback.",
+        );
       }
       await tx.trainingSession.update({
         where: { uuid: session.uuid },
@@ -325,6 +376,10 @@ trainingRoutes.post("/training/:session/submit", async (req, res) => {
       409,
       "Wait for the video to finish before submitting.",
     );
+  }
+  if (draft.seasonYear === 2023) {
+    await submitChargedUp(req, res);
+    return;
   }
   await submitReport(req, res);
   if (res.statusCode === 200) {

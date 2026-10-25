@@ -8,6 +8,8 @@
     "test/**/*",
     "vitest.config.ts",
     "vitest.integration.config.ts",
-    "vitest.coverage.config.ts"
+    "vitest.coverage.config.ts",
+    "tools/import-charged-up-exercise.ts",
+    "tools/seed-charged-up-preview.ts"
   ]
 }

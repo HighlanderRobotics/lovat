@@ -519,6 +519,21 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
                     label: const Text("time left")))
           ],
         ),
+        if (reportAnalysis.customPostMatch.isNotEmpty) ...[
+          const SectionTitle('Custom post-match questions'),
+          for (final item in reportAnalysis.customPostMatch)
+            EmphasizedContainer(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.question,
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 6),
+                SelectableText(
+                    item.answer.isEmpty ? 'Not answered' : item.answer),
+              ],
+            )),
+        ],
         if (reportAnalysis.notes != null)
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

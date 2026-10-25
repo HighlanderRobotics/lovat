@@ -1,6 +1,6 @@
 import { TrainingConnection } from "../lib/training/TrainingConnection";
 import { SplashScreen, Stack } from "expo-router";
-import { NativeModules } from "react-native";
+import { AppState, NativeModules } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "../lib/colors";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -22,6 +22,12 @@ import {
   useTournamentStore,
   useTrainingModeStore,
 } from "../lib/storage/userStores";
+import { useMatchScheduleStore } from "../lib/storage/matchScheduleStore";
+import { useUrlPrefix } from "../lib/lovatAPI/lovatAPI";
+import {
+  monitorConnectivity,
+  refreshConnectivity,
+} from "../lib/network/connectivity";
 import { HistoryEntry } from "../lib/storage/historyStore";
 
 const { UIManager } = NativeModules;
@@ -117,11 +123,33 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
+    const stopMonitoring = monitorConnectivity(loadServices);
+    const refreshContext = () => {
+      useMatchScheduleStore.getState().selectCurrentSchedule();
+      loadServices();
+    };
+    const subscriptions = [
+      useTeamStore.subscribe(refreshContext),
+      useScouterStore.subscribe(refreshContext),
+      useTournamentStore.subscribe(refreshContext),
+      useUrlPrefix.subscribe(refreshContext),
+    ];
+    const foreground = AppState.addEventListener("change", (next) => {
+      if (next === "active")
+        refreshConnectivity()
+          .then(loadServices)
+          .catch(() => {});
+    });
     loadServices();
 
     const interval = setInterval(loadServices, 2 * 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      stopMonitoring();
+      foreground.remove();
+      subscriptions.forEach((unsubscribe) => unsubscribe());
+    };
   }, []);
 
   if (!fontsLoaded && !fontError) {

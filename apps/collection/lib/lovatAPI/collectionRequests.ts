@@ -24,9 +24,11 @@ export const sendReportLifecycle = async (
     matchIdentity: {
       ...meta.matchIdentity,
       matchType:
-        meta.matchIdentity.matchType === "QUALIFIER"
-          ? "QUALIFICATION"
-          : "ELIMINATION",
+        meta.matchIdentity.matchType === "PRACTICE"
+          ? "PRACTICE"
+          : meta.matchIdentity.matchType === "QUALIFIER"
+            ? "QUALIFICATION"
+            : "ELIMINATION",
     },
     trainingAttemptUuid: meta.collection?.trainingAttemptUuid,
   });

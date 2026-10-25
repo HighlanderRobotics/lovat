@@ -165,7 +165,11 @@ it("shows scouter names only for notes from the viewer's own team", async () => 
     expect.objectContaining({
       where: {
         training: false,
-        teamMatchData: { teamNumber: 254, tournamentKey: undefined },
+        teamMatchData: {
+          teamNumber: 254,
+          tournamentKey: undefined,
+          matchType: { not: "PRACTICE" },
+        },
         scouter: { sourceTeamNumber: { in: [8033] } },
         notes: { not: "" },
       },

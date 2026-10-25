@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  Keyboard,
 } from "react-native";
 import TitleMedium from "../lib/components/text/TitleMedium";
 import TextField from "../lib/components/TextField";
@@ -21,6 +22,7 @@ import {
   useServiceErrorStore,
   useServicesLoadingStore,
   useTeamScoutersStore,
+  useMatchScheduleStore,
 } from "../lib/services";
 import { useScouterStore, useTournamentStore } from "../lib/storage/userStores";
 import { Picker } from "../lib/components/Picker";
@@ -52,6 +54,10 @@ import {
   useMatchSelectionModeStore,
 } from "../lib/storage/userStores";
 import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
+import { useConnectivityStore } from "../lib/network/connectivity";
+import { Icon } from "../lib/components/Icon";
+
+import { useCustomPostMatchStore } from "../lib/storage/customPostMatchStore";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -63,6 +69,10 @@ export default function Home() {
         : MatchSelectionMode.Automatic,
     );
   const [meta, setMeta] = useState<ScoutReportMeta | null>(null);
+  const onMetaChanged = useCallback(
+    (value: ScoutReportMeta | null) => setMeta(value),
+    [],
+  );
   const reportState = useReportStateStore();
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
@@ -122,7 +132,7 @@ export default function Home() {
               <View style={{ flex: 1 }}>
                 <MatchSelection
                   matchSelectionMode={matchSelectionMode}
-                  onMetaChanged={setMeta}
+                  onMetaChanged={onMetaChanged}
                 />
               </View>
               <View style={{ gap: 10 }}>
@@ -131,7 +141,37 @@ export default function Home() {
                   disabled={!meta || !startMatchEnabled}
                   onPress={() => {
                     if (!meta) return;
-                    reportState.scoutMatch(meta);
+                    Keyboard.dismiss();
+                    const schedule = useMatchScheduleStore.getState().data;
+                    const match =
+                      schedule?.tournamentKey ===
+                      meta.matchIdentity.tournamentKey
+                        ? schedule.matches.find(
+                            (m) =>
+                              m.matchNumber ===
+                                meta.matchIdentity.matchNumber &&
+                              m.matchType ===
+                                matchTypes.find(
+                                  (t) =>
+                                    t.type === meta.matchIdentity.matchType,
+                                )?.num,
+                          )
+                        : undefined;
+                    const alliance = match?.teams.find(
+                      (team) => team.number === meta.teamNumber,
+                    )?.alliance;
+                    reportState.scoutMatch(
+                      {
+                        ...meta,
+                        allianceColor:
+                          alliance === "red"
+                            ? AllianceColor.Red
+                            : alliance === "blue"
+                              ? AllianceColor.Blue
+                              : meta.allianceColor,
+                      },
+                      useCustomPostMatchStore.getState().getQuestions(),
+                    );
                   }}
                 >
                   Scout this match
@@ -154,7 +194,7 @@ export default function Home() {
   );
 
   function onSwitchMatchSelectionMode() {
-    setMeta(null);
+    onMetaChanged(null);
     toggleMatchSelectionMode();
   }
 }
@@ -422,17 +462,27 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
     useAllianceColorChoice();
   const tournament = useTournamentStore((state) => state.value);
   const scouter = useScouterStore((state) => state.value);
+  const schedule = useMatchScheduleStore((state) => state.data);
+  const scheduledMatch =
+    schedule?.tournamentKey === tournament?.key
+      ? schedule?.matches.find(
+          (match) =>
+            match.matchNumber === Number(matchNumber) &&
+            match.matchType ===
+              matchTypes.find((type) => type.type === matchType)?.num,
+        )
+      : undefined;
 
   useEffect(() => {
-    const parsedTeamNumber = parseInt(teamNumber);
-    const parsedMatchNumber = parseInt(matchNumber);
+    const parsedTeamNumber = Number(teamNumber);
+    const parsedMatchNumber = Number(matchNumber);
 
-    if (isNaN(parsedTeamNumber)) {
+    if (!Number.isSafeInteger(parsedTeamNumber) || parsedTeamNumber <= 0) {
       props.onChanged(null);
       return;
     }
 
-    if (isNaN(parsedMatchNumber)) {
+    if (!Number.isSafeInteger(parsedMatchNumber) || parsedMatchNumber <= 0) {
       props.onChanged(null);
       return;
     }
@@ -457,7 +507,7 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         tournamentKey: tournament.key,
       },
     });
-  }, [matchType, matchNumber, teamNumber, allianceColor]);
+  }, [matchType, matchNumber, teamNumber, allianceColor, tournament, scouter]);
 
   return (
     <ScrollView style={{ flex: 1, paddingTop: 14 }}>
@@ -490,6 +540,17 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
 
       <View style={{ height: 14 }} />
       <LabelSmall>Team number</LabelSmall>
+      {scheduledMatch && (
+        <BodyMedium>
+          Scheduled teams:{" "}
+          {scheduledMatch.teams
+            .map(
+              (team) =>
+                `${team.number}${team.alliance ? ` (${team.alliance})` : ""}`,
+            )
+            .join(", ")}
+        </BodyMedium>
+      )}
       <View style={{ height: 7 }} />
       <TextField
         placeholder="8033"
@@ -552,13 +613,15 @@ enum ServicesStatus {
 
 const ServiceStatus = () => {
   const servicesLoading = useServicesLoadingStore((state) => state.value);
+  const offline = useConnectivityStore((state) => state.status === "offline");
 
   const loadServices = getServiceLoader();
 
   const servicesCached = [
-    useTeamScoutersStore.getState(),
-    useScouterScheduleStore.getState(),
-    useTournamentsStore.getState(),
+    useTeamScoutersStore(),
+    useScouterScheduleStore(),
+    useTournamentsStore(),
+    useMatchScheduleStore(),
   ];
 
   const serviceCacheTimes = servicesCached.map((item) => item.timestamp);
@@ -571,13 +634,18 @@ const ServiceStatus = () => {
     status = ServicesStatus.Cached;
   }
 
-  if (!servicesCached.some((item) => item !== null)) {
+  if (!servicesCached.some((item) => item.data !== null)) {
     status = ServicesStatus.Unavailable;
   }
 
   return (
     <Pressable
       onPress={loadServices}
+      accessibilityLabel={
+        offline
+          ? "Offline. Cached schedules available; manual scouting enabled."
+          : "Refresh schedules"
+      }
       style={{
         alignItems: "center",
         flexDirection: "row",
@@ -591,7 +659,9 @@ const ServiceStatus = () => {
         overflow: "hidden",
       }}
     >
-      {servicesLoading ? (
+      {offline ? (
+        <Icon name="wifi_off" color={colors.danger.default} size={20} />
+      ) : servicesLoading ? (
         <ActivityIndicator />
       ) : (
         <View
@@ -608,11 +678,12 @@ const ServiceStatus = () => {
         />
       )}
       <View style={{ width: servicesLoading ? 2 : 9 }} />
-      {status === ServicesStatus.Connected && (
+      {offline && <BodyMedium>Offline</BodyMedium>}
+      {!offline && status === ServicesStatus.Connected && (
         <BodyMedium>Connected</BodyMedium>
       )}
 
-      {status === ServicesStatus.Cached && (
+      {!offline && status === ServicesStatus.Cached && (
         <BodyMedium>
           Updated{" "}
           <TimeAgo
@@ -629,7 +700,7 @@ const ServiceStatus = () => {
         </BodyMedium>
       )}
 
-      {status === ServicesStatus.Unavailable && (
+      {!offline && status === ServicesStatus.Unavailable && (
         <BodyMedium color={colors.danger.default}>Unavailable</BodyMedium>
       )}
     </Pressable>

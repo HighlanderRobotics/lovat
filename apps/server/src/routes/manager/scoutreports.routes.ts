@@ -12,11 +12,13 @@ import {
   ScoutReportSchema as PrismaScoutReportSchema,
 } from "../../lib/prisma-zod.js";
 import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js";
+import { customPostMatchAnswersSchema } from "../../lib/customPostMatch.js";
 
 const ScoutReportCreateSchema = z.object({
+  customPostMatch: customPostMatchAnswersSchema.optional(),
   uuid: z.string(),
   tournamentKey: z.string(),
-  matchType: z.enum(["QUALIFICATION", "ELIMINATION"]),
+  matchType: z.enum(["QUALIFICATION", "ELIMINATION", "PRACTICE"]),
   matchNumber: z.number().int(),
   startTime: z.number().int(),
   notes: z.string(),

@@ -171,6 +171,33 @@ beforeAll(async () => {
       events: { create: [event("STOP_SCORING", 20, 888, 888)] },
     },
   });
+  // Every metric below must ignore this visible-source practice outlier.
+  const practiceKey = `practice-${fixtureId}`;
+  await db.teamMatchData.create({
+    data: {
+      key: practiceKey,
+      teamNumber: robot,
+      tournamentKey,
+      matchType: "PRACTICE",
+      matchNumber: 100,
+    },
+  });
+  await db.scoutReport.create({
+    data: {
+      ...reportData,
+      driverAbility: 1,
+      accuracy: 0,
+      defenseEffectiveness: 1,
+      robotRoles: ["CYCLING"],
+      endgameClimb: "L1",
+      autoClimb: "FAILED",
+      scoresWhileMoving: false,
+      disrupts: true,
+      scouterUuid: scouterId,
+      teamMatchKey: practiceKey,
+      events: { create: [event("STOP_SCORING", 20, 999, 999)] },
+    },
+  });
 });
 
 afterAll(async () => {
@@ -384,6 +411,49 @@ describe("team analysis against real reports with source filters", () => {
         metric: Metric.totalPoints,
       }),
     ).toEqual({ [missingRobot]: { average: 0, timeLine: [] } });
+  });
+  it("treats a practice-only team as having no competitive observations", async () => {
+    const team = sourceTeam - 4;
+    await db.team.create({
+      data: { number: team, name: "Practice-only robot" },
+    });
+    robotTeams.push(team);
+    await db.teamMatchData.create({
+      data: {
+        key: `practice-only-${fixtureId}`,
+        teamNumber: team,
+        tournamentKey,
+        matchType: "PRACTICE",
+        matchNumber: 101,
+        scoutReports: {
+          create: {
+            ...reportData,
+            scouterUuid: scouterId,
+            events: { create: [event("STOP_SCORING", 20, 999, 999)] },
+          },
+        },
+      },
+    });
+
+    const averages = await averageManyFast(user, {
+      teams: [team],
+      metrics: [Metric.totalPoints, Metric.driverAbility],
+    });
+    expect(averages).toEqual({
+      [Metric.totalPoints]: { [team]: -1 },
+      [Metric.driverAbility]: { [team]: -1 },
+    });
+    expect(
+      await arrayAndAverageTeams(user, {
+        teams: [team],
+        metric: Metric.totalPoints,
+      }),
+    ).toEqual({ [team]: { average: 0, timeLine: [] } });
+    const breakdown = await nonEventMetric(user, {
+      team,
+      metric: MetricsBreakdown.climbResult,
+    });
+    expect(Object.values(breakdown).every((value) => value === 0)).toBe(true);
   });
   it("returns no visible reports for empty INCLUDE rules", async () => {
     const nobody = {

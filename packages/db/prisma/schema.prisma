@@ -306,6 +306,7 @@ enum CollectionReportStatus {
 }
 
 model TrainingVideo {
+  chargedUpAnswerKey Json?
   startOffsetSeconds Float             @default(0)
   durationSeconds    Int               @default(163)
   alliance           AllianceColor     @default(RED)
@@ -344,6 +345,7 @@ model TrainingSession {
 }
 
 model TrainingAttempt {
+  score           Json?
   deviceId        String                 @default("")
   deviceName      String                 @default("Collection device")
   accessTokenHash String?
@@ -434,6 +436,7 @@ model ScoutReport {
   driverAbility         Int
   scouterUuid           String
   robotBrokeDescription String?
+  customPostMatch       Json                   @default("[]")
   events                Event[]
   scouter               Scouter                @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
   teamMatchData         TeamMatchData          @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
@@ -521,6 +524,7 @@ model RegisteredTeam {
   number                Int                     @id
   code                  String                  @unique
   email                 String
+  customPostMatch       String[]                @default([])
   emailVerified         Boolean                 @default(false)
   timeCreated           DateTime                @default(now()) // not accurate for teams registered before this field was added
   teamApproved          Boolean                 @default(false)
@@ -700,4 +704,5 @@ enum UserRole {
 enum MatchType {
   QUALIFICATION
   ELIMINATION
+  PRACTICE
 }

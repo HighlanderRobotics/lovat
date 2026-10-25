@@ -21,6 +21,7 @@ import {
   ClimbSide,
 } from "@lovat/db";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { customPostMatchAnswersSchema } from "../../../lib/customPostMatch.js";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import {
   checkForInvalidEvents,
@@ -69,6 +70,7 @@ export const addScoutReportDashboard = async (
         scouterUuid: z.string(),
         teamNumber: z.number(),
         appVersion: z.string().optional(),
+        customPostMatch: customPostMatchAnswersSchema.optional().default([]),
       })
       .parse(req.body);
 
@@ -106,7 +108,22 @@ export const addScoutReportDashboard = async (
     });
 
     if (!matchRow) {
-      await addTournamentMatches(paramsScoutReport.tournamentKey);
+      if (paramsScoutReport.matchType === MatchType.PRACTICE) {
+        const practiceKey = `${paramsScoutReport.tournamentKey}_pm${paramsScoutReport.matchNumber}_${paramsScoutReport.teamNumber}`;
+        matchRow = await prismaClient.teamMatchData.upsert({
+          where: { key: practiceKey },
+          update: {},
+          create: {
+            key: practiceKey,
+            tournamentKey: paramsScoutReport.tournamentKey,
+            matchNumber: paramsScoutReport.matchNumber,
+            teamNumber: paramsScoutReport.teamNumber,
+            matchType: MatchType.PRACTICE,
+          },
+        });
+      } else {
+        await addTournamentMatches(paramsScoutReport.tournamentKey);
+      }
 
       matchRow = await prismaClient.teamMatchData.findFirst({
         where: {
@@ -213,6 +230,7 @@ export const addScoutReportDashboard = async (
         robotRoles: paramsScoutReport.robotRoles,
         driverAbility: paramsScoutReport.driverAbility,
         robotBrokeDescription: paramsScoutReport.robotBrokeDescription ?? null,
+        customPostMatch: paramsScoutReport.customPostMatch,
         autoClimb: paramsScoutReport.autoClimb,
         beached: paramsScoutReport.beached,
         feederTypes: paramsScoutReport.feederTypes,

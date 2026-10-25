@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:scouting_dashboard_app/pages/custom_post_match_settings.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +110,16 @@ class _SettingsPageState extends State<SettingsPage> {
               if (lovatAPI.getCachedUserProfile()?.role ==
                   UserRole.scoutingLead)
                 const EmailBox(),
+              if (lovatAPI.getCachedUserProfile()?.role ==
+                  UserRole.scoutingLead) ...[
+                const SizedBox(height: 14),
+                FilledButton.tonalIcon(
+                  onPressed: () => Navigator.of(context)
+                      .pushWidget(const CustomPostMatchSettingsPage()),
+                  icon: const Icon(Icons.quiz_outlined),
+                  label: const Text('Custom post-match questions'),
+                ),
+              ],
               const AnalystsBox(),
               const SizedBox(height: 40),
               const ResetAppButton(),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:scouting_dashboard_app/reusable/models/custom_post_match.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:scouting_dashboard_app/pages/raw_scout_report.dart';
@@ -48,6 +49,7 @@ class SingleScoutReportAnalysis {
     required this.autoPathScore,
     this.notes,
     this.robotBrokeDescription,
+    this.customPostMatch = const [],
   });
 
   final int totalPoints;
@@ -73,6 +75,7 @@ class SingleScoutReportAnalysis {
   final num autoPathScore;
   final String? notes;
   final String? robotBrokeDescription;
+  final List<CustomPostMatchAnswer> customPostMatch;
 
   num get fuelScore {
     final endgamePoints = switch (climbResult) {
@@ -119,6 +122,7 @@ class SingleScoutReportAnalysis {
           json["volleys"] != 0 ? json["totalBallsFed"] / json["volleys"] : 0,
       notes: (json['note'] as String).isEmpty ? null : json['note'],
       robotBrokeDescription: json['robotBrokeDescription'],
+      customPostMatch: CustomPostMatchAnswer.parseList(json['customPostMatch']),
     );
   }
 }

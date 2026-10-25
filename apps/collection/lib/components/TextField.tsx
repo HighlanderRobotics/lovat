@@ -4,6 +4,8 @@ import { TextInput } from "react-native";
 import { forwardRef, ForwardRefRenderFunction, useState } from "react";
 
 type TextInputProps = {
+  accessibilityLabel?: string;
+  maxLength?: number;
   density?: "comfortable" | "compact";
   placeholder?: string;
   autoFocus?: boolean;
@@ -24,6 +26,8 @@ type TextInputProps = {
 const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
   {
     density = "comfortable",
+    accessibilityLabel,
+    maxLength,
     placeholder = "",
     autoFocus,
     autoCapitalize,
@@ -45,7 +49,11 @@ const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
 
   return (
     <TextInput
+      accessibilityLabel={accessibilityLabel}
+      maxLength={maxLength}
       style={{
+        minHeight: multiline ? 48 : undefined,
+        textAlignVertical: multiline ? "top" : "auto",
         fontFamily: "Heebo_400Regular",
         fontSize: density === "comfortable" ? 16 : 14,
         lineHeight: density === "comfortable" ? 23.5 : 20.56,
@@ -85,9 +93,11 @@ const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
         setIsFocused(false);
         if (onBlur) onBlur();
       }}
-      blurOnSubmit={true}
+      submitBehavior={multiline ? "newline" : "blurAndSubmit"}
       value={value}
       multiline={multiline}
+      // Let the form own scrolling while multiline fields grow with their text.
+      scrollEnabled={multiline ? false : undefined}
     />
   );
 };

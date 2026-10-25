@@ -1,12 +1,6 @@
-import { TrainingReadyButton } from "../../training/TrainingReadyButton";
-import { Pressable, View, TouchableOpacity } from "react-native";
+import { View, Image, Pressable } from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  FieldImage,
-  fieldHeight,
-  fieldWidth,
-} from "../../components/FieldImage";
 import { Text } from "react-native";
 import LabelSmall from "../../components/text/LabelSmall";
 import {
@@ -16,44 +10,57 @@ import {
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
-import { StatusBar } from "expo-status-bar";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
-import { Icon } from "../../components/Icon";
-import { MatchEventType } from "../MatchEventType";
-import { MatchEventPosition } from "../MatchEventPosition";
+import { TrainingReadyButton } from "../../training/TrainingReadyButton";
+import Animated, { FadeIn, ReduceMotion } from "react-native-reanimated";
+import { activeActivity, heldPiece } from "../ChargedUp";
+export const gameHeaderAssets = {
+  undo: require("../../../assets/ui/game-undo.png"),
+  stop: require("../../../assets/ui/game-stop.png"),
+  start: require("../../../assets/ui/game-start.png"),
+};
+const pieceImages = {
+  CONE: require("../../../assets/charged-up/score-cone.png"),
+  CUBE: require("../../../assets/charged-up/scoreCube.png"),
+};
 
 export const GameViewTemplate = (props: {
   field: React.ReactNode;
   topLeftReplacement?: React.ReactNode;
   gamePhaseMessage: string;
   startEnabled?: boolean;
-  overlay: boolean;
-  setOverlay: (value: boolean) => void;
+  fieldControlsLocked?: boolean;
+  onExit: () => void;
   onEnd: () => void;
   onRestart: () => void;
 }) => {
   const reportState = useReportStateStore();
   const { gamePhaseMessage, field, startEnabled } = props;
+  const piece = heldPiece(reportState.events, reportState.preloadedPiece);
   if (!reportState.meta) return null;
 
   return (
     <>
-      <StatusBar hidden={true} backgroundColor={colors.background.default} />
-      <GameViewOverlay overlay={props.overlay} setOverlay={props.setOverlay} />
       <View
         style={{
           backgroundColor: colors.secondaryContainer.default,
+          height: 59,
+          flexShrink: 0,
           paddingVertical: 7,
-          paddingHorizontal: 14,
           flexDirection: "row",
           alignItems: "center",
         }}
       >
         <SafeAreaView
-          edges={["top", "left", "right"]}
+          // This landscape screen hides the status bar. A portrait top inset can
+          // otherwise remain here during the first orientation transition.
+          edges={["left", "right"]}
           style={{
+            flex: 1,
+            // Keep the icons and their expanded touch areas inside the safe edges.
+            paddingHorizontal: 33,
             flexDirection: "row",
             alignItems: "center",
           }}
@@ -68,9 +75,15 @@ export const GameViewTemplate = (props: {
             >
               <IconButton
                 icon="undo"
+                image={gameHeaderAssets.undo}
+                size={30}
                 label="Undo"
                 color={colors.onBackground.default}
-                disabled={reportState.events.length === 0}
+                disabled={
+                  reportState.events.length === 0 ||
+                  props.fieldControlsLocked ||
+                  !!activeActivity(reportState.events)
+                }
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   reportState.undoEvent();
@@ -79,6 +92,93 @@ export const GameViewTemplate = (props: {
             </View>
           )}
 
+          {reportState.startTimestamp ? (
+            <View
+              accessibilityLabel={
+                piece ? `Holding ${piece.toLowerCase()}` : "No game piece"
+              }
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                marginHorizontal: 12,
+              }}
+            >
+              {piece && (
+                <Animated.Image
+                  key={piece}
+                  entering={FadeIn.duration(90).reduceMotion(
+                    ReduceMotion.System,
+                  )}
+                  source={pieceImages[piece]}
+                  resizeMode="contain"
+                  style={{ width: 28, height: 28 }}
+                />
+              )}
+              <LabelSmall>
+                {piece ? (piece === "CONE" ? "Cone" : "Cube") : "No piece"}
+              </LabelSmall>
+            </View>
+          ) : (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginHorizontal: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Heebo_700Bold",
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: colors.victoryPurple.default,
+                }}
+              >
+                Preload
+              </Text>
+              {([null, "CONE", "CUBE"] as const).map((value) => (
+                <Pressable
+                  key={value ?? "none"}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Preload ${value?.toLowerCase() ?? "none"}`}
+                  accessibilityState={{ selected: piece === value }}
+                  onPress={() => reportState.setPreloadedPiece(value)}
+                  style={{
+                    padding: 5,
+                    borderRadius: 6,
+                    backgroundColor:
+                      piece === value
+                        ? colors.victoryPurple.default
+                        : "transparent",
+                  }}
+                >
+                  {value ? (
+                    <Image
+                      source={pieceImages[value]}
+                      resizeMode="contain"
+                      style={{ width: 24, height: 24 }}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        fontFamily: "Heebo_500Medium",
+                        fontSize: 14,
+                        lineHeight: 24,
+                        color:
+                          piece === null
+                            ? colors.background.default
+                            : colors.onBackground.default,
+                      }}
+                    >
+                      None
+                    </Text>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          )}
           <View
             style={{ alignItems: "flex-end", gap: 2, flex: 1, marginRight: 13 }}
           >
@@ -89,7 +189,7 @@ export const GameViewTemplate = (props: {
                 ).backgroundColor,
                 borderRadius: 4,
                 paddingHorizontal: 6,
-                paddingVertical: 2,
+                paddingVertical: 3,
               }}
             >
               <Text
@@ -99,24 +199,35 @@ export const GameViewTemplate = (props: {
                   ).foregroundColor,
                   fontFamily: "Heebo_500Medium",
                   fontSize: 12,
+                  lineHeight: 16,
+                  letterSpacing: 0.5,
                 }}
               >
                 {reportState?.meta.teamNumber}
               </Text>
             </View>
-            <LabelSmall color={colors.body.default}>
+            <Text
+              style={{
+                fontFamily: "Heebo_400Regular",
+                fontSize: 14,
+                lineHeight: 21,
+                color: "#cac4d0",
+              }}
+            >
               {gamePhaseMessage} •{" "}
               <GameTimer startTime={reportState?.startTimestamp} />
-            </LabelSmall>
+            </Text>
           </View>
 
           {!reportState?.startTimestamp &&
-            (reportState.meta?.collection?.trainingAttemptUuid ? (
-              <TrainingReadyButton />
-            ) : (
+          reportState.meta.collection?.trainingSessionUuid ? (
+            <TrainingReadyButton />
+          ) : (
+            !reportState?.startTimestamp && (
               <IconButton
                 label="Start match"
                 icon="play_arrow"
+                image={gameHeaderAssets.start}
                 color={colors.onBackground.default}
                 size={30}
                 disabled={!startEnabled}
@@ -126,191 +237,53 @@ export const GameViewTemplate = (props: {
                   reportState.initializeMatchTimestamp();
                 }}
               />
-            ))}
+            )
+          )}
 
-          {reportState?.startTimestamp &&
-            !reportState.meta?.collection?.trainingAttemptUuid && (
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <IconButton
-                    label="End match"
-                    icon="stop"
-                    color={colors.onBackground.default}
-                    size={30}
-                  />
-                </DropdownMenu.Trigger>
+          {reportState?.startTimestamp && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger>
+                <IconButton
+                  label="End match"
+                  icon="stop"
+                  image={gameHeaderAssets.stop}
+                  color={colors.onBackground.default}
+                  size={30}
+                />
+              </DropdownMenu.Trigger>
 
-                <DropdownMenu.Content
-                  loop={false}
-                  side="bottom"
-                  align="end"
-                  alignOffset={0}
-                  avoidCollisions={true}
-                  collisionPadding={0}
-                  sideOffset={0}
-                >
+              <DropdownMenu.Content
+                loop={false}
+                side="bottom"
+                align="end"
+                alignOffset={0}
+                avoidCollisions={true}
+                collisionPadding={0}
+                sideOffset={0}
+              >
+                {!reportState.meta.collection?.trainingSessionUuid && (
                   <DropdownMenu.Item key="end" onSelect={props.onEnd}>
                     <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
                   </DropdownMenu.Item>
+                )}
+                <DropdownMenu.Item key="exit" onSelect={props.onExit}>
+                  <DropdownMenu.ItemTitle>Exit match</DropdownMenu.ItemTitle>
+                </DropdownMenu.Item>
+                {!reportState.meta.collection?.trainingSessionUuid && (
                   <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
                     <DropdownMenu.ItemTitle>
                       Restart match
                     </DropdownMenu.ItemTitle>
                   </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            )}
+                )}
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          )}
         </SafeAreaView>
       </View>
       <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>
-        <View
-          style={{
-            height: "100%",
-            width: "100%",
-            flexDirection: "row",
-            alignItems: "stretch",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              position: "relative",
-              aspectRatio: fieldWidth / fieldHeight,
-              maxWidth: "100%",
-              maxHeight: "100%",
-            }}
-          >
-            <FieldImage />
-            {field}
-          </View>
-        </View>
+        {field}
       </SafeAreaView>
     </>
   );
 };
-
-function GameViewOverlay({
-  overlay,
-  setOverlay,
-}: {
-  overlay: boolean;
-  setOverlay: (value: boolean) => void;
-}) {
-  return (
-    <Pressable
-      pointerEvents={overlay ? "auto" : "none"}
-      disabled={overlay}
-      style={{
-        backgroundColor: "#45454540",
-        opacity: overlay ? 1 : 0,
-        position: "absolute",
-        zIndex: 50,
-        width: "100%",
-        height: "100%",
-      }}
-      onPress={() => {
-        setOverlay(false);
-      }}
-    >
-      <View
-        style={{
-          marginHorizontal: 40,
-          marginVertical: 20,
-          borderRadius: 14,
-          padding: 10,
-          backgroundColor: colors.background.default,
-          flexGrow: 1,
-          shadowColor: "#00000040",
-          elevation: 4,
-          shadowOpacity: 1,
-          shadowOffset: {
-            width: 0,
-            height: 4,
-          },
-          shadowRadius: 4,
-          flexDirection: "row",
-        }}
-      >
-        <TouchableOpacity
-          accessibilityLabel="Close Overlay"
-          style={{
-            position: "absolute",
-            right: 16,
-            top: 16,
-            width: 40,
-            height: 40,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 50,
-            backgroundColor: colors.secondaryContainer.default,
-            zIndex: 1,
-          }}
-          onPress={() => {
-            setOverlay(false);
-          }}
-          activeOpacity={0.1}
-        >
-          <Icon name="close" color={colors.onBackground.default} size={32} />
-        </TouchableOpacity>
-        <OutpostOverlay setOverlay={setOverlay} />
-      </View>
-    </Pressable>
-  );
-}
-
-function OutpostOverlay({
-  setOverlay,
-}: {
-  setOverlay: (value: boolean) => void;
-}) {
-  const reportState = useReportStateStore();
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 10,
-        width: "100%",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#3EE6794d",
-          borderRadius: 7,
-          flexGrow: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          reportState.addEvent({
-            type: MatchEventType.Outtake,
-            position: MatchEventPosition.Outpost,
-          });
-          setOverlay(false);
-        }}
-      >
-        <Icon name="download" size={100} color="#3EE679" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#c1c3374d",
-          borderRadius: 7,
-          flexGrow: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          reportState.addEvent({
-            type: MatchEventType.Intake,
-            position: MatchEventPosition.Outpost,
-          });
-          setOverlay(false);
-        }}
-      >
-        <Icon name="upload" size={100} color="#c1c337" />
-      </TouchableOpacity>
-    </View>
-  );
-}

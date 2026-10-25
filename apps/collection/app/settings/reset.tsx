@@ -10,6 +10,7 @@ import Button from "../../lib/components/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CommonActions } from "@react-navigation/native";
 import React from "react";
+import { useCustomPostMatchStore } from "../../lib/storage/customPostMatchStore";
 import {
   useFieldOrientationStore,
   useOnboardingCompleteStore,
@@ -19,8 +20,10 @@ import {
   useTournamentStore,
   useTrainingModeStore,
 } from "../../lib/storage/userStores";
+import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 import { useHistoryStore } from "../../lib/storage/historyStore";
 import {
+  useMatchScheduleStore,
   useTeamScoutersStore,
   useTournamentsStore,
   useScouterScheduleStore,
@@ -30,7 +33,7 @@ export default function Reset() {
   const navigation = useNavigation();
 
   const reset = async () => {
-    console.log("resetting");
+    useTrainingSessionStore.getState().clear();
     useTeamStore.setState(useTeamStore.getInitialState());
     useOnboardingCompleteStore.setState(
       useOnboardingCompleteStore.getInitialState(),
@@ -46,6 +49,8 @@ export default function Reset() {
     useTeamScoutersStore.setState(useTeamScoutersStore.getInitialState());
     useTournamentsStore.setState(useTournamentsStore.getInitialState());
     useScouterScheduleStore.setState(useScouterScheduleStore.getInitialState());
+    useMatchScheduleStore.getState().clear();
+    useCustomPostMatchStore.getState().clear();
     await AsyncStorage.clear();
     navigation.dispatch(
       CommonActions.reset({

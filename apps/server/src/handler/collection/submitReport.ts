@@ -56,7 +56,8 @@ export const submitReport = async (
     ) as typeof report.events;
 
     if (draft.status === "SUBMITTED") {
-      if (!isDeepStrictEqual(draft.payload, report)) {
+      const previous = reportSchema.safeParse(draft.payload);
+      if (!previous.success || !isDeepStrictEqual(previous.data, report)) {
         res.status(409).send({
           displayError: "Report was already submitted with different data.",
         });
@@ -79,6 +80,13 @@ export const submitReport = async (
           "Report must end before submission and use a supported schema.",
       });
 
+      return;
+    }
+
+    if (draft.seasonYear === 2023) {
+      res.status(400).json({
+        displayError: "Use the Charged Up training submission endpoint.",
+      });
       return;
     }
 
@@ -159,6 +167,7 @@ export const submitReport = async (
           trainingSessionUuid: training ? draft.trainingSessionUuid : null,
 
           notes: report.notes,
+          customPostMatch: report.customPostMatch,
           robotRoles: report.robotRoles,
           driverAbility: report.driverAbility,
           robotBrokeDescription: report.robotBrokeDescription ?? null,

@@ -241,8 +241,11 @@ describe("paired training flow", () => {
       ).status,
     ).toBe(403);
     expect((await host(session.uuid, session.browserToken, "arm")).status).toBe(
-      409,
+      200,
     );
+    expect(
+      (await host(session.uuid, session.browserToken, "play")).status,
+    ).toBe(409);
   });
   it("loads the same robot for two scouts and grades a delayed upload exactly once", async () => {
     const session = await create();
