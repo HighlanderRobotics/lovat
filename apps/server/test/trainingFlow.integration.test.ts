@@ -206,6 +206,26 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe("paired training flow", () => {
+  it("explains a malformed scout ID without consuming the pairing code", async () => {
+    const session = await create();
+    const rejected = await call(
+      `/train/${session.uuid}`,
+      { pairingToken: session.pairingToken, deviceName: "Test tablet" },
+      "4f609778-1f19-44gb-8d81-29a893f84c73",
+    );
+    expect(rejected.status).toBe(400);
+    expect(rejected.body.invalidFields).toEqual(["scouterUuid"]);
+    expect(rejected.body.displayError).toContain("Choose your scout again");
+    expect(JSON.stringify(rejected.body)).not.toContain(session.pairingToken);
+
+    await join(session);
+    const snapshot = await request(app)
+      .get(`/collection/training/sessions/${session.uuid}`)
+      .set("Authorization", `Bearer ${session.browserToken}`);
+    expect(snapshot.status).toBe(200);
+    expect(snapshot.body.participants).toHaveLength(1);
+  });
+
   it("keeps answer keys private and rejects missing browser credentials", async () => {
     const session = await create();
     const catalog = await request(app).get("/collection/training/videos");

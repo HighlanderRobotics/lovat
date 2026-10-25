@@ -15,6 +15,7 @@ import {
 } from "./sessionService.js";
 import { gradeTrainingReport } from "./gradeReport.js";
 import { submitReport } from "../collection/submitReport.js";
+import { trainingValidationError } from "./validationError.js";
 
 export const trainingRoutes = Router();
 const access = (req: Request) =>
@@ -345,7 +346,7 @@ trainingRoutes.use(
       return;
     }
     if (error instanceof z.ZodError) {
-      res.status(400).json({ displayError: "Invalid training request." });
+      res.status(400).json(trainingValidationError(error));
       return;
     }
     console.error("Training request failed", error);
