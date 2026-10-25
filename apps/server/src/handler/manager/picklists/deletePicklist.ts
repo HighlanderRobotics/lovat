@@ -39,7 +39,10 @@ export const deletePicklist = async (
       return;
     }
 
-    if (user.teamNumber === picklist.author.teamNumber) {
+    if (
+      user.teamNumber !== null &&
+      user.teamNumber === picklist.author.teamNumber
+    ) {
       await prismaClient.sharedPicklist.delete({
         where: { uuid: params.data.uuid },
       });
@@ -49,6 +52,6 @@ export const deletePicklist = async (
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

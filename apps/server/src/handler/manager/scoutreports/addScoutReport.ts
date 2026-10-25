@@ -50,7 +50,12 @@ export const checkForInvalidEvents = (events: number[][]): string[] | null => {
   const errors: string[] = [];
 
   for (const event of events) {
-    const eventType = EventActionMap[event[1]].toString().split("_");
+    const action = EventActionMap[event[1]];
+    if (!action) {
+      errors.push(`Invalid event action ${event[1]}.`);
+      continue;
+    }
+    const eventType = action.toString().split("_");
 
     switch (eventType[0]) {
       case "START":
@@ -170,8 +175,22 @@ export const addScoutReport = async (
     });
 
     if (!matchRow) {
-      await addTournamentMatches(paramsScoutReport.tournamentKey);
-
+      if (paramsScoutReport.matchType === MatchType.PRACTICE) {
+        const practiceKey = `${paramsScoutReport.tournamentKey}_pm${paramsScoutReport.matchNumber}_${paramsScoutReport.teamNumber}`;
+        matchRow = await prismaClient.teamMatchData.upsert({
+          where: { key: practiceKey },
+          update: {},
+          create: {
+            key: practiceKey,
+            tournamentKey: paramsScoutReport.tournamentKey,
+            matchNumber: paramsScoutReport.matchNumber,
+            teamNumber: paramsScoutReport.teamNumber,
+            matchType: MatchType.PRACTICE,
+          },
+        });
+      } else {
+        await addTournamentMatches(paramsScoutReport.tournamentKey);
+      }
       matchRow = await prismaClient.teamMatchData.findFirst({
         where: {
           tournamentKey: paramsScoutReport.tournamentKey,
@@ -191,41 +210,6 @@ export const addScoutReport = async (
     }
 
     const matchKey = matchRow.key;
-
-    // Create scout report in database
-    await prismaClient.scoutReport.create({
-      data: {
-        // constants
-        uuid: paramsScoutReport.uuid,
-        startTime: new Date(paramsScoutReport.startTime),
-        teamMatchData: { connect: { key: matchKey } },
-        scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },
-        notes: paramsScoutReport.notes,
-        robotRoles: paramsScoutReport.robotRoles,
-        driverAbility: paramsScoutReport.driverAbility,
-        robotBrokeDescription: paramsScoutReport.robotBrokeDescription ?? null,
-
-        // game specific
-        autoClimb: paramsScoutReport.autoClimb,
-        beached: paramsScoutReport.beached,
-        feederTypes: paramsScoutReport.feederTypes,
-        intakeType: paramsScoutReport.intakeType,
-        fieldTraversal: paramsScoutReport.mobility,
-        defenseEffectiveness: paramsScoutReport.defenseEffectiveness,
-        scoresWhileMoving: paramsScoutReport.scoresWhileMoving,
-        accuracy: paramsScoutReport.accuracy ?? null,
-        climbPosition: paramsScoutReport.climbPosition,
-        climbSide: paramsScoutReport.climbSide,
-        endgameClimb: paramsScoutReport.endgameClimb,
-        disrupts: paramsScoutReport.disrupts,
-      },
-    });
-
-    // Collect all affected cached analyses
-    invalidateCache(
-      paramsScoutReport.teamNumber,
-      paramsScoutReport.tournamentKey,
-    );
 
     const scoutReportUuid = paramsScoutReport.uuid;
 
@@ -281,6 +265,43 @@ export const addScoutReport = async (
       });
     }
 
+    // The report and its events must either both persist or both roll back.
+    await prismaClient.$transaction([
+      prismaClient.scoutReport.create({
+        data: {
+          uuid: paramsScoutReport.uuid,
+          startTime: new Date(paramsScoutReport.startTime),
+          teamMatchData: { connect: { key: matchKey } },
+          scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },
+          notes: paramsScoutReport.notes,
+          robotRoles: paramsScoutReport.robotRoles,
+          driverAbility: paramsScoutReport.driverAbility,
+          robotBrokeDescription:
+            paramsScoutReport.robotBrokeDescription ?? null,
+          autoClimb: paramsScoutReport.autoClimb,
+          beached: paramsScoutReport.beached,
+          feederTypes: paramsScoutReport.feederTypes,
+          intakeType: paramsScoutReport.intakeType,
+          fieldTraversal: paramsScoutReport.mobility,
+          defenseEffectiveness: paramsScoutReport.defenseEffectiveness,
+          scoresWhileMoving: paramsScoutReport.scoresWhileMoving,
+          accuracy: paramsScoutReport.accuracy ?? null,
+          climbPosition: paramsScoutReport.climbPosition,
+          climbSide: paramsScoutReport.climbSide,
+          endgameClimb: paramsScoutReport.endgameClimb,
+          disrupts: paramsScoutReport.disrupts,
+        },
+      }),
+      prismaClient.event.createMany({ data: eventDataArray }),
+    ]);
+
+    await invalidateCache(
+      paramsScoutReport.teamNumber,
+      paramsScoutReport.tournamentKey,
+    ).catch((error) =>
+      console.error("Failed to invalidate report cache", error),
+    );
+
     const broke = paramsScoutReport.robotBrokeDescription?.trim();
     if (broke) {
       sendWarningToSlack(
@@ -291,11 +312,6 @@ export const addScoutReport = async (
         paramsScoutReport.uuid,
       );
     }
-
-    // Push event rows to prisma database
-    const rows = await prismaClient.event.createMany({
-      data: eventDataArray,
-    });
 
     res.status(200).send("done adding data");
   } catch (error) {
@@ -323,6 +339,8 @@ export const addScoutReport = async (
     }
 
     console.log(error);
-    res.status(500).send({ error: error, displayError: "Error" });
+    res
+      .status(500)
+      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

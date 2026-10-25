@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 export const sendSlackVerification = async (
   teamNumber: number,
   teamEmail: string,
@@ -69,4 +66,3 @@ export const sendSlackVerification = async (
     }
   }
 };
-//# sourceMappingURL=sendSlackVerification.js.map

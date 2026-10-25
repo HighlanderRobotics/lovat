@@ -46,7 +46,9 @@
 		background-color: var(--victory-purple);
 		border-radius: 7px;
 
-		transition: width 1s ease-in-out, background-color 1s ease-in-out;
+		transition:
+			width 1s ease-in-out,
+			background-color 1s ease-in-out;
 	}
 
 	.queue .filled-region {

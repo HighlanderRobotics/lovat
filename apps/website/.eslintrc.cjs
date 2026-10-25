@@ -18,6 +18,13 @@ module.exports = {
 		es2017: true,
 		node: true
 	},
+	globals: {
+		NodeJS: 'readonly'
+	},
+	rules: {
+		'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+		'svelte/valid-compile': 'warn'
+	},
 	overrides: [
 		{
 			files: ['*.svelte'],

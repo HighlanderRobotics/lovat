@@ -1,5 +1,9 @@
 # Lovat
 
+[![CI](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
+[![Tests (CI workflow)](https://img.shields.io/github/actions/workflow/status/HighlanderRobotics/lovat/ci.yml?branch=main&label=Tests)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
+[![CodeQL](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml?query=branch%3Amain)
+
 Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Competition events. It collects match observations, analyzes team performance, supports scouting operations, and presents data for match strategy and alliance selection.
 
 ## Applications
@@ -74,7 +78,11 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 
 ## Deployment
 
-- Server: Railway, repository root `/`, Dockerfile `Dockerfile.server` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
+The [server test overview](https://highlanderrobotics.github.io/lovat/) can be
+published by CI after successful server checks on main. See
+[test report hosting](docs/test-report-hosting.md) for setup.
+
+- Server: Railway, repository root `/`, config `/apps/server/railway.json`, Dockerfile `apps/server/Dockerfile` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
 - Dashboard: Netlify web deployment and GitHub Actions Android artifact.
 - Collection: EAS, project root `apps/collection`.
 - Website: Netlify, base directory `apps/website`.
@@ -82,5 +90,9 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 - Learn: static site; base directory `apps/learn`, build `npm run build`, output `dist`.
 
 ## History
+
+See the [changelog](CHANGELOG.md) for changes grouped by month and feature across Lovat's full history
+and the [complete commit archive](docs/history/README.md) for all retained main
+and tagged application history, beginning in December 2022.
 
 This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.

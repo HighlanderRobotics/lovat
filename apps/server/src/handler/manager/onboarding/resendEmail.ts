@@ -35,12 +35,12 @@ export const resendEmail = async (
       return;
     }
 
-    sendVerificationEmail(teamRow.email, teamRow.number);
+    await sendVerificationEmail(teamRow.email, teamRow.number);
 
     res.status(200).send("verification email sent");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };
 
@@ -62,7 +62,7 @@ export async function sendVerificationEmail(
     },
   });
 
-  resend.emails.send({
+  await resend.emails.send({
     from: "noreply@lovat.app",
     to: email,
     subject: "Lovat Email Verification",

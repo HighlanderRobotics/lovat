@@ -35,16 +35,18 @@ export const emailTeamCode = async (
     }
 
     const resend = new Resend(process.env.RESEND_KEY);
-    resend.emails.send({
+    const delivery = await resend.emails.send({
       from: "noreply@lovat.app",
       to: team.email,
       subject: "Lovat Team Code",
       html: `<p>Welcome to Lovat, your team code is: <strong>${team.code}</strong></p><p>If you have received this email in error, please ignore it.</p>`,
     });
 
+    if (delivery.error) throw new Error(delivery.error.message);
+
     res.status(200).send({ email: team.email });
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

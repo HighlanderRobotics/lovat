@@ -69,7 +69,12 @@ export const requireAuth = async (
         return;
       } catch (error) {
         console.error("Error validating API key:", error);
-        res.status(401).send("Invalid API key");
+        // TODO(LVT-297): Remove this notice after the rotation recovery window.
+        res
+          .status(401)
+          .send(
+            "Invalid API key. API keys were rotated recently. Please check your email for your replacement API key.",
+          );
         return;
       }
     }

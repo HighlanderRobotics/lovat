@@ -77,6 +77,7 @@ registry.registerPath({
         },
       },
     },
+    404: { description: "Tournament or teams not found" },
     500: { description: "Server error" },
   },
   security: [{ bearerAuth: [] }],
