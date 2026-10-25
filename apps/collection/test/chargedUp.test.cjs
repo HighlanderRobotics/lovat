@@ -461,3 +461,32 @@ test("post-match prefilling runs once, closes defence and preserves manual corre
   state().restartMatch();
   assert.equal(state().postMatchPrepared, false);
 });
+
+test("custom questions are snapshotted per match and answers survive report and QR JSON round trips", () => {
+  const questions = ["Old question", "Second question"];
+  store.getState().scoutMatch(meta, questions);
+  store.getState().setStartPosition(50);
+  store.getState().initializeMatchTimestamp();
+  questions[0] = "Renamed by lead";
+  store
+    .getState()
+    .setCustomPostMatchAnswer(0, 'Detailed, "answer"\nWith a newline');
+  store.getState().preparePostMatch();
+  const report = store.getState().exportScoutReport();
+  assert.deepEqual(report.customPostMatch, [
+    { question: "Old question", answer: 'Detailed, "answer"\nWith a newline' },
+    { question: "Second question", answer: "" },
+  ]);
+  assert.deepEqual(
+    scoutReportSchema.parse(JSON.parse(JSON.stringify(report))).customPostMatch,
+    report.customPostMatch,
+  );
+  store.getState().restartMatch();
+  assert.deepEqual(store.getState().customPostMatch, [
+    { question: "Old question", answer: "" },
+    { question: "Second question", answer: "" },
+  ]);
+  store.getState().reset();
+  assert.deepEqual(store.getState().customPostMatch, []);
+  assert.throws(() => store.getState().scoutMatch(meta, ["1", "2", "3", "4"]));
+});

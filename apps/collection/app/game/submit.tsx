@@ -26,6 +26,7 @@ import {
 } from "../../lib/storage/userStores";
 import { nextScouterAssignment } from "../../lib/collection/nextScouterAssignment";
 import { SubmissionActions } from "../../lib/collection/ui/SubmissionActions";
+import { useCustomPostMatchStore } from "../../lib/storage/customPostMatchStore";
 
 export default function Submit() {
   // Keep this submission fixed while the next match initializes the live store.
@@ -167,7 +168,12 @@ const DoneButton = ({
       onNext={() => {
         if (!nextMatch) return;
         preserveSubmission();
-        useReportStateStore.getState().scoutMatch(nextMatch);
+        useReportStateStore
+          .getState()
+          .scoutMatch(
+            nextMatch,
+            useCustomPostMatchStore.getState().getQuestions(),
+          );
         router.replace("/game");
       }}
       onHome={() => {

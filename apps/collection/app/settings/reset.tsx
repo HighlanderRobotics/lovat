@@ -10,6 +10,7 @@ import Button from "../../lib/components/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CommonActions } from "@react-navigation/native";
 import React from "react";
+import { useCustomPostMatchStore } from "../../lib/storage/customPostMatchStore";
 import {
   useFieldOrientationStore,
   useOnboardingCompleteStore,
@@ -48,6 +49,7 @@ export default function Reset() {
     useTournamentsStore.setState(useTournamentsStore.getInitialState());
     useScouterScheduleStore.setState(useScouterScheduleStore.getInitialState());
     useMatchScheduleStore.getState().clear();
+    useCustomPostMatchStore.getState().clear();
     await AsyncStorage.clear();
     navigation.dispatch(
       CommonActions.reset({

@@ -23,6 +23,7 @@ import {
   dataSourceRuleSchema,
 } from "../dataSourceRule.js";
 import { averageScoutReport } from "../coreAnalysis/averageScoutReport.js";
+import { customPostMatchCSV } from "../../../lib/customPostMatch.js";
 
 // Scouting report condensed into a single dimension that can be pushed to a row in the csv
 export interface CondensedReport {
@@ -156,6 +157,7 @@ export const getReportCSV = async (
       select: {
         uuid: true,
         notes: true,
+        customPostMatch: true,
         robotRoles: true,
         endgameClimb: true,
         autoClimb: true,
@@ -208,8 +210,8 @@ export const getReportCSV = async (
     }
 
     const condensed = await Promise.all(
-      datapoints.map(async (r) =>
-        condenseReport(
+      datapoints.map(async (r) => ({
+        ...(await condenseReport(
           {
             uuid: r.uuid,
             notes: r.notes,
@@ -234,8 +236,9 @@ export const getReportCSV = async (
           req.user.teamNumber,
           includeAuto,
           includeTeleop,
-        ),
-      ),
+        )),
+        ...customPostMatchCSV(r.customPostMatch),
+      })),
     );
 
     // Create and send the csv string through express
@@ -249,8 +252,6 @@ export const getReportCSV = async (
       cast: {
         boolean: (b) => (b ? "TRUE" : "FALSE"),
       },
-      // Turn off quotation marks
-      quote: false,
     });
 
     res.attachment("lovatReportsDownload.csv");

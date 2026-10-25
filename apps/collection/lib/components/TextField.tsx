@@ -4,6 +4,8 @@ import { TextInput } from "react-native";
 import { forwardRef, ForwardRefRenderFunction, useState } from "react";
 
 type TextInputProps = {
+  accessibilityLabel?: string;
+  maxLength?: number;
   density?: "comfortable" | "compact";
   placeholder?: string;
   autoFocus?: boolean;
@@ -24,6 +26,8 @@ type TextInputProps = {
 const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
   {
     density = "comfortable",
+    accessibilityLabel,
+    maxLength,
     placeholder = "",
     autoFocus,
     autoCapitalize,
@@ -45,6 +49,8 @@ const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
 
   return (
     <TextInput
+      accessibilityLabel={accessibilityLabel}
+      maxLength={maxLength}
       style={{
         minHeight: multiline ? 48 : undefined,
         textAlignVertical: multiline ? "top" : "auto",

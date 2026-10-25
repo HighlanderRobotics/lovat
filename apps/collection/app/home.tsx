@@ -57,6 +57,8 @@ import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
 import { useConnectivityStore } from "../lib/network/connectivity";
 import { Icon } from "../lib/components/Icon";
 
+import { useCustomPostMatchStore } from "../lib/storage/customPostMatchStore";
+
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
     useMatchSelectionModeStore();
@@ -158,15 +160,18 @@ export default function Home() {
                     const alliance = match?.teams.find(
                       (team) => team.number === meta.teamNumber,
                     )?.alliance;
-                    reportState.scoutMatch({
-                      ...meta,
-                      allianceColor:
-                        alliance === "red"
-                          ? AllianceColor.Red
-                          : alliance === "blue"
-                            ? AllianceColor.Blue
-                            : meta.allianceColor,
-                    });
+                    reportState.scoutMatch(
+                      {
+                        ...meta,
+                        allianceColor:
+                          alliance === "red"
+                            ? AllianceColor.Red
+                            : alliance === "blue"
+                              ? AllianceColor.Blue
+                              : meta.allianceColor,
+                      },
+                      useCustomPostMatchStore.getState().getQuestions(),
+                    );
                   }}
                 >
                   Scout this match

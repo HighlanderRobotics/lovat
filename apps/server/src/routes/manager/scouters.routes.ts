@@ -19,8 +19,27 @@ import { registry } from "../../lib/openapi.js";
 import { z } from "zod";
 import { ScouterSchema } from "../../lib/prisma-zod.js";
 import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js";
+import { customPostMatchHandlers } from "../../handler/manager/teamCustomPostMatch.js";
+import { customPostMatchResponseSchema } from "../../lib/customPostMatch.js";
 
 const router = Router();
+router.get("/custom-post-match", customPostMatchHandlers.collection);
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/custom-post-match",
+  tags: ["Manager - Collection"],
+  summary: "Get the authenticated team's custom post-match questions",
+  request: { headers: z.object({ "X-Team-Code": z.string() }) },
+  responses: {
+    200: {
+      description: "Team questions",
+      content: {
+        "application/json": { schema: customPostMatchResponseSchema },
+      },
+    },
+    401: { description: "Invalid team code" },
+  },
+});
 
 // Public/unauthenticated endpoints
 router.post("/emailTeamCode", emailTeamCode);

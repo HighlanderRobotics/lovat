@@ -20,6 +20,7 @@ import {
 } from "@lovat/db";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { customPostMatchAnswersSchema } from "../../../lib/customPostMatch.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 
@@ -127,15 +128,35 @@ export const addScoutReport = async (
         scouterUuid: z.string(),
         teamNumber: z.number(),
         appVersion: z.string().optional(),
+        customPostMatch: customPostMatchAnswersSchema.optional().default([]),
       })
       .parse(req.body);
 
     // Check that scouter exists
-    await prismaClient.scouter.findFirstOrThrow({
+    const scouter = await prismaClient.scouter.findFirstOrThrow({
       where: {
         uuid: paramsScoutReport.scouterUuid,
       },
     });
+
+    if (paramsScoutReport.customPostMatch.length) {
+      const code = req.headers["x-team-code"];
+      const team =
+        typeof code === "string"
+          ? await prismaClient.registeredTeam.findUnique({
+              where: { code },
+              select: { number: true },
+            })
+          : null;
+      if (!team || team.number !== scouter.sourceTeamNumber) {
+        res
+          .status(403)
+          .json({
+            displayError: "The report's scouter must belong to your team.",
+          });
+        return;
+      }
+    }
 
     const eventDataArray: {
       time: number;
@@ -204,6 +225,7 @@ export const addScoutReport = async (
         robotRoles: paramsScoutReport.robotRoles,
         driverAbility: paramsScoutReport.driverAbility,
         robotBrokeDescription: paramsScoutReport.robotBrokeDescription ?? null,
+        customPostMatch: paramsScoutReport.customPostMatch,
 
         // game specific
         autoClimb: paramsScoutReport.autoClimb,

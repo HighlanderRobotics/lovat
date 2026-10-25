@@ -41,6 +41,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
         startTime: true,
         notes: true,
         robotBrokeDescription: true,
+        customPostMatch: true,
         driverAbility: true,
         defenseEffectiveness: true,
         robotRoles: true,
@@ -105,6 +106,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
       }),
       note: scoutReport.notes,
       robotBrokeDescription: scoutReport.robotBrokeDescription,
+      customPostMatch: scoutReport.customPostMatch,
       timeStamp: scoutReport.startTime,
     };
 

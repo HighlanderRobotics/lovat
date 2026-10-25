@@ -14,9 +14,14 @@ import {
   onCharger,
 } from "./ChargedUp";
 import { postMatchDefaults } from "./postMatchDefaults";
+import {
+  customPostMatchQuestionsSchema,
+  CustomPostMatchAnswer,
+} from "./CustomPostMatch";
 const initialState = {
   ...initialPostMatch,
   postMatchPrepared: false,
+  customPostMatch: [] as CustomPostMatchAnswer[],
   fieldPieces: ["UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN"] as (
     | "CONE"
     | "CUBE"
@@ -30,8 +35,30 @@ const initialState = {
 };
 export const useReportStateStore = create<ReportState>((set, get) => ({
   ...initialState,
-  scoutMatch: (meta) => set({ ...initialState, meta, uuid: v4() }),
-  restartMatch: () => set({ ...initialState, uuid: v4() }),
+  scoutMatch: (meta, questions = []) =>
+    set({
+      ...initialState,
+      meta,
+      uuid: v4(),
+      customPostMatch: customPostMatchQuestionsSchema
+        .parse(questions)
+        .map((question) => ({ question, answer: "" })),
+    }),
+  restartMatch: () =>
+    set({
+      ...initialState,
+      uuid: v4(),
+      customPostMatch: get().customPostMatch.map(({ question }) => ({
+        question,
+        answer: "",
+      })),
+    }),
+  setCustomPostMatchAnswer: (index, answer) =>
+    set({
+      customPostMatch: get().customPostMatch.map((item, i) =>
+        i === index ? { ...item, answer: answer.slice(0, 2000) } : item,
+      ),
+    }),
   initializeMatchTimestamp: () => {
     if (get().startPosition !== undefined && !get().startTimestamp)
       set({ startTimestamp: new Date() });
@@ -140,6 +167,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
         ]),
       ),
       fieldPieces: state.fieldPieces,
+      customPostMatch: state.customPostMatch,
       preloadedPiece: state.preloadedPiece,
       gameYear: 2023,
       appVersion: Constants.expoConfig?.version,

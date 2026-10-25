@@ -1,4 +1,5 @@
 import { ScoutReportMeta } from "../models/ScoutReportMeta";
+import { CustomPostMatchAnswer } from "./CustomPostMatch";
 import {
   ChargedUpEvent,
   ChargedUpReport,
@@ -23,7 +24,9 @@ export type ReportState = PostMatchData & {
   setFieldPiece: (index: number) => void;
   events: ChargedUpEvent[];
   gamePhase: GamePhase;
-  scoutMatch: (meta: ScoutReportMeta) => void;
+  scoutMatch: (meta: ScoutReportMeta, customQuestions?: string[]) => void;
+  customPostMatch: CustomPostMatchAnswer[];
+  setCustomPostMatchAnswer: (index: number, answer: string) => void;
   restartMatch: () => void;
   initializeMatchTimestamp: () => void;
   setStartPosition: (value: number) => void;

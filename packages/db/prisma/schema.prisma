@@ -58,6 +58,7 @@ model ScoutReport {
   driverAbility         Int
   scouterUuid           String
   robotBrokeDescription String?
+  customPostMatch       Json          @default("[]")
   events                Event[]
   scouter               Scouter       @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
   teamMatchData         TeamMatchData @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
@@ -145,6 +146,7 @@ model RegisteredTeam {
   number                Int                    @id
   code                  String                 @unique
   email                 String
+  customPostMatch       String[]               @default([])
   emailVerified         Boolean                @default(false)
   timeCreated           DateTime               @default(now()) // not accurate for teams registered before this field was added
   teamApproved          Boolean                @default(false)

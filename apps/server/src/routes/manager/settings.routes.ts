@@ -11,6 +11,11 @@ import { registry } from "../../lib/openapi.js";
 import { z } from "zod";
 import { getTeamEmail } from "../../handler/manager/settings/getTeamEmail.js";
 import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js";
+import { customPostMatchHandlers } from "../../handler/manager/teamCustomPostMatch.js";
+import {
+  customPostMatchResponseSchema,
+  customPostMatchSettingsSchema,
+} from "../../lib/customPostMatch.js";
 
 const updateTeamEmails = rateLimit({
   windowMs: 2 * 60 * 1000,
@@ -190,6 +195,50 @@ registry.registerPath({
 });
 
 router.use(requireAuth);
+router.get(
+  "/custom-post-match",
+  requireVerifiedTeam,
+  customPostMatchHandlers.settings,
+);
+router.put(
+  "/custom-post-match",
+  requireVerifiedTeam,
+  customPostMatchHandlers.update,
+);
+
+for (const method of ["get", "put"] as const)
+  registry.registerPath({
+    method,
+    path: "/v1/manager/settings/custom-post-match",
+    tags: ["Manager - Settings"],
+    summary:
+      method === "put"
+        ? "Set up to three custom post-match questions (scouting leads only)"
+        : "Get team custom questions",
+    ...(method === "put"
+      ? {
+          request: {
+            body: {
+              content: {
+                "application/json": { schema: customPostMatchSettingsSchema },
+              },
+            },
+          },
+        }
+      : {}),
+    responses: {
+      200: {
+        description: "Team questions",
+        content: {
+          "application/json": { schema: customPostMatchResponseSchema },
+        },
+      },
+      400: { description: "Invalid questions" },
+      401: { description: "Unauthorized" },
+      403: { description: "Not permitted" },
+    },
+    security: [{ bearerAuth: [] }],
+  });
 
 router.put("/", updateSettings);
 

@@ -10,6 +10,7 @@ import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
 import { useMatchScheduleStore } from "./storage/matchScheduleStore";
 import { useConnectivityStore } from "./network/connectivity";
+import { useCustomPostMatchStore } from "./storage/customPostMatchStore";
 export { useMatchScheduleStore } from "./storage/matchScheduleStore";
 
 export function getServiceLoader() {
@@ -33,6 +34,7 @@ export function getServiceLoader() {
         fetchTeamScouters(),
         fetchScouterSchedule(),
         fetchMatchSchedule(),
+        useCustomPostMatchStore.getState().fetchData(),
       ]);
       const failure = results.find((result) => result.status === "rejected");
       if (failure?.status === "rejected") throw failure.reason;

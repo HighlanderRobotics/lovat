@@ -225,6 +225,21 @@ export default function PostMatch() {
               anyone.
             </BodyMedium>
           </View>
+          {state.customPostMatch.map(({ question, answer }, index) => (
+            <View key={question} style={{ gap: 7 }}>
+              <QuestionLabel>{question}</QuestionLabel>
+              <TextField
+                multiline
+                accessibilityLabel={question}
+                placeholder="Answer (optional)"
+                maxLength={2000}
+                value={answer}
+                onChangeText={(value) =>
+                  state.setCustomPostMatchAnswer(index, value)
+                }
+              />
+            </View>
+          ))}
           <Button
             variant="primary"
             disabled={training || !validLinks}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { customPostMatchAnswersSchema } from "./CustomPostMatch";
 
 export const scoutReportEventSchema = z.union([
   z.tuple([z.number(), z.number(), z.number()]),
@@ -43,6 +44,7 @@ export const EndgameClimbString = z.enum([
 ]);
 
 export const scoutReportSchema = z.object({
+  customPostMatch: customPostMatchAnswersSchema.optional(),
   appVersion: z.string().optional(),
   uuid: z.string(),
   tournamentKey: z.string(),

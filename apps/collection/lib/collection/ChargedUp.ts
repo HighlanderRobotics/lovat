@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { customPostMatchAnswersSchema } from "./CustomPostMatch";
 export const AUTO_END_SECONDS = 15;
 export const ENDGAME_START_SECONDS = 120;
 export const MATCH_END_SECONDS = 150;
@@ -62,6 +63,7 @@ export const eventSchema = z
   });
 export type ChargedUpEvent = z.infer<typeof eventSchema>;
 export const chargedUpReportSchema = z.object({
+  customPostMatch: customPostMatchAnswersSchema.optional(),
   gameYear: z.literal(2023),
   appVersion: z.string().optional(),
   uuid: z.string(),
