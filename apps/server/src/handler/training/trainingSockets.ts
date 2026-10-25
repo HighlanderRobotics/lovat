@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import z from "zod";
 import db from "../../prismaClient.js";
 import { snapshot } from "./sessionService.js";
+import { trainingOriginAllowed } from "./allowedOrigin.js";
 
 export function attachTrainingSockets(server: Server): void {
   const wss = new WebSocketServer({ noServer: true, maxPayload: 2048 });
@@ -13,14 +14,7 @@ export function attachTrainingSockets(server: Server): void {
       return;
     }
     const origin = req.headers.origin;
-    if (
-      origin &&
-      !/^https:\/\/(.*\.)?lovat\.app$/.test(origin) &&
-      !(
-        process.env.NODE_ENV === "development" &&
-        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-      )
-    ) {
+    if (!trainingOriginAllowed(origin)) {
       socket.destroy();
       return;
     }

@@ -2,15 +2,59 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { createServer } from 'vite';
 
-let server, render, Results, Roles, Roster;
+let server, render, Results, Roles, Roster, trainingSocketUrl;
 before(async () => {
 	server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
 	({ render } = await server.ssrLoadModule('svelte/server'));
 	({ default: Results } = await server.ssrLoadModule('/src/lib/training/TrainingResults.svelte'));
 	({ default: Roles } = await server.ssrLoadModule('/src/lib/training/TrainingRoles.svelte'));
 	({ default: Roster } = await server.ssrLoadModule('/src/lib/training/TrainingRoster.svelte'));
+	({ trainingSocketUrl } = await server.ssrLoadModule('/src/lib/server/trainingSocketUrl.ts'));
 });
 after(async () => server?.close());
+
+test('Railway previews send browsers to the public API socket, not private DNS', () => {
+	assert.equal(
+		trainingSocketUrl({
+			LOVAT_API_BASE: 'http://lovat-server.railway.internal',
+			RAILWAY_SERVICE_API_URL: 'api-lovat-pr-93.up.railway.app'
+		}),
+		'wss://api-lovat-pr-93.up.railway.app/collection/training/socket'
+	);
+});
+
+test('explicit public API configuration takes priority and strips private URL fields', () => {
+	assert.equal(
+		trainingSocketUrl({
+			LOVAT_PUBLIC_API_BASE: 'https://user:secret@api.example/base?token=secret#secret',
+			RAILWAY_SERVICE_API_URL: 'other.example'
+		}),
+		'wss://api.example/collection/training/socket'
+	);
+});
+
+test('public production URLs and local development remain supported', () => {
+	assert.equal(
+		trainingSocketUrl({ LOVAT_API_BASE: 'https://api.lovat.app' }),
+		'wss://api.lovat.app/collection/training/socket'
+	);
+	assert.equal(
+		trainingSocketUrl({ LOVAT_API_BASE: 'http://127.0.0.1:3002' }),
+		'ws://127.0.0.1:3002/collection/training/socket'
+	);
+});
+
+test('missing, private, malformed, and insecure public URLs fail explicitly', () => {
+	for (const value of [
+		undefined,
+		'http://api.railway.internal',
+		'http://api.example',
+		'ftp://api.example',
+		'https://['
+	]) {
+		assert.throws(() => trainingSocketUrl({ LOVAT_API_BASE: value }));
+	}
+});
 
 const participant = (overrides = {}) => ({
 	uuid: 'scout-1',

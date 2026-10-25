@@ -1,19 +1,20 @@
 import { env } from '$env/dynamic/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { trainingSocketUrl } from '$lib/server/trainingSocketUrl';
 
 const handle: RequestHandler = async ({ params, request, url, fetch }) => {
 	if (!env.LOVAT_API_BASE)
 		return json({ displayError: 'Training server is not configured.' }, { status: 503 });
 	if (params.path === 'config' && request.method === 'GET') {
-		const base = new URL(env.LOVAT_PUBLIC_API_BASE || env.LOVAT_API_BASE);
-		base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
-		base.username = '';
-		base.password = '';
-		base.search = '';
-		base.hash = '';
-		base.pathname = '/collection/training/socket';
-		return json({ socketUrl: base.toString() });
+		try {
+			return json({ socketUrl: trainingSocketUrl(env) });
+		} catch {
+			return json(
+				{ displayError: 'Training requires a public API URL. Configure LOVAT_PUBLIC_API_BASE.' },
+				{ status: 503 }
+			);
+		}
 	}
 	const path = params.path;
 	const allowed =

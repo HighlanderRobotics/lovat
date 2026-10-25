@@ -3,7 +3,15 @@ import { once } from "node:events";
 import express from "express";
 import request from "supertest";
 import { WebSocket } from "ws";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import fixture from "./fixtures/training/118-johnson-qual-19.report.json";
 import { reportSchema } from "../src/handler/collection/reportSchema.js";
 
@@ -36,6 +44,7 @@ const tournamentKey = `2026training-${code}`,
 const keyUuid = randomUUID(),
   videoUuid = randomUUID();
 const sessions: string[] = [];
+afterEach(() => vi.unstubAllEnvs());
 const call = (path: string, body: object, scout = scouts[0], teamCode = code) =>
   request(app)
     .post(`/collection${path}`)
@@ -325,30 +334,43 @@ describe("paired training flow", () => {
       (await db.scoutReport.findUniqueOrThrow({ where: { uuid } })).training,
     ).toBe(true);
   });
-  it("authenticates WebSocket snapshots without exposing tokens in URLs", async () => {
-    const session = await create();
-    const attempt = await join(session);
-    const address = server.address();
-    if (!address || typeof address === "string")
-      throw new Error("No test server");
-    const ws = new WebSocket(
-      `ws://127.0.0.1:${address.port}/collection/training/socket`,
-    );
-    await once(ws, "open");
-    const message = once(ws, "message");
-    ws.send(
-      JSON.stringify({
-        sessionUuid: session.uuid,
-        attemptUuid: attempt.attemptUuid,
-        token: attempt.attemptToken,
-      }),
-    );
-    const [raw] = await message;
-    const snapshot = JSON.parse(raw.toString());
-    expect(snapshot.uuid).toBe(session.uuid);
-    expect(snapshot.participants).toHaveLength(1);
-    expect(snapshot).not.toHaveProperty("browserTokenHash");
-    ws.close();
-    await once(ws, "close");
-  });
+  it.each([
+    undefined,
+    "https://website-lovat-pr-93.up.railway.app",
+    "https://api-lovat-pr-93.up.railway.app",
+  ])(
+    "authenticates WebSocket snapshots from %s without tokens in URLs",
+    async (origin) => {
+      vi.stubEnv(
+        "RAILWAY_SERVICE_WEBSITE_URL",
+        "website-lovat-pr-93.up.railway.app",
+      );
+      vi.stubEnv("RAILWAY_PUBLIC_DOMAIN", "api-lovat-pr-93.up.railway.app");
+      const session = await create();
+      const attempt = await join(session);
+      const address = server.address();
+      if (!address || typeof address === "string")
+        throw new Error("No test server");
+      const ws = new WebSocket(
+        `ws://127.0.0.1:${address.port}/collection/training/socket`,
+        { origin },
+      );
+      await once(ws, "open");
+      const message = once(ws, "message");
+      ws.send(
+        JSON.stringify({
+          sessionUuid: session.uuid,
+          attemptUuid: attempt.attemptUuid,
+          token: attempt.attemptToken,
+        }),
+      );
+      const [raw] = await message;
+      const snapshot = JSON.parse(raw.toString());
+      expect(snapshot.uuid).toBe(session.uuid);
+      expect(snapshot.participants).toHaveLength(1);
+      expect(snapshot).not.toHaveProperty("browserTokenHash");
+      ws.close();
+      await once(ws, "close");
+    },
+  );
 });

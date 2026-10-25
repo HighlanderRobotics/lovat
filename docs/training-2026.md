@@ -11,7 +11,8 @@ Training uses the existing 2026 report format. Training reports carry `training 
 ## Deployment
 
 - Deploy the eight additive report-lifecycle/training migrations in `packages/db/prisma/migrations/2026101400*` before deploying Server.
-- Set Website `LOVAT_API_BASE` to the Server URL. Set `LOVAT_PUBLIC_API_BASE` when the browser needs a different public Server URL. The public URL must support `/collection/training/socket` WebSocket upgrades.
+- Set Website `LOVAT_API_BASE` to the Server URL. Browser sockets use `LOVAT_PUBLIC_API_BASE`, then Railway's `RAILWAY_SERVICE_API_URL`, then a public `LOVAT_API_BASE`. Private Railway DNS is never returned to browsers. The public URL must support `/collection/training/socket` WebSocket upgrades.
+- WebSocket upgrades accept Lovat origins, explicitly configured `CORS_ALLOWED_ORIGINS`, and the exact Railway Website/API service origins. Unrelated Railway projects remain blocked. Session-token authentication is required after every upgrade.
 - Install a 2026 Collection build with the training deep link. The Charged Up app is maintained on a separate offseason branch.
 - For PR #93 device testing, use Collection's `training-pr-93` EAS profile. It targets `https://api-lovat-pr-93.up.railway.app` and inherits the internal preview signing configuration. Team/scouter credentials must belong to that preview environment.
 - The 2026 app stores history under `historyStore2026`. It imports valid 2026 entries from the older shared key while preserving the original Charged Up history.
