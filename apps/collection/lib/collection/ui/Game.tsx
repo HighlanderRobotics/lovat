@@ -11,6 +11,12 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
+import Animated, {
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useReportStateStore } from "../reportStateStore";
 import { gameHeaderAssets, GameViewTemplate } from "./GameViewTemplate";
@@ -110,6 +116,22 @@ export function Game() {
   const piece = heldPiece(state.events, state.preloadedPiece);
   const activity = activeActivity(state.events);
   const charging = onCharger(state.events);
+  const chargerShade = useSharedValue(charging ? 1 : 0);
+  const chargerShadeStyle = useAnimatedStyle(() => ({
+    opacity: chargerShade.value,
+  }));
+  useEffect(() => {
+    chargerShade.value = withTiming(charging ? 1 : 0, {
+      duration: 100,
+      reduceMotion: ReduceMotion.System,
+    });
+  }, [charging, chargerShade]);
+  // Charge-station path centers mapped through the background image bounds.
+  const chargerCenterX =
+    state.meta?.allianceColor === AllianceColor.Blue
+      ? 15 + (221.869 + 360.061) / 2
+      : -408 + (((583.436 + 674.676) / 2) * 1245) / 822;
+  const chargerCenterY = -142.438 + (230.69 + 361.571) / 2;
   const started = !!state.startTimestamp;
   const inZone = location === "ALLIANCE_ZONE";
   const orientation = useFieldOrientationStore((s) => s.value);
@@ -517,11 +539,11 @@ export function Game() {
                   />
                   {(endgameAvailable || charging) && (
                     <BoardButton
-                      x={242}
-                      y={96}
+                      x={chargerCenterX - 116 / 2}
+                      y={chargerCenterY - 115 / 2}
                       w={116}
                       h={115}
-                      reversed={reversed}
+                      reversed={orientation === FieldOrientation.Sinister}
                       label={
                         charging ? "Leave charge station" : "Charge station"
                       }
@@ -699,16 +721,17 @@ export function Game() {
               </View>
             </>
           )}
-          {charging && (
-            <View
-              pointerEvents="none"
-              style={{
-                ...StyleSheet.absoluteFillObject,
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
                 backgroundColor: "rgba(31,31,31,0.65)",
                 zIndex: 1,
-              }}
-            />
-          )}
+              },
+              chargerShadeStyle,
+            ]}
+          />
         </ScaledBoard>
       }
     />
@@ -784,21 +807,36 @@ function BoardButton({
   reversed?: boolean;
 }) {
   const orientation = useFieldOrientationStore((s) => s.value);
+  const pressScale = useSharedValue(1);
+  const feedbackStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
+  useEffect(() => {
+    if (disabled) pressScale.value = 1;
+  }, [disabled, pressScale]);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled, selected: active }}
       disabled={disabled}
-      onPressIn={
-        onPressIn
-          ? () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              onPressIn();
-            }
-          : undefined
-      }
-      onPressOut={onPressOut}
+      onPressIn={() => {
+        pressScale.value = withTiming(0.975, {
+          duration: 65,
+          reduceMotion: ReduceMotion.System,
+        });
+        if (onPressIn) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onPressIn();
+        }
+      }}
+      onPressOut={() => {
+        pressScale.value = withTiming(1, {
+          duration: 90,
+          reduceMotion: ReduceMotion.System,
+        });
+        onPressOut?.();
+      }}
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
@@ -809,53 +847,64 @@ function BoardButton({
         top: orientation === FieldOrientation.Sinister ? 334 - y - h : y,
         width: w,
         height: h,
-        backgroundColor: active ? activeColor : color,
         zIndex: raised ? 2 : 0,
-        opacity: disabled ? 0.35 : 1,
-        borderWidth: active ? 3 : 0,
-        borderColor: "#e0e0e0",
-        borderRadius: 7,
-        alignItems: "center",
-        justifyContent: "center",
       }}
     >
-      {asset && (
-        <Image
-          source={asset}
-          resizeMode="contain"
-          style={{
-            width:
-              asset === assets.arrow || asset === assets.rightArrow
-                ? 32
-                : asset === assets.shield
-                  ? 40
-                  : w === 45
-                    ? 45
-                    : 42,
-            height:
-              asset === assets.arrow || asset === assets.rightArrow
-                ? 32
-                : asset === assets.shield
-                  ? 40
-                  : w === 45
-                    ? 45
-                    : 42,
-            transform: [
-              { translateX: assetOffset?.x ?? 0 },
-              { translateY: assetOffset?.y ?? 0 },
-              {
-                rotate:
-                  asset === assets.drop ||
-                  (asset === assets.rightArrow && !reversed) ||
-                  (asset === assets.arrow && reversed)
-                    ? "180deg"
-                    : "0deg",
-              },
-            ],
-          }}
-        />
-      )}
-      {text && <Text style={[styles.gridLabel, textStyle]}>{text}</Text>}
+      {/* Keep the touch target fixed while its artwork animates. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: active ? activeColor : color,
+            opacity: disabled ? 0.35 : 1,
+            borderWidth: active ? 3 : 0,
+            borderColor: "#e0e0e0",
+            borderRadius: 7,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          feedbackStyle,
+        ]}
+      >
+        {asset && (
+          <Image
+            source={asset}
+            resizeMode="contain"
+            style={{
+              width:
+                asset === assets.arrow || asset === assets.rightArrow
+                  ? 32
+                  : asset === assets.shield
+                    ? 40
+                    : w === 45
+                      ? 45
+                      : 42,
+              height:
+                asset === assets.arrow || asset === assets.rightArrow
+                  ? 32
+                  : asset === assets.shield
+                    ? 40
+                    : w === 45
+                      ? 45
+                      : 42,
+              transform: [
+                { translateX: assetOffset?.x ?? 0 },
+                { translateY: assetOffset?.y ?? 0 },
+                {
+                  rotate:
+                    asset === assets.drop ||
+                    (asset === assets.rightArrow && !reversed) ||
+                    (asset === assets.arrow && reversed)
+                      ? "180deg"
+                      : "0deg",
+                },
+              ],
+            }}
+          />
+        )}
+        {text && <Text style={[styles.gridLabel, textStyle]}>{text}</Text>}
+      </Animated.View>
     </Pressable>
   );
 }

@@ -13,6 +13,7 @@ import { GameTimer } from "./GameTimer";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
+import Animated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 import { activeActivity, heldPiece } from "../ChargedUp";
 export const gameHeaderAssets = {
   undo: require("../../../assets/ui/game-undo.png"),
@@ -103,7 +104,11 @@ export const GameViewTemplate = (props: {
               }}
             >
               {piece && (
-                <Image
+                <Animated.Image
+                  key={piece}
+                  entering={FadeIn.duration(90).reduceMotion(
+                    ReduceMotion.System,
+                  )}
                   source={pieceImages[piece]}
                   resizeMode="contain"
                   style={{ width: 28, height: 28 }}
