@@ -72,6 +72,7 @@ registry.registerPath({
               rank: z.number().int().nullable(),
               rankingPoints: z.number().int().nullable(),
               matchesPlayed: z.number().int().nullable(),
+              avatar: z.string().nullable(),
             }),
           ),
         },

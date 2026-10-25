@@ -86,6 +86,54 @@ beforeEach(() => {
   ] as never);
 });
 
+describe("Official match completion", () => {
+  it.each([8033, null])(
+    "uses imported playoff completion for viewer team %s",
+    async (teamNumber) => {
+      vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue([
+        ...officialRows("QUALIFICATION").map((row) => ({
+          ...row,
+          match: { status: "COMPLETED" },
+        })),
+        ...officialRows("ELIMINATION").map((row) => ({
+          ...row,
+          match: { status: "COMPLETED" },
+        })),
+      ] as never);
+      const response = await request(appFor(teamNumber)).get(
+        `/matches/${tournament}`,
+      );
+      expect(response.status).toBe(200);
+      expect(
+        response.body.map((match: { finished: boolean }) => match.finished),
+      ).toEqual([true, true]);
+    },
+  );
+
+  it.each(["SCHEDULED", "IN_PROGRESS"])(
+    "does not mark a %s qualification finished based on scouting reports",
+    async (status) => {
+      vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue(
+        officialRows("QUALIFICATION").map((row) => ({
+          ...row,
+          match: { status },
+        })) as never,
+      );
+      const response = await request(appFor()).get(`/matches/${tournament}`);
+      expect(response.status).toBe(200);
+      expect(response.body[0].finished).toBe(false);
+    },
+  );
+
+  it("retains the legacy qualifier completion fallback", async () => {
+    const response = await request(appFor()).get(`/matches/${tournament}`);
+    expect(response.status).toBe(200);
+    expect(
+      response.body.map((match: { finished: boolean }) => match.finished),
+    ).toEqual([true, false]);
+  });
+});
+
 describe("Practice match listing", () => {
   it.each([undefined, "false"])(
     "excludes practice when includePractice is %s",

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import express from "express";
 
 vi.mock("../src/prismaClient.js", () => ({
@@ -60,6 +60,8 @@ const request = async (tournamentKey = "2024test") => {
   return { response, errors };
 };
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe("getTeamRankings", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -105,6 +107,53 @@ describe("getTeamRankings", () => {
         rankingPoints: 18,
       }),
     ]);
+  });
+
+  it("includes the season avatar, official RP and TBA authentication", async () => {
+    vi.stubEnv("TBA_KEY", "test-tba-key");
+    vi.mocked(prismaClient.team.findMany).mockResolvedValue([
+      {
+        ...tbaTeam(254),
+        seasons: [{ avatar: "data:image/png;base64,fixture" }],
+      },
+      { ...tbaTeam(1), seasons: [] },
+    ] as never);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        frc254: {
+          qual: {
+            ranking: { ...tbaStatus(1, 12).qual.ranking, ranking_points: 25 },
+          },
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { response } = await request("2026fixture");
+    expect(response.status).toBe(200);
+    expect(response.body[0]).toMatchObject({
+      number: 254,
+      rank: 1,
+      rankingPoints: 25,
+      avatar: "data:image/png;base64,fixture",
+    });
+    expect(response.body[1].avatar).toBeNull();
+    expect(response.body[0]).not.toHaveProperty("seasons");
+    expect(prismaClient.team.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: {
+          seasons: {
+            where: { seasonYear: 2026 },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
+      }),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://www.thebluealliance.com/api/v3/event/2026fixture/teams/statuses",
+      { headers: { "X-TBA-Auth-Key": "test-tba-key" } },
+    );
   });
 
   it("returns a single 200 response when TBA is unreachable", async () => {
