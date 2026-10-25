@@ -1,3 +1,7 @@
+import {
+  robotRoleOptions,
+  toggleRobotRole,
+} from "../../lib/collection/robotRoles";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import React, { useEffect, useState } from "react";
 import { Alert, View, Text } from "react-native";
@@ -12,7 +16,6 @@ import TextField from "../../lib/components/TextField";
 import { Checkbox } from "../../lib/components/Checkbox";
 import { Picker, PickerOption } from "../../lib/components/Picker";
 import { useReportStateStore } from "../../lib/collection/reportStateStore";
-import { PostMatchData } from "../../lib/collection/ChargedUp";
 import { driverAbilityDescriptions } from "../../lib/collection/DriverAbility";
 import { useTrainingModeStore } from "../../lib/storage/userStores";
 import { colors } from "../../lib/colors";
@@ -54,49 +57,17 @@ export default function PostMatch() {
           <View style={{ gap: 7 }}>
             <QuestionLabel>Roles performed</QuestionLabel>
             <BodyMedium>
-              Select every role this robot performed during the match.
+              Select every role performed, or No show if the robot did not
+              appear.
             </BodyMedium>
             <Picker
               style="inset-picker"
               multiSelect
-              options={
-                [
-                  {
-                    value: "OFFENCE",
-                    label: "Offence",
-                    description:
-                      "Collected and scored cones or cubes in the alliance grid.",
-                  },
-                  {
-                    value: "DEFENCE",
-                    label: "Defence",
-                    description:
-                      "Blocked opponents or disrupted their routes and scoring.",
-                  },
-                  {
-                    value: "FEEDING",
-                    label: "Feeding",
-                    description:
-                      "Moved pieces for alliance partners without scoring them.",
-                  },
-                  {
-                    value: "IMMOBILE",
-                    label: "Immobile",
-                    description:
-                      "Could not move for a significant part of the match.",
-                  },
-                ] as {
-                  value: PostMatchData["robotRoles"][number];
-                  label: string;
-                  description: string;
-                }[]
-              }
+              options={robotRoleOptions}
               selected={state.robotRoles}
               onChange={(value) =>
                 set({
-                  robotRoles: state.robotRoles.includes(value)
-                    ? state.robotRoles.filter((r) => r !== value)
-                    : [...state.robotRoles, value],
+                  robotRoles: toggleRobotRole(state.robotRoles, value),
                 })
               }
             />
@@ -318,7 +289,7 @@ function RatingSlider({
   min,
   max,
   onChange,
-  suffix = "",
+  suffix,
 }: {
   label: string;
   caption: string;
@@ -326,7 +297,7 @@ function RatingSlider({
   min: number;
   max: number;
   onChange: (value: number) => void;
-  suffix?: string;
+  suffix: string;
 }) {
   return (
     <View style={{ gap: 7 }}>

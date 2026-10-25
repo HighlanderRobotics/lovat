@@ -1,24 +1,7 @@
-/* global require */
-/* eslint-disable @typescript-eslint/no-require-imports -- Use the Node runner with the existing TypeScript compiler. */
-const { test, beforeEach } = require("node:test");
+/* eslint-disable @typescript-eslint/no-require-imports -- Jest loads these migrated CommonJS regressions and native mocks synchronously. */
+const { test, beforeEach } = require("@jest/globals");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const ts = require("typescript");
-require.extensions[".ts"] = (module, filename) => {
-  module._compile(
-    ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-        esModuleInterop: true,
-      },
-    }).outputText,
-    filename,
-  );
-};
-require.cache[require.resolve("expo-constants")] = {
-  exports: { expoConfig: { version: "26.0.5" } },
-};
+jest.doMock("expo-constants", () => ({ expoConfig: { version: "26.1.0" } }));
 const {
   useReportStateStore: store,
 } = require("../lib/collection/reportStateStore.ts");

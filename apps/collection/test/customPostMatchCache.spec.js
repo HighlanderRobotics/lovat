@@ -1,24 +1,9 @@
-/* global require, __dirname, Response */
-/* eslint-disable @typescript-eslint/no-require-imports -- Exercise the real cache with isolated native and HTTP dependencies. */
-const { test, beforeEach } = require("node:test");
+/* eslint-disable @typescript-eslint/no-require-imports -- Jest loads these migrated CommonJS regressions and native mocks synchronously. */
+const { test, beforeEach } = require("@jest/globals");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const ts = require("typescript");
 const { create } = require("zustand");
-require.extensions[".ts"] = (module, filename) =>
-  module._compile(
-    ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-        esModuleInterop: true,
-      },
-    }).outputText,
-    filename,
-  );
 const mock = (file, exports) => {
-  require.cache[path.resolve(__dirname, file)] = { exports };
+  jest.doMock(file, () => exports);
 };
 const team = create(() => ({ number: 8033, code: "own-code" }));
 const api = create(() => ({ getUrlPrefix: () => "https://example.test" }));
@@ -103,4 +88,37 @@ test("malformed or over-limit responses cannot replace a valid cache", async () 
     await assert.rejects(store.getState().fetchData());
     assert.deepEqual(store.getState().getQuestions(), ["Old question"]);
   }
+});
+
+test("custom questions require a team, code and API and never infer absence from a missing cache", async () => {
+  for (const number of [null, 8033])
+    for (const code of ["", "own-code"])
+      for (const url of ["", "https://example.test"]) {
+        team.setState({ number, code });
+        api.setState({ getUrlPrefix: () => url });
+        if (!number || !code || !url) {
+          await store.getState().fetchData();
+          assert.deepEqual(store.getState().getQuestions(), []);
+        }
+      }
+});
+
+test("concurrent question refreshes share a request and HTTP failures retain cached questions", async () => {
+  let finish;
+  let requests = 0;
+  request = () => {
+    requests++;
+    return new Promise((resolve) => {
+      finish = resolve;
+    });
+  };
+  const one = store.getState().fetchData(),
+    two = store.getState().fetchData();
+  assert.equal(requests, 1);
+  finish(data());
+  await Promise.all([one, two]);
+  assert.deepEqual(store.getState().getQuestions(), ["Old question"]);
+  request = async () => new Response("Unavailable", { status: 503 });
+  await assert.rejects(store.getState().fetchData(), /Could not load/);
+  assert.deepEqual(store.getState().getQuestions(), ["Old question"]);
 });

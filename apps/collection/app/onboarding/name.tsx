@@ -112,11 +112,11 @@ const NewScouterPrompt = ({
   name: string;
   onSubmit: (scouter: Scouter) => void;
 }) => {
-  if (!visible) return null;
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const teamNumber = useTeamStore((state) => state.number);
+
+  if (!visible) return null;
 
   const onPress = async () => {
     if (loading) return;

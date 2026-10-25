@@ -8,10 +8,9 @@ export const GameTimer = (props: { startTime?: Date }) => {
     if (!props.startTime) {
       setTime(0);
     } else {
+      const startTime = props.startTime.getTime();
       const interval = setInterval(() => {
-        setTime(
-          (new Date().getTime() - (props.startTime?.getTime() ?? 0)) / 1000,
-        );
+        setTime((Date.now() - startTime) / 1000);
       }, 1000);
 
       return () => {

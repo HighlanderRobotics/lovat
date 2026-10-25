@@ -97,7 +97,7 @@ const Button: React.FC<ButtonProps> = ({
   if (density === "comfortable") {
     padding = [10, 20];
     radius = 7;
-  } else if (density === "compact") {
+  } else {
     padding = [6, 12];
     radius = 5;
   }

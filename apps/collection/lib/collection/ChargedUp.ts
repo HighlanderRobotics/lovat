@@ -75,7 +75,12 @@ export const chargedUpReportSchema = z.object({
   scouterUuid: z.string(),
   preloadedPiece: z.enum(["CONE", "CUBE"]).nullable().optional(),
   fieldPieces: z.array(z.enum(["CONE", "CUBE", "UNKNOWN"])).length(4),
-  robotRoles: z.array(z.enum(["OFFENCE", "DEFENCE", "FEEDING", "IMMOBILE"])),
+  robotRoles: z
+    .array(z.enum(["OFFENCE", "DEFENCE", "FEEDING", "IMMOBILE", "NO_SHOW"]))
+    .refine(
+      (roles) => !roles.includes("NO_SHOW") || roles.length === 1,
+      "No show cannot be combined with a role performed on the field.",
+    ),
   driverAbility: z.number().int().min(1).max(5),
   defenseEffectiveness: z.number().int().min(1).max(5),
   activeDefensePercentage: z.number().int().min(0).max(100),

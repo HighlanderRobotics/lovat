@@ -29,7 +29,7 @@ function splitScoutReportIntoCodes(
 
   for (let i = 0; i < json.length; i += maxCodeLength) {
     chunks.push({
-      index: i,
+      index: chunks.length,
       total: Math.ceil(json.length / maxCodeLength),
       data: json.slice(i, i + maxCodeLength),
       uuid: scoutReport.uuid,
@@ -112,6 +112,8 @@ export const ScoutReportCode = ({
   const renderItem = useCallback(
     ({ item }: { item: ReportChunk }) => (
       <View
+        accessible
+        accessibilityLabel={`Report QR code ${item.index + 1} of ${item.total}`}
         onLayout={handleLayout}
         style={{
           width,

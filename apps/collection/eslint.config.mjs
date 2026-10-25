@@ -35,5 +35,19 @@ export default [
       },
     },
   },
+  {
+    files: ["test/**/*.{js,ts,tsx}", "jest.config.cjs"],
+    languageOptions: {
+      globals: {
+        jest: "readonly",
+        module: "readonly",
+        require: "readonly",
+        process: "readonly",
+        global: "readonly",
+        Response: "readonly",
+      },
+    },
+  },
+  { ignores: ["coverage/**", "dist/**", "build/**", ".expo/**"] },
   eslintConfigPrettier,
 ];

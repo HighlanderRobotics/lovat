@@ -1,32 +1,20 @@
-/* global require */
-/* eslint-disable @typescript-eslint/no-require-imports -- Isolate the native NetInfo event source. */
-const { test } = require("node:test");
+/* eslint-disable @typescript-eslint/no-require-imports -- Jest loads these migrated CommonJS regressions and native mocks synchronously. */
+const { test } = require("@jest/globals");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const ts = require("typescript");
-require.extensions[".ts"] = (module, filename) =>
-  module._compile(
-    ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-        esModuleInterop: true,
-      },
-    }).outputText,
-    filename,
-  );
 let listener;
 let removed = false;
-require.cache[require.resolve("@react-native-community/netinfo")] = {
-  exports: {
-    addEventListener: (fn) => {
-      listener = fn;
-      return () => {
-        removed = true;
-      };
-    },
+jest.doMock("@react-native-community/netinfo", () => ({
+  refresh: jest.fn(async () => ({
+    isConnected: true,
+    isInternetReachable: true,
+  })),
+  addEventListener: (fn) => {
+    listener = fn;
+    return () => {
+      removed = true;
+    };
   },
-};
+}));
 const {
   connectionStatus,
   monitorConnectivity,
@@ -56,4 +44,12 @@ test("distinguishes internet loss from unknown reachability and refreshes when c
   assert.equal(refreshes, 2);
   stop();
   assert.equal(removed, true);
+});
+
+test("foreground refresh rechecks the native connection", async () => {
+  const { refreshConnectivity } = require("../lib/network/connectivity.ts");
+  assert.deepEqual(await refreshConnectivity(), {
+    isConnected: true,
+    isInternetReachable: true,
+  });
 });

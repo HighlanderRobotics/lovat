@@ -1,19 +1,6 @@
-/* global require */
-/* eslint-disable @typescript-eslint/no-require-imports -- Load the pure schedule selector with the existing Node test runner. */
-const { test } = require("node:test");
+/* eslint-disable @typescript-eslint/no-require-imports -- Jest loads these migrated CommonJS regressions and native mocks synchronously. */
+const { test } = require("@jest/globals");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const ts = require("typescript");
-require.extensions[".ts"] = (module, filename) =>
-  module._compile(
-    ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-      },
-    }).outputText,
-    filename,
-  );
 const {
   nextScouterAssignment,
 } = require("../lib/collection/nextScouterAssignment.ts");

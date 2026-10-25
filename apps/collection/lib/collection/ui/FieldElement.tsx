@@ -35,7 +35,7 @@ export const FieldElement = (props: {
           : givenTop
         : givenTop;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenTop, givenButtom]);
 
   const bottom = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -51,7 +51,7 @@ export const FieldElement = (props: {
           : givenButtom
         : givenButtom;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenTop, givenButtom]);
 
   const left = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -67,7 +67,7 @@ export const FieldElement = (props: {
           : givenLeft
         : givenRight;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenLeft, givenRight]);
 
   const right = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -83,7 +83,7 @@ export const FieldElement = (props: {
           : givenRight
         : givenLeft;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenLeft, givenRight]);
 
   return (
     <View

@@ -67,21 +67,23 @@ const storageMigratorsByLegacyKey: Record<string, (value: any) => void> = {
 } as const;
 
 export default function Layout() {
-  Object.keys(storageMigratorsByLegacyKey).forEach(async (key) => {
-    const result = await AsyncStorage.getItem(key);
+  useEffect(() => {
+    Object.keys(storageMigratorsByLegacyKey).forEach(async (key) => {
+      const result = await AsyncStorage.getItem(key);
 
-    if (result !== null) {
-      let data;
-      if (key === "team-code" || key === "tournament") {
-        data = result;
-      } else {
-        data = JSON.parse(result);
+      if (result !== null) {
+        let data;
+        if (key === "team-code" || key === "tournament") {
+          data = result;
+        } else {
+          data = JSON.parse(result);
+        }
+        const migrationFunction = storageMigratorsByLegacyKey[key];
+        migrationFunction(data);
+        AsyncStorage.removeItem(key);
       }
-      const migrationFunction = storageMigratorsByLegacyKey[key];
-      migrationFunction(data);
-      AsyncStorage.removeItem(key);
-    }
-  });
+    });
+  }, []);
   const loadServices = getServiceLoader();
 
   const setStartMatchEnabled = useStartMatchEnabledStore(

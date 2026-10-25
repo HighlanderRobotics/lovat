@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { colors } from "../../lib/colors";
 import { IconButton } from "../../lib/components/IconButton";
 import { NavBar } from "../../lib/components/NavBar";
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
   MatchIdentityLocalizationFormat,
@@ -41,10 +41,15 @@ const Details = () => {
     return history.find((match) => match.scoutReport.uuid === params.uuid);
   }, [history, params.uuid]);
 
+  useEffect(() => {
+    if (!match) router.replace("/history");
+  }, [match]);
+  if (!match) return null;
+
   return (
     <>
       <NavBar
-        title={`${match!.meta.teamNumber} in ${localizeMatchIdentity(match!.meta.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
+        title={`${match.meta.teamNumber} in ${localizeMatchIdentity(match.meta.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
         left={
           <IconButton
             icon="arrow_back_ios"
@@ -66,7 +71,7 @@ const Details = () => {
         }}
       >
         <View style={{ flex: 1, paddingVertical: 16, maxWidth: 450 }}>
-          <ScoutReportCode scoutReport={match!.scoutReport} />
+          <ScoutReportCode scoutReport={match.scoutReport} />
           <View
             style={{
               paddingHorizontal: 26,
@@ -74,19 +79,19 @@ const Details = () => {
               justifyContent: "flex-end",
             }}
           >
-            {!match!.uploaded && (
+            {!match.uploaded && (
               <Button
                 onPress={async () => {
                   try {
-                    await uploadReport(match!.scoutReport);
-                    setMatchUploaded(match!.scoutReport.uuid);
+                    await uploadReport(match.scoutReport);
+                    setMatchUploaded(match.scoutReport.uuid);
                   } catch (error) {
                     try {
                       if (
                         z.object({ message: z.string() }).parse(error)
                           .message === "Scout report already uploaded"
                       ) {
-                        setMatchUploaded(match!.scoutReport.uuid);
+                        setMatchUploaded(match.scoutReport.uuid);
                       }
                     } catch {
                       throw Error("Upload failed");

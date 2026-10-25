@@ -3,10 +3,7 @@ import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "react-native";
 import LabelSmall from "../../components/text/LabelSmall";
-import {
-  AllianceColor,
-  getAllianceColorDescription,
-} from "../../models/AllianceColor";
+import { getAllianceColorDescription } from "../../models/AllianceColor";
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
@@ -184,7 +181,7 @@ export const GameViewTemplate = (props: {
             <View
               style={{
                 backgroundColor: getAllianceColorDescription(
-                  reportState?.meta.allianceColor ?? AllianceColor.Red,
+                  reportState.meta.allianceColor,
                 ).backgroundColor,
                 borderRadius: 4,
                 paddingHorizontal: 6,
@@ -194,7 +191,7 @@ export const GameViewTemplate = (props: {
               <Text
                 style={{
                   color: getAllianceColorDescription(
-                    reportState?.meta.allianceColor ?? AllianceColor.Red,
+                    reportState.meta.allianceColor,
                   ).foregroundColor,
                   fontFamily: "Heebo_500Medium",
                   fontSize: 12,

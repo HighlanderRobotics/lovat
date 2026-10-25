@@ -10,9 +10,7 @@ export function useFieldRelativeDimensions<T>(dimensions: [T, T, T, T]) {
   const reportState = useReportStateStore((state) => state);
   const fieldOrientation = useFieldOrientationStore((state) => state.value);
 
-  if (!reportState.meta) return [null, null, null, null];
-
-  const allianceColor = reportState?.meta.allianceColor;
+  const allianceColor = reportState.meta?.allianceColor;
 
   const [top, right, bottom, left] = dimensions;
 
@@ -48,5 +46,7 @@ export function useFieldRelativeDimensions<T>(dimensions: [T, T, T, T]) {
     }
   }, [fieldOrientation, allianceColor, left, right]);
 
-  return [topValue, rightValue, bottomValue, leftValue] as const;
+  return reportState.meta
+    ? ([topValue, rightValue, bottomValue, leftValue] as const)
+    : ([null, null, null, null] as const);
 }

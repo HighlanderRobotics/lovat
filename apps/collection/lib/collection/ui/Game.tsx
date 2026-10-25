@@ -743,6 +743,7 @@ function ScaledBoard({ children }: { children: React.ReactNode }) {
   const scale = Math.min(size.width / 852, size.height / 334);
   return (
     <View
+      testID="scouting-field"
       style={{
         flex: 1,
         alignItems: "center",
@@ -785,7 +786,7 @@ function BoardButton({
   active = false,
   activeColor = colors.danger.default,
   raised = false,
-  reversed = false,
+  reversed,
 }: {
   x: number;
   y: number;
@@ -804,7 +805,7 @@ function BoardButton({
   active?: boolean;
   activeColor?: string;
   raised?: boolean;
-  reversed?: boolean;
+  reversed: boolean;
 }) {
   const orientation = useFieldOrientationStore((s) => s.value);
   const pressScale = useSharedValue(1);

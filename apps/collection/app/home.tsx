@@ -687,15 +687,11 @@ const ServiceStatus = () => {
         <BodyMedium>
           Updated{" "}
           <TimeAgo
-            date={
-              serviceCacheTimes.reduce((acc, curr) => {
-                if (curr && curr < acc!) {
-                  return curr;
-                } else {
-                  return acc;
-                }
-              }, Date.now()) ?? 0
-            }
+            date={serviceCacheTimes.reduce<number>(
+              (oldest, timestamp) =>
+                timestamp !== null && timestamp < oldest ? timestamp : oldest,
+              Date.now(),
+            )}
           />
         </BodyMedium>
       )}

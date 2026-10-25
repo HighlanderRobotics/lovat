@@ -15,10 +15,10 @@ type UnkeyedPickerOption<T> = {
   disabled?: boolean;
 };
 
-type KeyedPickerOption<T> = UnkeyedPickerOption<T> & { key: Key };
+type KeyedPickerOption<T> = Omit<UnkeyedPickerOption<T>, "key"> & { key: Key };
 
 export type PickerOption<T> =
-  | (T extends Key ? UnkeyedPickerOption<T> : KeyedPickerOption<T>)
+  | ([T] extends [Key] ? UnkeyedPickerOption<T> : KeyedPickerOption<T>)
   | (KeyedPickerOption<T> & { disabled?: boolean });
 
 type PickerProps<T> = {
@@ -176,7 +176,7 @@ export function Picker<T = string>(props: PickerProps<T>) {
         ))}
       </View>
     );
-  } else if (style === "horizontal-group") {
+  } else {
     return (
       <View
         style={{

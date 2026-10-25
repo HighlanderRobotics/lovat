@@ -153,7 +153,7 @@ export const DraggableContainer = ({
           : givenTop
         : givenTop;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenTop, givenButtom]);
 
   const bottom = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -169,7 +169,7 @@ export const DraggableContainer = ({
           : givenButtom
         : givenButtom;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenTop, givenButtom]);
 
   const left = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -185,7 +185,7 @@ export const DraggableContainer = ({
           : givenLeft
         : givenRight;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenLeft, givenRight]);
 
   const right = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
@@ -201,7 +201,7 @@ export const DraggableContainer = ({
           : givenRight
         : givenLeft;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [respectAlliance, fieldOrientation, allianceColor, givenLeft, givenRight]);
   return (
     <View
       style={{

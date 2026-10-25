@@ -69,9 +69,7 @@ const getCommonHeaders = async () => {
     headers["X-Scouter-UUID"] = scouter.uuid;
   }
 
-  if (deviceId) {
-    headers["X-Device-Id"] = deviceId;
-  }
+  headers["X-Device-Id"] = deviceId;
 
   return headers;
 };

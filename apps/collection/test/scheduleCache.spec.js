@@ -1,24 +1,9 @@
-/* global require, __dirname */
-/* eslint-disable @typescript-eslint/no-require-imports -- Exercise the real store with isolated native and HTTP dependencies. */
-const { test, beforeEach } = require("node:test");
+/* eslint-disable @typescript-eslint/no-require-imports -- Jest loads these migrated CommonJS regressions and native mocks synchronously. */
+const { test, beforeEach } = require("@jest/globals");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const ts = require("typescript");
 const { create } = require("zustand");
-require.extensions[".ts"] = (module, filename) =>
-  module._compile(
-    ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2022,
-        esModuleInterop: true,
-      },
-    }).outputText,
-    filename,
-  );
 const mock = (file, exports) => {
-  require.cache[path.resolve(__dirname, file)] = { exports };
+  jest.doMock(file, () => exports);
 };
 const team = create(() => ({ number: 8033, code: "private" }));
 const scouter = create(() => ({ value: { uuid: "one" } }));
@@ -124,4 +109,35 @@ test("late responses are cached under the original context and reset invalidates
   resolve(schedule("2023a"));
   await last;
   assert.deepEqual(store.getState().schedules, {});
+});
+
+test("missing context never fetches another team's schedule and hydration failures stay empty", async () => {
+  const restore = () => {
+    team.setState({ number: 8033 });
+    scouter.setState({ value: { uuid: "one" } });
+    tournament.setState({ value: { key: "2023a" } });
+    api.setState({ getUrlPrefix: () => "https://example.test" });
+  };
+  for (const unset of [
+    () => team.setState({ number: null }),
+    () => scouter.setState({ value: null }),
+    () => tournament.setState({ value: null }),
+    () => api.setState({ getUrlPrefix: () => "" }),
+  ]) {
+    restore();
+    store.getState().clear();
+    unset();
+    await store.getState().fetchData();
+    assert.equal(store.getState().data, null);
+  }
+  assert.equal(calls, 0);
+  restore();
+  const storage = require("../lib/storage/zustandStorage.ts").storage;
+  const original = storage.getItem;
+  storage.getItem = () => {
+    throw Error("Corrupt cache");
+  };
+  await store.persist.rehydrate();
+  storage.getItem = original;
+  assert.equal(store.getState().data, null);
 });
