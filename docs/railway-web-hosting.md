@@ -6,7 +6,9 @@ Learn, Dashboard web and Website run as independent services in the existing Lov
 | --- | --- | --- | --- |
 | learn | /apps/learn | /apps/learn/railway.json | /healthz |
 | dashboard | /apps/dashboard | /apps/dashboard/railway.json | /healthz |
-| website | /apps/website | /apps/website/railway.json | /healthz |
+| website | / | /apps/website/railway.json | /healthz |
+
+Website builds from the repository root so its Docker image can read `CHANGELOG.md`. Set its service root to `/` in Railway before deploying this configuration. Its Dockerfile-specific ignore file limits the context to Website sources and the changelog. Learn and Dashboard retain their app-directory build contexts.
 
 All services build their app-local Dockerfile, listen on PORT (8080 by default), and use app-specific watch paths. No volumes are needed. Enable Railway CDN for static delivery. Learn has short shared HTML caching and immutable hashed assets. Dashboard revalidates stable Flutter filenames on every request; do not override this with a blanket CDN TTL. Website caches adapter-served static assets only; dynamic responses use private, no-store.
 

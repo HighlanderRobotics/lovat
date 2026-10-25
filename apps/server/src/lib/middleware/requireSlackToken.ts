@@ -6,33 +6,41 @@ export const requireSlackToken = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const signature = req.headers["x-slack-signature"] as string;
-    const timestamp = req.headers["x-slack-request-timestamp"] as string;
-    const verificationKey = req.body.token as string;
+    const signature = req.headers["x-slack-signature"];
+    const timestamp = req.headers["x-slack-request-timestamp"];
+    const verificationKey = req.body?.token;
 
-    if (req.body.challenge !== undefined) {
-      res.status(200).send(req.body.challenge);
-      return;
-    }
-
-    if (!signature || !timestamp) {
+    if (typeof signature !== "string" || typeof timestamp !== "string") {
       res.status(401).send("Unauthorized");
       console.warn("Missing Slack signature or timestamp");
       return;
     }
 
     if (
-      Math.abs(Math.floor(Date.now() / 1000) - parseInt(timestamp)) >
-      60 * 5
+      !/^\d+$/.test(timestamp) ||
+      Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp)) > 60 * 5
     ) {
       res.status(401).send("Stale request");
       console.warn("Received stale Slack request with timestamp:", timestamp);
       return;
     }
 
-    if (process.env.SLACK_VERIFICATION_KEY !== verificationKey) {
+    if (
+      typeof verificationKey !== "string" ||
+      !process.env.SLACK_VERIFICATION_KEY ||
+      process.env.SLACK_VERIFICATION_KEY !== verificationKey
+    ) {
       res.status(401).send("Unauthorized");
-      console.warn("Invalid Slack verification token:", verificationKey);
+      console.warn("Invalid Slack verification token");
+      return;
+    }
+
+    if (req.body?.challenge !== undefined) {
+      if (typeof req.body.challenge !== "string") {
+        res.status(400).send("Invalid challenge");
+        return;
+      }
+      res.status(200).json({ challenge: req.body.challenge });
       return;
     }
 

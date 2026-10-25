@@ -14,6 +14,7 @@ import {
 import { autoPathScouter } from "./autoPathScouter.js";
 import { averageScoutReport } from "../coreAnalysis/averageScoutReport.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
+import { scoutReportSourceFilter } from "../scoutReportSourceFilter.js";
 
 export const matchPageSpecificScouter = createAnalysisHandler({
   params: {
@@ -23,17 +24,11 @@ export const matchPageSpecificScouter = createAnalysisHandler({
   },
   usesDataSource: false,
   shouldCache: false,
-  createKey: async ({ params }) => {
-    return {
-      key: ["matchPageSpecificScouter", params.uuid],
-      teamDependencies: [],
-      tournamentDependencies: [],
-    };
-  },
   calculateAnalysis: async ({ params }, ctx) => {
-    const scoutReport = await prismaClient.scoutReport.findUnique({
+    const scoutReport = await prismaClient.scoutReport.findFirst({
       where: {
         uuid: params.uuid,
+        ...scoutReportSourceFilter(ctx.user),
       },
       select: {
         uuid: true,
@@ -56,6 +51,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
 
     const metrics = [
       Metric.totalPoints,
+      Metric.autoPoints,
       Metric.autoClimbStartTime,
       Metric.contactDefenseTime,
       Metric.campingDefenseTime,
@@ -77,6 +73,7 @@ export const matchPageSpecificScouter = createAnalysisHandler({
 
     const output: any = {
       totalPoints: agg[Metric.totalPoints],
+      autoPoints: agg[Metric.autoPoints],
       driverAbility: scoutReport.driverAbility,
       accuracy: scoutReport.accuracy,
       totalBallsFed: agg[Metric.totalBallsFed],

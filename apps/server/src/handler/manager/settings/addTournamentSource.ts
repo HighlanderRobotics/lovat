@@ -38,6 +38,6 @@ export const addTournamentSource = async (
     res.status(200).send("tournament sources added");
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).send("Internal server error");
   }
 };

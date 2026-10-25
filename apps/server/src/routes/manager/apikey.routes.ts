@@ -40,6 +40,7 @@ registry.registerPath({
     "JWT required; API keys (lvt-...) are not permitted for this endpoint.",
   request: { query: z.object({ uuid: z.string() }) },
   responses: {
+    404: { description: "API key not found" },
     200: {
       description: "Revoked",
       content: { "application/json": { schema: z.string() } },
@@ -60,6 +61,7 @@ registry.registerPath({
     "JWT required; API keys (lvt-...) are not permitted for this endpoint.",
   request: { query: z.object({ uuid: z.string(), newName: z.string() }) },
   responses: {
+    404: { description: "API key not found" },
     200: {
       description: "Renamed",
       content: { "application/json": { schema: z.string() } },

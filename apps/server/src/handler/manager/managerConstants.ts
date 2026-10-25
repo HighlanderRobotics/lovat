@@ -74,10 +74,12 @@ const FeederTypeReverseMap: Record<FeederType, number> = {
 const MatchTypeMap: Record<number, MatchType> = {
   0: MatchType.QUALIFICATION,
   1: MatchType.ELIMINATION,
+  2: MatchType.PRACTICE,
 };
 const ReverseMatchTypeMap: Record<MatchType, number> = {
   [MatchType.QUALIFICATION]: 0,
   [MatchType.ELIMINATION]: 1,
+  [MatchType.PRACTICE]: 2,
 };
 const ScouterScheduleMap = {
   0: "team1",
@@ -98,10 +100,12 @@ const ReverseScouterScheduleMap = {
 const MatchTypeToAbrivation = {
   0: "qm",
   1: "em",
+  2: "pm",
 };
 const MatchEnumToAbrivation: Record<MatchType, string> = {
   [MatchType.QUALIFICATION]: "qm",
   [MatchType.ELIMINATION]: "em",
+  [MatchType.PRACTICE]: "pm",
 };
 
 export {

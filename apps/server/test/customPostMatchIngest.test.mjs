@@ -107,7 +107,7 @@ const body = (customPostMatch) => ({
   autoClimb: "NOT_ATTEMPTED",
   endgameClimb: "NOT_ATTEMPTED",
   scouterUuid,
-  teamNumber: 8033,
+  teamNumber: sourceTeam,
   events: [],
   ...(customPostMatch === undefined ? {} : { customPostMatch }),
 });
@@ -138,7 +138,7 @@ before(async () => {
       tournamentKey,
       matchNumber: 1,
       matchType: "QUALIFICATION",
-      teamNumber: 8033,
+      teamNumber: sourceTeam,
     },
   });
 });

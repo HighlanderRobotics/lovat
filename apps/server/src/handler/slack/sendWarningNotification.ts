@@ -35,7 +35,8 @@ export async function sendWarningToSlack(
       const client = new WebClient(channel.workspace.authToken);
       const scouterName =
         report.scouter.sourceTeamNumber == channel.workspace.owner
-          ? report.scouter.name.trim()
+          ? report.scouter.name?.trim() ||
+            `A Scouter from team ${report.scouter.sourceTeamNumber}`
           : `A Scouter from team ${report.scouter.sourceTeamNumber}`;
 
       // Locate the upcoming match number for the workspace's team; fall back to a generic label if missing.
@@ -72,8 +73,7 @@ export async function sendWarningToSlack(
             }`,
           });
         }
-        const subscriptionIdent = `${channel.channelId}_B
-        }`;
+        const subscriptionIdent = `${channel.channelId}_B`;
 
         await prismaClient.slackNotificationThread.create({
           data: {

@@ -15,6 +15,13 @@ This repository contains independently buildable applications under `apps/`. Roo
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.
 
+## Starting a task
+
+- Start every new task on a fresh branch created from fully pulled `main`.
+- Check the working tree first and preserve any existing work. Switch to `main`, run `git pull --ff-only origin main`, and create the task branch only after the pull succeeds. Do not branch from another task's branch or a stale local `main`.
+- Use the branch name requested by Ben or supplied by the issue; otherwise use the `codex/` prefix.
+- If local changes or divergent history prevent updating `main`, resolve that condition before starting implementation. Never discard work or reset history to force the update.
+
 ## Working rules
 
 - Keep an application change inside its owning directory unless a contract requires coordinated consumers.
@@ -50,7 +57,7 @@ The aggregate script assumes app dependencies are already installed and intentio
 
 ## Current limitations
 
-- Server tests compile TypeScript but do not provide behavioral coverage.
+- Server has an initial behavioral suite; database-backed API coverage is still limited.
 - Collection Android and web have tracked pre-existing issues.
 - Dashboard analysis has one baseline informational failure and little test coverage.
 - Website check and formatting commands fail at the migration baseline; production build needs private environment configuration.

@@ -199,8 +199,11 @@ const posthogReporter = async (
     }
     if (process.env.NODE_ENV === "development") {
       console.log(
-        `${req.method} ${req.originalUrl}: %d ms, HTTP ${res.statusCode}`,
+        "%s %s: %d ms, HTTP %d",
+        req.method,
+        req.originalUrl,
         Math.round(t1 - t0),
+        res.statusCode,
       );
     }
   });

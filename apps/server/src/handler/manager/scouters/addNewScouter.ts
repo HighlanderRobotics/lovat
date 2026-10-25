@@ -33,6 +33,8 @@ export const addNewScouter = async (
     res.status(200).send(user);
   } catch (error) {
     console.error(error);
-    res.status(500).send({ error: error, displayError: "Error" });
+    res
+      .status(500)
+      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

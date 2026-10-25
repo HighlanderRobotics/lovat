@@ -18,7 +18,7 @@ run_group() {
 
 check_server() {
   cd "$repo_root/apps/server" || return
-  npm run build && npm test && npm run lint
+  npm run build && npm run typecheck:test && npm test && npm run lint
 }
 
 check_collection() {

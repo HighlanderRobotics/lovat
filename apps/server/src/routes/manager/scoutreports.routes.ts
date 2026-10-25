@@ -18,7 +18,7 @@ const ScoutReportCreateSchema = z.object({
   customPostMatch: customPostMatchAnswersSchema.optional(),
   uuid: z.string(),
   tournamentKey: z.string(),
-  matchType: z.enum(["QUALIFICATION", "ELIMINATION"]),
+  matchType: z.enum(["QUALIFICATION", "ELIMINATION", "PRACTICE"]),
   matchNumber: z.number().int(),
   startTime: z.number().int(),
   notes: z.string(),
