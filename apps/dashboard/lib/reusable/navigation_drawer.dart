@@ -22,6 +22,7 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
     final scaffoldMessengerState = ScaffoldMessenger.of(context);
 
     final tournament = await Tournament.getCurrent();
+    if (!mounted) return;
 
     setState(() {
       selectedTournament = tournament;
@@ -32,18 +33,20 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
     try {
       profile = await lovatAPI.getUserProfile();
     } on LovatAPIException catch (e) {
+      if (!mounted) return;
       scaffoldMessengerState.showSnackBar(SnackBar(
         content: Text("Failed to load user profile: ${e.message}"),
         behavior: SnackBarBehavior.floating,
       ));
     } catch (_) {
+      if (!mounted) return;
       scaffoldMessengerState.showSnackBar(const SnackBar(
         content: Text("Failed to load user profile"),
         behavior: SnackBarBehavior.floating,
       ));
     }
 
-    if (profile != null) {
+    if (mounted && profile != null) {
       setState(() {
         userProfile = profile;
       });
@@ -59,7 +62,20 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
   @override
   void initState() {
     super.initState();
+    Tournament.currentChanges.addListener(_onTournamentChanged);
     userProfile = lovatAPI.getCachedUserProfile();
+  }
+
+  void _onTournamentChanged() {
+    setState(() {
+      selectedTournament = Tournament.currentSync;
+    });
+  }
+
+  @override
+  void dispose() {
+    Tournament.currentChanges.removeListener(_onTournamentChanged);
+    super.dispose();
   }
 
   @override

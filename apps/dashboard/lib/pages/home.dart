@@ -1,8 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
@@ -15,269 +14,262 @@ import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/reusable/navigation_drawer.dart';
 import 'package:scouting_dashboard_app/reusable/scrollable_page_body.dart';
 import 'package:scouting_dashboard_app/reusable/value_tile.dart';
+import 'package:scouting_dashboard_app/reusable/upcoming_tournaments.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_team_rankings.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournament_status.dart';
 
-String teamnum = "empty";
-
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key, this.api});
+
+  final LovatAPI? api;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  int _loadGeneration = 0;
   bool dataLoaded = false;
   bool colorsReady = false;
 
   Tournament? t;
   int? team;
   String? error;
+  List<String> notices = [];
   MatchScheduleMatch? match1;
   MatchScheduleMatch? match2;
   List<ConfiguredPicklistMeta>? sharedPicklists;
   List<MutablePicklistMeta>? mutablePicklists;
   TeamTournamentStatus? teamTournamentStatus;
-  List<TeamRanking>? topTeams = [];
+  List<TeamRanking> topTeams = [];
   List<dynamic> displayPicklists = [];
   Tournament? selectedTournament;
-
-  
 
   @override
   void initState() {
     super.initState();
+    Tournament.currentChanges.addListener(_onTournamentChanged);
+    fetchData();
+  }
+
+  void _onTournamentChanged() {
     fetchData();
   }
 
   @override
+  void dispose() {
+    Tournament.currentChanges.removeListener(_onTournamentChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return dataLoaded ? Scaffold(
+    return Scaffold(
       appBar: AppBar(
-        title:  Text(t?.localized ?? "No Selected Tournament"),
+        title: Text(t?.localized ?? "No Selected Tournament"),
         //actions: const [CodeViewerButton()],
       ),
       drawer: const GlobalNavigationDrawer(),
-      body: ScrollablePageBody(
-        children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(selectedTournament?.localized ?? "Tournament Name",
-                style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
+      body: error != null
+          ? FriendlyErrorView(errorMessage: error, onRetry: fetchData)
+          : !dataLoaded
+              ? const Center(child: CircularProgressIndicator())
+              : ScrollablePageBody(
+                  children: [
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(t?.localized ?? "No Selected Tournament",
+                              style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 16),
+                          for (final notice in notices)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(notice),
+                            ),
+                          if (notices.isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton(
+                                onPressed: fetchData,
+                                child: const Text("Retry unavailable data"),
+                              ),
+                            ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/team_lookup", (route) => false);
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                    team == null
+                                        ? "Team status"
+                                        : "$team's status",
+                                    style: const TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                const Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                    child: ValueTile(
+                                        label: const Text("Rank"),
+                                        value: Text(
+                                            (teamTournamentStatus?.rank ??
+                                                    "N/A")
+                                                .toString()))),
+                                Expanded(
+                                    child: ValueTile(
+                                        label: const Text("RP"),
+                                        value: Text((teamTournamentStatus
+                                                    ?.rankingPoints ??
+                                                "N/A")
+                                            .toString()))),
+                                Expanded(
+                                    child: ValueTile(
+                                        label: const Text("Matches Played"),
+                                        value: Text(
+                                            "${teamTournamentStatus?.matchesPlayed ?? 'N/A'}/${teamTournamentStatus?.matchesTotal ?? 'N/A'}"))),
+                              ]),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/match_schedule", (route) => false);
+                            },
+                            child: const Row(
+                              children: [
+                                Text("Matches",
+                                    style: TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          HomePageMatch(match1: match1),
+                          const SizedBox(height: 12),
+                          HomePageMatch(
+                            match1: match2,
+                            isTeamMatch: true,
+                            teamNumber: team,
+                          ),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/team_lookup", (route) => false);
+                            },
+                            child: const Row(
+                              children: const [
+                                Text("Teams",
+                                    style: const TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          TournamentTopTeams(rankings: topTeams),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/picklists", (route) => false);
+                            },
+                            child: const Row(
+                              children: const [
+                                Text("Picklist",
+                                    style: const TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          GridView.count(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 5,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            childAspectRatio: 2.3,
+                            children: const [
+                              PicklistCard(
+                                  rank: "First Pick", ReportedUser: "John Doe"),
+                              PicklistCard(
+                                  rank: "Second Pick",
+                                  ReportedUser: "Jane Smith"),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/scouters", (route) => false);
+                            },
+                            child: const Row(
+                              children: const [
+                                Text("Scouters",
+                                    style: const TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          GridView.count(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 5,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            childAspectRatio: 2.5,
+                            children: const [
+                              ScouterUpNextCard(
+                                  ScouterName: "John Doe",
+                                  ScouterUpIn: "In 2 hours"),
+                              ScouterUpNextCard(
+                                  ScouterName: "Jane Smith",
+                                  ScouterUpIn: "In 4 hours"),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamedAndRemoveUntil(
+                                  context, "/match_schedule", (route) => false);
+                            },
+                            child: const Row(
+                              children: const [
+                                Text("Upcoming Entered Tournaments",
+                                    style: const TextStyle(
+                                      fontSize: 17.0,
+                                    )),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          const Text(
+                            "Upcoming Tournaments This Week",
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          const SizedBox(height: 8),
+                          UpcomingWeekTournaments(api: widget.api),
+                        ]),
 
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/team_lookup", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("$teamnum's status",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-            SizedBox(height: 5),
-            Row(
-                spacing: 8,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                   Expanded(
-                      child:
-                          ValueTile(label: const Text("Rank"), value: Text((topTeams?[0].rank ?? "N/A").toString()))),
-                  const Expanded(
-                      child: ValueTile(label: Text("RP"), value: Text("10"))),
-                  const Expanded(
-                      child: ValueTile(
-                          label: Text("Matches Played"), value: Text("5/12"))),
-                ]),
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/match_schedule", (route) => false);
-              },
-              child: const Row(
-                children: [
-                  Text("Matches",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-            //HomePageMatch(match1: ),
-            SizedBox(height: 5),
-            Text("Insert current match"),
-            SizedBox(height: 5),
-            HomePageMatch(match1: match1),
-            
-            Text(
-                "Insert next match for the team(idk if the current match is for the team)"),
-              
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/team_lookup", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("Teams",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-            SizedBox(height: 5),
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 5,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 2.8,
-              children: [
-                TeamCard(
-                    teamNumber: "1234",
-                    rank: "1st",
-                    score: "100 RP",
-                    color: Colors.blue,
-                    image: "assets/images/8033_logo.png"),
-                TeamCard(
-                    teamNumber: "5678",
-                    rank: "2nd",
-                    score: "80 RP",
-                    color: Colors.green,
-                    image: "assets/images/8033_logo.png"),
-                TeamCard(
-                    teamNumber: "9012",
-                    rank: "3rd",
-                    score: "60 RP",
-                    color: Colors.red,
-                    image: "assets/images/8033_logo.png"),
-                TeamCard(
-                    teamNumber: "3456",
-                    rank: "4th",
-                    score: "50 RP",
-                    color: Colors.yellow,
-                    image: "assets/images/8033_logo.png")
-              ],
-            ),
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/picklists", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("Picklist",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 5,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 2.3,
-              children: [
-                PicklistCard(rank: "First Pick", ReportedUser: "John Doe"),
-                PicklistCard(rank: "Second Pick", ReportedUser: "Jane Smith"),
-              ],
-            ),
-
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/scouters", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("Scouters",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 5,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 2.5,
-              children: [
-                ScouterUpNextCard(
-                    ScouterName: "John Doe", ScouterUpIn: "In 2 hours"),
-                ScouterUpNextCard(
-                    ScouterName: "Jane Smith", ScouterUpIn: "In 4 hours"),
-              ],
-            ),
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/match_schedule", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("Upcoming Entered Tournaments",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 15),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/match_schedule", (route) => false);
-              },
-              child: Row(
-                children: [
-                  Text("Upcoming Tournaments This Week",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                      )),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 8),
-            UpTournamentCard(
-                UpTournName: "San Francisco District Championship 2026",
-                UpTournDate: "2026",
-                UpTournlocal: "CA"),
-            SizedBox(height: 8),
-            UpTournamentCard(
-                UpTournName: "Insert a upcoming tournament",
-                UpTournDate: "2026",
-                UpTournlocal: "NY"),
-          ]),
-
-          /*
+                    /*
               text(tournment name)
               text number satus with status with arrow
               row of 3 value tiles
@@ -305,10 +297,9 @@ class _HomePageState extends State<HomePage> {
 
 
               */
-        ],
-      ),
-     //) : FriendlyErrorView(onRetry: () async => await fetchData());
-    ) : const Center(child: CircularProgressIndicator());
+                  ],
+                ),
+    );
   }
 
   SizedBox versionText() {
@@ -370,162 +361,174 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchData() async {
+    if (!mounted) return;
+    final generation = ++_loadGeneration;
+    bool isCurrentLoad() => mounted && generation == _loadGeneration;
+    setState(() {
+      dataLoaded = false;
+      error = null;
+      t = Tournament.currentSync;
+      match1 = null;
+      match2 = null;
+      teamTournamentStatus = null;
+      notices = [];
+    });
+
+    const timeout = Duration(seconds: 30);
     try {
-      setState(() {
-        error = null;
-      });
-      final t = await Tournament.getCurrent();
-      if (t == null) {
-        setState(() {
-          error = "No Tournament Selected";
-        });
-        return;
+      final tournament = await Tournament.getCurrent().timeout(timeout);
+      if (!isCurrentLoad()) return;
+      if (tournament == null) {
+        throw const LovatAPIException(
+            "No tournament selected. Choose a tournament from the navigation menu.");
       }
-      final teams = await lovatAPI.getTeamRankings(t.key);
-      final profile = await lovatAPI.getUserProfile();
-      final thisTeamNumber = profile.team?.number;
-      final matches = await lovatAPI.getMatches(
-        t!.key,
-      );
-      final teamMatches = await lovatAPI.getMatches(t.key,);
-      
-      final teamTournamentStatus = await lovatAPI.getTeamTournamentStatus(
-        team: thisTeamNumber!,
-        tournamentKey: t.key,
-      );
 
-      topTeams = teams;
+      if (!isCurrentLoad()) return;
       setState(() {
-        this.t = t;
-        this.teamTournamentStatus = teamTournamentStatus;
-        team = thisTeamNumber;
-         List<MatchScheduleMatch> upcoming = matches.where((match) {
-          return !match.isFinished;
-        }).toList();
-        match1 = upcoming.isNotEmpty ? upcoming[0] : null;
-
-        List<MatchScheduleMatch> upcomingTeam = teamMatches.where((match) {
-          return !match.isFinished;
-        }).toList();
-        match2 = upcomingTeam.isNotEmpty ? upcomingTeam[1] : null;
-
-        this.topTeams!.sort((a, b) => a.rank!.compareTo(b.rank!));
-      dataLoaded = true;
+        t = tournament;
       });
-    } on LovatAPIException catch (e) {
-      // Handle LovatAPIException here 
+      final api = widget.api ?? lovatAPI;
+      final profile = await api.getUserProfile().timeout(timeout);
+      final teamNumber = profile.team?.number;
+      final messages = <String>[];
+      List<MatchScheduleMatch> matches = [];
+      try {
+        matches = await api.getMatches(tournament.key).timeout(timeout);
+      } catch (_) {
+        messages.add("The match schedule is unavailable for this tournament.");
+      }
+      List<TeamRanking> teams = [];
+      try {
+        teams = await api.getTeamRankings(tournament.key).timeout(timeout);
+        teams.sort(TeamRanking.compareByRank);
+      } catch (_) {
+        messages.add("Rankings could not be loaded for this tournament.");
+      }
+      TeamTournamentStatus? status;
+      if (teamNumber != null) {
+        try {
+          status = await api
+              .getTeamTournamentStatus(
+                team: teamNumber,
+                tournamentKey: tournament.key,
+              )
+              .timeout(timeout);
+          if (status == null) {
+            messages.add("Your team is not entered in this tournament.");
+          }
+        } catch (_) {
+          messages.add("Your team's tournament status is unavailable.");
+        }
+      }
+      final teamMatches = matches.where((match) =>
+          match.allTeamInfo.any((info) => info.teamNumber == teamNumber));
+
+      if (!isCurrentLoad()) return;
       setState(() {
-        error = e.message;
+        t = tournament;
+        team = teamNumber;
+        teamTournamentStatus = status;
+        notices = messages;
+        topTeams = teams;
+        match1 = selectHomeMatch(matches);
+        match2 = selectHomeMatch(teamMatches, includeLastCompleted: false);
+        dataLoaded = true;
+      });
+    } catch (e) {
+      if (!isCurrentLoad()) return;
+      setState(() {
+        error = e is LovatAPIException
+            ? e.message
+            : e is TimeoutException
+                ? "Loading the home page timed out. Please try again."
+                : "Could not load the home page. Please try again.";
       });
     }
-   catch (_) {}
   }
+}
+
+/// The API supplies matches in play order. Keep live/upcoming matches first,
+/// falling back to the last completed match after this schedule ends.
+MatchScheduleMatch? selectHomeMatch(Iterable<MatchScheduleMatch> matches,
+    {bool includeLastCompleted = true}) {
+  MatchScheduleMatch? last;
+  for (final match in matches) {
+    if (!match.isFinished) return match;
+    last = match;
+  }
+  return includeLastCompleted ? last : null;
 }
 
 class HomePageMatch extends StatelessWidget {
   const HomePageMatch({
     super.key,
     required this.match1,
+    this.isTeamMatch = false,
+    this.teamNumber,
   });
 
   final MatchScheduleMatch? match1;
+  final bool isTeamMatch;
+  final int? teamNumber;
 
   @override
   Widget build(BuildContext context) {
+    if (isTeamMatch && (match1 == null || match1!.isFinished)) {
+      return const NoUpcomingTeamMatches();
+    }
+    if (match1 == null) {
+      return const Text("No matches available.");
+    }
     return Column(
-      
       children: [
-        /*Container(
-      width: double.infinity,
-    decoration: BoxDecoration(
-    color: const Color(0xFF292929),
-    borderRadius: BorderRadius.circular(14),
-    border: const Border(
-      bottom: BorderSide(
-        color: Color(0xFF454B70),
-        width: 3,
-      ),
-    ),
-  ),
-  padding: const EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 4,
-  ),
-  child: Row(
-    children: [
-      Text(
-        (topTeams?[0]. ?? "N/A").toString(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.white.withValues(alpha: 0.85),
+        Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 13, 10, 13),
+                child: Text(
+                  match1!.identity
+                      .getLocalizedDescription(includeTournament: true),
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                  match1!.isFinished
+                      ? "Completed"
+                      : isTeamMatch && teamNumber != null
+                          ? "Up next for $teamNumber"
+                          : "Up next",
+                  style: TextStyle(
+                      color:
+                          Theme.of(context).colorScheme.onSecondaryContainer)),
+            ),
+            if (match1!.isScouted) const ScoutedFlag(),
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  "/match_predictor",
+                  arguments: {
+                    'red1': match1!.red1.teamNumber.toString(),
+                    'red2': match1!.red2.teamNumber.toString(),
+                    'red3': match1!.red3.teamNumber.toString(),
+                    'blue1': match1!.blue1.teamNumber.toString(),
+                    'blue2': match1!.blue2.teamNumber.toString(),
+                    'blue3': match1!.blue3.teamNumber.toString(),
+                  },
+                );
+              },
+              icon: const Icon(Icons.psychology),
+              tooltip: "Match Predictor",
+            ),
+          ],
         ),
-      ),
-      const SizedBox(width: 14),
-      Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFF414141),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Text(
-          "NOW PLAYING",
-          style: TextStyle(
-            fontSize: 8,
-           fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-            color: Color(0xFFD6D6D6),
-          ),
-        ),
-      ),
-      const Spacer(),
-      Icon(
-        Icons.chevron_right,
-        size: 18,
-        color: Colors.white.withValues(alpha: 0.9),
-      ),
-    ],
-  ),
-),*/
-      Row(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 13, 10, 13),
-                                child: Text(
-                                  match1!.identity.getLocalizedDescription(
-                                      includeTournament: true),
-                                  style:
-                                      Theme.of(context).textTheme.labelMedium,
-                                ),
-                              ),
-                              if (match1!.isScouted) const ScoutedFlag(),
-                              const Spacer(),
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                    "/match_predictor",
-                                    arguments: {
-                                      'red1': match1!.red1.teamNumber.toString(),
-                                      'red2': match1!.red2.teamNumber.toString(),
-                                      'red3': match1!.red3.teamNumber.toString(),
-                                      'blue1':
-                                          match1!.blue1.teamNumber.toString(),
-                                      'blue2':
-                                          match1!.blue2.teamNumber.toString(),
-                                      'blue3':
-                                          match1!.blue3.teamNumber.toString(),
-                                    },
-                                  );
-                                },
-                                icon: const Icon(Icons.psychology),
-                                tooltip: "Match Predictor",
-                              ),
-                            ],
-                          ),
         AllianceRow(
           alliance: Alliance.red,
           items: [
@@ -570,90 +573,157 @@ class HomePageMatch extends StatelessWidget {
         ),
       ],
     );
-  
   }
 }
 
-class TeamCard extends StatefulWidget {
+class NoUpcomingTeamMatches extends StatelessWidget {
+  const NoUpcomingTeamMatches({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 192,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Column(
+            children: [
+              Expanded(
+                  child: ColoredBox(
+                      color: Color(0xFF321D20), child: SizedBox.expand())),
+              Expanded(
+                  child: ColoredBox(
+                      color: Color(0xFF1C203B), child: SizedBox.expand())),
+            ],
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                "No more upcoming matches for your team",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TournamentTopTeams extends StatelessWidget {
+  const TournamentTopTeams({super.key, required this.rankings});
+
+  final List<TeamRanking> rankings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ranked = rankings.where((team) => (team.rank ?? 0) > 0).toList()
+      ..sort(TeamRanking.compareByRank);
+    final topFour = ranked.take(4).toList();
+    if (topFour.isEmpty) {
+      return const Text("Rankings are not available for this tournament yet.");
+    }
+    const colors = [
+      Color(0xFF263B53),
+      Color(0xFF234338),
+      Color(0xFF4C3038),
+      Color(0xFF494027),
+    ];
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 5,
+        mainAxisExtent: 82,
+      ),
+      itemCount: topFour.length,
+      itemBuilder: (context, index) {
+        final team = topFour[index];
+        final rank = team.rank!;
+        final suffix = rank % 100 >= 11 && rank % 100 <= 13
+            ? "th"
+            : {1: "st", 2: "nd", 3: "rd"}[rank % 10] ?? "th";
+        return TeamCard(
+          teamNumber: team.number.toString(),
+          rank: "$rank$suffix",
+          score: team.rankingPoints == null
+              ? "RP unavailable"
+              : "${team.rankingPoints} RP",
+          color: colors[index],
+          image: team.avatar,
+        );
+      },
+    );
+  }
+}
+
+class TeamCard extends StatelessWidget {
   const TeamCard({
     super.key,
     required this.teamNumber,
     required this.rank,
     required this.score,
     required this.color,
-    required this.image,
+    this.image,
   });
 
   final String teamNumber;
   final String rank;
   final String score;
   final Color color;
-  final String image;
+  final String? image;
 
-  @override
-  State<TeamCard> createState() => _TeamCardState();
-}
+  Widget teamImage() {
+    const fallback = Icon(Icons.groups, color: Colors.white70, size: 30);
+    final avatar = image;
+    if (avatar == null || !avatar.startsWith("data:image/")) return fallback;
+    try {
+      return Image.memory(
+        base64Decode(avatar.substring(avatar.indexOf(',') + 1)),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => fallback,
+        semanticLabel: "Team $teamNumber image",
+      );
+    } on FormatException {
+      return fallback;
+    }
+  }
 
-class _TeamCardState extends State<TeamCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: widget.color,
+        color: color,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         children: [
-          // Team logo
-          Container(
-            width: 30,
-            height: 30,
-            margin: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: widget.color,
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Image.asset(
-              widget.image,
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          // Team number + score
+          SizedBox(width: 36, height: 36, child: teamImage()),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.teamNumber,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  widget.score,
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                Text(teamNumber,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+                Text(score,
+                    style:
+                        const TextStyle(fontSize: 12, color: Colors.white70)),
               ],
             ),
           ),
-
-          // Ranking number
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Text(
-              widget.rank,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          Text(rank, style: const TextStyle(fontSize: 16, color: Colors.white)),
         ],
       ),
     );
@@ -751,65 +821,6 @@ class ScouterUpNextCard extends StatelessWidget {
   }
 }
 
-class UpTournamentCard extends StatelessWidget {
-  const UpTournamentCard(
-      {super.key,
-      required this.UpTournName,
-      required this.UpTournDate,
-      required this.UpTournlocal});
-
-  final String UpTournName;
-  final String UpTournDate;
-  final String UpTournlocal;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  UpTournName,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  UpTournDate,
-                  style: TextStyle(
-                    fontSize: 10,
-                  ),
-                ),
-                Text(
-                  UpTournlocal,
-                  style: TextStyle(
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class EnterUpTournamentCard extends StatelessWidget {
   const EnterUpTournamentCard(
       {super.key,
@@ -829,7 +840,7 @@ class EnterUpTournamentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Row(
@@ -839,7 +850,7 @@ class EnterUpTournamentCard extends StatelessWidget {
                   children: [
                     Text(
                       EnterUpTournName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
                       ),
@@ -848,7 +859,7 @@ class EnterUpTournamentCard extends StatelessWidget {
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
             Row(
               children: [
                 Column(
@@ -864,13 +875,13 @@ class EnterUpTournamentCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       EnterUpTournlocal,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                       ),
                     ),
@@ -884,16 +895,3 @@ class EnterUpTournamentCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-
- 
-
- 
-
