@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { Button } from 'magnolia-ui-svelte';
 	export let url: string;
+	export let playEnabled = true;
+	export let showPlay = true;
 	export let offset = 0;
 	export let duration = 163;
 	export let onPlaying: () => Promise<void>;
@@ -146,10 +148,10 @@
 </script>
 
 <div class="player"><div bind:this={mount}></div></div>
-{#if !started && !ending}
+{#if showPlay && !started && !ending}
 	<div class="play-action">
-		<Button disabled={!ready || busy} on:click={() => player?.playVideo()}
-			>{ready ? 'Play video' : 'Loading video…'}</Button
+		<Button disabled={!ready || busy || !playEnabled} on:click={() => player?.playVideo()}
+			>{!ready ? 'Loading…' : 'Play'}</Button
 		>
 	</div>
 {/if}
@@ -166,6 +168,8 @@
 		overflow: hidden;
 	}
 	.play-action {
-		margin-top: 20px;
+		position: absolute;
+		right: 35px;
+		bottom: 24px;
 	}
 </style>

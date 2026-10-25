@@ -292,6 +292,7 @@ jobs:
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
       - run: npm run test:changelog
+      - run: npm run test:training
       - run: npm run format:check
       - run: npm run lint
       - run: npm run check

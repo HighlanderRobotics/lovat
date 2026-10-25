@@ -29,3 +29,6 @@ dist/
 
 # Local migration scratch space
 .migration-work/
+
+# Automated test reports
+coverage/

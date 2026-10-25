@@ -134,13 +134,13 @@ describe("Practice match listing", () => {
     const options = vi.mocked(prismaClient.teamMatchData.findMany).mock
       .calls[0][0];
     expect(options?.select?.scoutReports).toEqual({
-      where: { scouter: { sourceTeamNumber: 8033 } },
+      where: { training: false, scouter: { sourceTeamNumber: 8033 } },
       select: { scouter: { select: { name: true, uuid: true } } },
     });
     expect(options?.select?._count).toEqual({
       select: {
         scoutReports: {
-          where: { scouter: { sourceTeamNumber: { in: [9143, 8033] } } },
+          where: { training: false, scouter: { sourceTeamNumber: { in: [9143, 8033] } } },
         },
       },
     });
