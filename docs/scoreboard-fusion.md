@@ -64,3 +64,11 @@ The official result can close gaps in the live scoreboard. The result retains `o
 `team auto + team teleop + unattributed + awarded foul points = official total`.
 
 This improves scoring constraints and phase accounting; it does not establish measured accuracy for per-robot fuel attribution. Existing input files without TBA continue to use the v1 path.
+
+## Railway event batch
+
+Cloud IPs can be blocked by YouTube even when native OCR is healthy. Stage public, dedicated match videos into a private S3 bucket, then run `bun tools/run-event-batch.ts` in the Worker image. The runner downloads one staged object at a time, calls the private native service, reads only explicitly scoped scouting sources, and runs TBA-aware fusion. It does not rewrite scouting reports, exclusions, or stored metrics. Rejected timelines retain numeric evidence without producing an estimate.
+
+Set `OCR_BATCH_EVENT`, a unique `OCR_BATCH_RUN_ID`, `OCR_BATCH_SOURCE_TEAMS`, and `OCR_BATCH_ENVIRONMENT_ID` (must equal the service's `RAILWAY_ENVIRONMENT_ID`). Supply the existing native-service/template/TBA settings and bucket references through `OCR_MEDIA_ENDPOINT`, `OCR_MEDIA_BUCKET`, `OCR_MEDIA_REGION`, `OCR_MEDIA_ACCESS_KEY_ID`, and `OCR_MEDIA_SECRET_ACCESS_KEY`. Private artifacts are saved as `runs/<run-id>/<match-key>.json`, with a checkpointed `summary.json`. Completed/rejected matches resume from checkpoints after restart; use a new run ID when changing inputs or policies. Keep one replica for this one-shot run. Restore the normal Worker start command afterwards.
+
+`tools/media-relay.ts` is an optional temporary Railway Function for staging when local S3 credentials are unavailable. It has no database access. Its upload signer requires a strong bearer token, a fixed expiry, and an explicit video-ID allowlist; signed upload URLs expire in ten minutes. Only the helper's health endpoint is unauthenticated. Remove its public domain and disable its token after staging. Never log tokens or signed URLs. The bucket and numeric result artifacts remain private.
