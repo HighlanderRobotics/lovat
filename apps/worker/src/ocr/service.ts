@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { Template } from "./media";
 
+export class OcrServiceUnavailable extends Error {}
+
 const resultSchema = z.object({
   observations: z
     .array(
@@ -39,13 +41,29 @@ export async function extractWithService(
     JSON.stringify({ template, expectedTeams, expectedMatchLabel }),
   );
   body.append("video", Bun.file(path), "match.mp4");
-  const response = await fetch(new URL("/extract", endpoint), {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body,
-    signal: AbortSignal.timeout(9 * 60000),
-    redirect: "error",
-  });
+  let response: Response;
+  try {
+    response = await fetch(new URL("/extract", endpoint), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body,
+      signal: AbortSignal.timeout(9 * 60000),
+      redirect: "error",
+    });
+  } catch {
+    throw new OcrServiceUnavailable(
+      "OCR service is unavailable; retry this job",
+    );
+  }
+  if (
+    response.status >= 500 ||
+    response.status === 429 ||
+    response.status === 401 ||
+    response.status === 403
+  )
+    throw new OcrServiceUnavailable(
+      `OCR service is unavailable (${response.status}); retry this job`,
+    );
   if (!response.ok)
     throw new Error(`OCR service rejected video (${response.status})`);
   const reader = response.body?.getReader();

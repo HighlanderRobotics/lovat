@@ -1,3 +1,4 @@
+import { OcrServiceUnavailable } from "../ocr/service";
 import { OcrMediaError } from "../ocr/commandFailure";
 import { ocrTournamentAllowed } from "../ocr/config";
 import type { PrismaClient, Prisma } from "@lovat/db";
@@ -89,6 +90,8 @@ export async function scanScoreboardTournament(
           reason = null;
           break;
         } catch (error) {
+          // An occupied/restarting processor is not evidence against a video.
+          if (error instanceof OcrServiceUnavailable) throw error;
           if (error instanceof OcrTimelineError) {
             // Sparse evidence is usable only inside dense, monotonic claim windows.
             observations = error.observations;
