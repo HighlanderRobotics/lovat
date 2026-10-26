@@ -3,6 +3,12 @@ import { tba } from "./src/tba";
 import { runWorker } from "./src/worker";
 import { createHealthApp, healthPort } from "./src/server";
 
+// An explicitly scoped one-shot run also works with the normal Docker entrypoint.
+if (process.env.OCR_BATCH_RUN_ID) {
+  await import("./tools/run-event-batch");
+  process.exit(0);
+}
+
 // Validate the provider configuration before starting any background work.
 void tba;
 
