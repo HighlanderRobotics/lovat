@@ -23,14 +23,34 @@ export type Participant = {
 	score: {
 		overallScore: number;
 		breakdown: {
+			rubricVersion?: string;
 			quantities: {
 				action: string;
 				score?: number;
+				allowance?: number;
 				expected: number;
 				actual: number;
-				differences?: { time: number; expected: number; actual: number | null }[];
+				differences?: {
+					time: number;
+					expected: number;
+					actual: number | null;
+					allowance?: number;
+				}[];
 			}[];
-			timeline: { matched: number; expected: number; actual: number };
+			timeline: {
+				matched: number;
+				expected: number;
+				actual: number;
+				score?: number;
+				toleranceSeconds?: number;
+				differences?: {
+					action: string;
+					position: string;
+					expectedTime: number | null;
+					actualTime: number | null;
+					deltaSeconds: number | null;
+				}[];
+			};
 			fields: { field: string; correct: boolean; expected: unknown; actual: unknown }[];
 		};
 	} | null;

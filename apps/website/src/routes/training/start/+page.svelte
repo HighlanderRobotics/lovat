@@ -82,6 +82,7 @@
 		stopConnection?.();
 		stopConnection = undefined;
 		connected = false;
+		connectionError = '';
 	}
 	function connect() {
 		if (!credentials || disposed) return;
@@ -213,7 +214,7 @@
 		>
 	{/if}
 	{#if session && !connected}<p class="connection" role="status">Reconnecting…</p>{/if}
-	<main>
+	<main class:playback={stage === 'playing'}>
 		{#if step === 'start'}
 			<h1 class="start-title">Lovat Training</h1>
 			<div class="bottom-action start-action">
@@ -355,7 +356,7 @@
 	.start-title {
 		position: absolute;
 		left: 61px;
-		bottom: 45px;
+		bottom: 85px;
 		font-size: 60px;
 	}
 	.bottom-action {
@@ -403,7 +404,7 @@
 	.selection {
 		position: absolute;
 		left: 50px;
-		bottom: 40px;
+		bottom: 72px;
 		width: min(558px, calc(100% - 100px));
 	}
 	.selection h1 {
@@ -443,7 +444,7 @@
 		display: grid;
 		grid-template-columns: minmax(0, 476px) 280px;
 		gap: clamp(24px, 10.38vw, 108px);
-		padding: 129px 70px 70px 69px;
+		padding: 105px 70px 70px 69px;
 	}
 	.lobby h1 {
 		margin-bottom: 14px;
@@ -462,7 +463,7 @@
 		color: #cac4d0;
 	}
 	.post-match {
-		padding: 103px 101px 100px;
+		padding: 80px 101px 100px;
 	}
 	.post-match h1 {
 		margin-bottom: 23px;
@@ -471,7 +472,7 @@
 		margin: 0 37px;
 	}
 	.results {
-		padding: 155px 11.35% 60px;
+		padding: 115px 11.35% 60px;
 	}
 	.results h1 {
 		margin-bottom: -15px;
@@ -486,7 +487,39 @@
 		padding: 26px 127px 0 33px;
 	}
 	.video-section.playing {
-		padding: 13px 54px 10px 51px;
+		position: fixed;
+		inset: 0;
+		z-index: 4;
+		padding: 0;
+		max-width: none;
+		background: black;
+	}
+	.playing .video-frame {
+		width: 100%;
+		height: 100dvh;
+	}
+	.playing :global(.player) {
+		border-radius: 0;
+	}
+	main > section:not(.video-section),
+	.start-title {
+		animation: frame-in 140ms ease-out both;
+	}
+	@keyframes frame-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		main > section:not(.video-section),
+		.start-title {
+			animation: none;
+		}
 	}
 	.video-frame {
 		aspect-ratio: 880 / 497;
@@ -595,8 +628,7 @@
 		.results-actions {
 			flex-wrap: wrap;
 		}
-		.video-section,
-		.video-section.playing {
+		.video-section:not(.playing) {
 			padding: 90px 16px 90px;
 		}
 	}

@@ -1,19 +1,10 @@
 <script lang="ts">
 	import type { Participant } from './types';
 	import TrainingRoles from './TrainingRoles.svelte';
+	import TrainingGradeDetails from './TrainingGradeDetails.svelte';
 	export let participants: Participant[];
 	let expanded: string | null = null;
 	$: reference = participants.find((person) => person.score)?.score;
-	const labels: Record<string, string> = {
-		autoClimb: 'Auto climb',
-		beached: 'Beached',
-		scoresWhileMoving: 'Scores while moving',
-		defenseEffectiveness: 'Defence effectiveness',
-		robotRoles: 'Roles',
-		intakeType: 'Intake sources',
-		mobility: 'Paths',
-		endgameClimb: 'Endgame'
-	};
 	function field(score: Participant['score'] | undefined, name: string, expected = false): unknown {
 		const value = score?.breakdown.fields.find((item) => item.field === name);
 		return expected ? value?.expected : value?.actual;
@@ -114,30 +105,7 @@
 				{#if expanded === person.uuid && person.score}
 					<tr class="detail-row"
 						><td colspan="8"
-							><div class="details">
-								<p>Overall: {person.score.overallScore}% · Pass: 80%</p>
-								<p>
-									{person.score.breakdown.timeline.matched} of {person.score.breakdown.timeline
-										.expected} timeline events matched · {person.score.breakdown.timeline.actual} recorded
-								</p>
-								<dl>
-									{#each person.score.breakdown.fields as item}<div>
-											<dt>{labels[item.field] ?? item.field}</dt>
-											<dd>
-												{describe(item.actual)}{#if !item.correct}<span class="expected">
-														· Expected {describe(item.expected)}</span
-													>{/if}
-											</dd>
-										</div>{/each}
-								</dl>
-								{#each person.score.breakdown.quantities as item}{#each item.differences ?? [] as difference}<p
-										>
-											{item.action === 'STOP_SCORING' ? 'Scoring' : 'Feeding'} quantity at {Math.floor(
-												difference.time / 60
-											)}:{String(Math.floor(difference.time % 60)).padStart(2, '0')}
-											· Expected {difference.expected}, recorded {difference.actual ?? 'missing'}
-										</p>{/each}{/each}
-							</div></td
+							><div class="details"><TrainingGradeDetails score={person.score} /></div></td
 						></tr
 					>
 				{/if}
@@ -249,22 +217,6 @@
 		text-align: left;
 		font-weight: 400;
 		font-size: 14px;
-	}
-	.details dl {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px 24px;
-		margin-top: 12px;
-	}
-	.details dt {
-		color: #ffffff80;
-		font-size: 12px;
-	}
-	.details dd {
-		margin: 0;
-	}
-	.expected {
-		color: #d8b5b5;
 	}
 	.sr-only {
 		position: absolute;

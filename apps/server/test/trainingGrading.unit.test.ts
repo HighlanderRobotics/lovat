@@ -6,7 +6,7 @@ import {
 } from "../src/handler/training/gradeReport.js";
 
 const answer = { ...fixture, events: reportEvents(fixture.events) };
-describe("training-v1 grading", () => {
+describe("training-v2 grading", () => {
   it("gives the transcribed 118 report a perfect score against itself", () => {
     const result = compareTrainingReports(answer, answer);
     expect(result.overallScore).toBe(100);
@@ -14,7 +14,7 @@ describe("training-v1 grading", () => {
       207, 28,
     ]);
   });
-  it("matches events one-to-one within two seconds and ignores report wall-clock time", () => {
+  it("matches events one-to-one within five seconds and ignores report wall-clock time", () => {
     expect(
       compareTrainingReports(
         {
@@ -48,9 +48,9 @@ describe("training-v1 grading", () => {
   it("penalizes wrong per-run quantities even when the total is correct", () => {
     const events = answer.events.map((event) =>
       event.time === 8
-        ? { ...event, quantity: 35 }
+        ? { ...event, quantity: 10 }
         : event.time === 17
-          ? { ...event, quantity: 29 }
+          ? { ...event, quantity: 54 }
           : event,
     );
     const result = compareTrainingReports({ ...answer, events }, answer);
@@ -83,4 +83,76 @@ describe("training-v1 grading", () => {
       ).overallScore,
     ).toBe(100);
   });
+});
+
+it("allows five seconds but penalizes events beyond the window", () => {
+  const shifted = (seconds: number) => ({
+    ...answer,
+    events: answer.events.map((event) => ({
+      ...event,
+      time: event.time + seconds,
+    })),
+  });
+  expect(compareTrainingReports(shifted(5), answer).overallScore).toBe(100);
+  expect(
+    compareTrainingReports(shifted(5.01), answer).overallScore,
+  ).toBeLessThan(100);
+});
+it("allows small fuel-count estimates and explains count and timing differences", () => {
+  const actual = {
+    ...answer,
+    events: answer.events.map((event) =>
+      event.time === 8
+        ? {
+            ...event,
+            time: event.time + 4,
+            quantity: (event.quantity ?? 0) + 3,
+          }
+        : event,
+    ),
+  };
+  const result = compareTrainingReports(actual, answer);
+  expect(result.overallScore).toBe(100);
+  expect(result.breakdown.rubricVersion).toBe("training-v2");
+  expect(result.breakdown.quantities[0].differences[0]).toMatchObject({
+    time: 8,
+    expected: 36,
+    actual: 39,
+    allowance: 6,
+  });
+  expect(result.breakdown.timeline.differences[0]).toMatchObject({
+    expectedTime: 8,
+    actualTime: 12,
+    deltaSeconds: 4,
+  });
+});
+it("records missing and extra events separately and never grants free unexpected fuel", () => {
+  const expected = {
+    events: [
+      { action: "STOP_SCORING", position: "NONE", time: 10, quantity: 0 },
+    ],
+  };
+  const actual = {
+    events: [
+      { action: "STOP_SCORING", position: "NONE", time: 30, quantity: 3 },
+    ],
+  };
+  const result = compareTrainingReports(actual, expected);
+  expect(result.breakdown.quantities[0].score).toBe(0);
+  expect(result.breakdown.timeline.differences).toEqual([
+    {
+      action: "STOP_SCORING",
+      position: "NONE",
+      expectedTime: 10,
+      actualTime: null,
+      deltaSeconds: null,
+    },
+    {
+      action: "STOP_SCORING",
+      position: "NONE",
+      expectedTime: null,
+      actualTime: 30,
+      deltaSeconds: null,
+    },
+  ]);
 });

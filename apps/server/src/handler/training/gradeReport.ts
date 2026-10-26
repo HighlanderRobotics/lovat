@@ -17,23 +17,54 @@ const sum = (report: GradingReport, action: string) =>
     .filter((e) => e.action === action)
     .reduce((n, e) => n + (e.quantity ?? 0), 0);
 
-type RunDifference = { time: number; expected: number; actual: number | null };
+export const TRAINING_RUBRIC = "training-v2";
+export const TIMING_TOLERANCE_SECONDS = 5;
+const quantityAllowance = (expected: number) =>
+  expected === 0 ? 0 : Math.max(3, Math.ceil(expected * 0.15));
+const quantityScore = (expected: number, actual: number) =>
+  expected > 0 && actual === 0
+    ? 0
+    : Math.max(
+        0,
+        1 -
+          Math.max(
+            0,
+            Math.abs(expected - actual) - quantityAllowance(expected),
+          ) /
+            Math.max(expected - quantityAllowance(expected), 1),
+      );
+type RunDifference = {
+  time: number;
+  expected: number;
+  actual: number | null;
+  allowance: number;
+};
+type TimelineDifference = {
+  action: string;
+  position: string;
+  expectedTime: number | null;
+  actualTime: number | null;
+  deltaSeconds: number | null;
+};
 
 export type GradingResult = {
   overallScore: number;
   breakdown: {
+    rubricVersion: string;
     quantities: {
       action: string;
       expected: number;
       actual: number;
       score: number;
       differences: RunDifference[];
+      allowance: number;
     }[];
     timeline: {
       matched: number;
       expected: number;
       actual: number;
       toleranceSeconds: number;
+      differences: TimelineDifference[];
       score: number;
     };
     fields: {
@@ -58,7 +89,8 @@ export function compareTrainingReports(
       differences: [] as RunDifference[],
       expected: target,
       actual: observed,
-      score: Math.max(0, 1 - Math.abs(target - observed) / Math.max(target, 1)),
+      score: quantityScore(target, observed),
+      allowance: quantityAllowance(target),
     };
   });
   // One-to-one matching penalizes both missed and extra events. Wall-clock report
@@ -75,7 +107,8 @@ export function compareTrainingReports(
         (i) =>
           actual.events[i].action === event.action &&
           actual.events[i].position === event.position &&
-          Math.abs(actual.events[i].time - event.time) <= 2,
+          Math.abs(actual.events[i].time - event.time) <=
+            TIMING_TOLERANCE_SECONDS,
       )
       .sort(
         (a, b) =>
@@ -104,14 +137,7 @@ export function compareTrainingReports(
             return (
               total +
               (observed
-                ? Math.max(
-                    0,
-                    1 -
-                      Math.abs(
-                        (event.quantity ?? 0) - (observed.quantity ?? 0),
-                      ) /
-                        Math.max(event.quantity ?? 0, 1),
-                  )
+                ? quantityScore(event.quantity ?? 0, observed.quantity ?? 0)
                 : 0)
             );
           }, 0) / runs.length;
@@ -124,6 +150,7 @@ export function compareTrainingReports(
         time: event.time,
         expected: event.quantity ?? 0,
         actual: pairs.get(event)?.quantity ?? null,
+        allowance: quantityAllowance(event.quantity ?? 0),
       }));
     quantity.score = (quantity.score + runScore) / 2;
   }
@@ -131,7 +158,29 @@ export function compareTrainingReports(
     matched,
     expected: expected.events.length,
     actual: actual.events.length,
-    toleranceSeconds: 2,
+    toleranceSeconds: TIMING_TOLERANCE_SECONDS,
+    differences: [
+      ...expected.events
+        .filter(
+          (event) => !pairs.has(event) || pairs.get(event)!.time !== event.time,
+        )
+        .map((event) => ({
+          action: event.action,
+          position: event.position,
+          expectedTime: event.time,
+          actualTime: pairs.get(event)?.time ?? null,
+          deltaSeconds: pairs.has(event)
+            ? pairs.get(event)!.time - event.time
+            : null,
+        })),
+      ...[...remaining].map((index) => ({
+        action: actual.events[index].action,
+        position: actual.events[index].position,
+        expectedTime: null,
+        actualTime: actual.events[index].time,
+        deltaSeconds: null,
+      })),
+    ],
     score:
       expected.events.length + actual.events.length === 0
         ? 1
@@ -165,7 +214,7 @@ export function compareTrainingReports(
     (20 * fields.filter((f) => f.correct).length) / Math.max(fields.length, 1);
   return {
     overallScore: Math.round(score * 100) / 100,
-    breakdown: { quantities, timeline, fields },
+    breakdown: { rubricVersion: TRAINING_RUBRIC, quantities, timeline, fields },
   };
 }
 
@@ -190,7 +239,7 @@ export async function gradeTrainingReport(uuid: string): Promise<void> {
     });
     if (
       !report?.training ||
-      report.trainingScores.some((s) => s.rubricVersion === "training-v1")
+      report.trainingScores.some((s) => s.rubricVersion === TRAINING_RUBRIC)
     ) {
       return;
     }
@@ -212,7 +261,7 @@ export async function gradeTrainingReport(uuid: string): Promise<void> {
       data: {
         reportUuid: uuid,
         answerKeyReportUuid: answer.uuid,
-        rubricVersion: "training-v1",
+        rubricVersion: TRAINING_RUBRIC,
         overallScore: result.overallScore,
         breakdown: JSON.parse(JSON.stringify(result.breakdown)),
         answerKeySnapshot: JSON.parse(JSON.stringify(answer)),

@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { createServer } from 'vite';
 
-let server, render, Results, Roles, Roster, trainingSocketUrl, connectTrainingHost;
+let server, render, Results, Roles, Roster, trainingSocketUrl, connectTrainingHost, GradeDetails;
 before(async () => {
 	server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
 	({ render } = await server.ssrLoadModule('svelte/server'));
+	({ default: GradeDetails } = await server.ssrLoadModule(
+		'/src/lib/training/TrainingGradeDetails.svelte'
+	));
 	({ default: Results } = await server.ssrLoadModule('/src/lib/training/TrainingResults.svelte'));
 	({ default: Roles } = await server.ssrLoadModule('/src/lib/training/TrainingRoles.svelte'));
 	({ default: Roster } = await server.ssrLoadModule('/src/lib/training/TrainingRoster.svelte'));
@@ -343,4 +346,83 @@ test('rosters distinguish ready, disconnected, and submitted scouts', () => {
 	assert(ready.includes('team 8033, disconnected'));
 	const submitted = render(Roster, { props: { participants: people, submitted: true } }).body;
 	assert(submitted.includes('team 8033, submitted'));
+});
+
+test('grade details explain tolerances, counts, post-match answers and missed events', () => {
+	const { body } = render(GradeDetails, {
+		props: {
+			score: {
+				overallScore: 87,
+				breakdown: {
+					rubricVersion: 'training-v2',
+					quantities: [
+						{
+							action: 'STOP_SCORING',
+							expected: 36,
+							actual: 39,
+							allowance: 6,
+							score: 1,
+							differences: [{ time: 8, expected: 36, actual: 39, allowance: 6 }]
+						}
+					],
+					timeline: {
+						matched: 1,
+						expected: 2,
+						actual: 2,
+						score: 0.5,
+						toleranceSeconds: 5,
+						differences: [
+							{
+								action: 'INTAKE',
+								position: 'NONE',
+								expectedTime: 10,
+								actualTime: null,
+								deltaSeconds: null
+							},
+							{
+								action: 'STOP_SCORING',
+								position: 'NONE',
+								expectedTime: null,
+								actualTime: 20,
+								deltaSeconds: null
+							},
+							{
+								action: 'START_SCORING',
+								position: 'NONE',
+								expectedTime: 8,
+								actualTime: 12,
+								deltaSeconds: 4
+							}
+						]
+					},
+					fields: [{ field: 'autoClimb', expected: 'NONE', actual: 'L1', correct: false }]
+				}
+			}
+		}
+	});
+	for (const text of [
+		'87%',
+		'training-v2',
+		'±5s',
+		'allowance ±6',
+		'Missing event',
+		'Extra event',
+		'+4s',
+		'Expected',
+		'Recorded',
+		'Review'
+	])
+		assert(body.includes(text), text);
+});
+test('legacy score details remain readable without new feedback metadata', () => {
+	const { body } = render(GradeDetails, {
+		props: {
+			score: {
+				overallScore: 100,
+				breakdown: { quantities: [], fields: [], timeline: { matched: 0, expected: 0, actual: 0 } }
+			}
+		}
+	});
+	assert(body.includes('training-v1'));
+	assert(body.includes('newly graded reports'));
 });
