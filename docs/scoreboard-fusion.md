@@ -44,3 +44,23 @@ The output contains the versioned policy, a SHA-256 of normalized semantic input
 These are team estimates constrained by observed alliance data. Simultaneous shooting does not establish which robot scored an individual piece. Sparse intervals retain a measured cumulative difference but do not supply an exact shot time. The first cumulative reading includes the observed prefix from the game's zero starting score; the prefix is marked sparse when appropriate.
 
 The result stops at the latest accepted point reading and reports any unobserved tail. Even a reading at 0:00 does not prove that all later official adjustments have appeared. Conflicting or corrected OCR needs review rather than forced attribution. The script does not automatically strike reports or replace official scores.
+
+## Official phase budgets, fouls, and tower awards (v2)
+
+Supply `--tba-file /tmp/tba-match.json` to use a cached official match snapshot, or `--fetch-tba` with `TBA_KEY` supplied securely in the environment. `--enriched` stores the public TBA snapshot alongside the original scoped reports and OCR for reproducible reruns. Cached snapshots make the same inputs byte-reproducible; refreshing TBA may legitimately change the result. With TBA present, fuel OCR alone is sufficient: total-score digits remain useful for comparison but no longer truncate the official result.
+
+V2 validates the match, the alliance rosters, station order, phase sums, tower totals, and the final score. Offseason participants with different canonical IDs require an explicit `slots[].externalParticipantKey` mapping; the code never maps tower statuses by sorted robot number.
+
+- `hubScore.autoCount` is the cumulative auto/teleop cutoff. A delayed OCR interval that crosses that count is split into auto and teleop quantities, rather than classifying all its fuel by the displayed timestamp.
+- Report timing has a fixed ±2-second allowance. The matching window also allows 3 seconds of FMS scoring delay and 1 second of OCR/display delay. These are versioned bounds, not learned or manually tuned per match. Auto candidates must be compatible with physical time 0–20; teleop candidates must be compatible with 23–163. The 3-second transition is not added to teleop fuel a second time.
+- Every phase is apportioned against its own official fuel point budget. Fractional shares are retained across readings and rounded once per phase. Auto and teleop reconcile separately before being summed.
+- Official fuel remaining after the last OCR reading is labeled `TBA_REMAINDER`. A bounded late tail can use report evidence in an inferred settling window through 167 seconds. Its timing is explicitly inferred, never inserted into `ocr.observations`. A long missing tail or missing auto evidence remains unattributed.
+- `autoTowerRobot1..3` and `endGameTowerRobot1..3` map to the corresponding TBA alliance station. Standard rule values are assigned only when they are compatible with the official tower budget. Missing or inconsistent awards remain unattributed. Tower points join the appropriate auto or teleop total.
+- `foulPoints` is **credit awarded to the receiving alliance**, not a robot's scoring credit. It is shown separately. Minor/major foul counts describe the committing alliance, but TBA does not identify the offending robot or the phase of every foul.
+- TBA endgame fuel is a subset of teleop fuel. It is displayed as context and never added again. Endgame tower points are a separate teleop component.
+
+The official result can close gaps in the live scoreboard. The result retains `observedScoreboardPoints`, `observedFuel`, `fuelOCRThrough`, and the official remainder so that official totals do not masquerade as OCR observations. Each alliance satisfies:
+
+`team auto + team teleop + unattributed + awarded foul points = official total`.
+
+This improves scoring constraints and phase accounting; it does not establish measured accuracy for per-robot fuel attribution. Existing input files without TBA continue to use the v1 path.
