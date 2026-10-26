@@ -248,11 +248,28 @@ async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
       process.env.OCR_BATCH === "true" &&
       ocrTournamentAllowed(job.targetKey)
     ) {
+      const version = JSON.parse(
+        process.env.OCR_SCOREBOARD_TEMPLATE ?? "{}",
+      ).version;
       const pending = await db.match.count({
         where: {
           tournamentKey: job.targetKey,
           status: "COMPLETED",
-          scoreboardOcr: null,
+          OR: [
+            { scoreboardOcr: null },
+            ...(typeof version === "string"
+              ? [
+                  {
+                    scoreboardOcr: {
+                      is: {
+                        status: { not: "VALIDATED" },
+                        templateVersion: { not: version },
+                      },
+                    },
+                  },
+                ]
+              : []),
+          ],
         },
       });
       if (pending > 0) return 1000;

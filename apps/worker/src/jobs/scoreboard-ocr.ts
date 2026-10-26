@@ -1,3 +1,4 @@
+import { OcrMediaError } from "../ocr/commandFailure";
 import { ocrTournamentAllowed } from "../ocr/config";
 import type { PrismaClient, Prisma } from "@lovat/db";
 import { z } from "zod";
@@ -92,6 +93,8 @@ export async function scanScoreboardTournament(
             observations = error.observations;
             reason = error.message;
             videoKey = video.key;
+          } else if (error instanceof OcrMediaError) {
+            reason = error.message;
           } else if (
             error instanceof Error &&
             [

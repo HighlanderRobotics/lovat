@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { spawn } from "node:child_process";
 import { pngFrames } from "./pngFrames";
+import { commandFailure } from "./commandFailure";
 import { validateObservations, type Observation } from "./evidence";
 
 const box = z
@@ -54,13 +55,16 @@ async function command(args: string[], timeoutMs: number) {
       : args;
   const proc = Bun.spawn(boundedArgs, {
     stdout: "pipe",
-    stderr: "ignore",
+    stderr: "pipe",
     env: { ...process.env, OMP_THREAD_LIMIT: "1" },
   });
+  const diagnostic = new Response(proc.stderr).text();
   const timer = setTimeout(() => proc.kill(), timeoutMs);
   try {
     const text = await new Response(proc.stdout).text();
-    if ((await proc.exited) !== 0) throw new Error("OCR media command failed");
+    if ((await proc.exited) !== 0)
+      throw commandFailure(args[0] ?? "media", await diagnostic);
+    await diagnostic;
     return text;
   } finally {
     clearTimeout(timer);
@@ -201,6 +205,8 @@ export async function extractScoreboard(
       [
         "yt-dlp",
         "--ignore-config",
+        "--js-runtimes",
+        "node",
         "--no-playlist",
         "--no-cache-dir",
         "--max-filesize",
