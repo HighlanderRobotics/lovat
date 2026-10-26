@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { createServer } from 'vite';
 
-let server, render, Results, Roles, Roster, trainingSocketUrl;
+let server, render, Results, Roles, Roster, trainingSocketUrl, connectTrainingHost;
 before(async () => {
 	server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
 	({ render } = await server.ssrLoadModule('svelte/server'));
@@ -10,8 +10,217 @@ before(async () => {
 	({ default: Roles } = await server.ssrLoadModule('/src/lib/training/TrainingRoles.svelte'));
 	({ default: Roster } = await server.ssrLoadModule('/src/lib/training/TrainingRoster.svelte'));
 	({ trainingSocketUrl } = await server.ssrLoadModule('/src/lib/server/trainingSocketUrl.ts'));
+	({ connectTrainingHost } = await server.ssrLoadModule('/src/lib/training/hostConnection.ts'));
 });
 after(async () => server?.close());
+
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+function hostFixture() {
+	const credentials = {
+		uuid: 'session',
+		browserToken: 'browser-secret',
+		pairingToken: 'pairing-secret'
+	};
+	let time = 1000;
+	let response = {
+		uuid: 'session',
+		serverTime: 1000,
+		video: { teamNumber: 118 },
+		participants: [{ ready: true, connected: true }]
+	};
+	const sockets = [],
+		repeats = [],
+		retries = [],
+		calls = [],
+		snapshots = [],
+		connected = [],
+		errors = [];
+	let read = async () => response;
+	const stop = connectTrainingHost({
+		credentials,
+		api: async (path) => {
+			calls.push(path);
+			return path === 'config'
+				? { socketUrl: `wss://api.example/socket-${calls.filter((p) => p === 'config').length}` }
+				: read();
+		},
+		onSnapshot: (value) => snapshots.push(value),
+		onConnected: (value) => connected.push(value),
+		onError: (value) => errors.push(value),
+		now: () => time,
+		createSocket: (url) => {
+			const socket = {
+				url,
+				sent: [],
+				send(value) {
+					this.sent.push(value);
+				},
+				close() {
+					this.closed = true;
+				}
+			};
+			sockets.push(socket);
+			return socket;
+		},
+		repeat: (callback) => {
+			const timer = { callback, stopped: false };
+			repeats.push(timer);
+			return () => {
+				timer.stopped = true;
+			};
+		},
+		later: (callback) => {
+			const timer = { callback, stopped: false };
+			retries.push(timer);
+			return () => {
+				timer.stopped = true;
+			};
+		}
+	});
+	return {
+		stop,
+		sockets,
+		repeats,
+		retries,
+		calls,
+		snapshots,
+		connected,
+		errors,
+		setTime: (value) => {
+			time = value;
+		},
+		setRead: (value) => {
+			read = value;
+		},
+		setResponse: (value) => {
+			response = value;
+		}
+	};
+}
+
+test('the host roster connects through authenticated HTTP when WebSockets never open', async () => {
+	const host = hostFixture();
+	try {
+		await settle();
+		assert.equal(host.connected.at(-1), true);
+		assert.equal(host.snapshots.at(-1).participants[0].ready, true);
+		assert(host.calls.includes('sessions/session'));
+		host.sockets[0].onopen();
+		assert.deepEqual(JSON.parse(host.sockets[0].sent[0]), {
+			sessionUuid: 'session',
+			token: 'browser-secret'
+		});
+		assert(!host.sockets[0].url.includes('secret'));
+	} finally {
+		host.stop();
+	}
+});
+
+test('reconnect reloads socket configuration and preserves polling availability', async () => {
+	const host = hostFixture();
+	try {
+		await settle();
+		host.sockets[0].onclose({ code: 1006 });
+		await settle();
+		assert.equal(host.connected.at(-1), true);
+		host.retries[0].callback();
+		await settle();
+		assert.equal(host.sockets[1].url, 'wss://api.example/socket-2');
+		assert.equal(host.sockets[0].onmessage, null);
+	} finally {
+		host.stop();
+	}
+});
+
+test('healthy socket snapshots suppress redundant polls but silence enables fallback', async () => {
+	const host = hostFixture();
+	try {
+		await settle();
+		host.sockets[0].onmessage({
+			data: JSON.stringify({ uuid: 'session', serverTime: 2000, video: {}, participants: [] })
+		});
+		const before = host.calls.length;
+		host.setTime(2000);
+		host.repeats[0].callback();
+		await settle();
+		assert.equal(host.calls.length, before);
+		host.setTime(5001);
+		host.setResponse({ uuid: 'session', serverTime: 5001, video: {}, participants: [] });
+		host.repeats[0].callback();
+		await settle();
+		assert.equal(host.calls.length, before + 1);
+		assert.equal(host.connected.at(-1), true);
+	} finally {
+		host.stop();
+	}
+});
+
+test('late polls cannot roll back newer playback state', async () => {
+	const host = hostFixture();
+	try {
+		await settle();
+		let finish;
+		host.setRead(
+			() =>
+				new Promise((resolve) => {
+					finish = resolve;
+				})
+		);
+		host.repeats[0].callback();
+		await settle();
+		host.sockets[0].onmessage({
+			data: JSON.stringify({
+				uuid: 'session',
+				serverTime: 3000,
+				video: {},
+				participants: [],
+				status: 'PLAYING'
+			})
+		});
+		finish({ uuid: 'session', serverTime: 2000, video: {}, participants: [], status: 'LOBBY' });
+		await settle();
+		assert.equal(host.snapshots.at(-1).status, 'PLAYING');
+	} finally {
+		host.stop();
+	}
+});
+
+test('closing the host cancels timers and ignores pending responses', async () => {
+	const host = hostFixture();
+	await settle();
+	let finish;
+	host.setRead(
+		() =>
+			new Promise((resolve) => {
+				finish = resolve;
+			})
+	);
+	host.repeats[0].callback();
+	await settle();
+	const before = host.snapshots.length;
+	host.stop();
+	finish({ uuid: 'session', serverTime: 4000, video: {}, participants: [] });
+	await settle();
+	assert.equal(host.snapshots.length, before);
+	assert.equal(host.repeats[0].stopped, true);
+	assert.equal(host.sockets[0].closed, true);
+});
+
+test('authentication rejection remains terminal rather than bypassing access checks', async () => {
+	const host = hostFixture();
+	try {
+		await settle();
+		host.sockets[0].onclose({ code: 1008 });
+		const before = host.calls.length;
+		host.repeats[0].callback();
+		await settle();
+		assert.equal(host.calls.length, before);
+		assert.equal(host.connected.at(-1), false);
+		assert.match(host.errors.at(-1), /expired or unavailable/);
+	} finally {
+		host.stop();
+	}
+});
 
 test('Railway previews send browsers to the public API socket, not private DNS', () => {
 	assert.equal(

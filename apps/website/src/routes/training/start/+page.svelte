@@ -8,6 +8,7 @@
 	import TrainingRoster from '$lib/training/TrainingRoster.svelte';
 	import TrainingResults from '$lib/training/TrainingResults.svelte';
 	import type { Credentials, Participant, Session, Video } from '$lib/training/types';
+	import { connectTrainingHost } from '$lib/training/hostConnection';
 
 	let step: 'start' | 'select' | 'session' | 'summary' = 'start';
 	let videos: Video[] = [];
@@ -18,10 +19,9 @@
 		qr = '';
 	let credentials: Credentials | null = null;
 	let session: Session | null = null;
-	let socket: WebSocket | undefined;
-	let reconnect: ReturnType<typeof setTimeout>;
+	let stopConnection: (() => void) | undefined;
+	let connectionError = '';
 	let disposed = false;
-	let socketUrl = '';
 	$: canQueue =
 		!!session?.participants.length && session.participants.every((person) => person.connected);
 	$: canStart =
@@ -79,48 +79,27 @@
 			sessionStorage.setItem('lovat-training', JSON.stringify({ credentials, step }));
 	}
 	function closeSocket() {
-		clearTimeout(reconnect);
-		if (socket) {
-			socket.onclose = null;
-			socket.onmessage = null;
-			socket.close();
-			socket = undefined;
-		}
+		stopConnection?.();
+		stopConnection = undefined;
 		connected = false;
 	}
 	function connect() {
 		if (!credentials || disposed) return;
 		closeSocket();
 		const active = credentials;
-		const next = new WebSocket(socketUrl);
-		socket = next;
-		next.onopen = () =>
-			next.send(JSON.stringify({ sessionUuid: active.uuid, token: active.browserToken }));
-		next.onmessage = ({ data }) => {
-			if (disposed || socket !== next || credentials?.uuid !== active.uuid) return;
-			try {
-				const snapshot = JSON.parse(data) as Session;
-				if (
-					snapshot.uuid !== active.uuid ||
-					!Array.isArray(snapshot.participants) ||
-					!snapshot.video
-				)
-					return;
-				session = snapshot;
-				connected = true;
-			} catch {
-				error = 'Could not read the training session. Reconnect and try again.';
+		stopConnection = connectTrainingHost({
+			credentials: active,
+			api,
+			onSnapshot: (snapshot) => {
+				if (!disposed && credentials?.uuid === active.uuid) session = snapshot;
+			},
+			onConnected: (value) => {
+				if (!disposed && credentials?.uuid === active.uuid) connected = value;
+			},
+			onError: (message) => {
+				if (!disposed && credentials?.uuid === active.uuid) connectionError = message ?? '';
 			}
-		};
-		next.onclose = ({ code }) => {
-			if (disposed || socket !== next || credentials?.uuid !== active.uuid) return;
-			connected = false;
-			if (code !== 1008) reconnect = setTimeout(connect, 2000);
-			else error = 'Session expired or unavailable. Start a new session.';
-		};
-		next.onerror = () => {
-			if (socket === next) connected = false;
-		};
+		});
 	}
 	async function control(action: string) {
 		if (!credentials) throw new Error('Start a training session first.');
@@ -183,7 +162,6 @@
 	onMount(() => {
 		disposed = false;
 		void perform(async () => {
-			({ socketUrl } = await api('config'));
 			videos = await api('videos');
 			selected = videos[0]?.uuid ?? '';
 			const stored = sessionStorage.getItem('lovat-training');
@@ -334,8 +312,8 @@
 					<Button disabled={busy} on:click={() => perform(newSession)}>New session</Button>
 				</section>{/if}
 		{/if}
-		{#if error}<div class="error" role="alert">
-				<p>{error}</p>
+		{#if error || connectionError}<div class="error" role="alert">
+				<p>{error || connectionError}</p>
 				{#if !credentials}<Button
 						variant="secondary"
 						disabled={busy}
