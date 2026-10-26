@@ -27,3 +27,5 @@ Playback fills the browser viewport once the match starts; pre-match keeps the r
 - Disposable local PostgreSQL: `LOVAT_DB_TEST=1 npm run test:integration -- test/trainingFlow.integration.test.ts test/collectionLifecycle.integration.test.ts` with the local test `DATABASE_URL`.
 - Collection: `npm test`, `npm run ts:check`, `npm run lint`, and `npm run format:check`.
 - Website: `npm run test:training`, `npm run check`, `npm run lint`, and `npm run build`.
+
+The Johnson Q19 exercise uses the TBA-listed broadcast `gmdPS6_RVJw`, starting at seven seconds (the visible 0:20 auto clock). The earlier `l2kbcWkUx4E` link is Qualification 118 and must not be paired with the Q19 answer key.

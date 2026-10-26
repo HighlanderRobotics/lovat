@@ -122,8 +122,8 @@ try {
     create: {
       uuid: "6580274b-cfe1-4c10-a043-e80a2ddf9162",
       matchKey: "2026joh_qm19",
-      videoLink: "https://www.youtube.com/watch?v=l2kbcWkUx4E",
-      startOffsetSeconds: 0,
+      videoLink: "https://www.youtube.com/watch?v=gmdPS6_RVJw",
+      startOffsetSeconds: 7,
       durationSeconds: 163,
       alliance: "RED",
       excludedFields: ["feederTypes", "disrupts", "defenseEffectiveness"],
