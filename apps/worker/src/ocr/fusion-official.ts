@@ -56,11 +56,11 @@ const officialSchema = z.object({
   key: z.string().regex(/^2026[a-z0-9]+_/),
   alliances: z.object({
     red: z.object({
-      team_keys: z.array(z.string().regex(/^frc\d+$/)).length(3),
+      team_keys: z.array(z.string().regex(/^frc\d+[A-Za-z]?$/)).length(3),
       score: points,
     }),
     blue: z.object({
-      team_keys: z.array(z.string().regex(/^frc\d+$/)).length(3),
+      team_keys: z.array(z.string().regex(/^frc\d+[A-Za-z]?$/)).length(3),
       score: points,
     }),
   }),

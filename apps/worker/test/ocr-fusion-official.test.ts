@@ -214,3 +214,22 @@ test("missing auto counter evidence cannot be assigned to teleop", () => {
   expect(red.phases[0].unattributedFuel).toBe(2);
   expect(red.phases[1].unattributedFuel).toBe(6);
 });
+
+test("offseason letter-suffix teams require an explicit canonical participant mapping", () => {
+  const input = fixture();
+  input.tba.alliances.red.team_keys[0] = "frc4159B";
+  expect(() => fuseMatch(input, [8033])).toThrow(
+    "explicit participant mapping",
+  );
+  const mapped = {
+    ...input,
+    slots: input.slots.map((s) =>
+      s.teamNumber === 3 ? { ...s, externalParticipantKey: "frc4159B" } : s,
+    ),
+  };
+  const result = fuseMatch(mapped, [8033]);
+  expect(result.alliances[0]!.pointsConserved).toBe(true);
+  expect(result.alliances[0]!.teams.map((t) => t.teamNumber)).toEqual([
+    1, 2, 3,
+  ]);
+});
