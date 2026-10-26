@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
 import { matchPredictionLogic } from "./matchPredictionLogic.js";
@@ -82,18 +83,20 @@ const config = {
     matchesResponse.data.sort((a, b) => a.predicted_time - b.predicted_time);
 
     const lastMatch = (
-      await prismaClient.teamMatchData.findFirstOrThrow({
-        where: {
-          tournamentKey: args.tournamentKey,
-          matchType: "QUALIFICATION",
-          scoutReports: {
-            some: {},
+      await prismaClient.teamMatchData.findFirstOrThrow(
+        analysisReadArgs("teamMatchData", {
+          where: {
+            tournamentKey: args.tournamentKey,
+            matchType: "QUALIFICATION",
+            scoutReports: {
+              some: {},
+            },
           },
-        },
-        orderBy: {
-          matchNumber: "desc",
-        },
-      })
+          orderBy: {
+            matchNumber: "desc",
+          },
+        }),
+      )
     ).matchNumber;
 
     const teams: Record<number, TeamRanking> = teamsResponse.data.reduce(

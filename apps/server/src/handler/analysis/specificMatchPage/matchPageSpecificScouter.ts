@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import {
@@ -25,26 +26,28 @@ export const matchPageSpecificScouter = createAnalysisHandler({
   usesDataSource: false,
   shouldCache: false,
   calculateAnalysis: async ({ params }, ctx) => {
-    const scoutReport = await prismaClient.scoutReport.findFirst({
-      where: {
-        uuid: params.uuid,
-        ...scoutReportSourceFilter(ctx.user),
-      },
-      select: {
-        uuid: true,
-        teamMatchKey: true,
-        startTime: true,
-        notes: true,
-        robotBrokeDescription: true,
-        driverAbility: true,
-        defenseEffectiveness: true,
-        robotRoles: true,
-        endgameClimb: true,
-        autoClimb: true,
-        feederTypes: true,
-        accuracy: true,
-      },
-    });
+    const scoutReport = await prismaClient.scoutReport.findFirst(
+      analysisReadArgs("scoutReport", {
+        where: {
+          uuid: params.uuid,
+          ...scoutReportSourceFilter(ctx.user),
+        },
+        select: {
+          uuid: true,
+          teamMatchKey: true,
+          startTime: true,
+          notes: true,
+          robotBrokeDescription: true,
+          driverAbility: true,
+          defenseEffectiveness: true,
+          robotRoles: true,
+          endgameClimb: true,
+          autoClimb: true,
+          feederTypes: true,
+          accuracy: true,
+        },
+      }),
+    );
 
     if (!scoutReport) return {} as any;
 

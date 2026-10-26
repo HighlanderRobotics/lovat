@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import z from "zod";
 import prismaClient from "../../../prismaClient.js";
 import { nonEventMetric } from "../coreAnalysis/nonEventMetric.js";
@@ -29,14 +30,16 @@ export const breakdownMetrics = createAnalysisHandler({
       return { error: "TEAM_DOES_NOT_EXIST" };
     }
 
-    const reportCount = await prismaClient.scoutReport.count({
-      where: {
-        teamMatchData: {
-          teamNumber: params.team,
-          matchType: { not: "PRACTICE" },
+    const reportCount = await prismaClient.scoutReport.count(
+      analysisReadArgs("scoutReport", {
+        where: {
+          teamMatchData: {
+            teamNumber: params.team,
+            matchType: { not: "PRACTICE" },
+          },
         },
-      },
-    });
+      }),
+    );
     if (reportCount === 0) {
       return { error: "NO_DATA_FOR_TEAM" };
     }

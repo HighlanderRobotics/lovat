@@ -71,7 +71,11 @@ it.each([31, null])(
       await totalPointsScoutingLead(testUser, { scoutReportUuid: "report" }),
     ).toBe(points ?? 0);
     expect(db.event.aggregate).toHaveBeenCalledWith({
-      where: { scoutReportUuid: "report" },
+      where: {
+        analysisExcluded: false,
+        scoutReportUuid: "report",
+        scoutReport: { analysisExcluded: false },
+      },
       _sum: { points: true },
     });
     expect(db.set).toHaveBeenCalledWith(

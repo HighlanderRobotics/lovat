@@ -21,6 +21,8 @@ export const jobKinds = [
   "tournament-details",
   "matches",
   "gaps",
+  "scoreboard-ocr",
+  "scoreboard-review",
 ] as const;
 export type JobKind = (typeof jobKinds)[number];
 
@@ -125,6 +127,17 @@ export async function reconcileSchedule(
   for (const district of districts)
     await ensure("district-teams", district.key, day);
 
+  if (process.env.OCR_ENABLED === "true") {
+    const covered = await db.teamTournament.findMany({
+      where: { teamNumber: 8033, tournament: { seasonYear: 2026 } },
+      select: { tournamentKey: true },
+    });
+    for (const event of covered) {
+      await ensure("scoreboard-ocr", event.tournamentKey, 5 * minute);
+      await ensure("scoreboard-review", event.tournamentKey, 5 * minute);
+    }
+  }
+
   for (const tournament of tournaments) {
     const cadence = tournamentCadence(tournament, now);
 
@@ -193,6 +206,27 @@ export async function executeImport(
       return importTournamentDetails(job.targetKey, dependencies);
     case "matches":
       return importMatches(job.targetKey, dependencies);
+    case "scoreboard-ocr": {
+      if (process.env.OCR_ENABLED !== "true") return;
+      const { scanScoreboardTournament } =
+        await import("./jobs/scoreboard-ocr");
+      return db.$transaction(
+        async (tx) => {
+          const locks = await tx.$queryRaw<
+            { locked: boolean }[]
+          >`SELECT pg_try_advisory_xact_lock(hashtext('lovat-scoreboard-ocr')) AS locked`;
+          if (locks[0]?.locked)
+            await scanScoreboardTournament(job.targetKey, dependencies);
+        },
+        { timeout: 12 * minute },
+      );
+    }
+    case "scoreboard-review": {
+      if (process.env.OCR_ENABLED !== "true") return;
+      const { analyzeScoreboardTournament } =
+        await import("./jobs/scoreboard-ocr");
+      return analyzeScoreboardTournament(job.targetKey, db);
+    }
     case "gaps":
       return refreshTournamentGaps(job.targetKey, { db });
     default:
@@ -202,6 +236,7 @@ export async function executeImport(
 
 async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
   if (job.kind === "gaps") return day;
+  if (job.kind.startsWith("scoreboard-")) return 5 * minute;
   if (job.kind === "teams" || job.kind === "team-seasons") return 7 * day;
   if (job.kind === "tournaments") return 6 * hour;
   if (job.kind === "districts" || job.kind === "district-teams") return day;

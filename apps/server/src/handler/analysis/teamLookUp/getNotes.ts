@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import {
@@ -31,14 +32,16 @@ export const getNotes = createAnalysisHandler({
       return { error: "TEAM_DOES_NOT_EXIST" };
     }
 
-    const reportCount = await prismaClient.scoutReport.count({
-      where: {
-        teamMatchData: {
-          teamNumber: params.team,
-          matchType: { not: "PRACTICE" },
+    const reportCount = await prismaClient.scoutReport.count(
+      analysisReadArgs("scoutReport", {
+        where: {
+          teamMatchData: {
+            teamNumber: params.team,
+            matchType: { not: "PRACTICE" },
+          },
         },
-      },
-    });
+      }),
+    );
     if (reportCount === 0) {
       return { error: "NO_DATA_FOR_TEAM" };
     }
@@ -59,46 +62,48 @@ export const getNotes = createAnalysisHandler({
       dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
     );
 
-    const noteData = await prismaClient.scoutReport.findMany({
-      where: {
-        teamMatchData: {
-          teamNumber: params.team,
-          tournamentKey: sourceTnmtFilter,
-          matchType: { not: "PRACTICE" },
+    const noteData = await prismaClient.scoutReport.findMany(
+      analysisReadArgs("scoutReport", {
+        where: {
+          teamMatchData: {
+            teamNumber: params.team,
+            tournamentKey: sourceTnmtFilter,
+            matchType: { not: "PRACTICE" },
+          },
+          scouter: {
+            sourceTeamNumber: sourceTeamFilter,
+          },
+          notes: {
+            not: "",
+          },
         },
-        scouter: {
-          sourceTeamNumber: sourceTeamFilter,
-        },
-        notes: {
-          not: "",
-        },
-      },
-      select: {
-        notes: true,
-        robotBrokeDescription: true,
-        teamMatchKey: true,
-        teamMatchData: {
-          select: {
-            tournament: {
-              select: {
-                name: true,
+        select: {
+          notes: true,
+          robotBrokeDescription: true,
+          teamMatchKey: true,
+          teamMatchData: {
+            select: {
+              tournament: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        scouter: {
-          select: {
-            sourceTeamNumber: true,
-            name: Boolean(ctx.user.teamNumber),
+          scouter: {
+            select: {
+              sourceTeamNumber: true,
+              name: Boolean(ctx.user.teamNumber),
+            },
           },
         },
-      },
-      orderBy: [
-        { teamMatchData: { tournament: { date: "desc" } } },
-        { teamMatchData: { matchType: "desc" } },
-        { teamMatchData: { matchNumber: "desc" } },
-      ],
-    });
+        orderBy: [
+          { teamMatchData: { tournament: { date: "desc" } } },
+          { teamMatchData: { matchType: "desc" } },
+          { teamMatchData: { matchNumber: "desc" } },
+        ],
+      }),
+    );
 
     if (Boolean(ctx.user.teamNumber)) {
       notesAndMatches = noteData.map((report) => ({

@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { createAnalysisHandler } from "../analysisHandler.js";
@@ -27,8 +28,38 @@ export const scouterScoutReports = createAnalysisHandler({
     }
 
     if (!query.tournamentKey) {
-      const allScoutReports = await prismaClient.scoutReport.findMany({
-        where: { scouterUuid: query.scouterUuid },
+      const allScoutReports = await prismaClient.scoutReport.findMany(
+        analysisReadArgs("scoutReport", {
+          where: { scouterUuid: query.scouterUuid },
+          select: {
+            scouter: { select: { name: true } },
+            teamMatchData: {
+              select: {
+                teamNumber: true,
+                key: true,
+                matchNumber: true,
+                matchType: true,
+                tournament: { select: { key: true, name: true } },
+              },
+            },
+            uuid: true,
+          },
+          orderBy: [
+            { teamMatchData: { tournament: { date: "desc" } } },
+            { teamMatchData: { matchType: "desc" } },
+            { teamMatchData: { matchNumber: "desc" } },
+          ],
+        }),
+      );
+      return allScoutReports;
+    }
+
+    const tournamentScoutReports = await prismaClient.scoutReport.findMany(
+      analysisReadArgs("scoutReport", {
+        where: {
+          scouterUuid: query.scouterUuid,
+          teamMatchData: { tournamentKey: query.tournamentKey },
+        },
         select: {
           scouter: { select: { name: true } },
           teamMatchData: {
@@ -47,34 +78,8 @@ export const scouterScoutReports = createAnalysisHandler({
           { teamMatchData: { matchType: "desc" } },
           { teamMatchData: { matchNumber: "desc" } },
         ],
-      });
-      return allScoutReports;
-    }
-
-    const tournamentScoutReports = await prismaClient.scoutReport.findMany({
-      where: {
-        scouterUuid: query.scouterUuid,
-        teamMatchData: { tournamentKey: query.tournamentKey },
-      },
-      select: {
-        scouter: { select: { name: true } },
-        teamMatchData: {
-          select: {
-            teamNumber: true,
-            key: true,
-            matchNumber: true,
-            matchType: true,
-            tournament: { select: { key: true, name: true } },
-          },
-        },
-        uuid: true,
-      },
-      orderBy: [
-        { teamMatchData: { tournament: { date: "desc" } } },
-        { teamMatchData: { matchType: "desc" } },
-        { teamMatchData: { matchNumber: "desc" } },
-      ],
-    });
+      }),
+    );
     return tournamentScoutReports;
   },
 });

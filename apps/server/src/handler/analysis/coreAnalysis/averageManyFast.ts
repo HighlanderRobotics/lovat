@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   autoEnd,
@@ -77,24 +78,26 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
       ? { scouter: { sourceTeamNumber: teamFilter } }
       : {};
 
-    const tmd = await prismaClient.teamMatchData.findMany({
-      where: tmdWhere,
-      select: {
-        teamNumber: true,
-        tournamentKey: true,
-        scoutReports: {
-          where: srWhere,
-          select: {
-            events: true,
-            driverAbility: true,
-            endgameClimb: true,
-            autoClimb: true,
-            accuracy: true,
-            defenseEffectiveness: true,
+    const tmd = await prismaClient.teamMatchData.findMany(
+      analysisReadArgs("teamMatchData", {
+        where: tmdWhere,
+        select: {
+          teamNumber: true,
+          tournamentKey: true,
+          scoutReports: {
+            where: srWhere,
+            select: {
+              events: true,
+              driverAbility: true,
+              endgameClimb: true,
+              autoClimb: true,
+              accuracy: true,
+              defenseEffectiveness: true,
+            },
           },
         },
-      },
-    });
+      }),
+    );
 
     const tournamentIndex = await allTournaments;
     const finalResults: Record<string, Record<string, number>> = {};

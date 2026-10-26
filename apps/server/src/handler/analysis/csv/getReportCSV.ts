@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
@@ -147,56 +148,58 @@ export const getReportCSV = async (
     const filter = dataSourceRuleToPrismaFilter(sourceRule);
     if (filter) where.scouter = { sourceTeamNumber: filter };
 
-    const datapoints = await prismaClient.scoutReport.findMany({
-      where,
-      select: {
-        uuid: true,
-        notes: true,
-        robotRoles: true,
-        endgameClimb: true,
-        autoClimb: true,
-        driverAbility: true,
-        accuracy: true,
-        defenseEffectiveness: true,
-        climbPosition: true,
-        climbSide: true,
-        fieldTraversal: true,
-        beached: true,
-        scoresWhileMoving: true,
-        disrupts: true,
-        feederTypes: true,
-        intakeType: true,
-        events: {
-          where: eventTimeFilter,
-          select: {
-            time: true,
-            action: true,
-            position: true,
-            points: true,
-            quantity: true,
+    const datapoints = await prismaClient.scoutReport.findMany(
+      analysisReadArgs("scoutReport", {
+        where,
+        select: {
+          uuid: true,
+          notes: true,
+          robotRoles: true,
+          endgameClimb: true,
+          autoClimb: true,
+          driverAbility: true,
+          accuracy: true,
+          defenseEffectiveness: true,
+          climbPosition: true,
+          climbSide: true,
+          fieldTraversal: true,
+          beached: true,
+          scoresWhileMoving: true,
+          disrupts: true,
+          feederTypes: true,
+          intakeType: true,
+          events: {
+            where: eventTimeFilter,
+            select: {
+              time: true,
+              action: true,
+              position: true,
+              points: true,
+              quantity: true,
+            },
+          },
+          scouter: {
+            select: {
+              sourceTeamNumber: true,
+              name: true,
+            },
+          },
+          teamMatchData: {
+            select: {
+              teamNumber: true,
+              matchNumber: true,
+              matchType: true,
+            },
           },
         },
-        scouter: {
-          select: {
-            sourceTeamNumber: true,
-            name: true,
-          },
-        },
-        teamMatchData: {
-          select: {
-            teamNumber: true,
-            matchNumber: true,
-            matchType: true,
-          },
-        },
-      },
-      // Ordering prioritizes top to bottom
-      orderBy: [
-        { teamMatchData: { matchType: "desc" } },
-        { teamMatchData: { matchNumber: "asc" } },
-        { teamMatchData: { teamNumber: "asc" } },
-      ],
-    });
+        // Ordering prioritizes top to bottom
+        orderBy: [
+          { teamMatchData: { matchType: "desc" } },
+          { teamMatchData: { matchNumber: "asc" } },
+          { teamMatchData: { teamNumber: "asc" } },
+        ],
+      }),
+    );
 
     if (datapoints.length === 0) {
       res.status(400).send("Not enough scouting data from provided sources");

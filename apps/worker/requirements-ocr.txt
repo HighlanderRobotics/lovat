@@ -1,0 +1,2 @@
+# Pinned media extractor. Review updates separately from the application lockfile.
+yt-dlp[default]==2026.8.19

@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
@@ -81,42 +82,44 @@ const config = {
       dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
     );
 
-    const autoData = await prismaClient.scoutReport.findMany({
-      where: {
-        teamMatchData: {
-          teamNumber: teamNumber,
-          tournamentKey: sourceTnmtFilter,
-          matchType: { not: "PRACTICE" },
-        },
-        scouter: {
-          sourceTeamNumber: sourceTeamFilter,
-        },
-      },
-      select: {
-        events: {
-          where: {
-            time: {
-              lte: autoEnd,
-            },
+    const autoData = await prismaClient.scoutReport.findMany(
+      analysisReadArgs("scoutReport", {
+        where: {
+          teamMatchData: {
+            teamNumber: teamNumber,
+            tournamentKey: sourceTnmtFilter,
+            matchType: { not: "PRACTICE" },
+          },
+          scouter: {
+            sourceTeamNumber: sourceTeamFilter,
           },
         },
-        teamMatchKey: true,
-        teamMatchData: {
-          select: {
-            tournament: {
-              select: {
-                name: true,
+        select: {
+          events: {
+            where: {
+              time: {
+                lte: autoEnd,
+              },
+            },
+          },
+          teamMatchKey: true,
+          teamMatchData: {
+            select: {
+              tournament: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: [
-        { teamMatchData: { tournament: { date: "desc" } } },
-        { teamMatchData: { matchType: "desc" } },
-        { teamMatchData: { matchNumber: "desc" } },
-      ],
-    });
+        orderBy: [
+          { teamMatchData: { tournament: { date: "desc" } } },
+          { teamMatchData: { matchType: "desc" } },
+          { teamMatchData: { matchNumber: "desc" } },
+        ],
+      }),
+    );
 
     const autoPaths: AutoData[] = [];
     for (const report of autoData) {

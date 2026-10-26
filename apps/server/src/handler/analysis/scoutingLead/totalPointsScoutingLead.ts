@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
@@ -11,14 +12,16 @@ const config = {
     key: ["totalPointsScoutingLead", args.scoutReportUuid],
   }),
   calculateAnalysis: async (args: { scoutReportUuid: string }) => {
-    const points = await prismaClient.event.aggregate({
-      where: {
-        scoutReportUuid: args.scoutReportUuid,
-      },
-      _sum: {
-        points: true,
-      },
-    });
+    const points = await prismaClient.event.aggregate(
+      analysisReadArgs("event", {
+        where: {
+          scoutReportUuid: args.scoutReportUuid,
+        },
+        _sum: {
+          points: true,
+        },
+      }),
+    );
     const totalPoints = points._sum.points || 0;
     return totalPoints;
   },

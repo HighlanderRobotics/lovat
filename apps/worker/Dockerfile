@@ -2,7 +2,10 @@
 FROM oven/bun:1.3.14-debian AS bun
 
 FROM node:22.20.0-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates ffmpeg tesseract-ocr python3-venv && rm -rf /var/lib/apt/lists/*
+COPY apps/worker/requirements-ocr.txt /tmp/requirements-ocr.txt
+RUN python3 -m venv /opt/ocr && /opt/ocr/bin/pip install --no-cache-dir -r /tmp/requirements-ocr.txt
+ENV PATH="/opt/ocr/bin:$PATH"
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 WORKDIR /app

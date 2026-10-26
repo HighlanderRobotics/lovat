@@ -1,3 +1,7 @@
+import {
+  getReportValidation,
+  reviewReportValidation,
+} from "../../handler/validation/reportValidation.js";
 import { Router } from "express";
 import { requireAuth } from "../../lib/middleware/requireAuth.js";
 import { addScoutReport } from "../../handler/manager/scoutreports/addScoutReport.js";
@@ -114,11 +118,50 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/scoutreports/{uuid}/validation",
+  security: [{ bearerAuth: [] }],
+  tags: ["Manager - Scout Reports"],
+  summary: "Read source-filtered validation evidence and original events",
+  request: { params: z.object({ uuid: z.string() }) },
+  responses: {
+    200: { description: "Evidence and same-team lead review permission" },
+    404: { description: "Report not visible or missing" },
+  },
+});
+registry.registerPath({
+  method: "post",
+  path: "/v1/manager/scoutreports/{uuid}/validation/{flagUuid}",
+  security: [{ bearerAuth: [] }],
+  tags: ["Manager - Scout Reports"],
+  summary: "Approve or undo a strike as a same-team scouting lead",
+  request: {
+    params: z.object({ uuid: z.string(), flagUuid: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({ status: z.enum(["ACTIVE", "RESTORED"]) }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Review saved and affected metrics invalidated" },
+    400: { description: "Invalid review status" },
+    403: { description: "Requires a scouting-lead user session" },
+    404: { description: "Report or flag missing" },
+  },
+});
+
 const router = Router();
 
 router.post("/", addScoutReport);
 
 router.use(requireAuth, requireVerifiedTeam);
+
+router.get("/:uuid/validation", getReportValidation);
+router.post("/:uuid/validation/:flagUuid", reviewReportValidation);
 
 router.get("/:uuid", getScoutReport);
 router.delete("/:uuid", deleteScoutReport);

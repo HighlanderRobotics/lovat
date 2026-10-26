@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   autoEnd,
@@ -225,24 +226,26 @@ export async function computeAverageScoutReport(
   scoutReportUuid: string,
   metrics: Metric[],
 ): Promise<Partial<Record<Metric, number>>> {
-  const report = await prismaClient.scoutReport.findUniqueOrThrow({
-    where: { uuid: scoutReportUuid },
-    select: {
-      endgameClimb: true,
-      driverAbility: true,
-      autoClimb: true,
-      defenseEffectiveness: true,
-      events: {
-        select: {
-          action: true,
-          position: true,
-          points: true,
-          quantity: true,
-          time: true,
+  const report = await prismaClient.scoutReport.findUniqueOrThrow(
+    analysisReadArgs("scoutReport", {
+      where: { uuid: scoutReportUuid },
+      select: {
+        endgameClimb: true,
+        driverAbility: true,
+        autoClimb: true,
+        defenseEffectiveness: true,
+        events: {
+          select: {
+            action: true,
+            position: true,
+            points: true,
+            quantity: true,
+            time: true,
+          },
         },
       },
-    },
-  });
+    }),
+  );
 
   return calculateScoutReportMetrics(report, metrics);
 }

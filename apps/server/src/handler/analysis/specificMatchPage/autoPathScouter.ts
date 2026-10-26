@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   FlippedActionMap,
@@ -32,24 +33,28 @@ const config = {
     matchKey: string;
     scoutReportUuid: string;
   }) => {
-    const autoData = await prismaClient.event.findMany({
-      where: {
-        scoutReport: {
+    const autoData = await prismaClient.event.findMany(
+      analysisReadArgs("event", {
+        where: {
+          scoutReport: {
+            uuid: args.scoutReportUuid,
+          },
+          time: {
+            lte: autoEnd,
+          },
+        },
+        orderBy: {
+          time: "asc",
+        },
+      }),
+    );
+    const scoutReport = await prismaClient.scoutReport.findUnique(
+      analysisReadArgs("scoutReport", {
+        where: {
           uuid: args.scoutReportUuid,
         },
-        time: {
-          lte: autoEnd,
-        },
-      },
-      orderBy: {
-        time: "asc",
-      },
-    });
-    const scoutReport = await prismaClient.scoutReport.findUnique({
-      where: {
-        uuid: args.scoutReportUuid,
-      },
-    });
+      }),
+    );
     const match = await prismaClient.teamMatchData.findUnique({
       where: {
         key: scoutReport.teamMatchKey,

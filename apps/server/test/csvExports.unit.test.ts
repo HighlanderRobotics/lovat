@@ -117,11 +117,14 @@ for (const handler of [getReportCSV, getTeamCSV]) {
         expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             where: {
+              analysisExcluded: false,
               teamMatchData: { tournamentKey: "2026test" },
               scouter: { sourceTeamNumber: { in: [8033] } },
             },
             select: expect.objectContaining({
-              events: expect.objectContaining({ where: eventFilter }),
+              events: expect.objectContaining({
+                where: { ...eventFilter, analysisExcluded: false },
+              }),
             }),
           }),
         );
@@ -130,9 +133,14 @@ for (const handler of [getReportCSV, getTeamCSV]) {
           expect.objectContaining({
             select: expect.objectContaining({
               scoutReports: expect.objectContaining({
-                where: { scouter: { sourceTeamNumber: { in: [8033] } } },
+                where: {
+                  analysisExcluded: false,
+                  scouter: { sourceTeamNumber: { in: [8033] } },
+                },
                 select: expect.objectContaining({
-                  events: expect.objectContaining({ where: eventFilter }),
+                  events: expect.objectContaining({
+                    where: { ...eventFilter, analysisExcluded: false },
+                  }),
                 }),
               }),
             }),
@@ -276,6 +284,7 @@ it("exports visible history for TBA teams without current event match data", asy
   expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        analysisExcluded: false,
         teamMatchData: {
           teamNumber: { in: [254] },
           tournamentKey: { in: ["2025history"] },
@@ -366,6 +375,7 @@ it("exports historical reports without restricting either source dimension", asy
   expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        analysisExcluded: false,
         teamMatchData: {
           teamNumber: { in: [254] },
           matchType: { not: "PRACTICE" },

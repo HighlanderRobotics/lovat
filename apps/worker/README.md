@@ -285,3 +285,10 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 ### Historical seasons
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
+
+## Scoreboard OCR
+
+Optional 2026 video processing and reversible scouting-lead review are documented
+in [scoreboard-ocr.md](../../docs/scoreboard-ocr.md). It is disabled by default;
+configure a reviewed broadcast layout before enabling it. No match images are
+retained in the database, and flags do not automatically exclude scouting data.
