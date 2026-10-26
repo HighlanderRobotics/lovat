@@ -107,3 +107,41 @@ test("a transient service failure leaves the match eligible for scheduler retry"
     else process.env.OCR_SCOREBOARD_TEMPLATE = previous;
   }
 });
+
+test("service contract retains independently confident total-score digits", async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = (async () =>
+      Response.json({
+        observations: [
+          {
+            time: 7,
+            red: 5,
+            blue: 4,
+            confidence: 95,
+            redPoints: 10,
+            bluePoints: 4,
+            pointsConfidence: 96,
+          },
+        ],
+        layoutVersion: template.version,
+        elapsedMs: 1,
+        frames: 100,
+      })) as unknown as typeof fetch;
+    const result = await extractWithService(
+      "/missing",
+      [1, 2, 3, 4, 5, 6],
+      "Qualification 1",
+      template as any,
+      "http://localhost",
+      "x".repeat(32),
+    );
+    expect(result[0]).toMatchObject({
+      redPoints: 10,
+      bluePoints: 4,
+      pointsConfidence: 96,
+    });
+  } finally {
+    globalThis.fetch = original;
+  }
+});

@@ -1,0 +1,46 @@
+# Deterministic scoreboard/scout fusion
+
+`apps/worker/tools/estimate-match.ts` produces an estimate from the exported match bundle containing `matchKey`, six `slots`, `ocr.observations`, and `reports[].events`. It reads files and writes a result; it does not modify reports, review flags, point estimates in the database, or the database itself.
+
+## Run
+
+From the repository root, with an input that already contains total-score OCR:
+
+```sh
+bun apps/worker/tools/estimate-match.ts \
+  --input /tmp/logs-with-points.json \
+  --output /tmp/estimate.json \
+  --source-teams 1967,8033
+```
+
+For existing exports that have only fuel counters, run the isolated native OCR service and set `OCR_SERVICE_URL` and its shared `OCR_SERVICE_TOKEN` securely. The command can automatically re-extract total-score digits from the dedicated public video identified in the input:
+
+```sh
+bun apps/worker/tools/estimate-match.ts \
+  --input /tmp/logs.json \
+  --output /tmp/estimate.json \
+  --source-teams 1967,8033 \
+  --template apps/worker/config/scoreboard-2026-calgames.json \
+  --enriched /tmp/logs-with-points.json
+```
+
+`--video /tmp/match.mp4` uses a cached copy instead of downloading again. Non-qualification videos require `--match-label` matching their reviewed broadcast title. Normal match/robot identity and confidence checks still apply. The CalGames v5 profile includes crops for the large total-point digits, distinct from the fuel numerator. The optional point fields have their own confidence threshold and do not weaken fuel confidence checks. At repeated clock timestamps, native extraction can retain later nondecreasing point updates so delayed scoring at 0:00 is visible.
+
+Input/output exports can include private scouting data; keep them outside Git. Only the public video, roster numbers, match label, and layout go to the native OCR service. The fusion computation runs locally.
+
+## Algorithm v1
+
+1. Validate match identity and the six-team roster. Require an explicit source-team allowlist and honor report/event exclusions. Discard low-confidence OCR readings. Reject conflicting timestamps, counter decreases, and contradictory final fuel/point totals instead of silently repairing them.
+2. Sort by numeric team, source team, report UUID, event time, and event UUID with explicit tie rules. Pair each `START_SCORING` with its `STOP_SCORING`; a stop without a start does not get an invented shooting interval. Feeding and intake actions cannot receive scoring credit.
+3. Give each paired cycle a uniform relative rate based on its recorded quantity, using a fixed one-second early and five-second late timing window. Average report rates within each source team, then average the independent source teams equally. Identical scoring timelines within a team/source are deduplicated. Several scouts watching one robot do not imply several robots scoring.
+4. For each observed alliance fuel increase, calculate each robot's share from the overlapping consensus rates. Retain fractional shares as integer millionths. Perform one final largest-remainder rounding over the whole observed match, with numeric team order breaking exact ties. Rounding every one-point interval separately would systematically favor the lowest-numbered team.
+5. Reconcile to the **last confidently observed total-score reading**. The active-HUB fuel counter supplies one point per scored fuel under the [2026 manual, section 6.5.3](https://firstfrc.blob.core.windows.net/frc2026/Manual/HTML/2026GameManual.htm). Scout `points` fields do not set any budget. Unexplained non-fuel points, which may include tower scores or penalties, remain in an unattributed bucket. Fuel increases with no supporting scouting interval also remain unattributed.
+6. Assert that estimated team points plus unattributed points equal the observed scoreboard total exactly, for each alliance.
+
+The output contains the versioned policy, a SHA-256 of normalized semantic inputs, team estimates, report/source coverage, per-interval support and fractional allocations, diagnostics, and reconciliation totals. It contains no generated timestamps, random choices, learned weights, hand-entered robot allocations, or per-match tuning. The same semantic input and source-team scope produce byte-identical JSON even when input arrays are reordered.
+
+## Interpretation
+
+These are team estimates constrained by observed alliance data. Simultaneous shooting does not establish which robot scored an individual piece. Sparse intervals retain a measured cumulative difference but do not supply an exact shot time. The first cumulative reading includes the observed prefix from the game's zero starting score; the prefix is marked sparse when appropriate.
+
+The result stops at the latest accepted point reading and reports any unobserved tail. Even a reading at 0:00 does not prove that all later official adjustments have appeared. Conflicting or corrected OCR needs review rather than forced attribution. The script does not automatically strike reports or replace official scores.

@@ -3,6 +3,9 @@ export type Observation = {
   red: number;
   blue: number;
   confidence: number;
+  redPoints?: number;
+  bluePoints?: number;
+  pointsConfidence?: number;
 };
 export type Claim = {
   eventUuid: string;

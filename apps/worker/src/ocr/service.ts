@@ -11,6 +11,9 @@ const resultSchema = z.object({
         red: z.number().int().min(0).max(1000),
         blue: z.number().int().min(0).max(1000),
         confidence: z.number().min(85).max(100),
+        redPoints: z.number().int().min(0).max(9999).optional(),
+        bluePoints: z.number().int().min(0).max(9999).optional(),
+        pointsConfidence: z.number().min(85).max(100).optional(),
       }),
     )
     .max(600),

@@ -26,6 +26,8 @@ const layoutSchema = z.object({
   redFuel: box,
   blueFuel: box,
   clock: box,
+  redPoints: box.optional(),
+  bluePoints: box.optional(),
   clockAlternatives: z.array(box).max(3).optional(),
   identity: box,
   teams: z.array(box).length(6).optional(),
@@ -41,6 +43,13 @@ export const templateSchema = layoutSchema
       ]).size ===
       1 + (template.alternatives?.length ?? 0),
     "Each scoreboard layout needs a unique version",
+  )
+  .refine(
+    (template) =>
+      [template, ...(template.alternatives ?? [])].every(
+        (layout) => Boolean(layout.redPoints) === Boolean(layout.bluePoints),
+      ),
+    "Both total-score crops must be configured",
   );
 export type Template = z.infer<typeof templateSchema>;
 
@@ -185,6 +194,10 @@ export async function readScoreboardImage(
     };
     values.red = await read(template.redFuel, false);
     values.blue = await read(template.blueFuel, false);
+    if (template.redPoints && template.bluePoints) {
+      values.redPoints = await read(template.redPoints, false);
+      values.bluePoints = await read(template.bluePoints, false);
+    }
     const clocks = [];
     for (const rectangle of [
       template.clock,
@@ -359,12 +372,30 @@ export async function extractScoreboard(
         frameIndex,
       );
       if (time === undefined) continue;
+      const pointsConfidence = Math.min(
+        values.redPoints?.confidence ?? 0,
+        values.bluePoints?.confidence ?? 0,
+        values.clock!.confidence,
+      );
+      const scores =
+        pointsConfidence >= 85 &&
+        /^\d+$/.test(values.redPoints!.text) &&
+        /^\d+$/.test(values.bluePoints!.text)
+          ? {
+              redPoints: Number(values.redPoints!.text),
+              bluePoints: Number(values.bluePoints!.text),
+              pointsConfidence,
+            }
+          : {};
       const sample = {
+        ...scores,
         time,
         red: fuelCount(values.red!.text),
         blue: fuelCount(values.blue!.text),
         confidence: Math.min(
-          ...Object.values(values).map((value) => value.confidence),
+          values.red!.confidence,
+          values.blue!.confidence,
+          values.clock!.confidence,
         ),
       };
       if (

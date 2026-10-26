@@ -28,6 +28,10 @@ struct Layout {
     blue_fuel: Rect,
     clock: Rect,
     #[serde(default)]
+    red_points: Option<Rect>,
+    #[serde(default)]
+    blue_points: Option<Rect>,
+    #[serde(default)]
     clock_alternatives: Vec<Rect>,
     teams: Vec<Rect>,
     match_label: Rect,
@@ -42,11 +46,18 @@ struct Request {
     expected_match_label: String,
 }
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct Observation {
     time: u32,
     red: u32,
     blue: u32,
     confidence: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    red_points: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    blue_points: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    points_confidence: Option<f64>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -267,6 +278,11 @@ fn valid_layout(l: &Layout) -> bool {
         && l.teams
             .iter()
             .chain([&l.red_fuel, &l.blue_fuel, &l.clock, &l.match_label])
+            .all(|r| valid_rect(*r))
+        && l.red_points.is_some() == l.blue_points.is_some()
+        && l.red_points
+            .iter()
+            .chain(l.blue_points.iter())
             .all(|r| valid_rect(*r))
         && l.clock_alternatives.len() <= 3
         && l.clock_alternatives.iter().all(|r| valid_rect(*r))
@@ -603,16 +619,53 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         let Some(time) = clock_tracker.time(seconds, cc, frame_index) else {
             continue;
         };
+        let (red_points, blue_points, points_confidence) =
+            if let (Some(red_box), Some(blue_box)) = (layout.red_points, layout.blue_points) {
+                let (red, red_conf) = engine.read(&frame, red_box, true, 0);
+                let (blue, blue_conf) = engine.read(&frame, blue_box, true, 0);
+                let confidence = red_conf.min(blue_conf).min(cc);
+                match (red.trim().parse::<u32>(), blue.trim().parse::<u32>()) {
+                    (Ok(red), Ok(blue)) if confidence >= 85.0 && red <= 9999 && blue <= 9999 => {
+                        (Some(red), Some(blue), Some(confidence))
+                    }
+                    _ => (None, None, None),
+                }
+            } else {
+                (None, None, None)
+            };
         let confidence = rc.min(bc).min(cc);
         if let (Some(red), Some(blue)) = (fuel(&r), fuel(&b))
             && confidence >= 85.0
-            && observations.last().is_none_or(|s| time > s.time)
+            && observations.last().is_none_or(|s| time >= s.time)
         {
+            if let Some(previous) = observations.last()
+                && time == previous.time
+            {
+                // Preserve late score updates at 0:00 when a score channel exists.
+                if red_points.is_none()
+                    || red < previous.red
+                    || blue < previous.blue
+                    || previous
+                        .red_points
+                        .zip(red_points)
+                        .is_some_and(|(a, b)| b < a)
+                    || previous
+                        .blue_points
+                        .zip(blue_points)
+                        .is_some_and(|(a, b)| b < a)
+                {
+                    continue;
+                }
+                observations.pop();
+            }
             observations.push(Observation {
                 time,
                 red,
                 blue,
                 confidence,
+                red_points,
+                blue_points,
+                points_confidence,
             });
         }
     }
@@ -905,5 +958,27 @@ mod tests {
             choose_clock(vec![("junk".into(), 99.0), ("2:20".into(), 90.0)]).0,
             "2:20"
         );
+    }
+    #[test]
+    fn total_scores_are_optional_and_use_the_rpc_field_names() {
+        let sample = Observation {
+            time: 1,
+            red: 3,
+            blue: 4,
+            confidence: 95.0,
+            red_points: Some(8),
+            blue_points: Some(4),
+            points_confidence: Some(96.0),
+        };
+        let value = serde_json::to_value(sample).unwrap();
+        assert_eq!(value["redPoints"], 8);
+        assert_eq!(value["pointsConfidence"], 96.0);
+        assert!(value.get("red_points").is_none());
+        let mut layout: Layout =
+            serde_json::from_str(include_str!("../../config/scoreboard-2026-calgames.json"))
+                .unwrap();
+        assert!(valid_layout(&layout));
+        layout.blue_points = None;
+        assert!(!valid_layout(&layout));
     }
 }
