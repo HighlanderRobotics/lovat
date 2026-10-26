@@ -11,6 +11,7 @@ import {
   findImpossibleClaims,
   OCR_RULE,
   validateObservations,
+  validateEvidence,
   type Observation,
 } from "../ocr/evidence";
 import type { createTbaClient } from "../providers/tba";
@@ -89,10 +90,14 @@ export async function scanScoreboardTournament(
           break;
         } catch (error) {
           if (error instanceof OcrTimelineError) {
-            // Retain numeric calibration evidence, but never grade from a rejected timeline.
+            // Sparse evidence is usable only inside dense, monotonic claim windows.
             observations = error.observations;
             reason = error.message;
             videoKey = video.key;
+            if (validateEvidence(observations)) {
+              status = "PARTIAL";
+              break;
+            }
           } else if (error instanceof OcrMediaError) {
             reason = error.message;
           } else if (
@@ -143,7 +148,7 @@ export async function analyzeScoreboardTournament(
     take: 20,
     orderBy: { analyzedAt: { sort: "asc", nulls: "first" } },
     where: {
-      status: "VALIDATED",
+      status: { in: ["VALIDATED", "PARTIAL"] },
       analyzeAfter: { lte: now },
       OR: [
         { analyzedAt: null },
@@ -167,7 +172,7 @@ export async function analyzeScoreboardTournament(
   });
   for (const record of evidence) {
     const observations = record.observations as unknown as Observation[];
-    if (!validateObservations(observations)) continue;
+    if (!validateEvidence(observations)) continue;
     for (const slot of record.match.teamSlots) {
       for (const report of slot.scoutReports) {
         const claims = report.events.flatMap((event, index) => {

@@ -1,9 +1,12 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile, copyFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
 import { spawn } from "node:child_process";
 import { pngFrames } from "./pngFrames";
+import { chooseClock } from "./clock";
+import { MatchClock } from "./clock";
+import { extractWithService } from "./service";
 import { commandFailure } from "./commandFailure";
 import { validateObservations, type Observation } from "./evidence";
 
@@ -23,6 +26,7 @@ const layoutSchema = z.object({
   redFuel: box,
   blueFuel: box,
   clock: box,
+  clockAlternatives: z.array(box).max(3).optional(),
   identity: box,
   teams: z.array(box).length(6).optional(),
   matchLabel: box.optional(),
@@ -156,11 +160,7 @@ export async function readScoreboardImage(
     scratch ?? (await mkdtemp(join(tmpdir(), "lovat-ocr-inspect-")));
   const values: Record<string, { text: string; confidence: number }> = {};
   try {
-    for (const [key, rectangle] of Object.entries({
-      red: template.redFuel,
-      blue: template.blueFuel,
-      clock: template.clock,
-    })) {
+    const read = async (rectangle: number[], isClock: boolean) => {
       const target = join(directory, "crop.png");
       await command(
         [
@@ -174,15 +174,24 @@ export async function readScoreboardImage(
           "-i",
           file,
           "-vf",
-          `${crop(rectangle)}${key === "clock" ? ",pad=iw+40:ih+40:20:20:white" : ""}`,
+          `${crop(rectangle)}${isClock ? ",pad=iw+40:ih+40:20:20:white" : ""}`,
           "-frames:v",
           "1",
           target,
         ],
         5000,
       );
-      values[key] = await recognize(target, "7", true);
-    }
+      return recognize(target, "7", true);
+    };
+    values.red = await read(template.redFuel, false);
+    values.blue = await read(template.blueFuel, false);
+    const clocks = [];
+    for (const rectangle of [
+      template.clock,
+      ...(template.clockAlternatives ?? []),
+    ])
+      clocks.push(await read(rectangle, true));
+    values.clock = chooseClock(clocks);
     return values;
   } finally {
     if (!scratch) await rm(directory, { recursive: true, force: true });
@@ -194,6 +203,7 @@ export async function extractScoreboard(
   expectedTeams: number[],
   expectedMatchLabel: string,
   template: Template,
+  options: { localVideo?: string } = {},
 ): Promise<Observation[]> {
   if (!/^[\w-]{11}$/.test(videoKey) || expectedTeams.length !== 6)
     throw new Error("Invalid video identity");
@@ -201,31 +211,35 @@ export async function extractScoreboard(
   try {
     const path = join(directory, "video.mp4");
     // Dedicated match videos only, no playlists/livestreams, no cookies or URL overrides.
-    await command(
-      [
-        "yt-dlp",
-        "--ignore-config",
-        "--js-runtimes",
-        "node",
-        "--no-playlist",
-        "--no-cache-dir",
-        "--max-filesize",
-        "96M",
-        "--match-filter",
-        "duration < 600 & !is_live",
-        "-f",
-        "bestvideo[height<=720]/best[height<=720]",
-        "--socket-timeout",
-        "15",
-        "--retries",
-        "1",
-        "-o",
-        path,
-        "--",
-        `https://www.youtube.com/watch?v=${videoKey}`,
-      ],
-      120000,
-    );
+    if (options.localVideo) {
+      await copyFile(options.localVideo, path);
+    } else {
+      await command(
+        [
+          "yt-dlp",
+          "--ignore-config",
+          "--js-runtimes",
+          "node",
+          "--no-playlist",
+          "--no-cache-dir",
+          "--max-filesize",
+          "96M",
+          "--match-filter",
+          "duration < 600 & !is_live",
+          "-f",
+          "bestvideo[height<=720]/best[height<=720]",
+          "--socket-timeout",
+          "15",
+          "--retries",
+          "1",
+          "-o",
+          path,
+          "--",
+          `https://www.youtube.com/watch?v=${videoKey}`,
+        ],
+        120000,
+      );
+    }
     const meta = JSON.parse(
       await command(
         ["ffprobe", "-v", "quiet", "-show_format", "-of", "json", path],
@@ -237,6 +251,19 @@ export async function extractScoreboard(
       Number(meta.format.size) > 96 * 1024 * 1024
     )
       throw new Error("Video exceeds OCR budget");
+    if (process.env.OCR_SERVICE_URL) {
+      const observations = await extractWithService(
+        path,
+        expectedTeams,
+        expectedMatchLabel,
+        template,
+        process.env.OCR_SERVICE_URL,
+        process.env.OCR_SERVICE_TOKEN ?? "",
+      );
+      if (!validateObservations(observations))
+        throw new OcrTimelineError(observations);
+      return observations;
+    }
     // One identity frame per second for the first 20 seconds. Keep only one
     // cropped score image at a time; all temporary files disappear in finally.
     let identity = false;
@@ -280,10 +307,8 @@ export async function extractScoreboard(
             teams.length === 6 &&
             expectedTeams.every((team) => teams.includes(team)) &&
             title.confidence >= 85 &&
-            title.text
-              .toLowerCase()
-              .replace(/\s/g, "")
-              .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
+            title.text.toLowerCase().replace(/\s/g, "") ===
+              expectedMatchLabel.toLowerCase().replace(/\s/g, "")
           )
             matches = true;
         } else {
@@ -292,10 +317,8 @@ export async function extractScoreboard(
           if (
             observed.confidence >= 85 &&
             expectedTeams.every((team) => numbers.has(team)) &&
-            observed.text
-              .toLowerCase()
-              .replace(/\s/g, "")
-              .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
+            observed.text.toLowerCase().replace(/\s/g, "") ===
+              expectedMatchLabel.toLowerCase().replace(/\s/g, "")
           )
             matches = true;
         }
@@ -316,11 +339,11 @@ export async function extractScoreboard(
       throw new Error("Match and robot identities could not be validated");
     // Stream one frame at a time; backpressure prevents a match-sized frame cache.
     const observations: Observation[] = [];
-    let phase = "auto",
-      lastClock = 21,
-      started = false;
+    const matchClock = new MatchClock();
+    let frameIndex = 0;
     const deadline = Date.now() + 8 * 60000;
     for await (const frame of sampleFrames(path, 600, "scale=1280:-2")) {
+      frameIndex++;
       if (Date.now() > deadline)
         throw new Error("OCR exceeded processing budget");
       const framePath = join(directory, "frame.png");
@@ -330,17 +353,12 @@ export async function extractScoreboard(
       const seconds = clock
         ? Number(clock[1] ?? 0) * 60 + Number(clock[2])
         : NaN;
-      if (!started && seconds >= 18 && seconds <= 20) started = true;
-      if (!started) continue;
-      if (seconds >= 135 && lastClock <= 1) phase = "teleop";
-      if (
-        !Number.isFinite(seconds) ||
-        (phase === "auto" && seconds > 20) ||
-        seconds > 140
-      )
-        continue;
-      lastClock = seconds;
-      const time = phase === "auto" ? 20 - seconds : 163 - seconds;
+      const time = matchClock.time(
+        seconds,
+        values.clock!.confidence,
+        frameIndex,
+      );
+      if (time === undefined) continue;
       const sample = {
         time,
         red: fuelCount(values.red!.text),

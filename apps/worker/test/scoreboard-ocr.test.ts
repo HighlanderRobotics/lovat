@@ -201,3 +201,23 @@ test("retains rejected numeric evidence for calibration without accepting it for
     else process.env.OCR_SCOREBOARD_TEMPLATE = previous;
   }
 });
+
+test("uses dense portions of partial evidence without bridging gaps or trusting corrections", async () => {
+  const { validateEvidence } = await import("../src/ocr/evidence");
+  const partial = samples().filter(
+    (sample) => sample.time >= 6 && !(sample.time > 140 && sample.time < 146),
+  );
+  expect(validateObservations(partial)).toBe(false);
+  expect(validateEvidence(partial)).toBe(true);
+  expect(
+    findImpossibleClaims(partial, "RED", [{ ...claim, start: 138, end: 148 }]),
+  ).toEqual([]);
+  expect(findImpossibleClaims(partial, "RED", [claim])).toHaveLength(1);
+  expect(
+    validateEvidence(
+      partial.map((sample) =>
+        sample.time === 100 ? { ...sample, red: 0 } : sample,
+      ),
+    ),
+  ).toBe(false);
+});

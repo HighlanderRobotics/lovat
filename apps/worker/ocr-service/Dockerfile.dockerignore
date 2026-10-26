@@ -1,0 +1,9 @@
+**
+!apps/
+!apps/worker/
+!apps/worker/ocr-service/
+!apps/worker/ocr-service/Cargo.toml
+!apps/worker/ocr-service/Cargo.lock
+!apps/worker/ocr-service/build.rs
+!apps/worker/ocr-service/src/
+!apps/worker/ocr-service/src/**

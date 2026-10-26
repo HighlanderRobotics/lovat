@@ -196,3 +196,46 @@ test.skipIf(!enabled)(
     ).toBe(2);
   },
 );
+
+test.skipIf(!enabled)(
+  "partial evidence can create reviews without reasoning across its gaps",
+  async () => {
+    const partial = Array.from({ length: 164 }, (_, time) => ({
+      time,
+      red: time,
+      blue: time * 2,
+      confidence: 95,
+    })).filter(
+      (sample) => sample.time >= 6 && !(sample.time > 140 && sample.time < 146),
+    );
+    await db.reportValidationFlag.deleteMany({
+      where: { evidenceMatchKey: matchKey },
+    });
+    await db.scoreboardOcr.update({
+      where: { matchKey },
+      data: { status: "PARTIAL", observations: partial, analyzedAt: null },
+    });
+    await analyzeScoreboardTournament(eventKey, db);
+    expect(
+      await db.reportValidationFlag.count({
+        where: { evidenceMatchKey: matchKey, status: "REVIEW" },
+      }),
+    ).toBe(1);
+    await db.reportValidationFlag.deleteMany({
+      where: { evidenceMatchKey: matchKey },
+    });
+    await db.scoreboardOcr.update({
+      where: { matchKey },
+      data: {
+        observations: partial.filter((s) => s.time < 34 || s.time > 38),
+        analyzedAt: null,
+      },
+    });
+    await analyzeScoreboardTournament(eventKey, db);
+    expect(
+      await db.reportValidationFlag.count({
+        where: { evidenceMatchKey: matchKey },
+      }),
+    ).toBe(0);
+  },
+);

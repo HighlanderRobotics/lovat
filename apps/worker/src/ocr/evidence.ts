@@ -80,3 +80,28 @@ export function validateObservations(samples: Observation[]): boolean {
           sample.blue >= samples[index - 1]!.blue)),
   );
 }
+
+// Missing frames are a coverage limitation, not a reason to discard every other
+// independently observed interval. Claim matching still rejects windows with gaps.
+export function validateEvidence(samples: Observation[]): boolean {
+  if (samples.length < 120 || samples.length > 600) return false;
+  return samples.every(
+    (sample, index) =>
+      Number.isFinite(sample.time) &&
+      sample.time >= 0 &&
+      sample.time <= 163 &&
+      Number.isInteger(sample.red) &&
+      sample.red >= 0 &&
+      sample.red <= 1000 &&
+      Number.isInteger(sample.blue) &&
+      sample.blue >= 0 &&
+      sample.blue <= 1000 &&
+      Number.isFinite(sample.confidence) &&
+      sample.confidence >= 85 &&
+      sample.confidence <= 100 &&
+      (index === 0 ||
+        (sample.time > samples[index - 1]!.time &&
+          sample.red >= samples[index - 1]!.red &&
+          sample.blue >= samples[index - 1]!.blue)),
+  );
+}

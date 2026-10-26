@@ -46,4 +46,53 @@ The command prints recognized text, confidence, and fuel numerators, then remove
 
 `apps/worker/config/scoreboard-2026-calgames.json` describes both overlay sizes used in the 2026 CalGames broadcasts. The extractor validates a layout on two separate frames before using it. Fuel counters remain distinct from the large points totals, and identity checks use stored canonical team IDs so offseason placeholder identities stay consistent with scouting reports.
 
-Rejected full-match timelines retain their numeric observations for calibration. They remain `REJECTED` and never generate grading suggestions. No photos or video are stored in the database. Failed records are eligible for retry when the configured template version changes.
+Rejected timelines retain their numeric observations for calibration and never generate grading suggestions. Sparse but otherwise trustworthy timelines can instead be marked `PARTIAL`, subject to the interval checks below. No photos or video are stored in the database. Failed records are eligible for retry when the configured template version changes.
+
+## Isolated Rust processor
+
+`apps/worker/ocr-service` implements the native processor as a separate HTTP service. Bun still owns scheduling, tournament scope, database access, evidence validation, and review creation. The Rust service receives only a public match video, a reviewed layout, and the expected six team numbers and match label. It has no database credentials or report contents.
+
+The reference extractor launches crop and OCR subprocesses repeatedly. The native service decodes once, crops/scales pixels in memory with FFmpeg's native scaler, and reuses a Tesseract engine. The short identity prefix is replayed after two-frame confirmation so late identity confirmation cannot hide autonomous start. Grayscale conversion occurs after cropping, and aligned scaler buffers restore their white clock border after SIMD writes. Both details affect confidence at small font sizes.
+
+Bun FFI would save the HTTP upload but put native pointer errors and decoder failures inside the scheduler process. The separate Rust service contains those failures, exposes an independent health endpoint, and can be sized separately. A full libav decoder binding is deferred: one bounded FFmpeg decoder already removes the repeated-process bottleneck without adding codec lifetime management to Rust.
+
+The service accepts one job at a time (503 while busy), requires a random bearer token of at least 32 characters, caps videos at 96 MiB/600 seconds, restricts media protocols and demuxers, and kills stalled probe/decoder subprocesses. Uploads use temporary files deleted on completion or error. Whole requests have a nine-minute deadline and decoding an eight-minute watchdog. Numeric responses are bounded and validated again by the Worker. Health is unauthenticated and contains no job information. Use private networking, with no public domain.
+
+Local setup requires Rust, FFmpeg, Tesseract English data, and their development headers (`libswscale`, `tesseract`, and `pkg-config`). Build from the repository root:
+
+```sh
+cargo test --manifest-path apps/worker/ocr-service/Cargo.toml
+cargo build --release --locked --manifest-path apps/worker/ocr-service/Cargo.toml
+# Supply OCR_SERVICE_TOKEN securely; do not paste it into source or command history.
+OMP_THREAD_LIMIT=1 PORT=8081 apps/worker/ocr-service/target/release/lovat-ocr-service
+```
+
+Set `OCR_SERVICE_URL=http://127.0.0.1:8081` and the same `OCR_SERVICE_TOKEN` on the Worker. Without the URL, the original extractor remains available for comparison. The service binds loopback by default. Its Dockerfile sets `OCR_BIND_HOST=::` for container networking; deploy the Dockerfile from the repository root and expose only the private service port. The Worker still downloads videos: a native service does not fix a video provider blocking a cloud IP. Keep that environment's OCR scheduler disabled until it has an accessible authorized source.
+
+For reproducible comparisons, cache the same public video and run each backend sequentially with the same template, expected teams, and label:
+
+```sh
+cd apps/worker
+bun tools/benchmark-ocr.ts /tmp/match.mp4 config/scoreboard-2026-calgames.json 100,9997,2643,1700,115,5940 "Qualification 1" /tmp/result.json
+```
+
+The benchmark records end-to-end extraction time and accepted numeric evidence. Download time is excluded; service time includes upload. Change only `OCR_SERVICE_URL`/`OCR_SERVICE_TOKEN` between runs. Compare `(time, red, blue)` values, rejected/accepted sample coverage, and monotonicity as well as time. Faster execution with fewer reliable samples is not a successful optimization. No broadcast videos or private scouting data belong in this repository.
+
+### Partial timelines
+
+`PARTIAL` means at least 120 confident, chronological, monotonic observations exist, but the full-match coverage check failed. The analyzer may propose reviews only inside dense observed intervals. Missing early frames or a gap elsewhere cannot discard an independently covered interval; a gap inside a claim's evidence window still prevents a review. Corrections, nonfinite values, low confidence, and decreasing counters remain rejected. Neither complete nor partial evidence automatically excludes a report.
+
+### Initial benchmark (macOS, 2026-10-25)
+
+CalGames Qualification 1, `calgames-2026-v3` profile, cached 720p public match video, one frame per second, unchanged confidence threshold (85), same CalGames layout and identity requirements:
+
+| Extractor                            | Wall time | Accepted samples | Numeric comparison                           |
+| ------------------------------------ | --------: | ---------------: | -------------------------------------------- |
+| CLI reference, isolated repeat       |   139.6 s |              145 | Reference                                    |
+| Rust service, including local upload |    23.2 s |              145 | All 145 `(time, red, blue)` tuples identical |
+
+This is approximately **6× faster** on one video, not a whole-event performance guarantee. An earlier reference run overlapped development work and took 178.1 seconds; use the isolated repeat above for comparison. The other CalGames layout (Qualification 37) took 21.5 seconds and yielded 121 usable observations. Both videos have coverage gaps and are `PARTIAL`, not fully validated timelines. Matching the reference establishes parity, not a manually measured OCR error rate. Runtime memory/CPU limits and Linux Tesseract builds still need measurements on the eventual service host. The CalGames batch uses the local Rust service because the cloud video provider blocks Railway downloads.
+
+The v4 CalGames profile additionally handles the lower timer position used after the broadcast graphic changes. Both implementations require confident clock crops to agree when more than one reviewed position is readable. Phase tracking accepts an already-started autonomous clock in the first 30 video frames and verifies the autonomous-to-teleop transition against elapsed video time; it never interpolates missing fuel counters.
+
+Confident but implausible clock readings are also rejected against elapsed video time. For example, OCR reading a clipped `1` instead of `1:32` cannot advance the timeline to the last second of the match.
