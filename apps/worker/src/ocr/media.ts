@@ -2,6 +2,8 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
+import { spawn } from "node:child_process";
+import { pngFrames } from "./pngFrames";
 import { validateObservations, type Observation } from "./evidence";
 
 const box = z
@@ -14,7 +16,7 @@ const box = z
   .refine(([x, y, w, h]) => x + w <= 1 && y + h <= 1);
 // Each season/broadcast needs a reviewed layout. Never interpret a total-points
 // counter as fuel: these crops must select cumulative fuel counts specifically.
-export const templateSchema = z.object({
+const layoutSchema = z.object({
   version: z.string().min(1).max(80),
   season: z.literal(2026),
   redFuel: box,
@@ -24,7 +26,26 @@ export const templateSchema = z.object({
   teams: z.array(box).length(6).optional(),
   matchLabel: box.optional(),
 });
+export const templateSchema = layoutSchema
+  .extend({ alternatives: z.array(layoutSchema).max(3).optional() })
+  .refine(
+    (template) =>
+      new Set([
+        template.version,
+        ...(template.alternatives ?? []).map((layout) => layout.version),
+      ]).size ===
+      1 + (template.alternatives?.length ?? 0),
+    "Each scoreboard layout needs a unique version",
+  );
 export type Template = z.infer<typeof templateSchema>;
+
+export class OcrTimelineError extends Error {
+  constructor(public observations: Observation[]) {
+    super(
+      `Incomplete or inconsistent OCR timeline (${observations.length} accepted samples)`,
+    );
+  }
+}
 
 async function command(args: string[], timeoutMs: number) {
   const boundedArgs =
@@ -74,9 +95,11 @@ export function fuelCount(text: string): number {
 }
 
 async function* sampleFrames(path: string, limit: number, filter: string) {
-  const proc = Bun.spawn(
+  // Node's bounded Readable applies backpressure while OCR consumes one frame.
+  // Bun's subprocess iterator can coalesce many completed PNGs into one chunk.
+  const proc = spawn(
+    "ffmpeg",
     [
-      "ffmpeg",
       "-nostdin",
       "-v",
       "error",
@@ -96,41 +119,17 @@ async function* sampleFrames(path: string, limit: number, filter: string) {
       "png",
       "pipe:1",
     ],
-    { stdout: "pipe", stderr: "ignore" },
+    { stdio: ["ignore", "pipe", "ignore"] },
   );
+  const exited = new Promise<number | null>((resolve, reject) => {
+    proc.once("error", reject);
+    proc.once("close", resolve);
+  });
+  void exited.catch(() => undefined);
   const timeout = setTimeout(() => proc.kill(), 8 * 60000);
-  let pending = Buffer.alloc(0);
   try {
-    for await (const data of proc.stdout) {
-      pending = Buffer.concat([pending, Buffer.from(data)]);
-      if (pending.length > 16 * 1024 * 1024)
-        throw new Error("OCR frame exceeds memory budget");
-      let complete = true;
-      while (complete && pending.length >= 8) {
-        if (pending.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a")
-          throw new Error("Invalid OCR frame stream");
-        let offset = 8;
-        complete = false;
-        while (pending.length >= offset + 12) {
-          const length = pending.readUInt32BE(offset);
-          if (length > 16 * 1024 * 1024) throw new Error("Invalid OCR chunk");
-          const end = offset + 12 + length;
-          if (end > pending.length) break;
-          const final =
-            pending.toString("ascii", offset + 4, offset + 8) === "IEND";
-          offset = end;
-          if (final) {
-            const frame = pending.subarray(0, end);
-            pending = pending.subarray(end);
-            yield frame;
-            complete = true;
-            break;
-          }
-        }
-      }
-    }
-    if ((await proc.exited) !== 0 || pending.length)
-      throw new Error("Incomplete OCR frame stream");
+    yield* pngFrames(proc.stdout);
+    if ((await exited) !== 0) throw new Error("Incomplete OCR frame stream");
   } finally {
     clearTimeout(timeout);
     proc.kill();
@@ -171,7 +170,7 @@ export async function readScoreboardImage(
           "-i",
           file,
           "-vf",
-          crop(rectangle),
+          `${crop(rectangle)}${key === "clock" ? ",pad=iw+40:ih+40:20:20:white" : ""}`,
           "-frames:v",
           "1",
           target,
@@ -235,7 +234,8 @@ export async function extractScoreboard(
     // One identity frame per second for the first 20 seconds. Keep only one
     // cropped score image at a time; all temporary files disappear in finally.
     let identity = false;
-    let confirmations = 0;
+    const layouts = [template, ...(template.alternatives ?? [])];
+    const confirmations = new Map<string, number>();
     for await (const frame of sampleFrames(path, 20, "scale=1280:-2")) {
       const source = join(directory, "identity-source.png");
       const target = join(directory, "identity.png");
@@ -260,41 +260,51 @@ export async function extractScoreboard(
         );
         return recognize(target, psm);
       };
-      if (template.teams && template.matchLabel) {
-        const teams: number[] = [];
-        for (const rectangle of template.teams) {
-          const result = await read(rectangle);
-          if (result.confidence >= 85 && /^\d+$/.test(result.text))
-            teams.push(Number(result.text));
+      for (const layout of layouts) {
+        let matches = false;
+        if (layout.teams && layout.matchLabel) {
+          const teams: number[] = [];
+          for (const rectangle of layout.teams) {
+            const result = await read(rectangle);
+            if (result.confidence >= 85 && /^\d+$/.test(result.text))
+              teams.push(Number(result.text));
+          }
+          const title = await read(layout.matchLabel);
+          if (
+            teams.length === 6 &&
+            expectedTeams.every((team) => teams.includes(team)) &&
+            title.confidence >= 85 &&
+            title.text
+              .toLowerCase()
+              .replace(/\s/g, "")
+              .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
+          )
+            matches = true;
+        } else {
+          const observed = await read(layout.identity, "6");
+          const numbers = new Set(observed.text.match(/\b\d+\b/g)?.map(Number));
+          if (
+            observed.confidence >= 85 &&
+            expectedTeams.every((team) => numbers.has(team)) &&
+            observed.text
+              .toLowerCase()
+              .replace(/\s/g, "")
+              .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
+          )
+            matches = true;
         }
-        const title = await read(template.matchLabel);
-        if (
-          teams.length === 6 &&
-          expectedTeams.every((team) => teams.includes(team)) &&
-          title.confidence >= 85 &&
-          title.text
-            .toLowerCase()
-            .replace(/\s/g, "")
-            .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
-        )
-          confirmations++;
-      } else {
-        const observed = await read(template.identity, "6");
-        const numbers = new Set(observed.text.match(/\b\d+\b/g)?.map(Number));
-        if (
-          observed.confidence >= 85 &&
-          expectedTeams.every((team) => numbers.has(team)) &&
-          observed.text
-            .toLowerCase()
-            .replace(/\s/g, "")
-            .includes(expectedMatchLabel.toLowerCase().replace(/\s/g, ""))
-        )
-          confirmations++;
+        if (matches)
+          confirmations.set(
+            layout.version,
+            (confirmations.get(layout.version) ?? 0) + 1,
+          );
+        if ((confirmations.get(layout.version) ?? 0) >= 2) {
+          template = layout;
+          identity = true;
+          break;
+        }
       }
-      if (confirmations >= 2) {
-        identity = true;
-        break;
-      }
+      if (identity) break;
     }
     if (!identity)
       throw new Error("Match and robot identities could not be validated");
@@ -342,7 +352,7 @@ export async function extractScoreboard(
         observations.push(sample);
     }
     if (!validateObservations(observations))
-      throw new Error("Incomplete or inconsistent OCR timeline");
+      throw new OcrTimelineError(observations);
     return observations;
   } finally {
     await rm(directory, { recursive: true, force: true });

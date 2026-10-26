@@ -1,3 +1,4 @@
+import { ocrTournamentKeys, ocrTournamentAllowed } from "./ocr/config";
 import type { ImportJob, PrismaClient } from "@lovat/db";
 import { importAllTeams } from "./jobs/teams";
 import { importTournaments } from "./jobs/tournaments";
@@ -128,8 +129,13 @@ export async function reconcileSchedule(
     await ensure("district-teams", district.key, day);
 
   if (process.env.OCR_ENABLED === "true") {
+    const eventKeys = ocrTournamentKeys();
     const covered = await db.teamTournament.findMany({
-      where: { teamNumber: 8033, tournament: { seasonYear: 2026 } },
+      where: {
+        teamNumber: 8033,
+        tournament: { seasonYear: 2026 },
+        ...(eventKeys ? { tournamentKey: { in: eventKeys } } : {}),
+      },
       select: { tournamentKey: true },
     });
     for (const event of covered) {
@@ -236,7 +242,23 @@ export async function executeImport(
 
 async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
   if (job.kind === "gaps") return day;
-  if (job.kind.startsWith("scoreboard-")) return 5 * minute;
+  if (job.kind.startsWith("scoreboard-")) {
+    if (
+      job.kind === "scoreboard-ocr" &&
+      process.env.OCR_BATCH === "true" &&
+      ocrTournamentAllowed(job.targetKey)
+    ) {
+      const pending = await db.match.count({
+        where: {
+          tournamentKey: job.targetKey,
+          status: "COMPLETED",
+          scoreboardOcr: null,
+        },
+      });
+      if (pending > 0) return 1000;
+    }
+    return 5 * minute;
+  }
   if (job.kind === "teams" || job.kind === "team-seasons") return 7 * day;
   if (job.kind === "tournaments") return 6 * hour;
   if (job.kind === "districts" || job.kind === "district-teams") return day;

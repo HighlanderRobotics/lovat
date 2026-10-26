@@ -1,6 +1,11 @@
+import { ocrTournamentAllowed } from "../ocr/config";
 import type { PrismaClient, Prisma } from "@lovat/db";
 import { z } from "zod";
-import { templateSchema, extractScoreboard } from "../ocr/media";
+import {
+  templateSchema,
+  extractScoreboard,
+  OcrTimelineError,
+} from "../ocr/media";
 import {
   findImpossibleClaims,
   OCR_RULE,
@@ -22,6 +27,7 @@ export async function scanScoreboardTournament(
   eventKey: string,
   { db, tba, extract = extractScoreboard }: Dependencies,
 ) {
+  if (!ocrTournamentAllowed(eventKey)) return;
   const event = await db.tournament.findFirst({
     where: {
       key: eventKey,
@@ -45,10 +51,11 @@ export async function scanScoreboardTournament(
     (match) =>
       !match.scoreboardOcr ||
       (match.scoreboardOcr.status !== "VALIDATED" &&
-        Date.now() - match.scoreboardOcr.processedAt.getTime() >
-          (match.scoreboardOcr.status === "NO_VIDEO"
-            ? 2 * 60000
-            : 6 * 3600000)),
+        (match.scoreboardOcr.templateVersion !== template.version ||
+          Date.now() - match.scoreboardOcr.processedAt.getTime() >
+            (match.scoreboardOcr.status === "NO_VIDEO"
+              ? 2 * 60000
+              : 6 * 3600000))),
   );
   for (const match of candidates.slice(0, 5)) {
     const response = await tba.get(`match/${match.key}`, matchVideos);
@@ -79,8 +86,23 @@ export async function scanScoreboardTournament(
           status = "VALIDATED";
           reason = null;
           break;
-        } catch {
-          /* Try the official broadcast if the other video is a robot-only camera. */
+        } catch (error) {
+          if (error instanceof OcrTimelineError) {
+            // Retain numeric calibration evidence, but never grade from a rejected timeline.
+            observations = error.observations;
+            reason = error.message;
+            videoKey = video.key;
+          } else if (
+            error instanceof Error &&
+            [
+              "Match and robot identities could not be validated",
+              "Video exceeds OCR budget",
+              "OCR exceeded processing budget",
+              "OCR frame exceeds memory budget",
+            ].includes(error.message)
+          ) {
+            reason = error.message;
+          }
         }
       }
     }
@@ -113,6 +135,7 @@ export async function analyzeScoreboardTournament(
   db: PrismaClient,
   now = new Date(),
 ) {
+  if (!ocrTournamentAllowed(eventKey)) return;
   const evidence = await db.scoreboardOcr.findMany({
     take: 20,
     orderBy: { analyzedAt: { sort: "asc", nulls: "first" } },

@@ -4,7 +4,12 @@ import {
   validateObservations,
   type Observation,
 } from "../src/ocr/evidence";
-import { parseTsv, templateSchema, fuelCount } from "../src/ocr/media";
+import {
+  parseTsv,
+  templateSchema,
+  fuelCount,
+  OcrTimelineError,
+} from "../src/ocr/media";
 import { scanScoreboardTournament } from "../src/jobs/scoreboard-ocr";
 const samples = (): Observation[] =>
   Array.from({ length: 164 }, (_, time) => ({
@@ -109,4 +114,90 @@ test("reads a fuel numerator without confusing the target or points counter", ()
   expect(fuelCount("0")).toBe(0);
   expect(Number.isNaN(fuelCount("1O0"))).toBe(true);
   expect(Number.isNaN(fuelCount("5 360"))).toBe(true);
+});
+
+test("supports alternate layouts but cannot count duplicate layout versions as two identity frames", () => {
+  const layout = {
+    version: "large",
+    season: 2026,
+    redFuel: [0, 0, 0.1, 0.1],
+    blueFuel: [0, 0, 0.1, 0.1],
+    clock: [0, 0, 0.1, 0.1],
+    identity: [0, 0, 1, 1],
+  };
+  expect(
+    templateSchema.safeParse({
+      ...layout,
+      alternatives: [{ ...layout, version: "small" }],
+    }).success,
+  ).toBe(true);
+  expect(
+    templateSchema.safeParse({ ...layout, alternatives: [layout] }).success,
+  ).toBe(false);
+  expect(
+    templateSchema.safeParse({
+      ...layout,
+      alternatives: Array.from({ length: 4 }, (_, index) => ({
+        ...layout,
+        version: String(index),
+      })),
+    }).success,
+  ).toBe(false);
+});
+
+test("retains rejected numeric evidence for calibration without accepting it for grading", async () => {
+  const previous = process.env.OCR_SCOREBOARD_TEMPLATE;
+  const layout = {
+    version: "test",
+    season: 2026,
+    redFuel: [0, 0, 0.1, 0.1],
+    blueFuel: [0, 0, 0.1, 0.1],
+    clock: [0, 0, 0.1, 0.1],
+    identity: [0, 0, 1, 1],
+  };
+  process.env.OCR_SCOREBOARD_TEMPLATE = JSON.stringify(layout);
+  const partial = samples().slice(0, 30);
+  let saved: any;
+  try {
+    await scanScoreboardTournament("2026cacg", {
+      db: {
+        tournament: {
+          findFirst: async () => ({
+            matches: [
+              {
+                key: "2026cacg_qm1",
+                matchNumber: 1,
+                competitionLevel: "QUALIFICATION",
+                actualTime: new Date(0),
+                scoreboardOcr: null,
+                teamSlots: Array.from({ length: 6 }, (_, index) => ({
+                  teamNumber: index + 1,
+                })),
+              },
+            ],
+          }),
+        },
+        scoreboardOcr: {
+          upsert: async (value: any) => {
+            saved = value.create;
+          },
+        },
+      } as any,
+      tba: {
+        get: async () => ({
+          modified: true,
+          data: { videos: [{ type: "youtube", key: "aaaaaaaaaaa" }] },
+        }),
+      } as any,
+      extract: async () => {
+        throw new OcrTimelineError(partial);
+      },
+    });
+    expect(saved.status).toBe("REJECTED");
+    expect(saved.observations).toEqual(partial);
+    expect(saved.reason).toContain("30 accepted samples");
+  } finally {
+    if (previous === undefined) delete process.env.OCR_SCOREBOARD_TEMPLATE;
+    else process.env.OCR_SCOREBOARD_TEMPLATE = previous;
+  }
 });

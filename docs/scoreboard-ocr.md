@@ -6,6 +6,8 @@ This branch adds an opt-in 2026 pipeline. The Worker discovers match videos on T
 
 Set `OCR_ENABLED=true` and `OCR_SCOREBOARD_TEMPLATE` to a reviewed layout JSON. A candidate based on the FIRST 2026 broadcast is in `apps/worker/config/scoreboard-2026.candidate.json`; it is **not production calibrated**. Layouts select cumulative fuel counters, clock, match label, and all six team numbers. The total-points display is not a substitute for fuel. Verify crops throughout the full match, including three-digit counts, before enabling extraction.
 
+`OCR_TOURNAMENT_KEYS=2026cacg` scopes both discovery and analysis to that event. With `OCR_BATCH=true`, pending matches are processed consecutively with a one-second scheduling delay; once every played match has a result, normal five-minute polling resumes.
+
 The scheduler checks video availability every five minutes. It inspects at most five missing-video records and processes at most one match per job. It tries up to two YouTube videos because a robot-only camera may precede the broadcast in TBA's list. Missing videos do not block later matches. Rejected videos retry after six hours. Other import jobs continue normally; a database advisory lock permits only one OCR media job across Worker instances.
 
 Videos must be individual matches shorter than ten minutes and no larger than 96 MiB. Processing uses one sampled frame per second, one CPU thread per media/OCR command, a 16 MiB frame buffer limit, and an eight-minute frame-processing deadline. Frames are streamed, not stored as an entire match's image set. Video, current frame and crops live in a unique temporary directory and are removed in `finally`, including failure paths. Normal process termination cleans them up; an abrupt container kill relies on ephemeral storage reclamation. Railway stores only extracted numeric observations, template version, video ID, status, and review evidence.
@@ -39,3 +41,9 @@ bun tools/inspect-scoreboard.ts /path/to/frame.png config/scoreboard-2026.candid
 ```
 
 The command prints recognized text, confidence, and fuel numerators, then removes its temporary crops. A correct-looking value below the confidence threshold is still rejected by the extraction pipeline.
+
+## CalGames layout
+
+`apps/worker/config/scoreboard-2026-calgames.json` describes both overlay sizes used in the 2026 CalGames broadcasts. The extractor validates a layout on two separate frames before using it. Fuel counters remain distinct from the large points totals, and identity checks use stored canonical team IDs so offseason placeholder identities stay consistent with scouting reports.
+
+Rejected full-match timelines retain their numeric observations for calibration. They remain `REJECTED` and never generate grading suggestions. No photos or video are stored in the database. Failed records are eligible for retry when the configured template version changes.
