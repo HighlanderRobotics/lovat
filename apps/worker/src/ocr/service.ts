@@ -22,6 +22,18 @@ export const channelsSchema = z.object({
   blue: channelSchema,
 });
 const resultSchema = z.object({
+  profile: z
+    .object({
+      probeMs: z.number().int().nonnegative(),
+      decoderReadWaitMs: z.number().int().nonnegative(),
+      identityMs: z.number().int().nonnegative(),
+      clockMs: z.number().int().nonnegative(),
+      counterMs: z.number().int().nonnegative(),
+      recognitionMs: z.number().int().nonnegative(),
+      recognitionCalls: z.number().int().nonnegative(),
+      cacheHits: z.number().int().nonnegative(),
+    })
+    .optional(),
   channels: channelsSchema.optional(),
   observations: z
     .array(

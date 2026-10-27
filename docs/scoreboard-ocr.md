@@ -96,3 +96,30 @@ This is approximately **6× faster** on one video, not a whole-event performance
 The v4 CalGames profile additionally handles the lower timer position used after the broadcast graphic changes. Both implementations require confident clock crops to agree when more than one reviewed position is readable. Phase tracking accepts an already-started autonomous clock in the first 30 video frames and verifies the autonomous-to-teleop transition against elapsed video time; it never interpolates missing fuel counters.
 
 Confident but implausible clock readings are also rejected against elapsed video time. For example, OCR reading a clipped `1` instead of `1:32` cannot advance the timeline to the last second of the match.
+
+### Native profiling and repeatable suites
+
+`tools/benchmark-native.ts` retains paired readings, independent alliance readings, confidences, and optional native stage timings. Give it a JSON array of cases with `matchKey`, an existing public `video` file path, six distinct canonical `expectedTeams`, and `expectedMatchLabel`. It uses the same reviewed template and authenticated service client as the Worker:
+
+```sh
+bun tools/benchmark-native.ts --cases /path/to/cases.json --template config/scoreboard-2026-calgames.json --output /path/to/empty-results --label baseline --rounds 2
+```
+
+Set `OCR_SERVICE_URL` and `OCR_SERVICE_TOKEN` through the environment. The tool refuses a nonempty output directory, records each media SHA-256 and numeric-evidence SHA-256, and reports elapsed upload/extraction time plus sample counts. Download time is excluded. Compare identical media hashes and full numeric evidence before comparing timings. Use sequential alternating baseline/candidate runs, without compilation or other benchmark jobs running concurrently. Keep benchmark videos and generated results outside Git.
+
+Native profiles include probe time, decoder read wait, identity, clock, counter, total Tesseract recognition time, recognition calls, and cache hits. These are inclusive wall times: recognition occurs inside identity/clock/counter stages, so do not add them together. Decoder read wait is not a measure of decoding CPU time. Older service responses without profiles remain supported.
+
+Clock parsing requires a valid seconds field: `1:32` and `92` are accepted, while `0:90`, `1:032`, and `2:2` are rejected. All clocks remain bounded by the 140-second teleop timer and elapsed-video plausibility checks. Native recovery validates the actual crop grammar (fuel, points, clock, or text), so a confident string valid for a different field cannot prevent the existing normalization retries. These safeguards do not establish measured robot attribution accuracy.
+
+The native decoder scales and converts to RGB before retaining only the top band required by every configured field and alternate layout, with guard rows. The original coordinate system and crop pixels remain unchanged; layouts using the bottom of the frame retain full-height decoding. Frames with unusable clocks skip fuel reads. Identity checks test the match label first and stop at an unreadable or duplicate robot, while a successful identity still requires all six expected robots and the same two-frame confirmation rule.
+
+The 2026-10-27 comparison used QM1, QM3, QM35, and QM37, two baseline and two optimized runs per video, in baseline/optimized/optimized/baseline blocks. Compilation and the exploratory profiling pass were excluded. Mean upload/extraction time fell from **26.96 s to 24.73 s (8.3%)**; median time fell from 27.01 s to 23.80 s. The eight-sample p95 did not improve (30.20 s to 30.74 s), so this does not establish a tail-latency improvement or whole-event throughput. All paired readings, points, independent alliance channels, confidences, and decoded frame counts matched exactly on all four videos.
+
+| Match | Baseline mean | Optimized mean | Tesseract calls |
+| ----- | ------------: | -------------: | --------------: |
+| QM1   |       27.59 s |        23.91 s |   2,013 → 1,542 |
+| QM3   |       27.39 s |        26.63 s |   2,245 → 1,541 |
+| QM35  |       25.32 s |        22.49 s |   1,563 → 1,006 |
+| QM37  |       27.54 s |        25.87 s |   1,374 → 1,017 |
+
+The earlier decoder/clock-only candidate had mixed per-video runtimes and is not counted as a demonstrated standalone speedup. Failed identity work was the important additional reduction. The CalGames decoder transfers 197 rather than 720 RGB rows per frame (72.6% fewer bytes), preserving a full coordinate buffer for crop compatibility. Observed service-lifetime peak RSS was about 75 MiB for baseline and 88 MiB for optimized; these different lifetimes covered 16 and eight requests respectively and are not a controlled memory comparison. Memory limits/concurrency were not increased. The v7 CalGames profile advances all layout revision identifiers for the recognizer hardening, with unchanged crop coordinates. Existing artifacts remain preserved. All 138 Worker tests and 23 Rust tests pass; typecheck, Clippy, formatting, and structure checks pass. These changes preserve the current attribution estimates and do not resolve QM3's known HP overcredit.

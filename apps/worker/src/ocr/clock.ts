@@ -11,7 +11,7 @@ export class MatchClock {
   }
   time(seconds: number, confidence: number, frame: number): number | undefined {
     if (
-      !Number.isFinite(seconds) ||
+      !Number.isInteger(seconds) ||
       !Number.isFinite(confidence) ||
       confidence < 85 ||
       seconds > 140 ||
@@ -48,10 +48,10 @@ export function chooseClock(
   plausible?: (seconds: number, confidence: number) => boolean,
 ) {
   const valid = readings.flatMap((reading) => {
-    const match = reading.text.trim().match(/^(?:(\d):)?(\d{1,3})$/);
-    const seconds = match ? Number(match[1] ?? 0) * 60 + Number(match[2]) : NaN;
-    return reading.confidence >= 85 &&
-      seconds <= 140 &&
+    const seconds = parseClock(reading.text);
+    return Number.isFinite(reading.confidence) &&
+      reading.confidence >= 85 &&
+      seconds !== undefined &&
       (plausible?.(seconds, reading.confidence) ?? true)
       ? [{ ...reading, seconds }]
       : [];
@@ -59,4 +59,14 @@ export function chooseClock(
   if (!valid.length || new Set(valid.map((r) => r.seconds)).size !== 1)
     return { text: "", confidence: 0 };
   return valid.sort((a, b) => b.confidence - a.confidence)[0]!;
+}
+
+export function parseClock(text: string): number | undefined {
+  const match = text.trim().match(/^(?:(\d):([0-5]\d)|(\d{1,3}))$/);
+  if (!match) return;
+  const seconds =
+    match[3] === undefined
+      ? Number(match[1]) * 60 + Number(match[2])
+      : Number(match[3]);
+  if (seconds <= 140) return seconds;
 }

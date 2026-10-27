@@ -209,3 +209,43 @@ test("native channel evidence survives the client while paired callers remain co
     globalThis.fetch = original;
   }
 });
+
+test("optional native profiles are validated without breaking older service results", async () => {
+  const original = globalThis.fetch;
+  const profile = {
+    probeMs: 1,
+    decoderReadWaitMs: 2,
+    identityMs: 3,
+    clockMs: 4,
+    counterMs: 5,
+    recognitionMs: 6,
+    recognitionCalls: 7,
+    cacheHits: 8,
+  };
+  const result: any = {
+    observations: [],
+    layoutVersion: template.version,
+    elapsedMs: 10,
+    frames: 1,
+    profile,
+  };
+  const run = () =>
+    extractServiceEvidence(
+      "/missing",
+      [1, 2, 3, 4, 5, 6],
+      "Qualification 1",
+      template as any,
+      "http://localhost",
+      "x".repeat(32),
+    );
+  try {
+    globalThis.fetch = (async () => Response.json(result)) as any;
+    expect((await run()).profile).toEqual(profile);
+    result.profile = { ...profile, recognitionCalls: -1 };
+    await expect(run()).rejects.toThrow();
+    delete result.profile;
+    expect((await run()).profile).toBeUndefined();
+  } finally {
+    globalThis.fetch = original;
+  }
+});

@@ -1,5 +1,42 @@
 import { test, expect } from "bun:test";
-import { MatchClock } from "../src/ocr/clock";
+import { MatchClock, parseClock, chooseClock } from "../src/ocr/clock";
+test("clock syntax cannot reinterpret malformed minute/second digits as elapsed time", () => {
+  for (const [text, seconds] of [
+    ["2:20", 140],
+    ["1:32", 92],
+    ["0:59", 59],
+    ["0:00", 0],
+    ["20", 20],
+    ["140", 140],
+    [" 01 ", 1],
+  ] as const)
+    expect(parseClock(text)).toBe(seconds);
+  for (const text of [
+    "0:90",
+    "1:60",
+    "1:032",
+    "2:2",
+    "3:00",
+    "141",
+    "-1",
+    "+20",
+    "1/20",
+    "",
+    "0:999",
+    "1:00:00",
+  ])
+    expect(parseClock(text)).toBeUndefined();
+  expect(
+    chooseClock([
+      { text: "0:90", confidence: 99 },
+      { text: "1:30", confidence: 90 },
+    ]).text,
+  ).toBe("1:30");
+  expect(chooseClock([{ text: "1:30", confidence: Infinity }]).confidence).toBe(
+    0,
+  );
+  expect(new MatchClock().time(1.5, 95, 1)).toBeUndefined();
+});
 test("identifies teleop without observing the last autonomous second", () => {
   const clock = new MatchClock();
   expect(clock.time(20, 95, 7)).toBe(0);

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { spawn } from "node:child_process";
 import { pngFrames } from "./pngFrames";
-import { chooseClock } from "./clock";
+import { chooseClock, parseClock } from "./clock";
 import { MatchClock } from "./clock";
 import { extractWithService } from "./service";
 import { commandFailure } from "./commandFailure";
@@ -372,10 +372,7 @@ export async function extractScoreboard(
         tracker: matchClock,
         frame: frameIndex,
       });
-      const clock = values.clock!.text.match(/^\s*(?:(\d):)?(\d{1,3})\s*$/);
-      const seconds = clock
-        ? Number(clock[1] ?? 0) * 60 + Number(clock[2])
-        : NaN;
+      const seconds = parseClock(values.clock!.text) ?? NaN;
       const time = matchClock.time(
         seconds,
         values.clock!.confidence,

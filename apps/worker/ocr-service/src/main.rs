@@ -67,6 +67,19 @@ struct Output {
     layout_version: String,
     elapsed_ms: u128,
     frames: usize,
+    profile: Profile,
+}
+#[derive(Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Profile {
+    probe_ms: u128,
+    decoder_read_wait_ms: u128,
+    identity_ms: u128,
+    clock_ms: u128,
+    counter_ms: u128,
+    recognition_ms: u128,
+    recognition_calls: usize,
+    cache_hits: usize,
 }
 #[derive(Default, Serialize)]
 struct Channels {
@@ -157,7 +170,24 @@ unsafe extern "C" {
     ) -> c_int;
     fn sws_freeContext(ctx: *mut c_void);
 }
-type CropKey = (u32, u32, u32, u32, bool, u32);
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+enum CropKind {
+    Text,
+    Fuel,
+    Points,
+    Clock,
+}
+impl CropKind {
+    fn accepts(self, text: &str) -> bool {
+        match self {
+            Self::Text => !text.is_empty(),
+            Self::Fuel => fuel(text).is_some(),
+            Self::Points => !text.contains('/') && fuel(text).is_some(),
+            Self::Clock => clock(text).is_some(),
+        }
+    }
+}
+type CropKey = (u32, u32, u32, u32, CropKind, u32);
 type CachedCrop = (Vec<u8>, Vec<u8>, (String, f64));
 struct Engine {
     api: *mut c_void,
@@ -165,6 +195,7 @@ struct Engine {
     scalers: Scalers,
     calls: usize,
     hits: usize,
+    recognition_time: Duration,
 }
 impl Drop for Engine {
     fn drop(&mut self) {
@@ -180,6 +211,7 @@ impl Engine {
                 scalers: Default::default(),
                 calls: 0,
                 hits: 0,
+                recognition_time: Duration::ZERO,
             };
             if engine.api.is_null() {
                 return Err("Cannot allocate OCR engine".into());
@@ -193,6 +225,12 @@ impl Engine {
         }
     }
     fn recognize(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
+        let started = Instant::now();
+        let result = self.recognize_inner(prepared, numeric, psm);
+        self.recognition_time += started.elapsed();
+        result
+    }
+    fn recognize_inner(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
         self.calls += 1;
         unsafe {
             TessBaseAPIClearAdaptiveClassifier(self.api);
@@ -223,12 +261,19 @@ impl Engine {
             result
         }
     }
-    fn read(&mut self, frame: &RgbImage, rect: Rect, numeric: bool, padding: u32) -> (String, f64) {
+    fn read(
+        &mut self,
+        frame: &RgbImage,
+        rect: Rect,
+        kind: CropKind,
+        padding: u32,
+    ) -> (String, f64) {
         if !valid_rect(rect) || frame.width() != WIDTH || frame.height() != HEIGHT || padding > 20 {
             return (String::new(), 0.0);
         }
         let (x, y, w, h) = geometry(rect);
-        let key = (x, y, w, h, numeric, padding);
+        let key = (x, y, w, h, kind, padding);
+        let numeric = kind != CropKind::Text;
         // Compare exact source RGB bytes before allocating/scaling the crop.
         // A one-pixel change invalidates recognition; no fuzzy digit caching.
         let rows = || {
@@ -259,9 +304,7 @@ impl Engine {
             return result.clone();
         }
         let mut best = self.recognize(&original, numeric, 7);
-        let valid = |r: &(String, f64)| {
-            r.1 >= 85.0 && (!numeric || fuel(&r.0).is_some() || clock(&r.0).is_some())
-        };
+        let valid = |r: &(String, f64)| r.1 >= 85.0 && kind.accepts(&r.0);
         if !valid(&best) {
             for binary in [false, true] {
                 let Some(mut recovered) = prepare_with(frame, rect, 10, &mut self.scalers) else {
@@ -282,7 +325,7 @@ impl Engine {
         best
     }
     fn team(&mut self, frame: &RgbImage, rect: Rect, expected: &[u32]) -> Option<u32> {
-        let (text, confidence) = self.read(frame, rect, false, 0);
+        let (text, confidence) = self.read(frame, rect, CropKind::Text, 0);
         if confidence >= 85.0
             && let Ok(number) = text.parse::<u32>()
             && expected.contains(&number)
@@ -525,6 +568,34 @@ fn geometry(r: Rect) -> (u32, u32, u32, u32) {
         (r[3] * HEIGHT as f64).round() as u32,
     )
 }
+fn decoded_height(template: &Layout) -> u32 {
+    // Crop only after full-frame scaling and RGB conversion. Keep coordinates
+    // unchanged, including alternate layouts/clock positions and SIMD guard rows.
+    std::iter::once(template)
+        .chain(template.alternatives.iter())
+        .flat_map(|layout| {
+            [
+                Some(layout.red_fuel),
+                Some(layout.blue_fuel),
+                Some(layout.clock),
+                Some(layout.match_label),
+                layout.red_points,
+                layout.blue_points,
+            ]
+            .into_iter()
+            .flatten()
+            .chain(layout.teams.iter().copied())
+            .chain(layout.clock_alternatives.iter().copied())
+        })
+        .map(|r| {
+            let (_, y, _, h) = geometry(r);
+            y + h
+        })
+        .max()
+        .unwrap_or(HEIGHT)
+        .saturating_add(16)
+        .min(HEIGHT)
+}
 fn valid_rect(r: Rect) -> bool {
     r.iter().all(|v| v.is_finite())
         && r[0] >= 0.0
@@ -608,18 +679,24 @@ fn fuel(s: &str) -> Option<u32> {
 }
 fn clock(s: &str) -> Option<u32> {
     let p: Vec<_> = s.trim().split(':').collect();
-    match p.as_slice() {
-        [s] if s.len() <= 3 => s.parse().ok(),
-        [m, s] if m.len() == 1 && s.len() <= 3 => {
-            Some(m.parse::<u32>().ok()? * 60 + s.parse::<u32>().ok()?)
+    let digits = |text: &str| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit());
+    let seconds = match p.as_slice() {
+        [s] if s.len() <= 3 && digits(s) => s.parse().ok()?,
+        [m, s] if m.len() == 1 && s.len() == 2 && digits(m) && digits(s) => {
+            let seconds = s.parse::<u32>().ok()?;
+            if seconds >= 60 {
+                return None;
+            }
+            m.parse::<u32>().ok()? * 60 + seconds
         }
-        _ => None,
-    }
+        _ => return None,
+    };
+    (seconds <= 140).then_some(seconds)
 }
 fn choose_clock(readings: Vec<(String, f64)>) -> (String, f64) {
     let mut valid: Vec<_> = readings
         .into_iter()
-        .filter(|(text, c)| *c >= 85.0 && clock(text).is_some_and(|s| s <= 140))
+        .filter(|(text, c)| c.is_finite() && *c >= 85.0 && clock(text).is_some_and(|s| s <= 140))
         .collect();
     if valid.is_empty() || valid.iter().any(|r| clock(&r.0) != clock(&valid[0].0)) {
         return (String::new(), 0.0);
@@ -731,8 +808,37 @@ impl Drop for Decoder {
         }
     }
 }
+fn identity_matches(
+    engine: &mut Engine,
+    frame: &RgbImage,
+    layout: &Layout,
+    expected: &[u32],
+    label: &str,
+) -> bool {
+    // The cheap label gate rejects an incompatible layout before six roster
+    // reads. A successful identity still needs the label and all six robots.
+    let (text, confidence) = engine.read(frame, layout.match_label, CropKind::Text, 0);
+    if confidence < 85.0 || canonical(&text) != canonical(label) {
+        return false;
+    }
+    let mut teams = Vec::new();
+    for rect in &layout.teams {
+        let Some(number) = engine.team(frame, *rect, expected) else {
+            return false;
+        };
+        if teams.contains(&number) {
+            return false;
+        }
+        teams.push(number);
+    }
+    if teams.len() != 6 || !expected.iter().all(|team| teams.contains(team)) {
+        return false;
+    }
+    true
+}
 fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     let start = Instant::now();
+    let mut profile = Profile::default();
     let probe = Command::new("ffprobe")
         .args([
             "-v",
@@ -769,6 +875,10 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     if !duration.is_finite() || duration > 600.0 || duration <= 0.0 {
         return Err("Video exceeds OCR budget".into());
     }
+    profile.probe_ms = start.elapsed().as_millis();
+    let decoded_height = decoded_height(&request.template);
+    let frame_bytes = (WIDTH * decoded_height * 3) as usize;
+    let filters = format!("fps=1,scale=1280:720,format=rgb24,crop=1280:{decoded_height}:0:0");
     let child = Command::new("ffmpeg")
         .args([
             "-nostdin",
@@ -787,7 +897,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         .arg(path)
         .args([
             "-vf",
-            "fps=1,scale=1280:720,format=rgb24",
+            &filters,
             "-frames:v",
             "600",
             "-f",
@@ -826,10 +936,11 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         let (frame_index, frame) = if selected.is_some() && !pending.is_empty() {
             pending.pop_front().unwrap()
         } else {
+            let reading_started = Instant::now();
             let mut bytes = vec![0u8; (WIDTH * HEIGHT * 3) as usize];
             let mut offset = 0;
-            while offset < bytes.len() {
-                match stdout.read(&mut bytes[offset..]) {
+            while offset < frame_bytes {
+                match stdout.read(&mut bytes[offset..frame_bytes]) {
                     Ok(0) if offset == 0 => break,
                     Ok(0) => return Err("Truncated decoder frame".into()),
                     Ok(n) => offset += n,
@@ -839,6 +950,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             if offset == 0 {
                 break;
             }
+            profile.decoder_read_wait_ms += reading_started.elapsed().as_millis();
             frames += 1;
             bytes.extend_from_slice(&[0u8; 64]);
             (
@@ -850,19 +962,15 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             pending.push_back((frame_index, frame.clone()));
         }
         if selected.is_none() && frames <= 20 {
+            let identity_started = Instant::now();
             for (i, layout) in layouts.iter().enumerate() {
-                let mut teams = Vec::new();
-                for rect in &layout.teams {
-                    if let Some(n) = engine.team(&frame, *rect, &request.expected_teams) {
-                        teams.push(n);
-                    }
-                }
-                let (t, c) = engine.read(&frame, layout.match_label, false, 0);
-                if teams.len() == 6
-                    && request.expected_teams.iter().all(|t| teams.contains(t))
-                    && c >= 85.0
-                    && canonical(&t) == canonical(&request.expected_match_label)
-                {
+                if identity_matches(
+                    &mut engine,
+                    &frame,
+                    layout,
+                    &request.expected_teams,
+                    &request.expected_match_label,
+                ) {
                     confirmed[i] += 1;
                 }
                 if confirmed[i] >= 2 {
@@ -870,6 +978,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
                     break;
                 }
             }
+            profile.identity_ms += identity_started.elapsed().as_millis();
         }
         if selected.is_none() {
             if frames >= 20 {
@@ -883,11 +992,10 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             continue;
         }
         let layout = layouts[selected.unwrap()];
-        let (r, rc) = engine.read(&frame, layout.red_fuel, true, 0);
-        let (b, bc) = engine.read(&frame, layout.blue_fuel, true, 0);
+        let clock_started = Instant::now();
         let clocks: Vec<_> = std::iter::once(&layout.clock)
             .chain(layout.clock_alternatives.iter())
-            .map(|rect| engine.read(&frame, *rect, true, 20))
+            .map(|rect| engine.read(&frame, *rect, CropKind::Clock, 20))
             .collect();
         let plausible = clocks
             .into_iter()
@@ -899,16 +1007,23 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             })
             .collect();
         let (c, cc) = choose_clock(plausible);
+        profile.clock_ms += clock_started.elapsed().as_millis();
         let Some(seconds) = clock(&c) else {
             continue;
         };
         let Some(time) = clock_tracker.time(seconds, cc, frame_index) else {
             continue;
         };
+        let counter_started = Instant::now();
+        let (r, rc) = engine.read(&frame, layout.red_fuel, CropKind::Fuel, 0);
+        let (b, bc) = engine.read(&frame, layout.blue_fuel, CropKind::Fuel, 0);
+        profile.counter_ms += counter_started.elapsed().as_millis();
         let (red_points, blue_points, points_confidence) =
             if let (Some(red_box), Some(blue_box)) = (layout.red_points, layout.blue_points) {
-                let (red, red_conf) = engine.read(&frame, red_box, true, 0);
-                let (blue, blue_conf) = engine.read(&frame, blue_box, true, 0);
+                let points_started = Instant::now();
+                let (red, red_conf) = engine.read(&frame, red_box, CropKind::Points, 0);
+                let (blue, blue_conf) = engine.read(&frame, blue_box, CropKind::Points, 0);
+                profile.counter_ms += points_started.elapsed().as_millis();
                 let confidence = red_conf.min(blue_conf).min(cc);
                 match (red.trim().parse::<u32>(), blue.trim().parse::<u32>()) {
                     (Ok(red), Ok(blue)) if confidence >= 85.0 && red <= 9999 && blue <= 9999 => {
@@ -977,12 +1092,16 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     }
     let index = selected.ok_or("Match and robot identities could not be validated")?;
     eprintln!("ocr_calls={} cache_hits={}", engine.calls, engine.hits);
+    profile.recognition_ms = engine.recognition_time.as_millis();
+    profile.recognition_calls = engine.calls;
+    profile.cache_hits = engine.hits;
     Ok(Output {
         observations,
         channels,
         layout_version: layouts[index].version.clone(),
         elapsed_ms: start.elapsed().as_millis(),
         frames,
+        profile,
     })
 }
 fn authorized(actual: &str, expected: &str) -> bool {
@@ -1162,6 +1281,90 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn top_layout() -> Layout {
+        serde_json::from_value(serde_json::json!({
+            "season":2026,"version":"test","redFuel":[0.2,0.1,0.05,0.05],"blueFuel":[0.7,0.1,0.05,0.05],
+            "clock":[0.45,0.2,0.1,0.04],"teams":vec![[0.2,0.1,0.05,0.05];6],"matchLabel":[0.5,0.25,0.1,0.05]
+        })).unwrap()
+    }
+    #[test]
+    fn a_failed_match_label_skips_all_six_team_crops() {
+        let mut engine = Engine::new().unwrap();
+        let frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
+        assert!(!identity_matches(
+            &mut engine,
+            &frame,
+            &top_layout(),
+            &[1, 2, 3, 4, 5, 6],
+            "Qualification 1"
+        ));
+        assert_eq!(engine.cache.len(), 1);
+        assert_eq!(engine.calls, 3);
+    }
+    #[test]
+    fn decoded_band_includes_alternate_fields_and_keeps_bottom_layouts_full_height() {
+        let mut layout = top_layout();
+        assert_eq!(decoded_height(&layout), 232);
+        layout.clock_alternatives.push([0.4, 0.6, 0.1, 0.05]);
+        assert_eq!(decoded_height(&layout), 484);
+        let mut alternate = top_layout();
+        alternate.blue_points = Some([0.6, 0.8, 0.1, 0.1]);
+        alternate.red_points = Some([0.3, 0.8, 0.1, 0.1]);
+        layout.alternatives.push(alternate);
+        assert_eq!(decoded_height(&layout), 664);
+        layout.match_label = [0.1, 0.95, 0.1, 0.05];
+        assert_eq!(decoded_height(&layout), HEIGHT);
+    }
+    #[test]
+    fn cropping_after_scaling_preserves_exact_source_pixels() {
+        let mut input = tempfile::NamedTempFile::new().unwrap();
+        let pixels: Vec<u8> = (0..1920 * 1080 * 3)
+            .map(|n| ((n * 13 + n / 5760 * 7) % 256) as u8)
+            .collect();
+        input.write_all(&pixels).unwrap();
+        let decode = |crop: bool| {
+            let mut filters = "scale=1280:720,format=rgb24".to_owned();
+            if crop {
+                filters.push_str(",crop=1280:232:0:0");
+            }
+            let output = Command::new("ffmpeg")
+                .args([
+                    "-v",
+                    "error",
+                    "-threads",
+                    "1",
+                    "-filter_threads",
+                    "1",
+                    "-f",
+                    "rawvideo",
+                    "-pixel_format",
+                    "rgb24",
+                    "-video_size",
+                    "1920x1080",
+                    "-i",
+                ])
+                .arg(input.path())
+                .args([
+                    "-vf",
+                    &filters,
+                    "-frames:v",
+                    "1",
+                    "-f",
+                    "rawvideo",
+                    "-pix_fmt",
+                    "rgb24",
+                    "pipe:1",
+                ])
+                .output()
+                .unwrap();
+            assert!(output.status.success());
+            output.stdout
+        };
+        let full = decode(false);
+        let cropped = decode(true);
+        assert_eq!(cropped.len(), (WIDTH * 232 * 3) as usize);
+        assert_eq!(cropped, &full[..cropped.len()]);
+    }
     #[test]
     fn crop_normalization_preserves_white_padding() {
         let mut p = Prepared {
@@ -1186,13 +1389,13 @@ mod tests {
         let mut engine = Engine::new().unwrap();
         let mut frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
         let rect = [0.1, 0.1, 0.05, 0.05];
-        let first = engine.read(&frame, rect, true, 0);
+        let first = engine.read(&frame, rect, CropKind::Fuel, 0);
         let calls = engine.calls;
-        assert_eq!(engine.read(&frame, rect, true, 0), first);
+        assert_eq!(engine.read(&frame, rect, CropKind::Fuel, 0), first);
         assert_eq!(engine.calls, calls);
         assert_eq!(engine.hits, 1);
         frame.put_pixel(130, 75, image::Rgb([0, 0, 0]));
-        engine.read(&frame, rect, true, 0);
+        engine.read(&frame, rect, CropKind::Fuel, 0);
         assert!(engine.calls > calls);
     }
     #[test]
@@ -1308,6 +1511,43 @@ mod tests {
         }
         assert_eq!(clock("2:20"), Some(140));
         assert_eq!(clock("junk"), None);
+    }
+    #[test]
+    fn malformed_clock_fields_cannot_create_plausible_but_wrong_times() {
+        for (text, seconds) in [
+            ("2:20", 140),
+            ("1:32", 92),
+            ("0:59", 59),
+            ("0:00", 0),
+            ("20", 20),
+            ("140", 140),
+            (" 01 ", 1),
+        ] {
+            assert_eq!(clock(text), Some(seconds));
+        }
+        for text in [
+            "0:90", "1:60", "1:032", "2:2", "3:00", "141", "-1", "+20", "1/20", "", "0:999",
+            "1:00:00",
+        ] {
+            assert_eq!(clock(text), None);
+        }
+        assert_eq!(
+            choose_clock(vec![("0:90".into(), 99.0), ("1:30".into(), 90.0)]),
+            ("1:30".into(), 90.0)
+        );
+    }
+    #[test]
+    fn crop_recovery_requires_the_actual_field_grammar() {
+        assert!(CropKind::Fuel.accepts("24/100"));
+        assert!(!CropKind::Points.accepts("24/100"));
+        assert!(!CropKind::Clock.accepts("24/100"));
+        assert!(CropKind::Clock.accepts("2:20"));
+        assert!(!CropKind::Fuel.accepts("2:20"));
+        assert!(!CropKind::Points.accepts("2:20"));
+        assert!(!CropKind::Clock.accepts("0:90"));
+        assert!(CropKind::Points.accepts("624"));
+        assert!(CropKind::Fuel.accepts("624"));
+        assert!(!CropKind::Clock.accepts("624"));
     }
     #[test]
     fn rectangles() {
