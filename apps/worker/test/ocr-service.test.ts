@@ -241,6 +241,14 @@ test("optional native profiles are validated without breaking older service resu
   try {
     globalThis.fetch = (async () => Response.json(result)) as any;
     expect((await run()).profile).toEqual(profile);
+    result.profile = {
+      ...profile,
+      frameAllocations: 3,
+      frameBufferBytes: 756544,
+    };
+    expect((await run()).profile).toEqual(result.profile);
+    result.profile = { ...profile, frameBufferBytes: -1 };
+    await expect(run()).rejects.toThrow();
     result.profile = { ...profile, recognitionCalls: -1 };
     await expect(run()).rejects.toThrow();
     delete result.profile;

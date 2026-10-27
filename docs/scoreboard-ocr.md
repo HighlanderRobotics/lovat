@@ -122,4 +122,21 @@ The 2026-10-27 comparison used QM1, QM3, QM35, and QM37, two baseline and two op
 | QM35  |       25.32 s |        22.49 s |   1,563 → 1,006 |
 | QM37  |       27.54 s |        25.87 s |   1,374 → 1,017 |
 
-The earlier decoder/clock-only candidate had mixed per-video runtimes and is not counted as a demonstrated standalone speedup. Failed identity work was the important additional reduction. The CalGames decoder transfers 197 rather than 720 RGB rows per frame (72.6% fewer bytes), preserving a full coordinate buffer for crop compatibility. Observed service-lifetime peak RSS was about 75 MiB for baseline and 88 MiB for optimized; these different lifetimes covered 16 and eight requests respectively and are not a controlled memory comparison. Memory limits/concurrency were not increased. The v7 CalGames profile advances all layout revision identifiers for the recognizer hardening, with unchanged crop coordinates. Existing artifacts remain preserved. All 138 Worker tests and 23 Rust tests pass; typecheck, Clippy, formatting, and structure checks pass. These changes preserve the current attribution estimates and do not resolve QM3's known HP overcredit.
+The earlier decoder/clock-only candidate had mixed per-video runtimes and is not counted as a demonstrated standalone speedup. Failed identity work was the important additional reduction. The CalGames decoder transfers 197 rather than 720 RGB rows per frame (72.6% fewer bytes). That comparison still retained full-height coordinate buffers; the follow-up below removes that storage overhead. Observed service-lifetime peak RSS was about 75 MiB for baseline and 88 MiB for optimized; these different lifetimes covered 16 and eight requests respectively and are not a controlled memory comparison. Memory limits/concurrency were not increased. The v7 CalGames profile advances all layout revision identifiers for the recognizer hardening, with unchanged crop coordinates. Existing artifacts remain preserved. At that checkpoint all 138 Worker tests and 23 Rust tests passed. These changes preserve the current attribution estimates and do not resolve QM3's known HP overcredit.
+
+### Compact reusable frame buffers
+
+The follow-up retains only the decoded band in memory while keeping crop coordinates in the original 1280×720 space. Every crop must fit inside the actual buffer before its pixels or pointers are accessed. The decoder reserves its 64 guard bytes up front. Identity-prefix frames move into the bounded replay queue without cloning RGB storage. A request-local pool keeps one spare allocation; an ownership guard returns it on normal completion, early continues, and errors. No buffers are shared between requests. Profiles expose optional `frameAllocations` and `frameBufferBytes`; older native responses remain supported.
+
+A balanced baseline/candidate/candidate/baseline comparison on the same four cached videos used eight requests per process. Observed peak RSS fell from **99.06 MiB to 54.83 MiB (44.7%)**. Mean elapsed time was essentially unchanged: 19.839 s versus 19.872 s. This is a memory/allocation improvement, not a demonstrated latency improvement. Each RGB buffer contains 756,544 bytes including guards instead of 2,764,864, and allocation is reused throughout the stream. These are buffer payload lengths, not total process-memory figures.
+
+| Match | Decoded frames | Candidate RGB allocations |
+| ----- | -------------: | ------------------------: |
+| QM1   |            172 |                         9 |
+| QM3   |            176 |                        12 |
+| QM35  |            174 |                        10 |
+| QM37  |            171 |                         7 |
+
+The baseline allocated for every decoded frame and cloned identity-prefix frames. All paired readings, independent channels, confidences, frame counts, and actual Tesseract call counts were unchanged across both repeats. Two simultaneous requests for QM1 and QM37 also retained identical evidence and independent buffer counts. These are local cached-video results, not a Railway-wide memory guarantee. The 138 Worker tests and 26 Rust tests pass, including compact/full crop equality, unavailable-row rejection, ownership transfer, bounded spare storage, and early-exit recycling.
+
+A separate request-local exact prepared-image memoization trial saved only 8–26 Tesseract calls per video while retaining roughly 3–4 MiB. It was removed; the existing exact RGB/grayscale crop cache remains unchanged. Confidence thresholds, sampling, phase handling, and attribution policy are unchanged.

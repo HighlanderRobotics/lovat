@@ -32,6 +32,8 @@ const resultSchema = z.object({
       recognitionMs: z.number().int().nonnegative(),
       recognitionCalls: z.number().int().nonnegative(),
       cacheHits: z.number().int().nonnegative(),
+      frameAllocations: z.number().int().nonnegative().optional(),
+      frameBufferBytes: z.number().int().nonnegative().optional(),
     })
     .optional(),
   channels: channelsSchema.optional(),

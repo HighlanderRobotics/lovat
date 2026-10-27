@@ -7,9 +7,12 @@ use axum::{
 use image::RgbImage;
 use serde::{Deserialize, Serialize};
 use std::{
+    cell::RefCell,
     ffi::{CStr, c_char, c_int, c_void},
     io::{Read, Write},
+    ops::Deref,
     process::{Command, Stdio},
+    rc::Rc,
     sync::{Arc, Condvar, Mutex},
     time::{Duration, Instant},
 };
@@ -80,6 +83,31 @@ struct Profile {
     recognition_ms: u128,
     recognition_calls: usize,
     cache_hits: usize,
+    frame_allocations: usize,
+    frame_buffer_bytes: usize,
+}
+type FramePool = Rc<RefCell<Option<Vec<u8>>>>;
+struct FrameBuffer {
+    image: Option<RgbImage>,
+    pool: FramePool,
+}
+impl Deref for FrameBuffer {
+    type Target = RgbImage;
+    fn deref(&self) -> &RgbImage {
+        self.image.as_ref().expect("Live frame buffer")
+    }
+}
+impl Drop for FrameBuffer {
+    fn drop(&mut self) {
+        if let Some(image) = self.image.take() {
+            let mut pool = self.pool.borrow_mut();
+            // Keep only one spare; queued identity frames retain ownership and
+            // return it on normal completion, early continues, and errors.
+            if pool.is_none() {
+                *pool = Some(image.into_raw());
+            }
+        }
+    }
 }
 #[derive(Default, Serialize)]
 struct Channels {
@@ -268,7 +296,7 @@ impl Engine {
         kind: CropKind,
         padding: u32,
     ) -> (String, f64) {
-        if !valid_rect(rect) || frame.width() != WIDTH || frame.height() != HEIGHT || padding > 20 {
+        if !crop_available(frame, rect, padding) {
             return (String::new(), 0.0);
         }
         let (x, y, w, h) = geometry(rect);
@@ -378,7 +406,7 @@ fn prepare_with(
     padding: u32,
     scalers: &mut Scalers,
 ) -> Option<Prepared> {
-    if !valid_rect(rect) || frame.width() != WIDTH || frame.height() != HEIGHT || padding > 20 {
+    if !crop_available(frame, rect, padding) {
         return None;
     }
     let (x, y, w, h) = geometry(rect);
@@ -567,6 +595,18 @@ fn geometry(r: Rect) -> (u32, u32, u32, u32) {
         (r[2] * WIDTH as f64).round() as u32,
         (r[3] * HEIGHT as f64).round() as u32,
     )
+}
+fn crop_available(frame: &RgbImage, rect: Rect, padding: u32) -> bool {
+    if !valid_rect(rect)
+        || frame.width() != WIDTH
+        || !(1..=HEIGHT).contains(&frame.height())
+        || padding > 20
+    {
+        return false;
+    }
+    // Rectangles retain their original 720p coordinates even in a compact band.
+    let (_, y, _, h) = geometry(rect);
+    y + h <= frame.height()
 }
 fn decoded_height(template: &Layout) -> u32 {
     // Crop only after full-frame scaling and RGB conversion. Keep coordinates
@@ -878,6 +918,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     profile.probe_ms = start.elapsed().as_millis();
     let decoded_height = decoded_height(&request.template);
     let frame_bytes = (WIDTH * decoded_height * 3) as usize;
+    profile.frame_buffer_bytes = frame_bytes + 64;
     let filters = format!("fps=1,scale=1280:720,format=rgb24,crop=1280:{decoded_height}:0:0");
     let child = Command::new("ffmpeg")
         .args([
@@ -923,6 +964,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     let mut clock_tracker = ClockTracker::default();
     let mut frames = 0;
     let mut pending = std::collections::VecDeque::new();
+    let frame_pool: FramePool = Rc::new(RefCell::new(None));
     let mut end_reached = false;
     loop {
         if pending.is_empty() && clock_tracker.finished(frames + 1) {
@@ -937,7 +979,11 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             pending.pop_front().unwrap()
         } else {
             let reading_started = Instant::now();
-            let mut bytes = vec![0u8; (WIDTH * HEIGHT * 3) as usize];
+            let mut bytes = frame_pool.borrow_mut().take().unwrap_or_else(|| {
+                profile.frame_allocations += 1;
+                vec![0u8; frame_bytes + 64]
+            });
+            bytes[frame_bytes..].fill(0);
             let mut offset = 0;
             while offset < frame_bytes {
                 match stdout.read(&mut bytes[offset..frame_bytes]) {
@@ -952,15 +998,16 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             }
             profile.decoder_read_wait_ms += reading_started.elapsed().as_millis();
             frames += 1;
-            bytes.extend_from_slice(&[0u8; 64]);
             (
                 frames,
-                RgbImage::from_raw(WIDTH, HEIGHT, bytes).ok_or("Invalid frame")?,
+                FrameBuffer {
+                    image: Some(
+                        RgbImage::from_raw(WIDTH, decoded_height, bytes).ok_or("Invalid frame")?,
+                    ),
+                    pool: frame_pool.clone(),
+                },
             )
         };
-        if selected.is_none() {
-            pending.push_back((frame_index, frame.clone()));
-        }
         if selected.is_none() && frames <= 20 {
             let identity_started = Instant::now();
             for (i, layout) in layouts.iter().enumerate() {
@@ -980,15 +1027,15 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             }
             profile.identity_ms += identity_started.elapsed().as_millis();
         }
-        if selected.is_none() {
-            if frames >= 20 {
-                return Err("Match and robot identities could not be validated".into());
-            }
-            continue;
-        }
         // Replay the bounded identity prefix so auto start is observed even if
         // the second identity confirmation arrives after the clock reaches 17.
         if verifying {
+            // Move the verified source frame into the bounded prefix queue;
+            // never clone its RGB allocation just to replay it later.
+            pending.push_back((frame_index, frame));
+            if selected.is_none() && frames >= 20 {
+                return Err("Match and robot identities could not be validated".into());
+            }
             continue;
         }
         let layout = layouts[selected.unwrap()];
@@ -1281,6 +1328,83 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn prefix_frames_move_without_copying_and_return_only_one_spare() {
+        let pool: FramePool = Rc::new(RefCell::new(None));
+        let a = FrameBuffer {
+            image: Some(RgbImage::new(WIDTH, 232)),
+            pool: pool.clone(),
+        };
+        let pointer = a.as_raw().as_ptr();
+        let b = FrameBuffer {
+            image: Some(RgbImage::new(WIDTH, 232)),
+            pool: pool.clone(),
+        };
+        let mut pending = std::collections::VecDeque::from([(1, a), (2, b)]);
+        let (index, frame) = pending.pop_front().unwrap();
+        assert_eq!(index, 1);
+        assert_eq!(frame.as_raw().as_ptr(), pointer);
+        drop(frame);
+        drop(pending.pop_front());
+        let bytes = pool.borrow_mut().take().unwrap();
+        assert_eq!(bytes.as_ptr(), pointer);
+        let reused = FrameBuffer {
+            image: Some(RgbImage::from_raw(WIDTH, 232, bytes).unwrap()),
+            pool: pool.clone(),
+        };
+        assert_eq!(reused.as_raw().as_ptr(), pointer);
+        drop(reused);
+        assert!(pool.borrow().is_some());
+    }
+    #[test]
+    fn frame_buffer_returns_storage_on_early_exit() {
+        let pool: FramePool = Rc::new(RefCell::new(None));
+        let early = || -> Result<(), &str> {
+            let _frame = FrameBuffer {
+                image: Some(RgbImage::new(WIDTH, 232)),
+                pool: pool.clone(),
+            };
+            Err("unreadable clock")
+        };
+        assert!(early().is_err());
+        assert_eq!(
+            pool.borrow().as_ref().unwrap().len(),
+            (WIDTH * 232 * 3) as usize
+        );
+    }
+    #[test]
+    fn compact_bands_preserve_720p_crop_geometry_and_reject_unavailable_rows() {
+        let full = RgbImage::from_fn(WIDTH, HEIGHT, |x, y| {
+            image::Rgb([(x % 256) as u8, (y % 256) as u8, ((x + y) % 256) as u8])
+        });
+        let band = RgbImage::from_raw(
+            WIDTH,
+            232,
+            full.as_raw()[..(WIDTH * 232 * 3) as usize].to_vec(),
+        )
+        .unwrap();
+        let mut scalers = Scalers::new();
+        for rect in [
+            [0.2, 0.1, 0.05, 0.05],
+            [0.4, 0.2, 0.1, 0.04],
+            [0.5, 0.25, 0.1, 0.05],
+        ] {
+            for padding in [0, 10, 20] {
+                let a = prepare_with(&full, rect, padding, &mut scalers).unwrap();
+                let b = prepare_with(&band, rect, padding, &mut scalers).unwrap();
+                assert_eq!((a.width, a.height, a.stride), (b.width, b.height, b.stride));
+                assert_eq!(a.image, b.image);
+            }
+        }
+        assert!(prepare(&band, [0.1, 0.4, 0.1, 0.1], 0).is_none());
+        assert!(prepare(&RgbImage::new(WIDTH, HEIGHT + 1), [0.1, 0.1, 0.1, 0.1], 0).is_none());
+        let mut engine = Engine::new().unwrap();
+        assert_eq!(
+            engine.read(&band, [0.1, 0.4, 0.1, 0.1], CropKind::Fuel, 0),
+            ("".into(), 0.0)
+        );
+        assert_eq!(engine.calls, 0);
+    }
     fn top_layout() -> Layout {
         serde_json::from_value(serde_json::json!({
             "season":2026,"version":"test","redFuel":[0.2,0.1,0.05,0.05],"blueFuel":[0.7,0.1,0.05,0.05],
