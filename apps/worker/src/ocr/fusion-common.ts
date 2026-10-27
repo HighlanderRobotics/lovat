@@ -328,3 +328,42 @@ export function consensusWeight(
     sourceWeights.reduce((sum, w) => sum + w, 0) / sources.length,
   );
 }
+
+// A source with many submitted reports still gets one vote. Explicit no-score
+// reports participate, so one disputed claim cannot become a full robot credit
+// merely because all positive weights are normalized back to the scoreboard.
+export function phaseConsensus(
+  prepared: Prepared["prepared"],
+  teamNumber: number,
+  scale: number,
+  phase: { from: number; to: number; earlyMs: number; lateMs: number },
+) {
+  const reports = prepared.filter((r) => r.report.teamNumber === teamNumber);
+  const sources = [
+    ...new Set(reports.map((r) => r.report.sourceTeamNumber)),
+  ].sort((a, b) => a - b);
+  const votes = sources.map((sourceTeamNumber) => {
+    const sourceReports = reports.filter(
+      (r) => r.report.sourceTeamNumber === sourceTeamNumber,
+    );
+    // The report itself must claim scoring in this phase. Display/arrival
+    // padding can keep a score eligible, but cannot certify another phase.
+    const positive = sourceReports.filter((r) =>
+      r.windows.some(
+        (w) =>
+          w.end - phase.lateMs >= phase.from &&
+          w.start + phase.earlyMs <= phase.to,
+      ),
+    ).length;
+    return {
+      sourceTeamNumber,
+      reports: sourceReports.length,
+      positiveReports: positive,
+      support: Math.round((positive * scale) / sourceReports.length),
+    };
+  });
+  const support = votes.length
+    ? Math.round(votes.reduce((n, v) => n + v.support, 0) / votes.length)
+    : 0;
+  return { support, scale, eligible: support > scale / 2, sources: votes };
+}

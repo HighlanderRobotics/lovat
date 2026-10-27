@@ -120,3 +120,19 @@ Choose these matches before looking at estimated robot counts, to build an indep
 | [QM16](https://www.youtube.com/watch?v=aHVDrCM76Ok) | 846, 2473, 4990 | 766, 4765, 10252 | Counter correction and long unreadable intervals: tests recovery and conservative unknown allocation.         |
 
 Record each robot's actual hub entries separately for auto and teleop, with video timestamps for each burst. Separate misses, feeds, inactive-hub entries, and human-player shots. Mark obscured entries as uncertain (or a range), rather than inventing counts. Keep inactive-hub entries distinct when comparing counts with point budgets; [the game manual](https://firstfrc.blob.core.windows.net/frc2026/Manual/HTML/2026GameManual.htm) distinguishes hub activity and point eligibility. Compare manual counts with estimates only after counting: report per-robot auto/teleop absolute error, signed bias, and unattributed fuel. Video/interval coverage alone is not an accuracy measurement.
+
+## Source-balanced phase consensus (v5)
+
+A small positive claim used to be averaged down by contradictory reports, then normalized back up against the whole scoreboard increment. That could credit a robot despite stronger no-score evidence. V5 requires strictly more than half of source-balanced report votes to claim scoring in each phase. Every source team has one equally weighted vote; submitted reports within a source share that vote. Auto agreement cannot certify teleop, and display/arrival padding does not create a phase claim. A disputed candidate retains its proportional share as unattributed fuel rather than donating it to another robot. No match-specific manual allocations or thresholds are used.
+
+The read-only CalGames replay used 812 scoped reports for the 37 available videos. Before applying v5, it reproduced all 37 saved v4 team allocations. V5 remained byte-identical after report/event/roster/counter permutations, with zero phase/final conservation failures. Unattributed fuel increased from 460 to 989 across the set: this is a deliberate uncertainty tradeoff, not proof that the remaining robot allocations are accurate. Human-player overlap and imperfect scout timing still limit per-robot estimates. The full Worker suite has 126 passing tests; targeted tests cover source conflicts, equal source weighting, independent phase eligibility, unknown-share retention, and export reconciliation.
+
+Future event artifacts retain their already scoped numeric `fusionInput` so estimates remain reproducible if the database changes. This excludes scout notes and account/contact information. A missing report set is explicitly labeled `REPORTS_MISSING` rather than described as a report-backed estimate.
+
+Create a local, reproducible contribution export from input JSON files (or saved batch artifacts containing `fusionInput`):
+
+```sh
+bun tools/export-contributions.ts --input /path/to/inputs --output /path/to/empty-export --source-teams 1967,8033 --expected-matches 37
+```
+
+The export contains `team-contributions.csv` (six team rows per match, auto/teleop fuel and tower contributions), `alliance-reconciliation.csv` (unknown fuel, unknown points, and alliance-only foul credit), full `estimates.json`, and a hash/input-provenance `manifest.json`. The command refuses duplicate matches, inconsistent budgets, a wrong expected count, or a nonempty destination. Private exports and recovered source snapshots must stay outside Git.

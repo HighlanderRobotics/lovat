@@ -256,6 +256,9 @@ try {
                   }
                 : {}),
             },
+            // Retain only the already scoped numeric input, never scout notes,
+            // so a later database reset cannot make this estimate unreproducible.
+            fusionInput: input,
             estimate: fuseMatch(input, sourceTeams),
             reportCount: reports.length,
           };

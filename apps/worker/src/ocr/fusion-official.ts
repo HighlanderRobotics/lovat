@@ -3,12 +3,14 @@ import { z } from "zod";
 import {
   apportion,
   consensusWeight,
+  phaseConsensus,
   type Prepared,
   compare,
 } from "./fusion-common";
 
 export const OFFICIAL_POLICY = Object.freeze({
   minimumConfidence: 85,
+  minimumPhaseConsensusExclusive: 0.5,
   correctionQuarantineSeconds: 6,
   earlyMs: 2000,
   lateMs: 6000,
@@ -272,6 +274,21 @@ export function fuseOfficialMatch(state: Prepared) {
       weights: robots.map((r) => ({ teamNumber: r.teamNumber, weight: 0 })),
       unattributedMicros: 0,
     }));
+    const phaseEvidence = (["AUTO", "TELEOP"] as const).map((phase) => ({
+      phase,
+      robots: robots.map((r) => ({
+        teamNumber: r.teamNumber,
+        ...phaseConsensus(prepared, r.teamNumber, OFFICIAL_POLICY.weightScale, {
+          from: phase === "AUTO" ? 0 : OFFICIAL_POLICY.teleopStart * 1000,
+          to:
+            (phase === "AUTO"
+              ? OFFICIAL_POLICY.autoEnd
+              : OFFICIAL_POLICY.matchEnd) * 1000,
+          earlyMs: OFFICIAL_POLICY.earlyMs,
+          lateMs: OFFICIAL_POLICY.lateMs,
+        }),
+      })),
+    }));
     type Allocation = ReturnType<typeof apportion>;
     const intervals: {
       from: number;
@@ -328,10 +345,37 @@ export function fuseOfficialMatch(state: Prepared) {
                 )
               : 0,
         }));
+        const conflictedWeight = weights.reduce(
+          (sum, w) =>
+            sum +
+            (phaseEvidence[index]!.robots.find(
+              (r) => r.teamNumber === w.teamNumber,
+            )!.eligible
+              ? 0
+              : w.weight),
+          0,
+        );
         const allocation: Allocation = apportion(
           delta * OFFICIAL_POLICY.weightScale,
-          weights,
+          [
+            ...weights.map((w) => ({
+              ...w,
+              weight: phaseEvidence[index]!.robots.find(
+                (r) => r.teamNumber === w.teamNumber,
+              )!.eligible
+                ? w.weight
+                : 0,
+            })),
+            { teamNumber: 0, weight: conflictedWeight },
+          ],
         );
+        // Keep the disputed share unknown, rather than silently donating it to
+        // another robot. No report or manually observed count is rewritten.
+        const disputed = allocation.teams.find(
+          (t) => t.teamNumber === 0,
+        )!.points;
+        allocation.teams = allocation.teams.filter((t) => t.teamNumber !== 0);
+        allocation.unattributed += disputed;
         for (const share of allocation.teams)
           phase.weights.find(
             (w) => w.teamNumber === share.teamNumber,
@@ -521,6 +565,7 @@ export function fuseOfficialMatch(state: Prepared) {
         count: h.endgameCount ?? null,
         points: h.endgamePoints ?? null,
       },
+      attributionEvidence: phaseEvidence,
       pointsConserved: true,
       intervals,
     };
@@ -559,9 +604,7 @@ export function fuseOfficialMatch(state: Prepared) {
       : {}),
   };
   return {
-    algorithm: input.ocr.channels
-      ? "scoreboard-constrained-fusion-v4-tba"
-      : "scoreboard-constrained-fusion-v3-tba",
+    algorithm: "scoreboard-constrained-fusion-v5-tba-consensus",
     policy: {
       ...OFFICIAL_POLICY,
       ...(input.ocr.channels ? { maximumAttributionGapSeconds: 3 } : {}),
@@ -572,6 +615,16 @@ export function fuseOfficialMatch(state: Prepared) {
       .update(JSON.stringify(normalized))
       .digest("hex"),
     estimate: true,
+    attributionStatus:
+      prepared.length === 0
+        ? "REPORTS_MISSING"
+        : alliances.some((a) =>
+              a.attributionEvidence.some((p) =>
+                p.robots.some((r) => r.support > 0 && !r.eligible),
+              ),
+            )
+          ? "SOURCE_CONFLICTS"
+          : "REPORT_BACKED_ESTIMATE",
     officialSource: `https://www.thebluealliance.com/match/${input.matchKey}`,
     scoreboardThrough: lastPoints?.time ?? jointEndpoint.time,
     fuelOCRThrough: jointEndpoint.time,
@@ -587,6 +640,7 @@ export function fuseOfficialMatch(state: Prepared) {
     },
     alliances,
     limitations: [
+      "Robot phase claims need strictly more than half of source-balanced report votes; a disputed claim keeps its proportional share unattributed rather than transferring it to another robot.",
       "Alliance fuel counters include human-player scores. Without independent human-player evidence, overlapping scout windows can misattribute that fuel to robots; team estimates are not validated individual counts.",
       "Counter retractions censor conflicting anchors without changing observed values; surrounding fuel remains unattributed.",
       "Robot fuel shares remain estimates; TBA fixes alliance phase budgets, not individual fuel counts.",
