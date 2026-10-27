@@ -281,3 +281,82 @@ test("an official remainder is not attributed to a late shooter after a counter 
   ).toBe(true);
   expect(red.pointsConserved).toBe(true);
 });
+
+function withChannels() {
+  const input: any = fixture();
+  input.ocr.channels = Object.fromEntries(
+    ["red", "blue"].map((color) => [
+      color,
+      input.ocr.observations.map((s: any) => ({
+        time: s.time,
+        count: s[color],
+        confidence: s.confidence,
+      })),
+    ]),
+  );
+  return input;
+}
+test("independent counters close one alliance gap without fabricating its counterpart", () => {
+  const input = withChannels();
+  input.ocr.channels.red.splice(
+    3,
+    0,
+    { time: 25, count: 7, confidence: 95 },
+    { time: 27, count: 8, confidence: 95 },
+  );
+  const result = fuseMatch(input, [8033]) as any;
+  expect(result.algorithm).toBe("scoreboard-constrained-fusion-v4-tba");
+  expect(result.diagnostics.allianceChannels.red.samples).toBe(7);
+  expect(result.diagnostics.allianceChannels.blue.samples).toBe(5);
+  const red = result.alliances[0];
+  expect(red.intervals.find((i: any) => i.to === 27).coverage).toBe("dense");
+  expect(
+    red.intervals
+      .find((i: any) => i.to === 24)
+      .allocation.every((a: any) => a.fuelMicros === 0),
+  ).toBe(true);
+  expect(
+    red.teams.find((t: any) => t.teamNumber === 2).teleopFuelCount,
+  ).toBeGreaterThan(0);
+  expect(red.pointsConserved).toBe(true);
+  const shuffled = structuredClone(input);
+  shuffled.ocr.channels.red.reverse();
+  shuffled.ocr.channels.blue.reverse();
+  expect(fuseMatch(shuffled, [8033])).toEqual(result);
+});
+test("a blue counter retraction does not quarantine independently observed red scoring", () => {
+  const input = withChannels();
+  input.ocr.channels.red.splice(
+    3,
+    0,
+    { time: 25, count: 7, confidence: 95 },
+    { time: 27, count: 8, confidence: 95 },
+  );
+  input.ocr.channels.blue.splice(
+    3,
+    0,
+    { time: 25, count: 2, confidence: 95 },
+    { time: 27, count: 0, confidence: 95 },
+  );
+  const result = fuseMatch(input, [8033]) as any;
+  expect(result.diagnostics.allianceChannels.red.counterCorrections).toEqual(
+    [],
+  );
+  expect(
+    result.diagnostics.allianceChannels.blue.counterCorrections,
+  ).toHaveLength(1);
+  const interval = result.alliances[0].intervals.find((i: any) => i.to === 27);
+  expect(interval.coverage).toBe("dense");
+  expect(interval.supportingTeams).toContain(2);
+  expect(result.alliances.every((a: any) => a.pointsConserved)).toBe(true);
+});
+test("independent evidence refuses low confidence and conflicting timestamps", () => {
+  const input = withChannels();
+  input.ocr.channels.red[0].confidence = 84;
+  expect(() => fuseMatch(input, [8033])).toThrow();
+  input.ocr.channels.red[0].confidence = 85;
+  input.ocr.channels.red.push({ time: 24, count: 7, confidence: 95 });
+  expect(() => fuseMatch(input, [8033])).toThrow(
+    "Conflicting alliance OCR timestamps",
+  );
+});

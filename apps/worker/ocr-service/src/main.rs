@@ -63,9 +63,50 @@ struct Observation {
 #[serde(rename_all = "camelCase")]
 struct Output {
     observations: Vec<Observation>,
+    channels: Channels,
     layout_version: String,
     elapsed_ms: u128,
     frames: usize,
+}
+#[derive(Default, Serialize)]
+struct Channels {
+    red: Vec<ChannelObservation>,
+    blue: Vec<ChannelObservation>,
+}
+#[derive(Debug, PartialEq, Serialize)]
+struct ChannelObservation {
+    time: u32,
+    count: u32,
+    confidence: f64,
+}
+// Keep an observed alliance even when the other counter is unreadable.
+// Duplicate clock-zero frames obey the same settling rule as the paired series.
+fn retain_channel(
+    samples: &mut Vec<ChannelObservation>,
+    time: u32,
+    text: &str,
+    confidence: f64,
+    settling: bool,
+) {
+    let Some(count) = fuel(text) else {
+        return;
+    };
+    if confidence < 85.0 || samples.last().is_some_and(|s| time < s.time) {
+        return;
+    }
+    if let Some(previous) = samples.last()
+        && time == previous.time
+    {
+        if !settling || count < previous.count {
+            return;
+        }
+        samples.pop();
+    }
+    samples.push(ChannelObservation {
+        time,
+        count,
+        confidence,
+    });
 }
 #[derive(Clone)]
 struct App {
@@ -117,10 +158,11 @@ unsafe extern "C" {
     fn sws_freeContext(ctx: *mut c_void);
 }
 type CropKey = (u32, u32, u32, u32, bool, u32);
-type CachedCrop = (Vec<u8>, (String, f64));
+type CachedCrop = (Vec<u8>, Vec<u8>, (String, f64));
 struct Engine {
     api: *mut c_void,
     cache: std::collections::HashMap<CropKey, CachedCrop>,
+    scalers: Scalers,
     calls: usize,
     hits: usize,
 }
@@ -135,6 +177,7 @@ impl Engine {
             let engine = Self {
                 api: TessBaseAPICreate(),
                 cache: Default::default(),
+                scalers: Default::default(),
                 calls: 0,
                 hits: 0,
             };
@@ -181,14 +224,37 @@ impl Engine {
         }
     }
     fn read(&mut self, frame: &RgbImage, rect: Rect, numeric: bool, padding: u32) -> (String, f64) {
-        let Some(original) = prepare(frame, rect, padding) else {
+        if !valid_rect(rect) || frame.width() != WIDTH || frame.height() != HEIGHT || padding > 20 {
             return (String::new(), 0.0);
-        };
+        }
         let (x, y, w, h) = geometry(rect);
         let key = (x, y, w, h, numeric, padding);
-        if let Some((pixels, result)) = self.cache.get(&key)
-            && *pixels == original.image
+        // Compare exact source RGB bytes before allocating/scaling the crop.
+        // A one-pixel change invalidates recognition; no fuzzy digit caching.
+        let rows = || {
+            (y..y + h).map(|row| {
+                let start = ((row * WIDTH + x) * 3) as usize;
+                &frame.as_raw()[start..start + (w * 3) as usize]
+            })
+        };
+        if let Some((pixels, _, result)) = self.cache.get(&key)
+            && rows()
+                .zip(pixels.chunks_exact((w * 3) as usize))
+                .all(|(a, b)| a == b)
         {
+            self.hits += 1;
+            return result.clone();
+        }
+        let pixels = rows().flatten().copied().collect();
+        let Some(original) = prepare_with(frame, rect, padding, &mut self.scalers) else {
+            return (String::new(), 0.0);
+        };
+        // RGB noise can disappear during grayscale conversion. Preserve the
+        // original exact-gray cache too, so the earlier check never adds OCR work.
+        if let Some((source, prepared_pixels, result)) = self.cache.get_mut(&key)
+            && *prepared_pixels == original.image
+        {
+            *source = pixels;
             self.hits += 1;
             return result.clone();
         }
@@ -198,7 +264,7 @@ impl Engine {
         };
         if !valid(&best) {
             for binary in [false, true] {
-                let Some(mut recovered) = prepare(frame, rect, 10) else {
+                let Some(mut recovered) = prepare_with(frame, rect, 10, &mut self.scalers) else {
                     continue;
                 };
                 normalize(&mut recovered, 10, binary);
@@ -211,7 +277,8 @@ impl Engine {
                 }
             }
         }
-        self.cache.insert(key, (original.image, best.clone()));
+        self.cache
+            .insert(key, (pixels, original.image, best.clone()));
         best
     }
     fn team(&mut self, frame: &RgbImage, rect: Rect, expected: &[u32]) -> Option<u32> {
@@ -224,7 +291,7 @@ impl Engine {
         }
         // Isolate glyphs when the word model mistakes a narrow 1 for punctuation.
         // This is used for roster identity only, never to invent a score reading.
-        let mut prepared = prepare(frame, rect, 0)?;
+        let mut prepared = prepare_with(frame, rect, 0, &mut self.scalers)?;
         normalize(&mut prepared, 0, false);
         let groups = glyphs(&prepared);
         if groups.is_empty() || groups.len() > 5 {
@@ -251,7 +318,23 @@ struct Prepared {
     height: u32,
     stride: u32,
 }
+struct Scaler(*mut c_void);
+impl Drop for Scaler {
+    fn drop(&mut self) {
+        unsafe { sws_freeContext(self.0) }
+    }
+}
+type Scalers = std::collections::HashMap<(u32, u32), Scaler>;
+#[cfg(test)]
 fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
+    prepare_with(frame, rect, padding, &mut Scalers::new())
+}
+fn prepare_with(
+    frame: &RgbImage,
+    rect: Rect,
+    padding: u32,
+    scalers: &mut Scalers,
+) -> Option<Prepared> {
     if !valid_rect(rect) || frame.width() != WIDTH || frame.height() != HEIGHT || padding > 20 {
         return None;
     }
@@ -263,18 +346,21 @@ fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
     // Use the same bicubic RGB-to-gray scaler as the CLI reference. Cropping
     // before conversion matters for small colored text at the clock edge.
     unsafe {
-        let context = sws_getContext(
-            w as i32,
-            h as i32,
-            2,
-            (w * 4) as i32,
-            (h * 4) as i32,
-            8,
-            4,
-            std::ptr::null(),
-            std::ptr::null(),
-            std::ptr::null(),
-        );
+        let scaler = scalers.entry((w, h)).or_insert_with(|| {
+            Scaler(sws_getContext(
+                w as i32,
+                h as i32,
+                2,
+                (w * 4) as i32,
+                (h * 4) as i32,
+                8,
+                4,
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            ))
+        });
+        let context = scaler.0;
         if context.is_null() {
             return None;
         }
@@ -303,7 +389,6 @@ fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
             dst.as_ptr(),
             dst_stride.as_ptr(),
         );
-        sws_freeContext(context);
         if scaled != (h * 4) as i32 {
             return None;
         }
@@ -321,6 +406,12 @@ fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
             }
         }
     }
+    // Aligned scaler writes outside the visible row are not OCR pixels.
+    // Clear them so reused scaler buffers are deterministic as well.
+    for row in 0..height {
+        image[(row * stride + width) as usize..((row + 1) * stride) as usize].fill(255);
+    }
+    image[(stride * height) as usize..].fill(255);
     Some(Prepared {
         image,
         width,
@@ -718,6 +809,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         .collect();
     let mut selected = None;
     let mut observations: Vec<Observation> = Vec::new();
+    let mut channels = Channels::default();
     let mut clock_tracker = ClockTracker::default();
     let mut frames = 0;
     let mut pending = std::collections::VecDeque::new();
@@ -827,6 +919,20 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             } else {
                 (None, None, None)
             };
+        retain_channel(
+            &mut channels.red,
+            time,
+            &r,
+            rc.min(cc),
+            red_points.is_some(),
+        );
+        retain_channel(
+            &mut channels.blue,
+            time,
+            &b,
+            bc.min(cc),
+            blue_points.is_some(),
+        );
         let confidence = rc.min(bc).min(cc);
         if let (Some(red), Some(blue)) = (fuel(&r), fuel(&b))
             && confidence >= 85.0
@@ -873,6 +979,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     eprintln!("ocr_calls={} cache_hits={}", engine.calls, engine.hits);
     Ok(Output {
         observations,
+        channels,
         layout_version: layouts[index].version.clone(),
         elapsed_ms: start.elapsed().as_millis(),
         frames,
@@ -1087,6 +1194,56 @@ mod tests {
         frame.put_pixel(130, 75, image::Rgb([0, 0, 0]));
         engine.read(&frame, rect, true, 0);
         assert!(engine.calls > calls);
+    }
+    #[test]
+    fn reused_scalers_match_fresh_contexts_across_frames_and_padding() {
+        let mut scalers = Scalers::new();
+        for variant in 0..3 {
+            let frame = RgbImage::from_fn(WIDTH, HEIGHT, |x, y| {
+                image::Rgb([
+                    ((x * 13 + y * 7 + variant) % 256) as u8,
+                    ((x * 3 + y * 17 + variant * 11) % 256) as u8,
+                    ((x + y + variant * 23) % 256) as u8,
+                ])
+            });
+            for rect in [
+                [0.1, 0.1, 0.04, 0.03],
+                [0.6, 0.2, 0.04, 0.03],
+                [0.2, 0.3, 0.05, 0.04],
+            ] {
+                for padding in [0, 10, 20] {
+                    let reused = prepare_with(&frame, rect, padding, &mut scalers).unwrap();
+                    let fresh = prepare(&frame, rect, padding).unwrap();
+                    let mismatch = reused
+                        .image
+                        .iter()
+                        .zip(&fresh.image)
+                        .position(|(a, b)| a != b);
+                    assert!(
+                        mismatch.is_none(),
+                        "variant={variant}, rect={rect:?}, padding={padding}, first mismatch={mismatch:?}, stride={}",
+                        reused.stride
+                    );
+                }
+            }
+        }
+        assert_eq!(scalers.len(), 2);
+    }
+    #[test]
+    fn independent_channels_preserve_confident_evidence_and_real_corrections() {
+        let mut samples = Vec::new();
+        retain_channel(&mut samples, 10, "81 / 100", 90.0, false);
+        retain_channel(&mut samples, 11, "82", 84.9, false);
+        retain_channel(&mut samples, 11, "garbage", 100.0, false);
+        retain_channel(&mut samples, 12, "79", 95.0, false);
+        retain_channel(&mut samples, 11, "90", 99.0, false);
+        retain_channel(&mut samples, 12, "80", 96.0, false);
+        assert_eq!(samples.len(), 2);
+        assert_eq!(samples[1].count, 79); // do not hide a retraction
+        retain_channel(&mut samples, 12, "80", 96.0, true);
+        assert_eq!(samples[1].count, 80);
+        retain_channel(&mut samples, 12, "78", 96.0, true);
+        assert_eq!(samples[1].count, 80);
     }
     #[test]
     fn narrow_one_requires_a_tall_continuous_stem() {

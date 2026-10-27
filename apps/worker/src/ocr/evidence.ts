@@ -112,7 +112,7 @@ export function validateEvidence(samples: Observation[]): boolean {
 // TBA-constrained estimates use independently observed intervals. Review flags
 // retain their stricter validator above. This measures time coverage rather than
 // discarding a video solely because fewer than 120 timestamps were readable.
-export function estimateCoverage(samples: Observation[]) {
+export function estimateCoverage(samples: readonly { time: number }[]) {
   const denseSeconds = samples.slice(1).reduce((sum, s, i) => {
     const gap = s.time - samples[i]!.time;
     return sum + (gap > 0 && gap <= 3 ? gap : 0);

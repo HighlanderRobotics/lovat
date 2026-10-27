@@ -1,5 +1,9 @@
 import { test, expect } from "bun:test";
-import { OcrServiceUnavailable, extractWithService } from "../src/ocr/service";
+import {
+  OcrServiceUnavailable,
+  extractWithService,
+  extractServiceEvidence,
+} from "../src/ocr/service";
 import template from "../config/scoreboard-2026-calgames.json";
 
 test("service client validates its token before sending a video", async () => {
@@ -167,6 +171,40 @@ test("native rejection reasons are allowlisted and bounded", async () => {
     globalThis.fetch = (async () =>
       new Response("x".repeat(1024), { status: 422 })) as any;
     await expect(run()).rejects.toThrow("Oversized OCR service response");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("native channel evidence survives the client while paired callers remain compatible", async () => {
+  const original = globalThis.fetch;
+  const channels = { red: [{ time: 6, count: 2, confidence: 95 }], blue: [] };
+  const result = {
+    observations: [],
+    channels,
+    layoutVersion: template.version,
+    elapsedMs: 1,
+    frames: 10,
+  };
+  const args: Parameters<typeof extractServiceEvidence> = [
+    "/missing",
+    [1, 2, 3, 4, 5, 6],
+    "Qualification 1",
+    template as any,
+    "http://localhost",
+    "x".repeat(32),
+  ];
+  try {
+    globalThis.fetch = (async () => Response.json(result)) as any;
+    expect((await extractServiceEvidence(...args)).channels).toEqual(channels);
+    expect(await extractWithService(...args)).toEqual([]);
+    channels.red[0]!.confidence = 84;
+    await expect(extractServiceEvidence(...args)).rejects.toThrow();
+    globalThis.fetch = (async () =>
+      new Response("x".repeat(256 * 1024 + 1))) as any;
+    await expect(extractServiceEvidence(...args)).rejects.toThrow(
+      "Oversized OCR service response",
+    );
   } finally {
     globalThis.fetch = original;
   }

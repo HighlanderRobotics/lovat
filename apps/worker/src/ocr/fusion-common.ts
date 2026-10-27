@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { channelsSchema } from "./service";
 
 const alliance = z.enum(["RED", "BLUE"]);
 const eventSchema = z.object({
@@ -31,6 +32,7 @@ export const fusionInputSchema = z.object({
   reports: z.array(reportSchema).max(1000),
   tba: z.unknown().optional(),
   ocr: z.object({
+    channels: channelsSchema.optional(),
     matchKey: z.string(),
     status: z.enum(["VALIDATED", "PARTIAL"]),
     videoKey: z.string().optional(),

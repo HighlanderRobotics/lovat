@@ -8,7 +8,21 @@ export class OcrExtractionError extends Error {
   }
 }
 
+export const channelSchema = z
+  .array(
+    z.object({
+      time: z.number().int().min(0).max(163),
+      count: z.number().int().min(0).max(1000),
+      confidence: z.number().min(85).max(100),
+    }),
+  )
+  .max(600);
+export const channelsSchema = z.object({
+  red: channelSchema,
+  blue: channelSchema,
+});
 const resultSchema = z.object({
+  channels: channelsSchema.optional(),
   observations: z
     .array(
       z.object({
@@ -27,7 +41,7 @@ const resultSchema = z.object({
   frames: z.number().int().min(1).max(600),
 });
 
-export async function extractWithService(
+export async function extractServiceEvidence(
   path: string,
   expectedTeams: number[],
   expectedMatchLabel: string,
@@ -88,7 +102,7 @@ export async function extractWithService(
   }
   if (!response.ok)
     throw new Error(`OCR service rejected video (${response.status})`);
-  const text = await boundedText(response, 128 * 1024);
+  const text = await boundedText(response, 256 * 1024);
   const result = resultSchema.parse(JSON.parse(text));
   if (
     ![template, ...(template.alternatives ?? [])].some(
@@ -96,7 +110,14 @@ export async function extractWithService(
     )
   )
     throw new Error("OCR service returned an unknown layout");
-  return result.observations;
+  return result;
+}
+
+// Compatibility for the normal review pipeline, which requires paired counters.
+export async function extractWithService(
+  ...args: Parameters<typeof extractServiceEvidence>
+) {
+  return (await extractServiceEvidence(...args)).observations;
 }
 
 async function boundedText(

@@ -135,7 +135,8 @@ export function fuseOfficialMatch(state: Prepared) {
     ]).size !== 6
   )
     throw new Error("Duplicate TBA robot identity");
-  const endpoint = samples.at(-1)!;
+  const jointEndpoint = samples.at(-1)!;
+  const channelDiagnostics: Record<string, unknown> = {};
   const scoreSamples = samples.filter(
     (s) =>
       s.redPoints !== undefined &&
@@ -148,6 +149,43 @@ export function fuseOfficialMatch(state: Prepared) {
       b = official.score_breakdown[name],
       roster = official.alliances[name],
       h = b.hubScore;
+    const rawChannel = input.ocr.channels?.[name];
+    const allianceSamples: { time: number; count: number }[] = [];
+    const allianceCorrections: typeof corrections = [];
+    for (const sample of [
+      ...(rawChannel ?? samples.map((s) => ({ time: s.time, count: s[name] }))),
+    ].sort((a, b) => a.time - b.time || a.count - b.count)) {
+      const previous = allianceSamples.at(-1);
+      if (previous?.time === sample.time) {
+        if (previous.count !== sample.count)
+          throw new Error("Conflicting alliance OCR timestamps");
+        continue;
+      }
+      const discardedTimestamps: number[] = [];
+      while (
+        allianceSamples.length &&
+        allianceSamples.at(-1)!.count > sample.count
+      )
+        discardedTimestamps.push(allianceSamples.pop()!.time);
+      if (discardedTimestamps.length)
+        allianceCorrections.push({
+          from: allianceSamples.at(-1)?.time ?? 0,
+          to: sample.time,
+          discardedTimestamps: discardedTimestamps.sort((a, b) => a - b),
+        });
+      allianceSamples.push(sample);
+    }
+    if (allianceSamples.length < 2)
+      throw new Error("At least two confident alliance observations required");
+    const endpoint = allianceSamples.at(-1)!;
+    // Old artifacts retain the original joint correction policy; new channels
+    // quarantine only the alliance whose observed counter actually retracted.
+    const localCorrections = rawChannel ? allianceCorrections : corrections;
+    channelDiagnostics[name] = {
+      samples: allianceSamples.length,
+      through: endpoint.time,
+      counterCorrections: localCorrections,
+    };
     if (
       h.autoCount + h.teleopCount !== h.totalCount ||
       h.autoPoints + h.teleopPoints !== h.totalPoints
@@ -190,7 +228,7 @@ export function fuseOfficialMatch(state: Prepared) {
     });
     const autoTower = phaseTower(b, "AUTO", mapping),
       endgameTower = phaseTower(b, "TELEOP", mapping);
-    if (endpoint[name] > h.totalCount)
+    if (endpoint.count > h.totalCount)
       throw new Error(
         "OCR fuel exceeds the official TBA total; review the discrepancy",
       );
@@ -274,8 +312,8 @@ export function fuseOfficialMatch(state: Prepared) {
           teamNumber: r.teamNumber,
           weight:
             allowAttribution &&
-            (source !== "TBA_REMAINDER" || corrections.length === 0) &&
-            !corrections.some(
+            (source !== "TBA_REMAINDER" || localCorrections.length === 0) &&
+            !localCorrections.some(
               (c) =>
                 from < c.to + OFFICIAL_POLICY.correctionQuarantineSeconds &&
                 to > c.from - OFFICIAL_POLICY.correctionQuarantineSeconds,
@@ -326,7 +364,7 @@ export function fuseOfficialMatch(state: Prepared) {
         coverage:
           source === "TBA_REMAINDER"
             ? "inferred-settling-window"
-            : corrections.some(
+            : localCorrections.some(
                   (c) =>
                     from < c.to + OFFICIAL_POLICY.correctionQuarantineSeconds &&
                     to > c.from - OFFICIAL_POLICY.correctionQuarantineSeconds,
@@ -348,17 +386,24 @@ export function fuseOfficialMatch(state: Prepared) {
       });
     };
     let previous = { time: 0, count: 0 };
-    for (const sample of samples) {
-      const current = sample[name];
+    for (const sample of allianceSamples) {
+      const current = sample.count;
       const autoDelta =
         Math.min(current, h.autoCount) - Math.min(previous.count, h.autoCount);
       const totalDelta = current - previous.count;
-      add(previous.time, sample.time, autoDelta, totalDelta - autoDelta, "OCR");
+      add(
+        previous.time,
+        sample.time,
+        autoDelta,
+        totalDelta - autoDelta,
+        "OCR",
+        !rawChannel || sample.time - previous.time <= 3,
+      );
       previous = { time: sample.time, count: current };
     }
-    const missingAuto = h.autoCount - Math.min(endpoint[name], h.autoCount);
+    const missingAuto = h.autoCount - Math.min(endpoint.count, h.autoCount);
     const missingTele =
-      h.teleopCount - Math.max(0, endpoint[name] - h.autoCount);
+      h.teleopCount - Math.max(0, endpoint.count - h.autoCount);
     if (missingAuto > 0) {
       phases[0]!.unattributedMicros +=
         missingAuto * OFFICIAL_POLICY.weightScale;
@@ -446,7 +491,7 @@ export function fuseOfficialMatch(state: Prepared) {
       officialPoints: b.totalPoints,
       observedScoreboardPoints:
         lastPoints?.[color === "RED" ? "redPoints" : "bluePoints"] ?? null,
-      observedFuel: endpoint[name],
+      observedFuel: endpoint.count,
       officialFuel: h.totalCount,
       unseenOfficialFuel: missingAuto + missingTele,
       unseenAutoFuel: missingAuto,
@@ -498,10 +543,29 @@ export function fuseOfficialMatch(state: Prepared) {
         a.time - b.time || compare(JSON.stringify(a), JSON.stringify(b)),
     ),
     corrections,
+    ...(input.ocr.channels
+      ? {
+          channels: Object.fromEntries(
+            (["red", "blue"] as const).map((color) => [
+              color,
+              [...input.ocr.channels![color]].sort(
+                (a, b) =>
+                  a.time - b.time ||
+                  compare(JSON.stringify(a), JSON.stringify(b)),
+              ),
+            ]),
+          ),
+        }
+      : {}),
   };
   return {
-    algorithm: "scoreboard-constrained-fusion-v3-tba",
-    policy: { ...OFFICIAL_POLICY },
+    algorithm: input.ocr.channels
+      ? "scoreboard-constrained-fusion-v4-tba"
+      : "scoreboard-constrained-fusion-v3-tba",
+    policy: {
+      ...OFFICIAL_POLICY,
+      ...(input.ocr.channels ? { maximumAttributionGapSeconds: 3 } : {}),
+    },
     matchKey: input.matchKey,
     sourceTeams: allowed,
     semanticInputSha256: createHash("sha256")
@@ -509,14 +573,18 @@ export function fuseOfficialMatch(state: Prepared) {
       .digest("hex"),
     estimate: true,
     officialSource: `https://www.thebluealliance.com/match/${input.matchKey}`,
-    scoreboardThrough: lastPoints?.time ?? endpoint.time,
-    fuelOCRThrough: endpoint.time,
+    scoreboardThrough: lastPoints?.time ?? jointEndpoint.time,
+    fuelOCRThrough: jointEndpoint.time,
     officialResultAvailable: true,
     estimateThrough: OFFICIAL_POLICY.settlingEnd,
-    unobservedTailSeconds: 163 - (lastPoints?.time ?? endpoint.time),
+    unobservedTailSeconds: 163 - (lastPoints?.time ?? jointEndpoint.time),
     pointSamples: scoreSamples.length,
     fuelSamples: samples.length,
-    diagnostics: { ...diagnostics, counterCorrections: corrections },
+    diagnostics: {
+      ...diagnostics,
+      counterCorrections: corrections,
+      ...(input.ocr.channels ? { allianceChannels: channelDiagnostics } : {}),
+    },
     alliances,
     limitations: [
       "Counter retractions censor conflicting anchors without changing observed values; surrounding fuel remains unattributed.",

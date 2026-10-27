@@ -6,17 +6,16 @@ import { join } from "node:path";
 import { z } from "zod";
 import { db } from "../src/db";
 import { createTbaClient } from "../src/providers/tba";
-import {
-  extractScoreboard,
-  OcrTimelineError,
-  templateSchema,
-} from "../src/ocr/media";
+import { templateSchema } from "../src/ocr/media";
 import {
   validateObservations,
   validateEstimateEvidence,
   estimateCoverage,
 } from "../src/ocr/evidence";
-import { OcrServiceUnavailable } from "../src/ocr/service";
+import {
+  extractServiceEvidence,
+  OcrServiceUnavailable,
+} from "../src/ocr/service";
 import { fuseMatch } from "../src/ocr/fusion";
 
 const eventKey = process.env.OCR_BATCH_EVENT ?? "";
@@ -170,27 +169,28 @@ try {
           const path = join(directory, "match.mp4");
           await Bun.write(path, media);
           let observations: any[] = [];
+          let channels: Awaited<
+            ReturnType<typeof extractServiceEvidence>
+          >["channels"];
           let rejection: string | undefined;
           for (let retry = 0; retry < 3; retry++) {
             try {
-              observations = await extractScoreboard(
-                video.key,
+              const extracted = await extractServiceEvidence(
+                path,
                 slots.map((s) => s.teamNumber),
                 label,
                 template,
-                { localVideo: path },
+                process.env.OCR_SERVICE_URL!,
+                process.env.OCR_SERVICE_TOKEN!,
               );
+              observations = extracted.observations;
+              channels = extracted.channels;
               break;
             } catch (error) {
               if (error instanceof OcrServiceUnavailable) {
                 if (retry === 2) throw error;
                 await Bun.sleep(5000);
                 continue;
-              }
-              if (error instanceof OcrTimelineError) {
-                observations = error.observations;
-                rejection = error.message;
-                break;
               }
               rejection = error instanceof Error ? error.message : "OCR failed";
               break;
@@ -207,6 +207,7 @@ try {
             templateVersion: template.version,
             status,
             observations,
+            ...(channels ? { channels } : {}),
           };
           record = {
             matchKey: match.key,
@@ -240,7 +241,17 @@ try {
             matchKey: match.key,
             status: "COMPLETE",
             ocr: evidence,
-            coverage: estimateCoverage(evidence.observations),
+            coverage: {
+              ...estimateCoverage(evidence.observations),
+              ...(evidence.channels
+                ? {
+                    alliances: {
+                      red: estimateCoverage(evidence.channels.red),
+                      blue: estimateCoverage(evidence.channels.blue),
+                    },
+                  }
+                : {}),
+            },
             estimate: fuseMatch(input, sourceTeams),
             reportCount: reports.length,
           };

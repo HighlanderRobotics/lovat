@@ -92,3 +92,25 @@ On the same cached Qualification 1 video, early termination reduced extraction f
 A mixed concurrent-request check also preserved the exact sequential observations for Qualifications 1 and 11 (156 and 146 readings respectively). The two native engines therefore passed both same-video and different-video concurrency regression checks on the cached inputs.
 
 The v3 Railway rerun processed all **37/37** available first-day videos with zero rejections, processing errors, or phase/final-point conservation failures. Four passed the full-timeline gate and 33 retain partial coverage. Dense-time coverage had a minimum of 73.0% and a median of 93.3%. All raw readings, coverage metrics, explicit correction diagnostics, and estimates are stored privately under `runs/calgames-tba-v3-coverage-20261026/`; `audit.json` records the independent checks. This achieves video-level coverage without claiming complete timestamps or measured per-robot attribution accuracy. The prior v2 run remains preserved separately.
+
+## Independent alliance evidence (v4)
+
+The native service now preserves `channels.red` and `channels.blue` alongside the original paired `observations`. Each entry is an actually read counter, with its own counter/clock minimum confidence of 85. An unreadable blue digit no longer discards a valid red reading. The original paired array, full-timeline review gate, and older v3 artifacts remain compatible.
+
+TBA fusion uses each alliance's own timestamps and correction quarantine. Retractions still censor conflicting anchors; they never rewrite digits. In v4, a counter interval longer than three seconds remains unattributed rather than distributing a broad missing interval among plausible shooters. Phase fuel, tower, foul credit, and final points still conserve official budgets. Batch artifacts report paired coverage and separate alliance coverage, so independent recovery cannot be confused with a complete paired timeline.
+
+Native optimizations reuse per-request scaler contexts and check exact source pixels before allocating/scaling an unchanged crop. The existing exact grayscale cache remains as a second check. A changed pixel is never treated as approximately equal. Padding and SIMD guard bytes are reset, and tests compare reused/fresh scaler pixels across positions, frames, and padding. The batch sends its already staged file directly to the native service, avoiding a second local copy and duplicate probe; the native size, duration, identity, decode, and timeout checks remain enforced.
+
+Six cached public videos (QM1, QM16, QM33, QM35, QM36, QM37) retain byte-for-byte identical paired observations after the native changes, and all six conserve official phase/final points. Independent dense coverage improves QM16 red from 126 to 156 seconds, QM33 blue from 122 to 152, and QM35 blue from 145 to 158. These are same-file local comparisons; Railway's staged encodings can produce different readings. The 121 Worker and 18 Rust tests, Worker typecheck, Clippy with warnings denied, formatting, and repository structure checks pass.
+
+## Manual fuel verification set
+
+Choose these matches before looking at estimated robot counts, to build an independent reference:
+
+| Match                                               | Red robots      | Blue robots      | Why count it                                                                                                  |
+| --------------------------------------------------- | --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| [QM3](https://www.youtube.com/watch?v=C3Cn3asisYo)  | 846, 852, 1967  | 8, 4159, 4990    | Clean paired timeline: baseline OCR and attribution check.                                                    |
+| [QM5](https://www.youtube.com/watch?v=HDNknl2FlI0)  | 841, 5499, 6962 | 253, 751, 766    | Clean OCR with extensive overlapping scout scoring windows: tests robot attribution separately from OCR gaps. |
+| [QM16](https://www.youtube.com/watch?v=aHVDrCM76Ok) | 846, 2473, 4990 | 766, 4765, 10252 | Counter correction and long unreadable intervals: tests recovery and conservative unknown allocation.         |
+
+Record each robot's actual hub entries separately for auto and teleop, with video timestamps for each burst. Separate misses, feeds, inactive-hub entries, and human-player shots. Mark obscured entries as uncertain (or a range), rather than inventing counts. Keep inactive-hub entries distinct when comparing counts with point budgets; [the game manual](https://firstfrc.blob.core.windows.net/frc2026/Manual/HTML/2026GameManual.htm) distinguishes hub activity and point eligibility. Compare manual counts with estimates only after counting: report per-robot auto/teleop absolute error, signed bias, and unattributed fuel. Video/interval coverage alone is not an accuracy measurement.
