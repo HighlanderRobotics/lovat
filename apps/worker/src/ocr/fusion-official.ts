@@ -587,6 +587,7 @@ export function fuseOfficialMatch(state: Prepared) {
     },
     alliances,
     limitations: [
+      "Alliance fuel counters include human-player scores. Without independent human-player evidence, overlapping scout windows can misattribute that fuel to robots; team estimates are not validated individual counts.",
       "Counter retractions censor conflicting anchors without changing observed values; surrounding fuel remains unattributed.",
       "Robot fuel shares remain estimates; TBA fixes alliance phase budgets, not individual fuel counts.",
       "Foul points are opponent-awarded alliance credit, never points assigned to an own-alliance robot.",

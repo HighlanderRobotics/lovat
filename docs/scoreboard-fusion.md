@@ -103,6 +103,12 @@ Native optimizations reuse per-request scaler contexts and check exact source pi
 
 Six cached public videos (QM1, QM16, QM33, QM35, QM36, QM37) retain byte-for-byte identical paired observations after the native changes, and all six conserve official phase/final points. Independent dense coverage improves QM16 red from 126 to 156 seconds, QM33 blue from 122 to 152, and QM35 blue from 145 to 158. These are same-file local comparisons; Railway's staged encodings can produce different readings. The 121 Worker and 18 Rust tests, Worker typecheck, Clippy with warnings denied, formatting, and repository structure checks pass.
 
+A four-run alternating QM1 benchmark (baseline, optimized, optimized, baseline) produced identical 156-reading output each time. Baseline runs were 28,583 and 33,310 ms; optimized runs were 25,783 and 27,299 ms. Mean elapsed time fell from 30,946.5 to 26,541 ms (14.2%). This is a small single-video sample with visible timing variation, not an event-wide throughput guarantee.
+
+The v4 Railway audit completed **37/37** available first-day videos with no final errors, rejections, or phase/final-point conservation failures. Every paired observation array matched its v3 artifact exactly. Independent alliance channels recovered **437 additional dense alliance-seconds** compared with requiring both counters together. QM29 red improves from 119 to 159 seconds, QM33 blue from 122 to 152, and QM16 red from 130 to 156. Median independent-alliance coverage is 96.9%; the paired median remains 93.3%, with four full and 33 partial paired timelines. Results are preserved separately under `runs/calgames-tba-v4-independent-20261026/`. Deployment-rollover busy responses were retried from checkpoints before this audit. Temporary helper bucket access was revoked afterward.
+
+Human-player scores are part of the alliance counter. If they overlap a robot's scout scoring window, the current estimator can credit them to that robot. Complete OCR and official budget conservation cannot resolve that ambiguity. Manual references must separate human-player entries before being used to report individual robot error; included but unseparated human-player counts provide bounds, not exact robot ground truth. The estimator now states this limitation explicitly rather than treating manual calibration totals as a production allocation rule.
+
 ## Manual fuel verification set
 
 Choose these matches before looking at estimated robot counts, to build an independent reference:

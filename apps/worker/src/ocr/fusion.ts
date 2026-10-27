@@ -167,6 +167,7 @@ export function fuseMatch(raw: unknown, sourceTeams: number[]) {
     diagnostics,
     alliances,
     limitations: [
+      "Alliance fuel counters include human-player scores. Without independent human-player evidence, overlapping scout windows can misattribute that fuel to robots; team estimates are not validated individual counts.",
       "Team values are deterministic estimates, not directly observed individual scores.",
       "Scouting quantities provide relative attribution weights, never the point budget.",
       "Each source team has equal voting weight; identical scoring timelines within a source are deduplicated.",
