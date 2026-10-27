@@ -124,9 +124,30 @@ function phaseTower(
       : "STATUS_BUDGET_MISMATCH",
   };
 }
-export function fuseOfficialMatch(state: Prepared) {
+export function fuseOfficialMatch(
+  state: Prepared,
+  experiment?: { attributionWindowOffsetMs: number },
+) {
+  if (
+    experiment &&
+    (!Number.isInteger(experiment.attributionWindowOffsetMs) ||
+      Math.abs(experiment.attributionWindowOffsetMs) > 3000)
+  )
+    throw new Error("Experimental attribution offset must be within ±3000 ms");
   const { input, allowed, slots, prepared, samples, diagnostics, corrections } =
     state;
+  // Offline sensitivity analysis only: keep the original reports, phase votes,
+  // OCR and budgets intact. Positive offsets move attribution windows later.
+  const attributionWindows = experiment
+    ? prepared.map((r) => ({
+        ...r,
+        windows: r.windows.map((w) => ({
+          ...w,
+          start: w.start + experiment.attributionWindowOffsetMs,
+          end: w.end + experiment.attributionWindowOffsetMs,
+        })),
+      }))
+    : prepared;
   const official = officialSchema.parse(input.tba);
   if (official.key !== input.matchKey)
     throw new Error("TBA match identity mismatch");
@@ -336,7 +357,7 @@ export function fuseOfficialMatch(state: Prepared) {
                 to > c.from - OFFICIAL_POLICY.correctionQuarantineSeconds,
             )
               ? consensusWeight(
-                  prepared,
+                  attributionWindows,
                   OFFICIAL_POLICY.weightScale,
                   r.teamNumber,
                   Math.round(from * 1000),
@@ -571,6 +592,7 @@ export function fuseOfficialMatch(state: Prepared) {
     };
   });
   const normalized = {
+    ...(experiment ? { experiment } : {}),
     matchKey: input.matchKey,
     slots,
     sourceTeams: allowed,
@@ -604,9 +626,13 @@ export function fuseOfficialMatch(state: Prepared) {
       : {}),
   };
   return {
-    algorithm: "scoreboard-constrained-fusion-v5-tba-consensus",
+    algorithm: experiment
+      ? "scoreboard-constrained-fusion-v5-timing-experiment"
+      : "scoreboard-constrained-fusion-v5-tba-consensus",
+    ...(experiment ? { experiment: true } : {}),
     policy: {
       ...OFFICIAL_POLICY,
+      ...(experiment ?? {}),
       ...(input.ocr.channels ? { maximumAttributionGapSeconds: 3 } : {}),
     },
     matchKey: input.matchKey,

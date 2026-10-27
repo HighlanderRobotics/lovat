@@ -136,3 +136,22 @@ bun tools/export-contributions.ts --input /path/to/inputs --output /path/to/empt
 ```
 
 The export contains `team-contributions.csv` (six team rows per match, auto/teleop fuel and tower contributions), `alliance-reconciliation.csv` (unknown fuel, unknown points, and alliance-only foul credit), full `estimates.json`, and a hash/input-provenance `manifest.json`. The command refuses duplicate matches, inconsistent budgets, a wrong expected count, or a nonempty destination. Private exports and recovered source snapshots must stay outside Git.
+
+## Accuracy references and timing sensitivity
+
+Run the offline benchmark against the same scoped inputs used for an export:
+
+```sh
+cd apps/worker
+bun tools/benchmark-fusion.ts --input /path/to/inputs --references /path/to/manual-references --output /path/to/empty-benchmark --source-teams 1967,8033 --expected-matches 37
+```
+
+Each reference JSON identifies one match and contains `evidence`, `notes`, `robotCounts`, and `humanPlayerMinimums`. A robot count has `teamNumber`, `alliance` (`RED`/`BLUE`), `phase` (`AUTO`/`TELEOP`/`TOTAL`), integer `minimum`/`maximum`, and `basis` (`ROBOT_ONLY`/`UPPER_BOUND_INCLUDES_HP`). Only an exact robot-only label contributes to exact-subset MAE and signed bias. An HP-inclusive label must have minimum zero: it is an upper bound, not an exact robot count. Unlabeled robots/phases are not treated as zero. Human-player minima contain `alliance`, `phase`, and `fuel`; they bound the maximum possible robot fuel without assigning HP fuel to any robot. Duplicate identities, inconsistent phase/total bounds, and impossible count budgets are rejected.
+
+The tool reports the distance outside each permitted range as a **minimum absolute error**. Being within a range does not establish accuracy. Zero-only exact labels are explicitly identified because correctly rejecting inactive robots does not measure positive-scorer accuracy. AUTO/TELEOP and TOTAL summaries overlap; HP constraints can also overlap robot errors. Do not add them together. The existing QM3 manual reference includes unseparated HP fuel and has already informed development; it is a calibration check, not a held-out robot-only accuracy set.
+
+The timing experiment uses a fixed, symmetric seven-offset sweep from −3 to +3 seconds in one-second steps. Positive offsets move attribution windows later on the OCR timeline. Original source-balanced phase votes, quantities, OCR values, correction quarantine, and official phase budgets are preserved. Zero offset must reproduce baseline robot allocations. Every candidate is checked for conservation and determinism after report/event/roster/counter permutations. Experimental results have a distinct algorithm identifier and input hash. The queue and production estimator continue to use the unchanged v5 timing policy; no candidate is selected automatically, and scout lag cannot be distinguished from scoreboard delay by this sweep alone.
+
+Outputs include `benchmark.json`, `robot-reference-comparison.csv`, `human-player-constraints.csv`, `timing-sensitivity.csv`, `timing-robustness.csv`, and file hashes in `manifest.json`. Robustness rows show each robot's baseline and minimum/maximum auto, teleop, and total fuel across the fixed sweep. These are sensitivity ranges, **not statistical confidence intervals or bounds on actual fuel**. Keep manual references and numeric match outputs outside Git.
+
+The 2026-10-27 replay evaluated 259 candidates across the same 37 CalGames matches. Zero offset reproduced the previous export; all candidates conserved official totals and were deterministic after permutation. Moving windows one second earlier changed 118 of 222 robot rows; one second later changed 120. On QM3, moving three seconds earlier reduced the auto upper-bound violation from seven fuel to two, but introduced a three-fuel total upper-bound violation for another robot. Baseline red robot allocation also exceeded the maximum permitted by the user-confirmed HP minimum by at least seven fuel. This demonstrates timing sensitivity and an unresolved HP-attribution problem, not evidence for promoting a global timing shift. The full Worker suite now has 135 passing tests.
