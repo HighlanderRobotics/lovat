@@ -183,6 +183,10 @@ try {
                 process.env.OCR_SERVICE_URL!,
                 process.env.OCR_SERVICE_TOKEN!,
               );
+              if (!extracted.channels)
+                throw new OcrServiceUnavailable(
+                  "Native OCR service needs the independent-channel version",
+                );
               observations = extracted.observations;
               channels = extracted.channels;
               break;
