@@ -164,6 +164,7 @@ export async function readScoreboardImage(
   file: string,
   template: Template,
   scratch?: string,
+  context?: { tracker: MatchClock; frame: number },
 ) {
   const directory =
     scratch ?? (await mkdtemp(join(tmpdir(), "lovat-ocr-inspect-")));
@@ -204,7 +205,13 @@ export async function readScoreboardImage(
       ...(template.clockAlternatives ?? []),
     ])
       clocks.push(await read(rectangle, true));
-    values.clock = chooseClock(clocks);
+    values.clock = chooseClock(
+      clocks,
+      context
+        ? (seconds, confidence) =>
+            context.tracker.plausible(seconds, confidence, context.frame)
+        : undefined,
+    );
     return values;
   } finally {
     if (!scratch) await rm(directory, { recursive: true, force: true });
@@ -361,7 +368,10 @@ export async function extractScoreboard(
         throw new Error("OCR exceeded processing budget");
       const framePath = join(directory, "frame.png");
       await writeFile(framePath, frame);
-      const values = await readScoreboardImage(framePath, template, directory);
+      const values = await readScoreboardImage(framePath, template, directory, {
+        tracker: matchClock,
+        frame: frameIndex,
+      });
       const clock = values.clock!.text.match(/^\s*(?:(\d):)?(\d{1,3})\s*$/);
       const seconds = clock
         ? Number(clock[1] ?? 0) * 60 + Number(clock[2])

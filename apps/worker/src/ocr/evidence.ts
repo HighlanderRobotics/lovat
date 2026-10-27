@@ -108,3 +108,48 @@ export function validateEvidence(samples: Observation[]): boolean {
           sample.blue >= samples[index - 1]!.blue)),
   );
 }
+
+// TBA-constrained estimates use independently observed intervals. Review flags
+// retain their stricter validator above. This measures time coverage rather than
+// discarding a video solely because fewer than 120 timestamps were readable.
+export function estimateCoverage(samples: Observation[]) {
+  const denseSeconds = samples.slice(1).reduce((sum, s, i) => {
+    const gap = s.time - samples[i]!.time;
+    return sum + (gap > 0 && gap <= 3 ? gap : 0);
+  }, 0);
+  return {
+    samples: samples.length,
+    denseSeconds,
+    fraction: denseSeconds / 163,
+    first: samples[0]?.time ?? null,
+    last: samples.at(-1)?.time ?? null,
+  };
+}
+export function validateEstimateEvidence(samples: Observation[]): boolean {
+  const q = estimateCoverage(samples);
+  return (
+    samples.length >= 2 &&
+    samples.length <= 600 &&
+    q.denseSeconds >= 163 / 2 &&
+    q.first !== null &&
+    q.first <= 20 &&
+    q.last !== null &&
+    q.last >= 155 &&
+    samples.every(
+      (s, i) =>
+        Number.isFinite(s.time) &&
+        s.time >= 0 &&
+        s.time <= 163 &&
+        Number.isInteger(s.red) &&
+        s.red >= 0 &&
+        s.red <= 1000 &&
+        Number.isInteger(s.blue) &&
+        s.blue >= 0 &&
+        s.blue <= 1000 &&
+        Number.isFinite(s.confidence) &&
+        s.confidence >= 85 &&
+        s.confidence <= 100 &&
+        (i === 0 || s.time > samples[i - 1]!.time),
+    )
+  );
+}

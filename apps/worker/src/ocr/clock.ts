@@ -3,6 +3,12 @@
 export class MatchClock {
   private origin: number | undefined;
   private teleop = false;
+  plausible(seconds: number, confidence: number, frame: number): boolean {
+    const candidate = new MatchClock();
+    candidate.origin = this.origin;
+    candidate.teleop = this.teleop;
+    return candidate.time(seconds, confidence, frame) !== undefined;
+  }
   time(seconds: number, confidence: number, frame: number): number | undefined {
     if (
       !Number.isFinite(seconds) ||
@@ -12,7 +18,12 @@ export class MatchClock {
       seconds < 0
     )
       return;
-    if (!this.teleop && frame <= 30 && seconds <= 20)
+    if (
+      this.origin === undefined &&
+      !this.teleop &&
+      frame <= 30 &&
+      seconds <= 20
+    )
       this.origin = frame - (20 - seconds);
     if (this.origin === undefined) return;
     const elapsed = frame - this.origin;
@@ -32,11 +43,16 @@ export class MatchClock {
   }
 }
 
-export function chooseClock(readings: { text: string; confidence: number }[]) {
+export function chooseClock(
+  readings: { text: string; confidence: number }[],
+  plausible?: (seconds: number, confidence: number) => boolean,
+) {
   const valid = readings.flatMap((reading) => {
     const match = reading.text.trim().match(/^(?:(\d):)?(\d{1,3})$/);
     const seconds = match ? Number(match[1] ?? 0) * 60 + Number(match[2]) : NaN;
-    return reading.confidence >= 85 && seconds <= 140
+    return reading.confidence >= 85 &&
+      seconds <= 140 &&
+      (plausible?.(seconds, reading.confidence) ?? true)
       ? [{ ...reading, seconds }]
       : [];
   });

@@ -87,6 +87,8 @@ unsafe extern "C" {
         bpp: c_int,
         stride: c_int,
     );
+    fn TessBaseAPISetVariable(api: *mut c_void, name: *const c_char, value: *const c_char)
+    -> c_int;
     fn TessBaseAPIGetTsvText(api: *mut c_void, page: c_int) -> *mut c_char;
     fn TessDeleteText(text: *mut c_char);
 }
@@ -114,48 +116,62 @@ unsafe extern "C" {
     ) -> c_int;
     fn sws_freeContext(ctx: *mut c_void);
 }
-struct Engine(*mut c_void);
+type CropKey = (u32, u32, u32, u32, bool, u32);
+type CachedCrop = (Vec<u8>, (String, f64));
+struct Engine {
+    api: *mut c_void,
+    cache: std::collections::HashMap<CropKey, CachedCrop>,
+    calls: usize,
+    hits: usize,
+}
 impl Drop for Engine {
     fn drop(&mut self) {
-        unsafe { TessBaseAPIDelete(self.0) }
+        unsafe { TessBaseAPIDelete(self.api) }
     }
 }
 impl Engine {
     fn new() -> Result<Self, String> {
         unsafe {
-            let engine = Self(TessBaseAPICreate());
-            if engine.0.is_null() {
+            let engine = Self {
+                api: TessBaseAPICreate(),
+                cache: Default::default(),
+                calls: 0,
+                hits: 0,
+            };
+            if engine.api.is_null() {
                 return Err("Cannot allocate OCR engine".into());
             }
-            if TessBaseAPIInit3(engine.0, std::ptr::null(), c"eng".as_ptr()) != 0 {
+            if TessBaseAPIInit3(engine.api, std::ptr::null(), c"eng".as_ptr()) != 0 {
                 return Err("Cannot initialize OCR engine".into());
             }
-            TessBaseAPISetPageSegMode(engine.0, 7);
+            TessBaseAPISetPageSegMode(engine.api, 7);
+            TessBaseAPISetVariable(engine.api, c"debug_file".as_ptr(), c"/dev/null".as_ptr());
             Ok(engine)
         }
     }
-    fn read(&mut self, frame: &RgbImage, rect: Rect, numeric: bool, padding: u32) -> (String, f64) {
-        let Some(Prepared {
-            image,
-            width,
-            height,
-            stride,
-        }) = prepare(frame, rect, padding)
-        else {
-            return (String::new(), 0.0);
-        };
+    fn recognize(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
+        self.calls += 1;
         unsafe {
-            // Clear learned state between independent fields, preserving CLI semantics.
-            TessBaseAPIClearAdaptiveClassifier(self.0);
-            TessBaseAPISetImage(
-                self.0,
-                image.as_ptr(),
-                width as i32,
-                height as i32,
-                1,
-                stride as i32,
+            TessBaseAPIClearAdaptiveClassifier(self.api);
+            TessBaseAPISetPageSegMode(self.api, psm);
+            TessBaseAPISetVariable(
+                self.api,
+                c"tessedit_char_whitelist".as_ptr(),
+                if psm == 10 {
+                    c"0123456789".as_ptr()
+                } else {
+                    c"".as_ptr()
+                },
             );
-            let ptr = TessBaseAPIGetTsvText(self.0, 0);
+            TessBaseAPISetImage(
+                self.api,
+                prepared.image.as_ptr(),
+                prepared.width as i32,
+                prepared.height as i32,
+                1,
+                prepared.stride as i32,
+            );
+            let ptr = TessBaseAPIGetTsvText(self.api, 0);
             if ptr.is_null() {
                 return (String::new(), 0.0);
             }
@@ -163,6 +179,70 @@ impl Engine {
             TessDeleteText(ptr);
             result
         }
+    }
+    fn read(&mut self, frame: &RgbImage, rect: Rect, numeric: bool, padding: u32) -> (String, f64) {
+        let Some(original) = prepare(frame, rect, padding) else {
+            return (String::new(), 0.0);
+        };
+        let (x, y, w, h) = geometry(rect);
+        let key = (x, y, w, h, numeric, padding);
+        if let Some((pixels, result)) = self.cache.get(&key)
+            && *pixels == original.image
+        {
+            self.hits += 1;
+            return result.clone();
+        }
+        let mut best = self.recognize(&original, numeric, 7);
+        let valid = |r: &(String, f64)| {
+            r.1 >= 85.0 && (!numeric || fuel(&r.0).is_some() || clock(&r.0).is_some())
+        };
+        if !valid(&best) {
+            for binary in [false, true] {
+                let Some(mut recovered) = prepare(frame, rect, 10) else {
+                    continue;
+                };
+                normalize(&mut recovered, 10, binary);
+                let candidate = self.recognize(&recovered, numeric, 7);
+                if valid(&candidate) || candidate.1 > best.1 {
+                    best = candidate;
+                }
+                if valid(&best) {
+                    break;
+                }
+            }
+        }
+        self.cache.insert(key, (original.image, best.clone()));
+        best
+    }
+    fn team(&mut self, frame: &RgbImage, rect: Rect, expected: &[u32]) -> Option<u32> {
+        let (text, confidence) = self.read(frame, rect, false, 0);
+        if confidence >= 85.0
+            && let Ok(number) = text.parse::<u32>()
+            && expected.contains(&number)
+        {
+            return Some(number);
+        }
+        // Isolate glyphs when the word model mistakes a narrow 1 for punctuation.
+        // This is used for roster identity only, never to invent a score reading.
+        let mut prepared = prepare(frame, rect, 0)?;
+        normalize(&mut prepared, 0, false);
+        let groups = glyphs(&prepared);
+        if groups.is_empty() || groups.len() > 5 {
+            return None;
+        }
+        let mut digits = String::new();
+        for glyph in groups {
+            if narrow_one(&glyph) {
+                digits.push('1');
+                continue;
+            }
+            let (text, confidence) = self.recognize(&glyph, true, 10);
+            if confidence < 85.0 || text.len() != 1 || !text.bytes().all(|c| c.is_ascii_digit()) {
+                return None;
+            }
+            digits.push_str(&text);
+        }
+        digits.parse().ok()
     }
 }
 struct Prepared {
@@ -246,6 +326,103 @@ fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
         width,
         height,
         stride,
+    })
+}
+// Normalize only the crop interior; preserve a white OCR border.
+fn normalize(p: &mut Prepared, padding: u32, binary: bool) {
+    let mut histogram = [0usize; 256];
+    for y in padding..p.height - padding {
+        for x in padding..p.width - padding {
+            histogram[p.image[(y * p.stride + x) as usize] as usize] += 1;
+        }
+    }
+    let total: usize = histogram.iter().sum();
+    let mut n = 0;
+    let mut median = 255;
+    for (value, count) in histogram.iter().enumerate() {
+        n += count;
+        if n >= total / 2 {
+            median = value;
+            break;
+        }
+    }
+    for y in padding..p.height - padding {
+        for x in padding..p.width - padding {
+            let index = (y * p.stride + x) as usize;
+            let v = if median < 128 {
+                255 - p.image[index]
+            } else {
+                p.image[index]
+            };
+            let background = if median < 128 { 255 - median } else { median };
+            let v = ((v as usize * 255) / background.max(1)).min(255) as u8;
+            p.image[index] = if binary {
+                if v < 160 { 0 } else { 255 }
+            } else {
+                v
+            };
+        }
+    }
+}
+fn glyphs(p: &Prepared) -> Vec<Prepared> {
+    let mut runs: Vec<(u32, u32)> = Vec::new();
+    for x in 0..p.width {
+        let count = (0..p.height)
+            .filter(|y| p.image[(y * p.stride + x) as usize] < 130)
+            .count();
+        if count < 3 {
+            continue;
+        }
+        if let Some(last) = runs.last_mut()
+            && x == last.1
+        {
+            last.1 = x + 1;
+            continue;
+        }
+        runs.push((x, x + 1));
+    }
+    runs.into_iter()
+        .filter_map(|(left, right)| {
+            let rows: Vec<_> = (0..p.height)
+                .filter(|y| (left..right).any(|x| p.image[(y * p.stride + x) as usize] < 130))
+                .collect();
+            let top = *rows.first()?;
+            let bottom = rows.last()? + 1;
+            if bottom - top < 16 || right - left < 2 {
+                return None;
+            }
+            let width = right - left + 20;
+            let height = bottom - top + 20;
+            let stride = (width + 63) & !63;
+            let mut image = vec![255; (stride * height + 64) as usize];
+            for y in top..bottom {
+                for x in left..right {
+                    image[((y - top + 10) * stride + x - left + 10) as usize] =
+                        p.image[(y * p.stride + x) as usize];
+                }
+            }
+            Some(Prepared {
+                image,
+                width,
+                height,
+                stride,
+            })
+        })
+        .collect()
+}
+fn narrow_one(p: &Prepared) -> bool {
+    let w = p.width - 20;
+    let h = p.height - 20;
+    if w * 100 > h * 42 || h < 16 {
+        return false;
+    }
+    // A one must have a near-continuous vertical stem, not just a narrow blob.
+    (10..p.width - 10).any(|x| {
+        (10..p.height - 10)
+            .filter(|y| p.image[(y * p.stride + x) as usize] < 130)
+            .count()
+            * 100
+            >= h as usize * 80
     })
 }
 fn geometry(r: Rect) -> (u32, u32, u32, u32) {
@@ -366,17 +543,23 @@ fn canonical(s: &str) -> String {
         .collect()
 }
 // A watchdog kills a blocked decoder even while the consumer is reading stdout.
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct ClockTracker {
     origin: Option<i32>,
     teleop: bool,
 }
 impl ClockTracker {
+    fn finished(&self, frame: usize) -> bool {
+        self.teleop
+            && self
+                .origin
+                .is_some_and(|origin| frame as i32 - origin > 166)
+    }
     fn time(&mut self, seconds: u32, confidence: f64, frame: usize) -> Option<u32> {
         if !confidence.is_finite() || confidence < 85.0 || seconds > 140 {
             return None;
         }
-        if !self.teleop && frame <= 30 && seconds <= 20 {
+        if self.origin.is_none() && !self.teleop && frame <= 30 && seconds <= 20 {
             self.origin = Some(frame as i32 - (20 - seconds) as i32);
         }
         let elapsed = frame as i32 - self.origin?;
@@ -538,7 +721,12 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     let mut clock_tracker = ClockTracker::default();
     let mut frames = 0;
     let mut pending = std::collections::VecDeque::new();
+    let mut end_reached = false;
     loop {
+        if pending.is_empty() && clock_tracker.finished(frames + 1) {
+            end_reached = true;
+            break;
+        }
         if start.elapsed() > Duration::from_secs(480) {
             return Err("OCR exceeded processing budget".into());
         }
@@ -573,10 +761,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             for (i, layout) in layouts.iter().enumerate() {
                 let mut teams = Vec::new();
                 for rect in &layout.teams {
-                    let (t, c) = engine.read(&frame, *rect, false, 0);
-                    if c >= 85.0
-                        && let Ok(n) = t.parse::<u32>()
-                    {
+                    if let Some(n) = engine.team(&frame, *rect, &request.expected_teams) {
                         teams.push(n);
                     }
                 }
@@ -612,7 +797,16 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             .chain(layout.clock_alternatives.iter())
             .map(|rect| engine.read(&frame, *rect, true, 20))
             .collect();
-        let (c, cc) = choose_clock(clocks);
+        let plausible = clocks
+            .into_iter()
+            .filter(|(text, confidence)| {
+                let mut candidate = clock_tracker.clone();
+                clock(text).is_some_and(|seconds| {
+                    candidate.time(seconds, *confidence, frame_index).is_some()
+                })
+            })
+            .collect();
+        let (c, cc) = choose_clock(plausible);
         let Some(seconds) = clock(&c) else {
             continue;
         };
@@ -669,10 +863,14 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             });
         }
     }
-    if !decoder.wait()?.success() {
+    drop(stdout);
+    if end_reached {
+        drop(decoder);
+    } else if !decoder.wait()?.success() {
         return Err("Incomplete decoder stream".into());
     }
     let index = selected.ok_or("Match and robot identities could not be validated")?;
+    eprintln!("ocr_calls={} cache_hits={}", engine.calls, engine.hits);
     Ok(Output {
         observations,
         layout_version: layouts[index].version.clone(),
@@ -782,12 +980,27 @@ async fn upload_inner(
     .await
     .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "OCR process failed"))?
     .map(Json)
-    .map_err(|_| {
+    .map_err(|reason| {
+        let code = extraction_error_code(&reason);
+        eprintln!("{code}");
         (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "Video could not be validated",
+            if code == "ENGINE_UNAVAILABLE" {
+                StatusCode::SERVICE_UNAVAILABLE
+            } else {
+                StatusCode::UNPROCESSABLE_ENTITY
+            },
+            code,
         )
     })
+}
+fn extraction_error_code(reason: &str) -> &'static str {
+    match reason {
+        "Match and robot identities could not be validated" => "IDENTITY_UNVERIFIED",
+        "Video exceeds OCR budget" | "OCR exceeded processing budget" => "BUDGET_EXCEEDED",
+        "Cannot allocate OCR engine" | "Cannot initialize OCR engine" => "ENGINE_UNAVAILABLE",
+        "Invalid video" | "Missing video duration" => "INVALID_MEDIA",
+        _ => "EXTRACTION_FAILED",
+    }
 }
 async fn upload(
     state: State<App>,
@@ -808,6 +1021,13 @@ fn router(app: App) -> Router {
         .layer(DefaultBodyLimit::max(LIMIT + 65536))
         .with_state(app)
 }
+fn native_concurrency(value: Option<&str>) -> Result<usize, &'static str> {
+    match value.unwrap_or("1") {
+        "1" => Ok(1),
+        "2" => Ok(2),
+        _ => Err("OCR_CONCURRENCY must be 1 or 2"),
+    }
+}
 #[tokio::main]
 async fn main() {
     // This also bounds OpenMP threads used by native Tesseract.
@@ -818,7 +1038,10 @@ async fn main() {
     );
     let app = App {
         token: Arc::new(token),
-        slots: Arc::new(Semaphore::new(1)),
+        slots: Arc::new(Semaphore::new(
+            native_concurrency(std::env::var("OCR_CONCURRENCY").ok().as_deref())
+                .expect("OCR_CONCURRENCY must be 1 or 2"),
+        )),
     };
     let router = router(app);
     let port = std::env::var("PORT").unwrap_or("8080".into());
@@ -832,6 +1055,94 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn crop_normalization_preserves_white_padding() {
+        let mut p = Prepared {
+            image: vec![255; 16 * 12],
+            width: 12,
+            height: 12,
+            stride: 16,
+        };
+        for y in 2..10 {
+            for x in 2..10 {
+                p.image[y * 16 + x] = 30;
+            }
+        }
+        p.image[5 * 16 + 5] = 220;
+        normalize(&mut p, 2, false);
+        assert_eq!(p.image[0], 255);
+        assert_eq!(p.image[3 * 16 + 3], 255);
+        assert_eq!(p.image[5 * 16 + 5], 39);
+    }
+    #[test]
+    fn unchanged_crop_cache_avoids_recognition_without_ignoring_pixel_changes() {
+        let mut engine = Engine::new().unwrap();
+        let mut frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
+        let rect = [0.1, 0.1, 0.05, 0.05];
+        let first = engine.read(&frame, rect, true, 0);
+        let calls = engine.calls;
+        assert_eq!(engine.read(&frame, rect, true, 0), first);
+        assert_eq!(engine.calls, calls);
+        assert_eq!(engine.hits, 1);
+        frame.put_pixel(130, 75, image::Rgb([0, 0, 0]));
+        engine.read(&frame, rect, true, 0);
+        assert!(engine.calls > calls);
+    }
+    #[test]
+    fn narrow_one_requires_a_tall_continuous_stem() {
+        let mut p = Prepared {
+            image: vec![255; 64 * 50],
+            width: 28,
+            height: 50,
+            stride: 64,
+        };
+        for y in 10..40 {
+            p.image[y * 64 + 14] = 0;
+        }
+        assert!(narrow_one(&p));
+        for y in 10..35 {
+            p.image[y * 64 + 14] = 255;
+        }
+        assert!(!narrow_one(&p));
+    }
+    #[test]
+    fn extraction_errors_do_not_publish_backend_diagnostics() {
+        assert_eq!(
+            extraction_error_code("Match and robot identities could not be validated"),
+            "IDENTITY_UNVERIFIED"
+        );
+        assert_eq!(
+            extraction_error_code("unexpected private backend text"),
+            "EXTRACTION_FAILED"
+        );
+    }
+    #[test]
+    fn stray_early_clock_does_not_reanchor_the_match() {
+        let mut t = ClockTracker::default();
+        assert_eq!(t.time(20, 95.0, 7), Some(0));
+        assert_eq!(t.time(1, 95.0, 8), None);
+        assert_eq!(t.time(19, 95.0, 8), Some(1));
+    }
+    #[test]
+    fn finished_clock_keeps_settling_frames_and_cannot_emit_later_observations() {
+        let mut tracker = ClockTracker::default();
+        tracker.time(20, 95.0, 7);
+        tracker.time(140, 95.0, 30);
+        assert!(!tracker.finished(173));
+        assert_eq!(tracker.time(0, 95.0, 173), Some(163));
+        assert!(tracker.finished(174));
+        for seconds in 0..=140 {
+            assert_eq!(tracker.clone().time(seconds, 100.0, 174), None);
+        }
+    }
+    #[test]
+    fn native_parallelism_is_explicitly_bounded() {
+        assert_eq!(native_concurrency(None), Ok(1));
+        assert_eq!(native_concurrency(Some("2")), Ok(2));
+        for value in ["0", "3", "-1", "invalid"] {
+            assert!(native_concurrency(Some(value)).is_err());
+        }
+    }
     #[test]
     fn counters() {
         assert_eq!(fuel("24 / 100"), Some(24));

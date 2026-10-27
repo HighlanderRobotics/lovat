@@ -9,6 +9,7 @@ import {
 
 export const OFFICIAL_POLICY = Object.freeze({
   minimumConfidence: 85,
+  correctionQuarantineSeconds: 6,
   earlyMs: 2000,
   lateMs: 6000,
   reportLagMs: 2000,
@@ -122,7 +123,8 @@ function phaseTower(
   };
 }
 export function fuseOfficialMatch(state: Prepared) {
-  const { input, allowed, slots, prepared, samples, diagnostics } = state;
+  const { input, allowed, slots, prepared, samples, diagnostics, corrections } =
+    state;
   const official = officialSchema.parse(input.tba);
   if (official.key !== input.matchKey)
     throw new Error("TBA match identity mismatch");
@@ -270,16 +272,23 @@ export function fuseOfficialMatch(state: Prepared) {
         };
         const weights = robots.map((r) => ({
           teamNumber: r.teamNumber,
-          weight: allowAttribution
-            ? consensusWeight(
-                prepared,
-                OFFICIAL_POLICY.weightScale,
-                r.teamNumber,
-                Math.round(from * 1000),
-                Math.round(to * 1000),
-                bounds,
-              )
-            : 0,
+          weight:
+            allowAttribution &&
+            (source !== "TBA_REMAINDER" || corrections.length === 0) &&
+            !corrections.some(
+              (c) =>
+                from < c.to + OFFICIAL_POLICY.correctionQuarantineSeconds &&
+                to > c.from - OFFICIAL_POLICY.correctionQuarantineSeconds,
+            )
+              ? consensusWeight(
+                  prepared,
+                  OFFICIAL_POLICY.weightScale,
+                  r.teamNumber,
+                  Math.round(from * 1000),
+                  Math.round(to * 1000),
+                  bounds,
+                )
+              : 0,
         }));
         const allocation: Allocation = apportion(
           delta * OFFICIAL_POLICY.weightScale,
@@ -317,9 +326,15 @@ export function fuseOfficialMatch(state: Prepared) {
         coverage:
           source === "TBA_REMAINDER"
             ? "inferred-settling-window"
-            : to - from > 3
-              ? "sparse"
-              : "dense",
+            : corrections.some(
+                  (c) =>
+                    from < c.to + OFFICIAL_POLICY.correctionQuarantineSeconds &&
+                    to > c.from - OFFICIAL_POLICY.correctionQuarantineSeconds,
+                )
+              ? "correction-quarantine"
+              : to - from > 3
+                ? "sparse"
+                : "dense",
         source,
         supportingTeams: allocation
           .filter((a) => a.fuelMicros > 0)
@@ -478,9 +493,14 @@ export function fuseOfficialMatch(state: Prepared) {
       }))
       .sort((a, b) => compare(JSON.stringify(a), JSON.stringify(b))),
     observations: samples,
+    rawObservations: [...input.ocr.observations].sort(
+      (a, b) =>
+        a.time - b.time || compare(JSON.stringify(a), JSON.stringify(b)),
+    ),
+    corrections,
   };
   return {
-    algorithm: "scoreboard-constrained-fusion-v2-tba",
+    algorithm: "scoreboard-constrained-fusion-v3-tba",
     policy: { ...OFFICIAL_POLICY },
     matchKey: input.matchKey,
     sourceTeams: allowed,
@@ -496,9 +516,10 @@ export function fuseOfficialMatch(state: Prepared) {
     unobservedTailSeconds: 163 - (lastPoints?.time ?? endpoint.time),
     pointSamples: scoreSamples.length,
     fuelSamples: samples.length,
-    diagnostics,
+    diagnostics: { ...diagnostics, counterCorrections: corrections },
     alliances,
     limitations: [
+      "Counter retractions censor conflicting anchors without changing observed values; surrounding fuel remains unattributed.",
       "Robot fuel shares remain estimates; TBA fixes alliance phase budgets, not individual fuel counts.",
       "Foul points are opponent-awarded alliance credit, never points assigned to an own-alliance robot.",
       "Tower points use TBA robot status in station order; inconsistent or missing awards remain unattributed.",

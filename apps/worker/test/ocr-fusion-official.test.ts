@@ -91,7 +91,7 @@ function fixture() {
 }
 test("official cumulative auto budget separates delayed auto updates from teleop", () => {
   const r = fuseMatch(fixture(), [8033]);
-  expect(r.algorithm).toBe("scoreboard-constrained-fusion-v2-tba");
+  expect(r.algorithm).toBe("scoreboard-constrained-fusion-v3-tba");
   const red = r.alliances[0] as any;
   expect(red.teams.find((t: any) => t.teamNumber === 1).autoFuelPoints).toBe(4);
   expect(red.teams.find((t: any) => t.teamNumber === 2).autoFuelPoints).toBe(0);
@@ -232,4 +232,52 @@ test("offseason letter-suffix teams require an explicit canonical participant ma
   expect(result.alliances[0]!.teams.map((t) => t.teamNumber)).toEqual([
     1, 2, 3,
   ]);
+});
+
+test("a TBA-backed counter retraction quarantines attribution without rewriting readings", () => {
+  const input = fixture();
+  input.ocr.observations.splice(
+    3,
+    0,
+    { time: 26, red: 9, blue: 0, confidence: 95 },
+    { time: 27, red: 8, blue: 0, confidence: 95 },
+  );
+  const original = JSON.stringify(input);
+  const result = fuseMatch(input, [8033]) as any;
+  expect(JSON.stringify(input)).toBe(original);
+  expect(result.diagnostics.counterCorrections).toEqual([
+    { from: 24, to: 27, discardedTimestamps: [26] },
+  ]);
+  const red = result.alliances[0];
+  expect(red.pointsConserved).toBe(true);
+  expect(
+    red.intervals
+      .filter((i: any) => i.from < 33 && i.to > 18)
+      .every((i: any) => i.allocation.every((a: any) => a.fuelMicros === 0)),
+  ).toBe(true);
+  expect(
+    red.teams.reduce((n: number, t: any) => n + t.estimatedPoints, 0) +
+      red.unattributedPoints +
+      red.foulPoints,
+  ).toBe(15);
+});
+
+test("an official remainder is not attributed to a late shooter after a counter correction", () => {
+  const input = fixture();
+  input.ocr.observations.splice(
+    3,
+    0,
+    { time: 26, red: 9, blue: 0, confidence: 95 },
+    { time: 27, red: 8, blue: 0, confidence: 95 },
+  );
+  input.ocr.observations.find((s) => s.time === 30)!.red = 9;
+  input.ocr.observations.find((s) => s.time === 163)!.red = 9;
+  input.reports[1]!.events[0]!.time = 159;
+  input.reports[1]!.events[1]!.time = 163;
+  const red = fuseMatch(input, [8033]).alliances[0] as any;
+  expect(red.intervals.at(-1).source).toBe("TBA_REMAINDER");
+  expect(
+    red.intervals.at(-1).allocation.every((a: any) => a.fuelMicros === 0),
+  ).toBe(true);
+  expect(red.pointsConserved).toBe(true);
 });

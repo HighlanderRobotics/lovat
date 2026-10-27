@@ -42,3 +42,37 @@ test("uses reviewed clock positions but rejects conflicting confident readings",
     ]).text,
   ).toBe("2:20");
 });
+
+test("an alternate clock must fit observed video time before it can veto a reading", async () => {
+  const { chooseClock } = await import("../src/ocr/clock");
+  const clock = new MatchClock();
+  clock.time(20, 95, 7);
+  clock.time(140, 95, 30);
+  const plausible = (seconds: number, confidence: number) =>
+    clock.plausible(seconds, confidence, 50);
+  expect(
+    chooseClock(
+      [
+        { text: "2:00", confidence: 95 },
+        { text: "1", confidence: 98 },
+      ],
+      plausible,
+    ).text,
+  ).toBe("2:00");
+  expect(
+    chooseClock(
+      [
+        { text: "2:00", confidence: 95 },
+        { text: "1:59", confidence: 98 },
+      ],
+      plausible,
+    ).confidence,
+  ).toBe(0);
+});
+test("a stray early clock cannot move the match origin or mutate phase through a plausibility check", () => {
+  const clock = new MatchClock();
+  expect(clock.time(20, 95, 7)).toBe(0);
+  expect(clock.time(1, 95, 8)).toBeUndefined();
+  expect(clock.plausible(140, 95, 30)).toBe(true);
+  expect(clock.time(19, 95, 8)).toBe(1);
+});

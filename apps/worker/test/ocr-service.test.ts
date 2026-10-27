@@ -145,3 +145,29 @@ test("service contract retains independently confident total-score digits", asyn
     globalThis.fetch = original;
   }
 });
+
+test("native rejection reasons are allowlisted and bounded", async () => {
+  const original = globalThis.fetch;
+  const run = () =>
+    extractWithService(
+      "/missing",
+      [1, 2, 3, 4, 5, 6],
+      "Qualification 1",
+      template as any,
+      "http://localhost",
+      "x".repeat(32),
+    );
+  try {
+    globalThis.fetch = (async () =>
+      new Response("IDENTITY_UNVERIFIED", { status: 422 })) as any;
+    await expect(run()).rejects.toThrow("IDENTITY_UNVERIFIED");
+    globalThis.fetch = (async () =>
+      new Response("private backend diagnostics", { status: 422 })) as any;
+    await expect(run()).rejects.toThrow("EXTRACTION_FAILED");
+    globalThis.fetch = (async () =>
+      new Response("x".repeat(1024), { status: 422 })) as any;
+    await expect(run()).rejects.toThrow("Oversized OCR service response");
+  } finally {
+    globalThis.fetch = original;
+  }
+});

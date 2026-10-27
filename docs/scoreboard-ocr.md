@@ -44,7 +44,7 @@ The command prints recognized text, confidence, and fuel numerators, then remove
 
 ## CalGames layout
 
-`apps/worker/config/scoreboard-2026-calgames.json` describes both overlay sizes used in the 2026 CalGames broadcasts. The extractor validates a layout on two separate frames before using it. Fuel counters remain distinct from the large points totals, and identity checks use stored canonical team IDs so offseason placeholder identities stay consistent with scouting reports.
+`apps/worker/config/scoreboard-2026-calgames.json` describes the three reviewed overlay sizes used in the 2026 CalGames broadcasts. The extractor validates a layout on two separate frames before using it. Fuel counters remain distinct from the large points totals, and identity checks use stored canonical team IDs so offseason placeholder identities stay consistent with scouting reports.
 
 Rejected timelines retain their numeric observations for calibration and never generate grading suggestions. Sparse but otherwise trustworthy timelines can instead be marked `PARTIAL`, subject to the interval checks below. No photos or video are stored in the database. Failed records are eligible for retry when the configured template version changes.
 
@@ -56,7 +56,7 @@ The reference extractor launches crop and OCR subprocesses repeatedly. The nativ
 
 Bun FFI would save the HTTP upload but put native pointer errors and decoder failures inside the scheduler process. The separate Rust service contains those failures, exposes an independent health endpoint, and can be sized separately. A full libav decoder binding is deferred: one bounded FFmpeg decoder already removes the repeated-process bottleneck without adding codec lifetime management to Rust.
 
-The service accepts one job at a time (503 while busy), requires a random bearer token of at least 32 characters, caps videos at 96 MiB/600 seconds, restricts media protocols and demuxers, and kills stalled probe/decoder subprocesses. Uploads use temporary files deleted on completion or error. Whole requests have a nine-minute deadline and decoding an eight-minute watchdog. Numeric responses are bounded and validated again by the Worker. Health is unauthenticated and contains no job information. Use private networking, with no public domain.
+The service defaults to one job at a time and supports a bounded opt-in capacity of two (`OCR_CONCURRENCY=2`), returning 503 when full, requires a random bearer token of at least 32 characters, caps videos at 96 MiB/600 seconds, restricts media protocols and demuxers, and kills stalled probe/decoder subprocesses. Uploads use temporary files deleted on completion or error. Whole requests have a nine-minute deadline and decoding an eight-minute watchdog. Numeric responses are bounded and validated again by the Worker. Health is unauthenticated and contains no job information. Use private networking, with no public domain.
 
 Local setup requires Rust, FFmpeg, Tesseract English data, and their development headers (`libswscale`, `tesseract`, and `pkg-config`). Build from the repository root:
 

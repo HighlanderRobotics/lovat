@@ -2,6 +2,11 @@ import { z } from "zod";
 import type { Template } from "./media";
 
 export class OcrServiceUnavailable extends Error {}
+export class OcrExtractionError extends Error {
+  constructor(public readonly code: string) {
+    super(`OCR extraction failed: ${code}`);
+  }
+}
 
 const resultSchema = z.object({
   observations: z
@@ -67,8 +72,37 @@ export async function extractWithService(
     throw new OcrServiceUnavailable(
       `OCR service is unavailable (${response.status}); retry this job`,
     );
+  if (response.status === 422) {
+    const code = (await boundedText(response, 128)).trim();
+    if (
+      [
+        "IDENTITY_UNVERIFIED",
+        "BUDGET_EXCEEDED",
+        "ENGINE_UNAVAILABLE",
+        "INVALID_MEDIA",
+        "EXTRACTION_FAILED",
+      ].includes(code)
+    )
+      throw new OcrExtractionError(code);
+    throw new OcrExtractionError("EXTRACTION_FAILED");
+  }
   if (!response.ok)
     throw new Error(`OCR service rejected video (${response.status})`);
+  const text = await boundedText(response, 128 * 1024);
+  const result = resultSchema.parse(JSON.parse(text));
+  if (
+    ![template, ...(template.alternatives ?? [])].some(
+      (layout) => layout.version === result.layoutVersion,
+    )
+  )
+    throw new Error("OCR service returned an unknown layout");
+  return result.observations;
+}
+
+async function boundedText(
+  response: Response,
+  maximum: number,
+): Promise<string> {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Missing OCR service response");
   const chunks: Uint8Array[] = [];
@@ -78,7 +112,7 @@ export async function extractWithService(
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 128 * 1024) {
+      if (size > maximum) {
         await reader.cancel();
         throw new Error("Oversized OCR service response");
       }
@@ -93,13 +127,5 @@ export async function extractWithService(
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  const text = new TextDecoder().decode(bytes);
-  const result = resultSchema.parse(JSON.parse(text));
-  if (
-    ![template, ...(template.alternatives ?? [])].some(
-      (layout) => layout.version === result.layoutVersion,
-    )
-  )
-    throw new Error("OCR service returned an unknown layout");
-  return result.observations;
+  return new TextDecoder().decode(bytes);
 }

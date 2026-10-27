@@ -239,6 +239,11 @@ export function prepareFusion(
     prepared.push({ report, windows: cycles });
   }
   const samples = [] as typeof input.ocr.observations;
+  const corrections: {
+    from: number;
+    to: number;
+    discardedTimestamps: number[];
+  }[] = [];
   for (const sample of [...input.ocr.observations].sort(
     (a, b) => a.time - b.time || compare(JSON.stringify(a), JSON.stringify(b)),
   )) {
@@ -252,13 +257,29 @@ export function prepareFusion(
         throw new Error("Conflicting OCR timestamps");
       continue;
     }
-    if (previous && (sample.red < previous.red || sample.blue < previous.blue))
-      throw new Error("Scoreboard fuel correction requires review");
+    if (
+      previous &&
+      (sample.red < previous.red || sample.blue < previous.blue)
+    ) {
+      if (input.tba === undefined)
+        throw new Error("Scoreboard fuel correction requires review");
+      const discardedTimestamps: number[] = [];
+      while (
+        samples.length &&
+        (sample.red < samples.at(-1)!.red || sample.blue < samples.at(-1)!.blue)
+      )
+        discardedTimestamps.push(samples.pop()!.time);
+      corrections.push({
+        from: samples.at(-1)?.time ?? 0,
+        to: sample.time,
+        discardedTimestamps: discardedTimestamps.sort((a, b) => a - b),
+      });
+    }
     samples.push(sample);
   }
   if (samples.length < 2)
     throw new Error("At least two confident scoreboard observations required");
-  return { input, allowed, slots, diagnostics, prepared, samples };
+  return { input, allowed, slots, diagnostics, prepared, samples, corrections };
 }
 export type Prepared = ReturnType<typeof prepareFusion>;
 export function consensusWeight(
