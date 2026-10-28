@@ -20,6 +20,7 @@ use std::{
 use tokio::sync::Semaphore;
 mod digit_prototype;
 mod field_benchmark;
+mod resources;
 
 const LIMIT: usize = 96 * 1024 * 1024;
 const WIDTH: u32 = 1280;
@@ -1434,6 +1435,7 @@ async fn upload(
 fn router(app: App) -> Router {
     Router::new()
         .route("/health", get(|| async { "ok" }))
+        .route("/resources", get(resources::read))
         .route("/extract", post(upload))
         .layer(DefaultBodyLimit::max(LIMIT + 65536))
         .with_state(app)
