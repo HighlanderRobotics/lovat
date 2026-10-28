@@ -1501,6 +1501,11 @@ async fn main() {
                 .expect("OCR_CONCURRENCY must be 1 or 2"),
         )),
     };
+    eprintln!(
+        "ocr_resources={}",
+        serde_json::to_string(&resources::snapshot(app.slots.available_permits()))
+            .expect("Numeric resource identity serializes")
+    );
     let router = router(app);
     let port = std::env::var("PORT").unwrap_or("8080".into());
     let host = std::env::var("OCR_BIND_HOST").unwrap_or("127.0.0.1".into());
