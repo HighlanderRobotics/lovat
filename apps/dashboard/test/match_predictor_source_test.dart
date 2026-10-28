@@ -90,7 +90,14 @@ void main() {
         api.matchPredictionQuery(1, 2, 3, 4, 5, 6, estimatesOnly: true);
     final request = query.queryFn();
     final alliance = {
-      'teams': <dynamic>[],
+      'teams': <dynamic>[
+        {
+          'team': 1,
+          'averagePoints': 20,
+          'estimateSamples': 2,
+          'archivedSamples': 1
+        }
+      ],
       'totalPoints': 20,
       'autoPoints': 5,
       'teleopPoints': 15,
@@ -112,5 +119,6 @@ void main() {
     final prediction = await request;
     expect(prediction.redAlliance.autoPoints, 5);
     expect(prediction.redAlliance.totalBallThroughput, isNull);
+    expect(prediction.redAlliance.teams.single.archivedSamples, 1);
   });
 }

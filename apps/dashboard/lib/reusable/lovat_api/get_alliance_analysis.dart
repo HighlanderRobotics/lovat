@@ -13,10 +13,12 @@ class AllianceTeam {
     this.averagePoints,
     this.paths = const [],
     this.estimateSamples,
+    this.archivedSamples = 0,
   });
 
   final int team;
   final int? estimateSamples;
+  final int archivedSamples;
   final int? role;
   final double? averagePoints;
   final List<AutoPath> paths;
@@ -27,6 +29,7 @@ class AllianceTeam {
     return AllianceTeam(
       team: json['team'] as int,
       estimateSamples: json['estimateSamples'] as int?,
+      archivedSamples: json['archivedSamples'] as int? ?? 0,
       role: json['role'] as int?,
       averagePoints: (json['averagePoints'] as num?)?.toDouble(),
       paths: (json['paths'] as List<dynamic>? ?? [])

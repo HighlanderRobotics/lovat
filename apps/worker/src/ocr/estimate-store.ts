@@ -55,14 +55,17 @@ export async function refreshMatchEstimates(
           },
         },
       });
-      await tx.estimatedScore.deleteMany({ where: { matchKey } });
       if (
         !match ||
         !matchKey.startsWith("2026") ||
         !match.scoreboardOcr ||
         !["VALIDATED", "PARTIAL"].includes(match.scoreboardOcr.status)
-      )
+      ) {
+        await tx.estimatedScore.deleteMany({
+          where: { matchKey, inputOrigin: "LIVE" },
+        });
         return 0;
+      }
       const reports = match.teamSlots.flatMap((slot) =>
         slot.scoutReports.map((report) => ({
           uuid: report.uuid,
@@ -80,7 +83,20 @@ export async function refreshMatchEstimates(
             .map((r) => r.sourceTeamNumber),
         ),
       ].sort((a, b) => a - b);
-      if (!sources.length || sources.length > 100) return 0;
+      if (!sources.length) {
+        // An explicitly restored historical estimate can outlive a missing
+        // report snapshot. Actual input edits still invalidate it via triggers.
+        await tx.estimatedScore.deleteMany({
+          where: {
+            matchKey,
+            inputOrigin: "LIVE",
+            ...(sourceScope ? { sourceTeams: { hasSome: sourceScope } } : {}),
+          },
+        });
+        return 0;
+      }
+      await tx.estimatedScore.deleteMany({ where: { matchKey } });
+      if (sources.length > 100) return 0;
       const groups =
         sources.length === 1
           ? [sources]

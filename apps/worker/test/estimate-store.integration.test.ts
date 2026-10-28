@@ -5,6 +5,7 @@ import {
   storeBatchEstimateEvidence,
 } from "../src/ocr/estimate-store";
 import { fuseMatch } from "../src/ocr/fusion";
+import { buildEstimateArchive } from "../src/ocr/estimate-archive";
 import { fixture } from "./fixtures/official-fusion";
 const enabled = process.env.LOVAT_DB_TEST === "1";
 const id = crypto.randomUUID().replaceAll("-", ""),
@@ -308,5 +309,80 @@ run(
     expect(
       after.map((r) => [r.teamNumber, r.inputSha256, r.totalPoints]),
     ).toEqual(before.map((r) => [r.teamNumber, r.inputSha256, r.totalPoints]));
+  },
+);
+
+run(
+  "archive restores only missing scoped inputs, preserves live rows, and yields to new reports",
+  async () => {
+    const input = {
+      ...f,
+      matchKey,
+      reports: f.reports.map((r) => ({ ...r, sourceTeamNumber: source })),
+      ocr: { ...f.ocr, matchKey },
+      tba: { ...f.tba, key: matchKey },
+    };
+    const archive = buildEstimateArchive([input], [source]);
+    await db.$executeRawUnsafe(archive.sql);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "ARCHIVE" },
+      }),
+    ).toBe(6);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "LIVE" },
+      }),
+    ).toBe(6);
+    expect(await refreshMatchEstimates(db, matchKey, [source])).toBe(0);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "ARCHIVE" },
+      }),
+    ).toBe(6);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "LIVE" },
+      }),
+    ).toBe(6);
+    await db.$executeRawUnsafe(archive.sql);
+    expect(await db.estimatedScore.count({ where: { matchKey } })).toBe(12);
+    const scout = await db.scouter.create({
+      data: { sourceTeamNumber: source },
+    });
+    await db.scoutReport.create({
+      data: {
+        teamMatchKey: `${matchKey}_3`,
+        scouterUuid: scout.uuid,
+        startTime: new Date(),
+        notes: "Synthetic",
+        robotRoles: ["SCORING"],
+        driverAbility: 3,
+        autoClimb: "NOT_ATTEMPTED",
+        beached: "NEITHER",
+        defenseEffectiveness: 0,
+        feederTypes: [],
+        intakeType: "NEITHER",
+        fieldTraversal: "NONE",
+        scoresWhileMoving: false,
+        disrupts: false,
+        endgameClimb: "NOT_ATTEMPTED",
+      },
+    });
+    expect(await db.estimatedScore.count({ where: { matchKey } })).toBe(0);
+    await expect(
+      Promise.resolve(db.$executeRawUnsafe(archive.sql)),
+    ).rejects.toThrow("Archive prerequisites changed");
+    await refreshMatchEstimates(db, matchKey);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "ARCHIVE" },
+      }),
+    ).toBe(0);
+    expect(
+      await db.estimatedScore.count({
+        where: { matchKey, inputOrigin: "LIVE" },
+      }),
+    ).toBeGreaterThan(0);
   },
 );

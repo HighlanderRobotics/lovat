@@ -32,6 +32,7 @@ const AllianceTeam = z.object({
   team: z.number(),
   role: z.number().nullable(),
   estimateSamples: z.number().int().optional(),
+  archivedSamples: z.number().int().optional(),
   averagePoints: z.number(),
   paths: z.array(AlliancePath),
 });

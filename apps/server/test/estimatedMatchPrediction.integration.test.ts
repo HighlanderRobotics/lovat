@@ -45,7 +45,12 @@ beforeAll(async () => {
     await db.estimatedScore.createMany({
       data: teams.flatMap((teamNumber) =>
         [
-          { scopeKey: "one", sourceTeams: [1967], totalPoints: 10 },
+          {
+            scopeKey: "one",
+            sourceTeams: [1967],
+            totalPoints: 10,
+            inputOrigin: "ARCHIVE",
+          },
           { scopeKey: "both", sourceTeams: [1967, 8033], totalPoints: 20 },
           {
             scopeKey: "private",
@@ -78,6 +83,7 @@ it("uses only fully permitted source scopes and counts each match once", async (
   const own = await estimatedMatchPrediction(user([1967]), teams, db);
   expect(own.redAlliance.totalPoints).toBe(30);
   expect(own.redAlliance.teams[0].estimateSamples).toBe(2);
+  expect(own.redAlliance.teams[0].archivedSamples).toBe(2);
   const combined = await estimatedMatchPrediction(
     user([1967, 8033]),
     teams,

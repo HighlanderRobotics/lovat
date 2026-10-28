@@ -13,6 +13,7 @@ type Row = {
   teleopPoints: number;
   calculatedAt: Date;
   attributionStatus: string;
+  inputOrigin: string;
 };
 
 type EstimatedAlliance = {
@@ -22,6 +23,7 @@ type EstimatedAlliance = {
     paths: never[];
     averagePoints: number;
     estimateSamples: number;
+    archivedSamples: number;
   }[];
   totalPoints: number;
   autoPoints: number;
@@ -84,6 +86,9 @@ export async function estimatedMatchPrediction(
         paths: [],
         averagePoints: average(groups[start + i], "totalPoints"),
         estimateSamples: groups[start + i].length,
+        archivedSamples: groups[start + i].filter(
+          (r) => r.inputOrigin === "ARCHIVE",
+        ).length,
       })),
     totalPoints: groups
       .slice(start, start + 3)

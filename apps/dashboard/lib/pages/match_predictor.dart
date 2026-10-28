@@ -402,7 +402,7 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                                 ),
                                 if (_estimatesOnly)
                                   Text(
-                                      '${e.estimateSamples ?? 0} estimated matches',
+                                      '${e.estimateSamples ?? 0} estimated matches${e.archivedSamples > 0 ? ' (${e.archivedSamples} archived)' : ''}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall),

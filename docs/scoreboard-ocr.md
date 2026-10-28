@@ -209,3 +209,26 @@ query/cache keys and widget state keep both sources separate. Older-server or
 cached responses without the combined-source marker are rejected. The estimate view
 shows phase points and sample counts instead of report-only roles, paths,
 throughput or climb-time metrics. Switching off restores ordinary prediction.
+
+### Restoring an archived estimate snapshot
+
+When scoped live reports are missing, `export-estimate-archive.ts` recomputes
+historical results from frozen fusion input files. It exports SQL and a separate
+read-only verification query, never raw scout reports or notes:
+
+```sh
+bun tools/export-estimate-archive.ts PRIVATE_INPUT_DIR 1967,8033 PRIVATE_NEW_SQL_PATH
+```
+
+Run only against the verified intended database. Before writing, the generated
+SQL locks the matches, verifies every canonical roster/station and official
+alliance breakdown, and requires zero live reports in the selected source scope.
+It aborts atomically if those prerequisites changed. It never overwrites live
+estimate rows. Re-running the generator with the same inputs yields identical
+SQL and hashes; all allocations are recomputed by the current deterministic
+fusion policy. Experimental policies and hand-entered scores are not imported.
+
+Restored rows have `inputOrigin=ARCHIVE`, and Dashboard shows their archived
+sample counts. A refresh with unavailable live inputs preserves these explicitly
+restored snapshots. Actual report, roster, source, official-result or OCR input
+changes still invalidate them, and complete live inputs replace them normally.

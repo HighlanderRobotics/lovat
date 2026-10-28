@@ -612,6 +612,7 @@ model EstimatedScore {
   scopeKey          String
   sourceTeams       Int[]
   algorithm         String
+  inputOrigin       String   @default("LIVE")
   inputSha256       String
   attributionStatus String
   reportCount       Int

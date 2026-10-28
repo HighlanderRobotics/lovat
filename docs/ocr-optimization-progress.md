@@ -93,3 +93,17 @@ The Railway preflight finally succeeded on the existing native image, confirming
 The user's additional request adds a source-scoped `EstimatedScore` table and a Material eye-tracking toggle in the Dashboard match predictor. The alternate API reads persisted combined estimates only, counts each team/match once, requires two usable estimated matches per team, and filters every contributing source and tournament. There is no raw-report fallback. The producer retains auto/teleop points and fuel, including TBA station tower points and excluding alliance foul credits. Report/event/exclusion, source-team, roster, official-result and OCR mutations invalidate affected rows and queue review; advisory locks protect refreshes. Independent OCR channels now survive batch persistence and completed-batch resumes. Existing source/recovery limitations still apply.
 
 The migration replays successfully from an empty local database. The real PostgreSQL integration tests verify source/tournament exclusion and one-row-per-match selection. Worker integration tests verify deterministic persistence, exclusions, source movement, invalid official evidence, idempotent batch resume and channel retention. The Dashboard tests cover switching from loading/missing-data states and rejecting ordinary-report payloads from older APIs or cache. Preview deployment and initial data availability are being verified; this feature does not authorize either of the previously denied new-video capability exports or expanded production report reads.
+
+
+The preview API successfully applied the estimate-table migration, and both API
+and Worker deployed healthily. A scoped backfill found 11 stored OCR matches and
+zero derived rows; the preview database editor confirms zero CalGames reports
+from 1967/8033. A frozen-input archive exporter recomputes all 37 original matches
+under the current non-experimental policy and produces 666 source-scoped rows
+(222 team/match estimates, across combined and single-source scopes). Its
+read-only preview guard verified all 37 matches, 222 slots, 74 official alliance
+breakdowns and zero current scoped reports. Import is pending the archived-origin
+migration/deployment. The exporter copies no raw report rows or notes and does
+not perform either previously denied production/export action. Local tests prove
+atomic guards, live-row preservation, archive idempotency and invalidation when
+new live inputs arrive. Unchanged provider upserts now preserve valid estimates.
