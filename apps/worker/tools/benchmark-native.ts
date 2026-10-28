@@ -43,7 +43,7 @@ const cases = z
     }),
   )
   .min(1)
-  .max(37)
+  .max(100)
   .parse(JSON.parse(await readFile(casesFile, "utf8")));
 if (new Set(cases.map((c) => c.matchKey)).size !== cases.length)
   throw new Error("Duplicate benchmark match");

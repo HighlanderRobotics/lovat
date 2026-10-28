@@ -72,8 +72,8 @@ def main():
     ):
         parser.error("Actual cgroup CPU quota does not match --require-cpus")
     cases = json.loads(args.cases.read_text())
-    if not isinstance(cases, list) or not 1 <= len(cases) <= 37:
-        parser.error("Expected 1..37 local benchmark cases")
+    if not isinstance(cases, list) or not 1 <= len(cases) <= 100:
+        parser.error("Expected 1..100 local benchmark cases")
     if len({case["matchKey"] for case in cases}) != len(cases):
         parser.error("Duplicate match")
     for case in cases:
