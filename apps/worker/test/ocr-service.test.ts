@@ -241,6 +241,34 @@ test("optional native profiles are validated without breaking older service resu
   try {
     globalThis.fetch = (async () => Response.json(result)) as any;
     expect((await run()).profile).toEqual(profile);
+    result.runtime = {
+      tesseractVersion: "5.5.1",
+      language: "eng",
+      modelSha256: "a".repeat(64),
+    };
+    result.profile = {
+      ...profile,
+      fields: [
+        {
+          field: "clock",
+          stage: "primary",
+          calls: 7,
+          confidentSyntax: 6,
+          elapsedMicros: 1200,
+        },
+      ],
+    };
+    expect((await run()).runtime).toEqual(result.runtime);
+    expect((await run()).profile).toEqual(result.profile);
+    result.profile.fields[0].calls = 8;
+    await expect(run()).rejects.toThrow();
+    result.profile.fields[0].calls = 7;
+    result.profile.fields[0].confidentSyntax = 8;
+    await expect(run()).rejects.toThrow();
+    result.profile = profile;
+    result.runtime.modelSha256 = "unverified";
+    await expect(run()).rejects.toThrow();
+    delete result.runtime;
     result.profile = {
       ...profile,
       frameAllocations: 3,

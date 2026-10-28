@@ -7,6 +7,7 @@ import template from "../config/scoreboard-2026-calgames.json";
 test("native benchmark preserves evidence, authenticates and reverses repeated case order", async () => {
   const dir = await mkdtemp(join(tmpdir(), "lovat-native-benchmark-"));
   const labels: string[] = [];
+  let runtimeDrift = false;
   const token = "test-token-" + "x".repeat(32);
   const server = Bun.serve({
     hostname: "127.0.0.1",
@@ -21,6 +22,15 @@ test("native benchmark preserves evidence, authenticates and reverses repeated c
         layoutVersion: template.version,
         elapsedMs: 1,
         frames: 1,
+        ...(runtimeDrift
+          ? {
+              runtime: {
+                tesseractVersion: "5.5.1",
+                language: "eng",
+                modelSha256: (labels.length % 2 ? "a" : "b").repeat(64),
+              },
+            }
+          : {}),
       });
     },
   });
@@ -38,7 +48,7 @@ test("native benchmark preserves evidence, authenticates and reverses repeated c
         })),
       ),
     );
-    const run = async () => {
+    const run = async (output = "results") => {
       const child = Bun.spawn(
         [
           process.execPath,
@@ -48,7 +58,7 @@ test("native benchmark preserves evidence, authenticates and reverses repeated c
           "--template",
           "config/scoreboard-2026-calgames.json",
           "--output",
-          join(dir, "results"),
+          join(dir, output),
           "--label",
           "test",
           "--rounds",
@@ -96,6 +106,10 @@ test("native benchmark preserves evidence, authenticates and reverses repeated c
       .sort((a: number, b: number) => a - b);
     expect(summary.medianMs).toBe((timings[1] + timings[2]) / 2);
     expect((await run()).stderr).toContain("must be empty");
+    runtimeDrift = true;
+    expect((await run("mixed-runtime")).stderr).toContain(
+      "runtime identity changed",
+    );
   } finally {
     server.stop(true);
     await rm(dir, { recursive: true, force: true });

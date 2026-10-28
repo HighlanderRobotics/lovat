@@ -1,0 +1,16 @@
+{
+  "fast": {
+    "repository": "tesseract-ocr/tessdata_fast",
+    "revision": "87416418657359cb625c412a48b6e1d6d41c29bd",
+    "file": "eng.traineddata",
+    "bytes": 4113088,
+    "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+  },
+  "best": {
+    "repository": "tesseract-ocr/tessdata_best",
+    "revision": "e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+    "file": "eng.traineddata",
+    "bytes": 15400601,
+    "sha256": "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba"
+  }
+}

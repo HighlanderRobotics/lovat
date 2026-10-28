@@ -6,6 +6,7 @@ use axum::{
 };
 use image::RgbImage;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::{
     cell::RefCell,
     ffi::{CStr, c_char, c_int, c_void},
@@ -71,6 +72,47 @@ struct Output {
     elapsed_ms: u128,
     frames: usize,
     profile: Profile,
+    runtime: RuntimeIdentity,
+}
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RuntimeIdentity {
+    tesseract_version: String,
+    language: String,
+    model_sha256: String,
+}
+fn model_sha256(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+fn expected_model_matches(actual: &str, expected: Option<&str>) -> bool {
+    expected.is_none_or(|value| {
+        value.len() == 64
+            && value.bytes().all(|b| b.is_ascii_hexdigit())
+            && value.eq_ignore_ascii_case(actual)
+    })
+}
+#[derive(Clone, Copy, Default)]
+struct RecognitionStats {
+    calls: usize,
+    confident_syntax: usize,
+    elapsed_micros: u128,
+}
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum RecognitionStage {
+    Primary,
+    NormalizedGray,
+    Binary,
+    Glyph,
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FieldRecognition {
+    field: CropKind,
+    stage: RecognitionStage,
+    calls: usize,
+    confident_syntax: usize,
+    elapsed_micros: u128,
 }
 #[derive(Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -85,6 +127,7 @@ struct Profile {
     cache_hits: usize,
     frame_allocations: usize,
     frame_buffer_bytes: usize,
+    fields: Vec<FieldRecognition>,
 }
 type FramePool = Rc<RefCell<Option<Vec<u8>>>>;
 struct FrameBuffer {
@@ -156,6 +199,8 @@ struct App {
 }
 
 unsafe extern "C" {
+    fn TessVersion() -> *const c_char;
+    fn TessBaseAPIGetDatapath(api: *mut c_void) -> *const c_char;
     fn TessBaseAPICreate() -> *mut c_void;
     fn TessBaseAPIDelete(api: *mut c_void);
     fn TessBaseAPIInit3(api: *mut c_void, path: *const c_char, lang: *const c_char) -> c_int;
@@ -198,7 +243,8 @@ unsafe extern "C" {
     ) -> c_int;
     fn sws_freeContext(ctx: *mut c_void);
 }
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 enum CropKind {
     Text,
     Fuel,
@@ -224,6 +270,8 @@ struct Engine {
     calls: usize,
     hits: usize,
     recognition_time: Duration,
+    field_stats: [[RecognitionStats; 4]; 4],
+    runtime: RuntimeIdentity,
 }
 impl Drop for Engine {
     fn drop(&mut self) {
@@ -233,13 +281,19 @@ impl Drop for Engine {
 impl Engine {
     fn new() -> Result<Self, String> {
         unsafe {
-            let engine = Self {
+            let mut engine = Self {
                 api: TessBaseAPICreate(),
                 cache: Default::default(),
                 scalers: Default::default(),
                 calls: 0,
                 hits: 0,
                 recognition_time: Duration::ZERO,
+                field_stats: [[RecognitionStats::default(); 4]; 4],
+                runtime: RuntimeIdentity {
+                    tesseract_version: String::new(),
+                    language: "eng".into(),
+                    model_sha256: String::new(),
+                },
             };
             if engine.api.is_null() {
                 return Err("Cannot allocate OCR engine".into());
@@ -247,15 +301,54 @@ impl Engine {
             if TessBaseAPIInit3(engine.api, std::ptr::null(), c"eng".as_ptr()) != 0 {
                 return Err("Cannot initialize OCR engine".into());
             }
+            let path = TessBaseAPIGetDatapath(engine.api);
+            let version = TessVersion();
+            if path.is_null() || version.is_null() {
+                return Err("Cannot identify OCR engine model".into());
+            }
+            let model_path =
+                std::path::PathBuf::from(CStr::from_ptr(path).to_string_lossy().into_owned())
+                    .join("eng.traineddata");
+            let file =
+                std::fs::File::open(model_path).map_err(|_| "Cannot read OCR engine model")?;
+            let mut bytes = Vec::new();
+            file.take(64 * 1024 * 1024 + 1)
+                .read_to_end(&mut bytes)
+                .map_err(|_| "Cannot read OCR engine model")?;
+            if bytes.len() > 64 * 1024 * 1024 {
+                return Err("Cannot verify oversized OCR engine model".into());
+            }
+            let hash = model_sha256(&bytes);
+            let expected = std::env::var("OCR_EXPECTED_MODEL_SHA256").ok();
+            if !expected_model_matches(&hash, expected.as_deref()) {
+                return Err("OCR engine model hash mismatch".into());
+            }
+            engine.runtime = RuntimeIdentity {
+                tesseract_version: CStr::from_ptr(version).to_string_lossy().into_owned(),
+                language: "eng".into(),
+                model_sha256: hash,
+            };
             TessBaseAPISetPageSegMode(engine.api, 7);
             TessBaseAPISetVariable(engine.api, c"debug_file".as_ptr(), c"/dev/null".as_ptr());
             Ok(engine)
         }
     }
-    fn recognize(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
+    fn recognize(
+        &mut self,
+        prepared: &Prepared,
+        numeric: bool,
+        psm: i32,
+        field: CropKind,
+        stage: RecognitionStage,
+    ) -> (String, f64) {
         let started = Instant::now();
         let result = self.recognize_inner(prepared, numeric, psm);
-        self.recognition_time += started.elapsed();
+        let elapsed = started.elapsed();
+        self.recognition_time += elapsed;
+        let stats = &mut self.field_stats[field as usize][stage as usize];
+        stats.calls += 1;
+        stats.confident_syntax += usize::from(result.1 >= 85.0 && field.accepts(&result.0));
+        stats.elapsed_micros += elapsed.as_micros();
         result
     }
     fn recognize_inner(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
@@ -331,7 +424,7 @@ impl Engine {
             self.hits += 1;
             return result.clone();
         }
-        let mut best = self.recognize(&original, numeric, 7);
+        let mut best = self.recognize(&original, numeric, 7, kind, RecognitionStage::Primary);
         let valid = |r: &(String, f64)| r.1 >= 85.0 && kind.accepts(&r.0);
         if !valid(&best) {
             for binary in [false, true] {
@@ -339,7 +432,17 @@ impl Engine {
                     continue;
                 };
                 normalize(&mut recovered, 10, binary);
-                let candidate = self.recognize(&recovered, numeric, 7);
+                let candidate = self.recognize(
+                    &recovered,
+                    numeric,
+                    7,
+                    kind,
+                    if binary {
+                        RecognitionStage::Binary
+                    } else {
+                        RecognitionStage::NormalizedGray
+                    },
+                );
                 if valid(&candidate) || candidate.1 > best.1 {
                     best = candidate;
                 }
@@ -374,7 +477,8 @@ impl Engine {
                 digits.push('1');
                 continue;
             }
-            let (text, confidence) = self.recognize(&glyph, true, 10);
+            let (text, confidence) =
+                self.recognize(&glyph, true, 10, CropKind::Text, RecognitionStage::Glyph);
             if confidence < 85.0 || text.len() != 1 || !text.bytes().all(|c| c.is_ascii_digit()) {
                 return None;
             }
@@ -1142,6 +1246,30 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     profile.recognition_ms = engine.recognition_time.as_millis();
     profile.recognition_calls = engine.calls;
     profile.cache_hits = engine.hits;
+    for field in [
+        CropKind::Text,
+        CropKind::Fuel,
+        CropKind::Points,
+        CropKind::Clock,
+    ] {
+        for stage in [
+            RecognitionStage::Primary,
+            RecognitionStage::NormalizedGray,
+            RecognitionStage::Binary,
+            RecognitionStage::Glyph,
+        ] {
+            let stats = engine.field_stats[field as usize][stage as usize];
+            if stats.calls > 0 {
+                profile.fields.push(FieldRecognition {
+                    field,
+                    stage,
+                    calls: stats.calls,
+                    confident_syntax: stats.confident_syntax,
+                    elapsed_micros: stats.elapsed_micros,
+                });
+            }
+        }
+    }
     Ok(Output {
         observations,
         channels,
@@ -1149,6 +1277,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         elapsed_ms: start.elapsed().as_millis(),
         frames,
         profile,
+        runtime: engine.runtime.clone(),
     })
 }
 fn authorized(actual: &str, expected: &str) -> bool {
@@ -1309,6 +1438,13 @@ async fn main() {
         token.len() >= 32,
         "Use a random token of at least 32 characters"
     );
+    let probe =
+        Engine::new().expect("OCR engine model must be readable and match its configured hash");
+    eprintln!(
+        "ocr_runtime={}",
+        serde_json::to_string(&probe.runtime).expect("Runtime identity serializes")
+    );
+    drop(probe);
     let app = App {
         token: Arc::new(token),
         slots: Arc::new(Semaphore::new(
@@ -1328,6 +1464,56 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn model_fingerprints_are_exact_and_expected_hashes_fail_closed() {
+        let hash = model_sha256(b"abc");
+        assert_eq!(
+            hash,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert!(expected_model_matches(&hash, None));
+        assert!(expected_model_matches(&hash, Some(&hash.to_uppercase())));
+        for bad in ["", "not-a-hash", &"0".repeat(64)] {
+            assert!(!expected_model_matches(&hash, Some(bad)));
+        }
+        assert_ne!(hash, model_sha256(b"abd"));
+    }
+    #[test]
+    fn field_profiling_counts_actual_stages_and_preserves_results() {
+        let mut engine = Engine::new().unwrap();
+        let frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
+        let rect = [0.2, 0.1, 0.05, 0.05];
+        let result = engine.read(&frame, rect, CropKind::Fuel, 0);
+        assert_eq!(engine.read(&frame, rect, CropKind::Fuel, 0), result);
+        assert_eq!(engine.calls, 3);
+        assert_eq!(
+            engine.field_stats[CropKind::Fuel as usize]
+                .iter()
+                .map(|s| s.calls)
+                .sum::<usize>(),
+            3
+        );
+        assert_eq!(
+            engine.field_stats[CropKind::Fuel as usize][RecognitionStage::Primary as usize].calls,
+            1
+        );
+        assert_eq!(
+            engine.field_stats[CropKind::Fuel as usize][RecognitionStage::NormalizedGray as usize]
+                .calls,
+            1
+        );
+        assert_eq!(
+            engine.field_stats[CropKind::Fuel as usize][RecognitionStage::Binary as usize].calls,
+            1
+        );
+        assert!(
+            engine.field_stats[CropKind::Clock as usize]
+                .iter()
+                .all(|s| s.calls == 0)
+        );
+        assert_eq!(engine.runtime.model_sha256.len(), 64);
+        assert!(!engine.runtime.tesseract_version.is_empty());
+    }
     #[test]
     fn prefix_frames_move_without_copying_and_return_only_one_spare() {
         let pool: FramePool = Rc::new(RefCell::new(None));

@@ -115,6 +115,11 @@ for (let round = 1; round <= rounds; round++) {
   }
 }
 const times = records.map((r) => r.elapsedMs).sort((a, b) => a - b);
+const runtimeIdentities = [
+  ...new Set(records.map((r) => JSON.stringify(r.evidence.runtime ?? null))),
+];
+if (runtimeIdentities.length !== 1)
+  throw new Error("OCR runtime identity changed within the benchmark");
 const q = (fraction: number) =>
   times[Math.max(0, Math.ceil(times.length * fraction) - 1)]!;
 await writeFile(
@@ -125,6 +130,7 @@ await writeFile(
       cases: cases.length,
       rounds,
       runs: records.length,
+      runtime: records[0]!.evidence.runtime ?? null,
       medianMs:
         (times[Math.floor((times.length - 1) / 2)]! +
           times[Math.floor(times.length / 2)]!) /

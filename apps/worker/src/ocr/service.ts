@@ -34,6 +34,38 @@ const resultSchema = z.object({
       cacheHits: z.number().int().nonnegative(),
       frameAllocations: z.number().int().nonnegative().optional(),
       frameBufferBytes: z.number().int().nonnegative().optional(),
+      fields: z
+        .array(
+          z
+            .object({
+              field: z.enum(["text", "fuel", "points", "clock"]),
+              stage: z.enum(["primary", "normalizedGray", "binary", "glyph"]),
+              calls: z.number().int().nonnegative(),
+              confidentSyntax: z.number().int().nonnegative(),
+              elapsedMicros: z.number().int().nonnegative(),
+            })
+            .refine(
+              (r) => r.confidentSyntax <= r.calls,
+              "Syntax count exceeds calls",
+            ),
+        )
+        .max(16)
+        .optional(),
+    })
+    .refine(
+      (p) =>
+        !p.fields ||
+        (new Set(p.fields.map((r) => `${r.field}:${r.stage}`)).size ===
+          p.fields.length &&
+          p.fields.reduce((n, r) => n + r.calls, 0) === p.recognitionCalls),
+      "Field call totals or keys do not reconcile",
+    )
+    .optional(),
+  runtime: z
+    .object({
+      tesseractVersion: z.string().min(1).max(80),
+      language: z.literal("eng"),
+      modelSha256: z.string().regex(/^[0-9a-f]{64}$/),
     })
     .optional(),
   channels: channelsSchema.optional(),
