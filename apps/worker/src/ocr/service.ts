@@ -25,6 +25,7 @@ const resultSchema = z.object({
   profile: z
     .object({
       probeMs: z.number().int().nonnegative(),
+      decoderThreads: z.union([z.literal(1), z.literal(2), z.literal(4)]).optional(),
       decoderReadWaitMs: z.number().int().nonnegative(),
       identityMs: z.number().int().nonnegative(),
       clockMs: z.number().int().nonnegative(),

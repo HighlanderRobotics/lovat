@@ -248,6 +248,7 @@ test("optional native profiles are validated without breaking older service resu
     };
     result.profile = {
       ...profile,
+      decoderThreads: 2,
       fields: [
         {
           field: "clock",
@@ -260,6 +261,9 @@ test("optional native profiles are validated without breaking older service resu
     };
     expect((await run()).runtime).toEqual(result.runtime);
     expect((await run()).profile).toEqual(result.profile);
+    result.profile.decoderThreads = 8;
+    await expect(run()).rejects.toThrow();
+    result.profile.decoderThreads = 2;
     result.profile.fields[0].calls = 8;
     await expect(run()).rejects.toThrow();
     result.profile.fields[0].calls = 7;

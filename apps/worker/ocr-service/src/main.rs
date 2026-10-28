@@ -18,6 +18,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::Semaphore;
+mod field_benchmark;
 
 const LIMIT: usize = 96 * 1024 * 1024;
 const WIDTH: u32 = 1280;
@@ -118,6 +119,7 @@ struct FieldRecognition {
 #[serde(rename_all = "camelCase")]
 struct Profile {
     probe_ms: u128,
+    decoder_threads: usize,
     decoder_read_wait_ms: u128,
     identity_ms: u128,
     clock_ms: u128,
@@ -243,7 +245,7 @@ unsafe extern "C" {
     ) -> c_int;
     fn sws_freeContext(ctx: *mut c_void);
 }
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 enum CropKind {
     Text,
@@ -499,7 +501,7 @@ impl Drop for Scaler {
         unsafe { sws_freeContext(self.0) }
     }
 }
-type Scalers = std::collections::HashMap<(u32, u32), Scaler>;
+type Scalers = std::collections::HashMap<(u32, u32, u32), Scaler>;
 #[cfg(test)]
 fn prepare(frame: &RgbImage, rect: Rect, padding: u32) -> Option<Prepared> {
     prepare_with(frame, rect, padding, &mut Scalers::new())
@@ -510,24 +512,33 @@ fn prepare_with(
     padding: u32,
     scalers: &mut Scalers,
 ) -> Option<Prepared> {
-    if !crop_available(frame, rect, padding) {
+    prepare_scaled(frame, rect, padding, scalers, 4)
+}
+fn prepare_scaled(
+    frame: &RgbImage,
+    rect: Rect,
+    padding: u32,
+    scalers: &mut Scalers,
+    scale: u32,
+) -> Option<Prepared> {
+    if ![2, 3, 4].contains(&scale) || !crop_available(frame, rect, padding) {
         return None;
     }
     let (x, y, w, h) = geometry(rect);
-    let width = w * 4 + padding * 2;
-    let height = h * 4 + padding * 2;
+    let width = w * scale + padding * 2;
+    let height = h * scale + padding * 2;
     let stride = (width + 127) & !63;
     let mut image = vec![255u8; (stride * height + 64) as usize];
     // Use the same bicubic RGB-to-gray scaler as the CLI reference. Cropping
     // before conversion matters for small colored text at the clock edge.
     unsafe {
-        let scaler = scalers.entry((w, h)).or_insert_with(|| {
+        let scaler = scalers.entry((w, h, scale)).or_insert_with(|| {
             Scaler(sws_getContext(
                 w as i32,
                 h as i32,
                 2,
-                (w * 4) as i32,
-                (h * 4) as i32,
+                (w * scale) as i32,
+                (h * scale) as i32,
                 8,
                 4,
                 std::ptr::null(),
@@ -564,7 +575,7 @@ fn prepare_with(
             dst.as_ptr(),
             dst_stride.as_ptr(),
         );
-        if scaled != (h * 4) as i32 {
+        if scaled != (h * scale) as i32 {
             return None;
         }
     }
@@ -982,7 +993,10 @@ fn identity_matches(
 }
 fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     let start = Instant::now();
-    let mut profile = Profile::default();
+    let mut profile = Profile {
+        decoder_threads: decoder_threads(std::env::var("OCR_DECODER_THREADS").ok().as_deref())?,
+        ..Profile::default()
+    };
     let probe = Command::new("ffprobe")
         .args([
             "-v",
@@ -1034,7 +1048,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             "-v",
             "error",
             "-threads",
-            "1",
+            &profile.decoder_threads.to_string(),
             "-filter_threads",
             "1",
             "-i",
@@ -1430,14 +1444,37 @@ fn native_concurrency(value: Option<&str>) -> Result<usize, &'static str> {
         _ => Err("OCR_CONCURRENCY must be 1 or 2"),
     }
 }
+fn decoder_threads(value: Option<&str>) -> Result<usize, &'static str> {
+    match value.unwrap_or("1") {
+        "1" => Ok(1),
+        "2" => Ok(2),
+        "4" => Ok(4),
+        _ => Err("OCR_DECODER_THREADS must be 1, 2 or 4"),
+    }
+}
 #[tokio::main]
 async fn main() {
+    let args: Vec<_> = std::env::args().skip(1).collect();
+    if !args.is_empty() {
+        assert!(
+            args.len() == 3 && args[0] == "--benchmark-fields",
+            "Use --benchmark-fields CASES_JSON NEW_OUTPUT_JSON"
+        );
+        field_benchmark::run(
+            std::path::Path::new(&args[1]),
+            std::path::Path::new(&args[2]),
+        )
+        .expect("Local field benchmark failed");
+        return;
+    }
     // This also bounds OpenMP threads used by native Tesseract.
     let token = std::env::var("OCR_SERVICE_TOKEN").expect("OCR_SERVICE_TOKEN required");
     assert!(
         token.len() >= 32,
         "Use a random token of at least 32 characters"
     );
+    decoder_threads(std::env::var("OCR_DECODER_THREADS").ok().as_deref())
+        .expect("OCR_DECODER_THREADS must be 1, 2 or 4");
     let probe =
         Engine::new().expect("OCR engine model must be readable and match its configured hash");
     eprintln!(
@@ -1464,6 +1501,16 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn decoder_resource_settings_are_bounded_and_default_to_one() {
+        assert_eq!(decoder_threads(None), Ok(1));
+        for count in ["1", "2", "4"] {
+            assert_eq!(decoder_threads(Some(count)), Ok(count.parse().unwrap()));
+        }
+        for count in ["", "0", "3", "5", "16", "-1", " 2", "2.0"] {
+            assert!(decoder_threads(Some(count)).is_err());
+        }
+    }
     #[test]
     fn model_fingerprints_are_exact_and_expected_hashes_fail_closed() {
         let hash = model_sha256(b"abc");
