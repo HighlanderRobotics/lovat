@@ -166,6 +166,27 @@ run(
   },
 );
 run(
+  "unchanged official imports and unrelated roster metadata preserve estimates",
+  async () => {
+    await db.matchAlliance.update({
+      where: { matchKey_color: { matchKey, color: "RED" } },
+      data: { score: 15, scoreBreakdown: f.tba.score_breakdown.red },
+    });
+    await db.teamMatchData.update({
+      where: { key: `${matchKey}_1` },
+      data: {
+        station: f.slots.find((s) => s.teamNumber === 1)!.station,
+        disqualified: false,
+      },
+    });
+    await db.scoreboardOcr.update({
+      where: { matchKey },
+      data: { observations: f.ocr.observations, processedAt: new Date() },
+    });
+    expect(await db.estimatedScore.count({ where: { matchKey } })).toBe(6);
+  },
+);
+run(
   "event edits and lead exclusions invalidate derived rows and queue refresh",
   async () => {
     await db.scoreboardOcr.update({
