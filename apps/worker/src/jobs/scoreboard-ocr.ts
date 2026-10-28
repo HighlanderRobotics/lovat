@@ -1,3 +1,4 @@
+import { refreshMatchEstimates } from "../ocr/estimate-store";
 import { OcrServiceUnavailable } from "../ocr/service";
 import { OcrMediaError, OcrMediaPending } from "../ocr/commandFailure";
 import { ocrTournamentAllowed } from "../ocr/config";
@@ -239,9 +240,12 @@ export async function analyzeScoreboardTournament(
         }
       }
     }
+    // Mark this review before deriving scores: a later input edit must retain
+    // the trigger's queued refresh rather than having its null overwritten.
     await db.scoreboardOcr.update({
       where: { matchKey: record.matchKey },
       data: { analyzedAt: now },
     });
+    await refreshMatchEstimates(db, record.matchKey);
   }
 }

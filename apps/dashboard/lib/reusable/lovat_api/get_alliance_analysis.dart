@@ -12,9 +12,11 @@ class AllianceTeam {
     this.role,
     this.averagePoints,
     this.paths = const [],
+    this.estimateSamples,
   });
 
   final int team;
+  final int? estimateSamples;
   final int? role;
   final double? averagePoints;
   final List<AutoPath> paths;
@@ -24,6 +26,7 @@ class AllianceTeam {
   factory AllianceTeam.fromJson(Map<String, dynamic> json) {
     return AllianceTeam(
       team: json['team'] as int,
+      estimateSamples: json['estimateSamples'] as int?,
       role: json['role'] as int?,
       averagePoints: (json['averagePoints'] as num?)?.toDouble(),
       paths: (json['paths'] as List<dynamic>? ?? [])
@@ -42,6 +45,8 @@ class AllianceAnalysis {
     required this.l3StartTime,
     required this.totalFuelOutputted,
     required this.totalBallThroughput,
+    this.autoPoints,
+    this.teleopPoints,
   });
 
   final List<AllianceTeam> teams;
@@ -50,7 +55,9 @@ class AllianceAnalysis {
   final List<num?> l2StartTime;
   final List<num?> l3StartTime;
   final num totalFuelOutputted;
-  final num totalBallThroughput;
+  final num? totalBallThroughput;
+  final num? autoPoints;
+  final num? teleopPoints;
 
   factory AllianceAnalysis.fromJson(Map<String, dynamic> json) {
     return AllianceAnalysis(
@@ -62,7 +69,9 @@ class AllianceAnalysis {
       l2StartTime: (json['l2StartTime'] as List<dynamic>).cast<num?>(),
       l3StartTime: (json['l3StartTime'] as List<dynamic>).cast<num?>(),
       totalFuelOutputted: json['totalFuelOutputted'] as num,
-      totalBallThroughput: json['totalBallThroughput'] as num,
+      totalBallThroughput: json['totalBallThroughput'] as num?,
+      autoPoints: json['autoPoints'] as num?,
+      teleopPoints: json['teleopPoints'] as num?,
     );
   }
 }

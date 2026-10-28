@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { invoke, testUser } from "./helpers/handlerHarness.js";
 const mocks = vi.hoisted(() => ({
   prediction: vi.fn(),
+  combined: vi.fn(),
   alliance: vi.fn(),
   qualification: vi.fn(),
   get: vi.fn(),
@@ -11,6 +12,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../src/prismaClient.js", () => ({
   default: { cachedAnalysis: { create: mocks.create } },
 }));
+vi.mock(
+  "../src/handler/analysis/predictions/estimatedMatchPrediction.js",
+  () => ({
+    estimatedMatchPrediction: mocks.combined,
+  }),
+);
 vi.mock("../src/redisClient.js", () => ({
   kv: { get: mocks.get, set: mocks.set },
 }));
@@ -150,4 +157,38 @@ it.each([
       ? 200
       : 500,
   );
+});
+
+it("combined mode uses only persisted estimates and bypasses the report cache", async () => {
+  mocks.combined.mockResolvedValue({
+    scoreSource: "combined",
+    redWinning: 0.8,
+  });
+  const result = await invoke(
+    (req, res) => matchPrediction(req, res, vi.fn()),
+    { query: { ...teams, scoreSource: "combined" } },
+  );
+  expect(result.body).toEqual({ scoreSource: "combined", redWinning: 0.8 });
+  expect(mocks.prediction).not.toHaveBeenCalled();
+  expect(mocks.alliance).not.toHaveBeenCalled();
+  expect(mocks.get).not.toHaveBeenCalled();
+});
+it("combined mode never substitutes reports when estimates are missing", async () => {
+  mocks.combined.mockRejectedValue("not enough data");
+  const result = await invoke(
+    (req, res) => matchPrediction(req, res, vi.fn()),
+    { query: { ...teams, scoreSource: "combined" } },
+  );
+  expect(result.body).toBe("not enough data");
+  expect(mocks.prediction).not.toHaveBeenCalled();
+  expect(mocks.alliance).not.toHaveBeenCalled();
+});
+it("rejects unknown predictor sources", async () => {
+  const result = await invoke(
+    (req, res) => matchPrediction(req, res, vi.fn()),
+    { query: { ...teams, scoreSource: "secret" } },
+  );
+  expect(result.statusCode).toBe(400);
+  expect(mocks.prediction).not.toHaveBeenCalled();
+  expect(mocks.combined).not.toHaveBeenCalled();
 });

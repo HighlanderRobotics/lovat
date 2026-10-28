@@ -1,3 +1,4 @@
+import { storeBatchEstimateEvidence } from "../src/ocr/estimate-store";
 import { S3Client } from "bun";
 import { runOcrPool } from "../src/ocr/pool";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -98,6 +99,11 @@ try {
       if (await output.exists()) {
         const previous = await output.json();
         if (["COMPLETE", "REJECTED"].includes(previous.status)) {
+          if (previous.status === "COMPLETE") {
+            if (previous.matchKey !== match.key || previous.ocr?.matchKey !== match.key)
+              throw new Error("Stored batch match identity mismatch");
+            await storeBatchEstimateEvidence(db, previous.ocr, sourceTeams);
+          }
           summary.push(previous.summary);
           console.info(JSON.stringify({ ...previous.summary, resumed: true }));
           return;
@@ -262,6 +268,7 @@ try {
             estimate: fuseMatch(input, sourceTeams),
             reportCount: reports.length,
           };
+          await storeBatchEstimateEvidence(db, evidence, sourceTeams);
         }
       } catch (error) {
         record = {

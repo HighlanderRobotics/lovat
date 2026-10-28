@@ -162,9 +162,10 @@ model TeamTournament {
 }
 
 model Match {
-  scoreboardOcr ScoreboardOcr?
-  key           String         @id // Canonical key, e.g. "2026..._sf1m1"
-  tournamentKey String
+  scoreEstimates EstimatedScore[]
+  scoreboardOcr  ScoreboardOcr?
+  key            String           @id // Canonical key, e.g. "2026..._sf1m1"
+  tournamentKey  String
 
   competitionLevel CompetitionLevel
   setNumber        Int
@@ -577,6 +578,7 @@ model ScoreboardOcr {
   status          String
   reason          String?
   observations    Json
+  channels        Json?
   processedAt     DateTime               @default(now())
   analyzeAfter    DateTime
   analyzedAt      DateTime?
@@ -601,4 +603,27 @@ model ReportValidationFlag {
 
   @@unique([reportUuid, rule])
   @@index([reportUuid, status])
+}
+
+// Derived OCR/report estimates, never an official individual robot score.
+model EstimatedScore {
+  matchKey          String
+  teamNumber        Int
+  scopeKey          String
+  sourceTeams       Int[]
+  algorithm         String
+  inputSha256       String
+  attributionStatus String
+  reportCount       Int
+  autoFuel          Int
+  autoPoints        Int
+  teleopFuel        Int
+  teleopPoints      Int
+  totalFuel         Int
+  totalPoints       Int
+  calculatedAt      DateTime @default(now())
+  match             Match    @relation(fields: [matchKey], references: [key], onDelete: Cascade)
+
+  @@id([matchKey, teamNumber, scopeKey])
+  @@index([teamNumber, calculatedAt])
 }

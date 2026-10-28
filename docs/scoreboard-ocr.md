@@ -168,3 +168,44 @@ A balanced baseline/candidate/candidate/baseline comparison on the same four cac
 The baseline allocated for every decoded frame and cloned identity-prefix frames. All paired readings, independent channels, confidences, frame counts, and actual Tesseract call counts were unchanged across both repeats. Two simultaneous requests for QM1 and QM37 also retained identical evidence and independent buffer counts. These are local cached-video results, not a Railway-wide memory guarantee. The 138 Worker tests and 26 Rust tests pass, including compact/full crop equality, unavailable-row rejection, ownership transfer, bounded spare storage, and early-exit recycling.
 
 A separate request-local exact prepared-image memoization trial saved only 8–26 Tesseract calls per video while retaining roughly 3–4 MiB. It was removed; the existing exact RGB/grayscale crop cache remains unchanged. Confidence thresholds, sampling, phase handling, and attribution policy are unchanged.
+
+## Persisted estimates in the match predictor
+
+`EstimatedScore` stores a deterministic robot estimate per match, team, and
+source-team scope. It retains auto/teleop fuel and points, total points, report
+count, algorithm, semantic input hash and calculation time. Tower points come
+from TBA station results; alliance foul credits stay outside robot scores.
+These are estimates: unresolved fuel remains unattributed and HP fuel can still
+be confused with robot fuel. They are not verified individual robot scores.
+
+The regular scoreboard review job refreshes derived rows from current numeric
+reports, official breakdowns and stored OCR. Batch runs and resumed completed
+runs now retain their numeric evidence (including independent alliance channels)
+and refresh the same rows. Invalid official evidence produces no usable rows.
+Report/event edits, exclusions, source-team changes, roster changes and official
+or OCR changes invalidate affected rows and queue a new review. Advisory locks
+keep an overlapping refresh from resurrecting an invalidated snapshot. Match
+and tournament deletion cascade without updating an already-deleted parent.
+
+For an existing database with stored evidence, backfill explicitly:
+
+```sh
+LOVAT_ESTIMATE_ENVIRONMENT_ID="$RAILWAY_ENVIRONMENT_ID" \
+  bun tools/refresh-event-estimates.ts 2026cacg 1967,8033
+```
+
+Verify the intended environment first. The command updates derived estimates
+only; it does not download videos, copy reports, read production from a preview,
+or recover missing input data. A match without usable reports/evidence remains
+unavailable. The producer saves the combined scope and individual source scopes.
+
+Dashboard's Material eye-tracking toggle requests
+`/v1/analysis/matchprediction?scoreSource=combined` with its six team parameters.
+This path reads only the estimate table, respects the user's source-team and
+tournament filters, and chooses the largest fully permitted stored scope once
+per team/match. It bypasses the report-analysis cache. Every team needs two
+estimated matches; missing estimates never substitute raw report scores. Client
+query/cache keys and widget state keep both sources separate. Older-server or
+cached responses without the combined-source marker are rejected. The estimate view
+shows phase points and sample counts instead of report-only roles, paths,
+throughput or climb-time metrics. Switching off restores ordinary prediction.

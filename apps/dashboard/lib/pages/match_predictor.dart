@@ -1,3 +1,4 @@
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -17,7 +18,9 @@ import 'package:scouting_dashboard_app/reusable/value_tile.dart';
 import 'package:skeletons_forked/skeletons_forked.dart';
 
 class MatchPredictorPage extends StatefulWidget {
-  const MatchPredictorPage({super.key});
+  const MatchPredictorPage({super.key, this.api});
+
+  final LovatAPI? api;
 
   @override
   State<MatchPredictorPage> createState() => _MatchPredictorPageState();
@@ -25,6 +28,28 @@ class MatchPredictorPage extends StatefulWidget {
 
 class _MatchPredictorPageState extends State<MatchPredictorPage> {
   late List<int> _teams;
+  bool _estimatesOnly = false;
+
+  List<Widget> get _scoreSourceActions => [
+        IconButton(
+          tooltip: _estimatesOnly
+              ? 'Use scout report scores'
+              : 'Use OCR + report estimates only',
+          isSelected: _estimatesOnly,
+          onPressed: () => setState(() => _estimatesOnly = !_estimatesOnly),
+          icon: SvgPicture.asset(
+            'assets/images/eye_tracking.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              _estimatesOnly
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+      ];
 
   @override
   void didChangeDependencies() {
@@ -50,8 +75,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
     return DefaultTabController(
       length: 2,
       child: StaleRefreshBuilder(
-        query: lovatAPI.matchPredictionQuery(
-            _teams[0], _teams[1], _teams[2], _teams[3], _teams[4], _teams[5]),
+        key: ValueKey(_estimatesOnly),
+        query: (widget.api ?? lovatAPI).matchPredictionQuery(
+            _teams[0], _teams[1], _teams[2], _teams[3], _teams[4], _teams[5],
+            estimatesOnly: _estimatesOnly),
         builder: (context, result) {
           final prediction = result.data;
           final notEnoughData =
@@ -61,7 +88,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           if (notEnoughData) {
             return Scaffold(
               appBar: AppBar(
-                title: const Text("Match Predictor"),
+                title: Text(_estimatesOnly
+                    ? "Match Predictor · Estimates"
+                    : "Match Predictor"),
+                actions: _scoreSourceActions,
                 bottom: StaleRefreshIndicator.result(result),
               ),
               body: notEnoughDataMessage(),
@@ -73,7 +103,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             if (result.error != null) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: StaleRefreshIndicator.result(result),
                 ),
                 body: FriendlyErrorView.result(result),
@@ -85,7 +118,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
               if (constraints.maxHeight > constraints.maxWidth) {
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Match Predictor"),
+                    title: Text(_estimatesOnly
+                        ? "Match Predictor · Estimates"
+                        : "Match Predictor"),
+                    actions: _scoreSourceActions,
                     bottom: PreferredSize(
                       preferredSize: const Size.fromHeight(89),
                       child: Column(
@@ -126,7 +162,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
               } else {
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Match Predictor"),
+                    title: Text(_estimatesOnly
+                        ? "Match Predictor · Estimates"
+                        : "Match Predictor"),
+                    actions: _scoreSourceActions,
                     bottom: StaleRefreshIndicator.result(result),
                   ),
                   body: SafeArea(
@@ -164,7 +203,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             if (constraints.maxHeight > constraints.maxWidth) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: PreferredSize(
                     preferredSize: const Size.fromHeight(89),
                     child: Column(
@@ -208,7 +250,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             } else {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: StaleRefreshIndicator.result(result),
                 ),
                 body: SafeArea(
@@ -266,7 +311,9 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 Text(
-                  "There must be 2 or more matches recorded for each team to make a prediction.",
+                  _estimatesOnly
+                      ? "Each team needs at least two matches with OCR + report estimates in your selected data sources. Report scores are not used in this mode."
+                      : "There must be 2 or more matches recorded for each team to make a prediction.",
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -282,6 +329,16 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
 
   Widget allianceTab(int alliance, AllianceAnalysis allianceData) {
     return Column(children: [
+      if (_estimatesOnly) ...[
+        const Text('OCR + report estimates only', textAlign: TextAlign.center),
+        const SizedBox(height: 6),
+        Text(
+          'Auto and teleop include tower points. Alliance fouls are excluded. Unresolved fuel attribution can affect estimates.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 15),
+      ],
       allianceData.teams.isEmpty
           ? const Text("Not enough data")
           : Row(
@@ -342,7 +399,13 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                                   numToStringRounded(e.averagePoints),
                                   style:
                                       Theme.of(context).textTheme.titleMedium,
-                                )
+                                ),
+                                if (_estimatesOnly)
+                                  Text(
+                                      '${e.estimateSamples ?? 0} estimated matches',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall),
                               ],
                             ),
                           ),
@@ -368,7 +431,7 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Teleop points"),
+              Text(_estimatesOnly ? "Total estimated points" : "Teleop points"),
               Text(
                 allianceData.totalPoints == null
                     ? "--"
@@ -380,42 +443,58 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           ),
         ),
       ),
-      const SizedBox(height: 15),
-      reefStack(
-        context,
-        allianceData,
-        backgroundColor: [
-          Theme.of(context).colorScheme.onRedAlliance,
-          Theme.of(context).colorScheme.onBlueAlliance
-        ][alliance],
-        foregroundColor: [
-          Theme.of(context).colorScheme.redAlliance,
-          Theme.of(context).colorScheme.blueAlliance
-        ][alliance],
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 15),
-        child: Row(
-          children: [
-            Flexible(
-              fit: FlexFit.tight,
-              child: ValueTile(
-                value:
-                    Text(numToStringRounded(allianceData.totalBallThroughput)),
-                label: const Text('Total output'),
-              ),
-            ),
-            Flexible(
-              fit: FlexFit.tight,
-              child: ValueTile(
-                value:
-                    Text(numToStringRounded(allianceData.totalFuelOutputted)),
-                label: const Text('Hub shots'),
-              ),
-            ),
-          ].withSpaceBetween(width: 10),
+      if (_estimatesOnly) ...[
+        const SizedBox(height: 15),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.autoPoints)),
+            label: const Text('Auto points')),
+        const SizedBox(height: 10),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.teleopPoints)),
+            label: const Text('Teleop points')),
+        const SizedBox(height: 10),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.totalFuelOutputted)),
+            label: const Text('Estimated fuel')),
+      ],
+      if (!_estimatesOnly) ...[
+        const SizedBox(height: 15),
+        reefStack(
+          context,
+          allianceData,
+          backgroundColor: [
+            Theme.of(context).colorScheme.onRedAlliance,
+            Theme.of(context).colorScheme.onBlueAlliance
+          ][alliance],
+          foregroundColor: [
+            Theme.of(context).colorScheme.redAlliance,
+            Theme.of(context).colorScheme.blueAlliance
+          ][alliance],
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: Row(
+            children: [
+              Flexible(
+                fit: FlexFit.tight,
+                child: ValueTile(
+                  value: Text(
+                      numToStringRounded(allianceData.totalBallThroughput)),
+                  label: const Text('Total output'),
+                ),
+              ),
+              Flexible(
+                fit: FlexFit.tight,
+                child: ValueTile(
+                  value:
+                      Text(numToStringRounded(allianceData.totalFuelOutputted)),
+                  label: const Text('Hub shots'),
+                ),
+              ),
+            ].withSpaceBetween(width: 10),
+          ),
+        ),
+      ],
     ]);
   }
 }

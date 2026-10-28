@@ -39,8 +39,9 @@ extension MatchPredictionQuery on LovatAPI {
     int red3,
     int blue1,
     int blue2,
-    int blue3,
-  ) {
+    int blue3, {
+    bool estimatesOnly = false,
+  }) {
     const path = '/v1/analysis/matchprediction';
     final query = {
       'red1': red1.toString(),
@@ -49,9 +50,29 @@ extension MatchPredictionQuery on LovatAPI {
       'blue1': blue1.toString(),
       'blue2': blue2.toString(),
       'blue3': blue3.toString(),
+      if (estimatesOnly) 'scoreSource': 'combined',
     };
+    MatchPrediction parsePrediction(dynamic value) {
+      final json = value as Map<String, dynamic>;
+      if (estimatesOnly && json['scoreSource'] != 'combined') {
+        throw const LovatAPIException(
+          'OCR + report estimates are not available on this server',
+        );
+      }
+      return MatchPrediction.fromJson(json);
+    }
+
     return CachedQuery(
-      queryKey: ['matchPrediction', red1, red2, red3, blue1, blue2, blue3],
+      queryKey: [
+        'matchPrediction',
+        red1,
+        red2,
+        red3,
+        blue1,
+        blue2,
+        blue3,
+        estimatesOnly
+      ],
       label: 'match prediction',
       queryFn: () async {
         final response = await get(path, query: query);
@@ -65,15 +86,12 @@ extension MatchPredictionQuery on LovatAPI {
           throw const LovatAPIException('Not enough data');
         }
 
-        return MatchPrediction.fromJson(
-          jsonDecode(response!.body) as Map<String, dynamic>,
-        );
+        return parsePrediction(jsonDecode(response!.body));
       },
       cacheReader: () => getCachedData(
         path,
         query: query,
-        parser: (json) =>
-            MatchPrediction.fromJson(json as Map<String, dynamic>),
+        parser: parsePrediction,
       ),
       cacheTimestampReader: () => getCachedTimestamp(path, query: query),
     );
