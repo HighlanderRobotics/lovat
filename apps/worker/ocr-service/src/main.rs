@@ -18,6 +18,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::Semaphore;
+mod digit_prototype;
 mod field_benchmark;
 
 const LIMIT: usize = 96 * 1024 * 1024;
@@ -1456,6 +1457,15 @@ fn decoder_threads(value: Option<&str>) -> Result<usize, &'static str> {
 async fn main() {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !args.is_empty() {
+        if args.len() == 4 && args[0] == "--benchmark-digits" {
+            digit_prototype::benchmark(
+                std::path::Path::new(&args[1]),
+                std::path::Path::new(&args[2]),
+                std::path::Path::new(&args[3]),
+            )
+            .expect("Local digit benchmark failed");
+            return;
+        }
         assert!(
             args.len() == 3 && args[0] == "--benchmark-fields",
             "Use --benchmark-fields CASES_JSON NEW_OUTPUT_JSON"

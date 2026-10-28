@@ -8,18 +8,18 @@ use std::{
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Case {
-    id: String,
-    raw_rgb: PathBuf,
-    height: u32,
-    fields: Vec<Field>,
+pub(super) struct Case {
+    pub(super) id: String,
+    pub(super) raw_rgb: PathBuf,
+    pub(super) height: u32,
+    pub(super) fields: Vec<Field>,
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Field {
-    id: String,
-    rect: Rect,
-    kind: CropKind,
+pub(super) struct Field {
+    pub(super) id: String,
+    pub(super) rect: Rect,
+    pub(super) kind: CropKind,
 }
 #[derive(Clone, Copy)]
 struct Variant {
@@ -46,7 +46,7 @@ struct Measurement {
     confident_syntax: bool,
     elapsed_micros: u128,
 }
-pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
+pub(super) fn load_cases(input: &Path) -> Result<Vec<Case>, String> {
     let mut bytes = Vec::new();
     std::fs::File::open(input)
         .map_err(|_| "Missing benchmark cases")?
@@ -78,6 +78,26 @@ pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
             return Err("Invalid field identity or geometry".into());
         }
     }
+    Ok(cases)
+}
+pub(super) fn load_frame(case: &Case) -> Result<(RgbImage, String), String> {
+    let length = (WIDTH * case.height * 3) as usize;
+    let mut raw = Vec::new();
+    std::fs::File::open(&case.raw_rgb)
+        .map_err(|_| "Missing RGB frame")?
+        .take((length + 1) as u64)
+        .read_to_end(&mut raw)
+        .map_err(|_| "Cannot read RGB frame")?;
+    if raw.len() != length {
+        return Err("RGB length/dimensions mismatch".into());
+    }
+    let hash = model_sha256(&raw);
+    raw.resize(length + 64, 0);
+    let frame = RgbImage::from_raw(WIDTH, case.height, raw).ok_or("Invalid RGB frame")?;
+    Ok((frame, hash))
+}
+pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
+    let cases = load_cases(input)?;
     // Never replace a saved measurement or a reference label file.
     let mut file = OpenOptions::new()
         .write(true)
@@ -113,19 +133,7 @@ pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
             variants.reverse();
         }
         for case in order {
-            let length = (WIDTH * case.height * 3) as usize;
-            let mut raw = Vec::new();
-            std::fs::File::open(&case.raw_rgb)
-                .map_err(|_| "Missing RGB frame")?
-                .take((length + 1) as u64)
-                .read_to_end(&mut raw)
-                .map_err(|_| "Cannot read RGB frame")?;
-            if raw.len() != length {
-                return Err("RGB length/dimensions mismatch".into());
-            }
-            let source_hash = model_sha256(&raw);
-            raw.resize(length + 64, 0);
-            let frame = RgbImage::from_raw(WIDTH, case.height, raw).ok_or("Invalid RGB frame")?;
+            let (frame, source_hash) = load_frame(case)?;
             for field in &case.fields {
                 for variant in &variants {
                     let started = Instant::now();
