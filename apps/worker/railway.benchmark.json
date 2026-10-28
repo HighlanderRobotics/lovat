@@ -1,0 +1,15 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/worker/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bun tools/benchmark-native-railway.ts",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "NEVER",
+    "drainingSeconds": 0,
+    "overlapSeconds": 0
+  }
+}
