@@ -295,20 +295,25 @@ retained in the database, and flags do not automatically exclude scouting data.
 
 ### Private resource benchmark
 
-`railway.benchmark.json` is an operator-only, one-shot deployment descriptor.
+`bun tools/benchmark-native-railway.ts` is an operator-only, one-shot task.
 Use it only on PR #95's Worker with its existing private native/media access;
 the runner refuses other environments and never opens SQL connections. Save the
-original service configuration before selecting this file. Set a fresh
-`OCR_RESOURCE_RUN_ID`, `OCR_RESOURCE_DECODER_THREADS` (1/2/4), and first set
-`OCR_RESOURCE_PREFLIGHT=1` to read the authenticated numeric counters without
-opening the media bucket. The full run requires a verified two-CPU native quota,
-native concurrency two, an idle processor, and the expected decoder setting.
+original service configuration before temporarily replacing the start command
+and disabling automatic restarts. Set a fresh `OCR_RESOURCE_RUN_ID`,
+`OCR_RESOURCE_DECODER_THREADS` (1/2/4), and first set `OCR_RESOURCE_PREFLIGHT=1`
+to read authenticated numeric counters without opening the media bucket.
+The full run requires a verified two-CPU native quota, native concurrency two,
+an idle processor, and the expected decoder setting.
 
 After preflight, clear `OCR_RESOURCE_PREFLIGHT`, use a new run ID, and optionally
 set `OCR_RESOURCE_REFERENCE_RUN` to a completed run to require identical evidence
 across decoder settings. Numeric phase summaries are written to private logs;
 full results stay in the existing private media store. Restore the original
 configuration, tuning values and normal Worker command when finished or if the
-experiment fails. This descriptor deliberately disables automatic restarts so
-a failed run cannot silently reuse a result prefix. It is not the normal Worker
-deployment configuration.
+experiment fails. Keep automatic restarts disabled during the experiment so a
+failed run cannot silently reuse a result prefix.
+
+Railway's connector currently rejects new Config as Code file selections. Do
+not rely on a new `railway.json` descriptor for this task or migrate the whole
+project to IaC merely to run the benchmark. Verify the effective build/start
+configuration and actual numeric preflight before processing videos.
