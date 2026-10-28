@@ -4,6 +4,17 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import models from "../config/ocr-models.json";
 
+test("native image installs and enforces the audited immutable model", async () => {
+  const docker = await readFile(join(import.meta.dir, "../ocr-service/Dockerfile"), "utf8");
+  const model = models.fast;
+  expect(docker).toContain(`https://raw.githubusercontent.com/${model.repository}/${model.revision}/${model.file}`);
+  expect(docker).toContain(`echo '${model.sha256}  /model/${model.file}' | sha256sum --check`);
+  expect(docker).toContain(`ENV OCR_EXPECTED_MODEL_SHA256=${model.sha256}`);
+  expect(docker).toContain("ENV TESSDATA_PREFIX=/opt/ocr-model");
+  expect(docker).toContain("COPY --from=model /model /opt/ocr-model");
+  expect(docker).not.toContain(" tesseract-ocr-eng ");
+});
+
 test("model registry pins distinct official artifacts and rejects invalid local bytes", async () => {
   expect(models.fast.sha256).not.toBe(models.best.sha256);
   for (const model of Object.values(models)) {
