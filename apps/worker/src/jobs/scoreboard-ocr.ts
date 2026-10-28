@@ -1,5 +1,5 @@
 import { OcrServiceUnavailable } from "../ocr/service";
-import { OcrMediaError } from "../ocr/commandFailure";
+import { OcrMediaError, OcrMediaPending } from "../ocr/commandFailure";
 import { ocrTournamentAllowed } from "../ocr/config";
 import type { PrismaClient, Prisma } from "@lovat/db";
 import { z } from "zod";
@@ -79,6 +79,7 @@ export async function scanScoreboardTournament(
       : "TBA has not published a supported match video.";
     let observations: Observation[] = [],
       videoKey = videos[0]?.key ?? "";
+    let pendingVideo: { key: string; reason: string } | undefined;
     if (teams.length === 6 && new Set(teams).size === 6) {
       for (const video of videos) {
         try {
@@ -101,6 +102,11 @@ export async function scanScoreboardTournament(
               status = "PARTIAL";
               break;
             }
+          } else if (error instanceof OcrMediaPending) {
+            // A published link may precede YouTube finishing its encode. Keep
+            // the existing short NO_VIDEO retry instead of caching a rejection
+            // for six hours or treating it as evidence against a scout report.
+            pendingVideo ??= { key: video.key, reason: error.message };
           } else if (error instanceof OcrMediaError) {
             reason = error.message;
           } else if (
@@ -116,6 +122,12 @@ export async function scanScoreboardTournament(
           }
         }
       }
+    }
+    if (pendingVideo && status !== "VALIDATED" && status !== "PARTIAL") {
+      status = "NO_VIDEO";
+      videoKey = pendingVideo.key;
+      reason = pendingVideo.reason;
+      observations = [];
     }
     const data = {
       videoKey,

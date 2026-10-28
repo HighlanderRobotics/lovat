@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { commandFailure } from "../src/ocr/commandFailure";
+import { commandFailure, OcrMediaPending } from "../src/ocr/commandFailure";
 test("reports provider blocking without persisting raw diagnostics or URLs", () => {
   for (const text of [
     "HTTP Error 403 at https://private.invalid/?secret=hidden",
@@ -11,6 +11,10 @@ test("reports provider blocking without persisting raw diagnostics or URLs", () 
     );
 });
 test("distinguishes unavailable formats and media stages", () => {
+  const pending = commandFailure("yt-dlp", "We're processing this video. Check back later. https://private.invalid/?secret=hidden");
+  expect(pending).toBeInstanceOf(OcrMediaPending);
+  expect(pending.message).toContain("still processing");
+  expect(pending.message).not.toContain("secret");
   expect(
     commandFailure("yt-dlp", "Requested format is not available").message,
   ).toContain("format");

@@ -1,9 +1,12 @@
 export class OcrMediaError extends Error {}
+export class OcrMediaPending extends OcrMediaError {}
 export function commandFailure(
   executable: string,
   diagnostic: string,
 ): OcrMediaError {
   if (executable === "yt-dlp") {
+    if (/processing this video|video is (?:still )?(?:being processed|processing)/i.test(diagnostic))
+      return new OcrMediaPending("YouTube is still processing the match video; try again after it becomes available.");
     if (
       /sign in|not a bot|http error (403|429)|too many requests/i.test(
         diagnostic,

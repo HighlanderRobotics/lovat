@@ -11,6 +11,8 @@ import {
   OcrTimelineError,
 } from "../src/ocr/media";
 import { scanScoreboardTournament } from "../src/jobs/scoreboard-ocr";
+import { OcrMediaPending } from "../src/ocr/commandFailure";
+import calibratedTemplate from "../config/scoreboard-2026-calgames.json";
 const samples = (): Observation[] =>
   Array.from({ length: 164 }, (_, time) => ({
     time,
@@ -196,6 +198,48 @@ test("retains rejected numeric evidence for calibration without accepting it for
     expect(saved.status).toBe("REJECTED");
     expect(saved.observations).toEqual(partial);
     expect(saved.reason).toContain("30 accepted samples");
+  } finally {
+    if (previous === undefined) delete process.env.OCR_SCOREBOARD_TEMPLATE;
+    else process.env.OCR_SCOREBOARD_TEMPLATE = previous;
+  }
+});
+
+test("processing videos retain the short retry window and never become OCR rejections", async () => {
+  const previous = process.env.OCR_SCOREBOARD_TEMPLATE;
+  process.env.OCR_SCOREBOARD_TEMPLATE = JSON.stringify(calibratedTemplate);
+  const match: any = { key: "2026cacg_qm49", matchNumber: 49, competitionLevel: "QUALIFICATION",
+    actualTime: new Date(0), scoreboardOcr: null,
+    teamSlots: Array.from({ length: 6 }, (_, i) => ({ teamNumber: i + 1 })) };
+  let saved: any, calls = 0, alternatives = false;
+  const dependencies = {
+    db: { tournament: { findFirst: async () => ({ matches: [match] }) },
+      scoreboardOcr: { upsert: async (value: any) => { saved = value.create; } } } as any,
+    tba: { get: async () => ({ modified: true, data: { videos: [{ type: "youtube", key: "aaaaaaaaaaa" },
+      ...(alternatives ? [{ type: "youtube", key: "bbbbbbbbbbb" }] : [])] } }) } as any,
+    extract: async (key: string) => {
+      calls++;
+      if (alternatives && key === "aaaaaaaaaaa") throw new OcrTimelineError(samples().slice(0, 30));
+      throw new OcrMediaPending("YouTube is still processing the match video.");
+    },
+  };
+  try {
+    await scanScoreboardTournament("2026cacg", dependencies);
+    expect(saved.status).toBe("NO_VIDEO");
+    expect(saved.observations).toEqual([]);
+    expect(saved.videoKey).toBe("aaaaaaaaaaa");
+    match.scoreboardOcr = { ...saved, processedAt: new Date(Date.now() - 3 * 60000) };
+    await scanScoreboardTournament("2026cacg", dependencies);
+    expect(calls).toBe(2);
+    alternatives = true;
+    match.scoreboardOcr = null;
+    await scanScoreboardTournament("2026cacg", dependencies);
+    expect(saved.status).toBe("NO_VIDEO");
+    expect(saved.videoKey).toBe("bbbbbbbbbbb");
+    expect(saved.observations).toEqual([]);
+    expect(calls).toBe(4);
+    match.scoreboardOcr = saved;
+    await scanScoreboardTournament("2026cacg", dependencies);
+    expect(calls).toBe(4);
   } finally {
     if (previous === undefined) delete process.env.OCR_SCOREBOARD_TEMPLATE;
     else process.env.OCR_SCOREBOARD_TEMPLATE = previous;
