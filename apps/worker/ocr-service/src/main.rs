@@ -430,12 +430,16 @@ impl Engine {
         }
         let mut best = self.recognize(&original, numeric, 7, kind, RecognitionStage::Primary);
         let valid = |r: &(String, f64)| r.1 >= 85.0 && kind.accepts(&r.0);
-        if !valid(&best) {
+        if !valid(&best)
+            && let Some(mut recovered) = prepare_with(frame, rect, 10, &mut self.scalers)
+        {
+            normalize(&mut recovered, 10, false);
             for binary in [false, true] {
-                let Some(mut recovered) = prepare_with(frame, rect, 10, &mut self.scalers) else {
-                    continue;
-                };
-                normalize(&mut recovered, 10, binary);
+                if binary {
+                    // Binary recovery is exactly a threshold of normalized gray.
+                    // Reuse those pixels instead of scaling the source again.
+                    binarize_normalized(&mut recovered, 10);
+                }
                 let candidate = self.recognize(
                     &recovered,
                     numeric,
@@ -640,6 +644,14 @@ fn normalize(p: &mut Prepared, padding: u32, binary: bool) {
             } else {
                 v
             };
+        }
+    }
+}
+fn binarize_normalized(p: &mut Prepared, padding: u32) {
+    for y in padding..p.height - padding {
+        for x in padding..p.width - padding {
+            let value = &mut p.image[(y * p.stride + x) as usize];
+            *value = if *value < 160 { 0 } else { 255 };
         }
     }
 }
@@ -1738,6 +1750,40 @@ mod tests {
         let cropped = decode(true);
         assert_eq!(cropped.len(), (WIDTH * 232 * 3) as usize);
         assert_eq!(cropped, &full[..cropped.len()]);
+    }
+    #[test]
+    fn binary_recovery_reuses_identical_normalized_pixels() {
+        // Cover both polarities, all gray values, white borders, aligned row
+        // tails and SIMD guards; the reused path must agree byte for byte.
+        for background in [20u8, 220] {
+            for seed in 0..16u32 {
+                let mut direct = Prepared {
+                    image: vec![255; 128 * 48 + 64],
+                    width: 101,
+                    height: 48,
+                    stride: 128,
+                };
+                for y in 10..38 {
+                    for x in 10..91 {
+                        direct.image[y * 128 + x] = if (x + y) % 3 == 0 {
+                            ((x as u32 * 17 + y as u32 * 13 + seed) % 256) as u8
+                        } else {
+                            background
+                        };
+                    }
+                }
+                let mut reused = Prepared {
+                    image: direct.image.clone(),
+                    width: direct.width,
+                    height: direct.height,
+                    stride: direct.stride,
+                };
+                normalize(&mut direct, 10, true);
+                normalize(&mut reused, 10, false);
+                binarize_normalized(&mut reused, 10);
+                assert_eq!(direct.image, reused.image);
+            }
+        }
     }
     #[test]
     fn crop_normalization_preserves_white_padding() {
