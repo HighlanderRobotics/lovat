@@ -109,6 +109,85 @@ describe("getTeamRankings", () => {
     ]);
   });
 
+  it.each([
+    {
+      scenario: "prefers official RP over the calculated total",
+      rankingPoints: 25,
+      sortOrders: [1.5],
+      expected: 25,
+    },
+    {
+      scenario: "preserves an official RP total of zero",
+      rankingPoints: 0,
+      sortOrders: [1.5],
+      expected: 0,
+    },
+    {
+      scenario: "uses official RP even when sort orders are empty",
+      rankingPoints: 25,
+      sortOrders: [],
+      expected: 25,
+    },
+    {
+      scenario: "rounds the calculated total when official RP is missing",
+      rankingPoints: undefined,
+      sortOrders: [1.4167, 9],
+      expected: 17,
+    },
+    {
+      scenario: "calculates the total when official RP is null",
+      rankingPoints: null,
+      sortOrders: [1.4167, 9],
+      expected: 17,
+    },
+    {
+      scenario:
+        "returns null when official RP is missing and sort orders are empty",
+      rankingPoints: undefined,
+      sortOrders: [],
+      expected: null,
+    },
+    {
+      scenario:
+        "returns null when official RP is null and sort orders are empty",
+      rankingPoints: null,
+      sortOrders: [],
+      expected: null,
+    },
+  ])("$scenario", async ({ rankingPoints, sortOrders, expected }) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          frc254: {
+            qual: {
+              ranking: {
+                ...tbaStatus(3, 12).qual.ranking,
+                ...(rankingPoints === undefined
+                  ? {}
+                  : { ranking_points: rankingPoints }),
+                sort_orders: sortOrders,
+              },
+            },
+          },
+        }),
+      }),
+    );
+
+    const { response, errors } = await request();
+
+    expect(errors).toEqual([]);
+    expect(response.status).toBe(200);
+    expect(
+      response.body.find((team: { number: number }) => team.number === 254),
+    ).toMatchObject({
+      rank: 3,
+      matchesPlayed: 12,
+      rankingPoints: expected,
+    });
+  });
+
   it("includes the season avatar, official RP and TBA authentication", async () => {
     vi.stubEnv("TBA_KEY", "test-tba-key");
     vi.mocked(prismaClient.team.findMany).mockResolvedValue([
