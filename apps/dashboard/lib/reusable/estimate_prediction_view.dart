@@ -29,10 +29,13 @@ class EstimatePredictionView extends StatelessWidget {
       key: const Key('estimate-background'),
       decoration: BoxDecoration(
           gradient: LinearGradient(
+        begin: const Alignment(-1, -.3),
+        end: const Alignment(1, .3),
         colors: [
-          blue.withValues(alpha: .38),
-          Theme.of(context).scaffoldBackgroundColor,
-          red.withValues(alpha: .25)
+          Color.alphaBlend(blue.withValues(alpha: .24),
+              Theme.of(context).scaffoldBackgroundColor),
+          Color.alphaBlend(red.withValues(alpha: .22),
+              Theme.of(context).scaffoldBackgroundColor),
         ],
       )),
       child: LayoutBuilder(builder: (context, bounds) {

@@ -15,6 +15,8 @@ const { estimatedMatchPrediction } =
   await import("../src/handler/analysis/predictions/estimatedMatchPrediction.js");
 const { matchAnalysisStatus } =
   await import("../src/handler/manager/matchAnalysisStatus.js");
+const { teamEstimateSummary } =
+  await import("../src/handler/analysis/teamLookUp/teamEstimates.js");
 const db = createDb(url.href),
   event = `estimate-${randomUUID()}`;
 const teams = [910001, 910002, 910003, 910004, 910005, 910006];
@@ -142,6 +144,33 @@ it("fails closed for empty allowed sources and excluded tournaments", async () =
   await expect(estimatedMatchPrediction(noEvent, teams, db)).rejects.toBe(
     "not enough data",
   );
+});
+it("scopes team lookup estimates to the allowed report owners and tournaments", async () => {
+  const own = await teamEstimateSummary(user([1967]), teams[0], db);
+  expect(own).toMatchObject({
+    sampleCount: 2,
+    averagePoints: 10,
+    scoutAverage: 15,
+    ocrAdjustment: -5,
+  });
+  const combined = await teamEstimateSummary(user([1967, 8033]), teams[0], db);
+  expect(combined.averagePoints).toBe(20);
+  expect(combined.matches).toHaveLength(2);
+  expect((await teamEstimateSummary(user([]), teams[0], db)).sampleCount).toBe(
+    0,
+  );
+  expect(
+    (
+      await teamEstimateSummary(
+        {
+          ...user([1967]),
+          tournamentSourceRule: { mode: "EXCLUDE", items: [event] },
+        } as User,
+        teams[0],
+        db,
+      )
+    ).sampleCount,
+  ).toBe(0);
 });
 it("does not read report scores when a team lacks two usable estimates", async () => {
   await db.estimatedScore.deleteMany({

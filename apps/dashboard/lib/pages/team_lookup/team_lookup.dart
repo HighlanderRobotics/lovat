@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/reusable/ocr_mode_button.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/pages/team_lookup/tabs/team_lookup_estimates.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/edit_team_lookup_flag.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/tabs/team_lookup_breakdowns.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/tabs/team_lookup_categories.dart';
@@ -13,7 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../reusable/navigation_drawer.dart';
 
 class TeamLookupPage extends StatefulWidget {
-  const TeamLookupPage({super.key});
+  const TeamLookupPage({super.key, this.api});
+  final LovatAPI? api;
 
   @override
   State<TeamLookupPage> createState() => _TeamLookupPageState();
@@ -26,6 +30,7 @@ class _TeamLookupPageState extends State<TeamLookupPage> {
   int? teamNumberForAnalysis;
 
   int flagChangeCount = 0;
+  bool estimatesOnly = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +57,13 @@ class _TeamLookupPageState extends State<TeamLookupPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Team Lookup"),
+          actions: [
+            OcrModeButton(
+                selected: estimatesOnly,
+                onPressed: () => setState(() => estimatesOnly = !estimatesOnly))
+          ],
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(129),
+            preferredSize: Size.fromHeight(estimatesOnly ? 81 : 129),
             child: Column(
               children: [
                 Padding(
@@ -106,27 +116,28 @@ class _TeamLookupPageState extends State<TeamLookupPage> {
                     ],
                   ),
                 ),
-                TabBar(
-                  tabs: const [
-                    Tab(text: "Categories"),
-                    Tab(text: "Breakdowns"),
-                    Tab(text: "Notes"),
-                  ],
-                  labelColor: Theme.of(context).colorScheme.primary,
-                  labelStyle: Theme.of(context).textTheme.titleSmall,
-                  unselectedLabelColor:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  indicatorWeight: 3,
-                  indicatorPadding: const EdgeInsets.fromLTRB(2, 46, 2, 0),
-                  indicator: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(3),
-                      topRight: Radius.circular(3),
+                if (!estimatesOnly)
+                  TabBar(
+                    tabs: const [
+                      Tab(text: "Categories"),
+                      Tab(text: "Breakdowns"),
+                      Tab(text: "Notes"),
+                    ],
+                    labelColor: Theme.of(context).colorScheme.primary,
+                    labelStyle: Theme.of(context).textTheme.titleSmall,
+                    unselectedLabelColor:
+                        Theme.of(context).colorScheme.onSurfaceVariant,
+                    indicatorSize: TabBarIndicatorSize.label,
+                    indicatorWeight: 3,
+                    indicatorPadding: const EdgeInsets.fromLTRB(2, 46, 2, 0),
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(3),
+                        topRight: Radius.circular(3),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -137,25 +148,30 @@ class _TeamLookupPageState extends State<TeamLookupPage> {
                   child: Text("Enter a team number"),
                 ),
               )
-            : Container(
-                color: Theme.of(context).colorScheme.surface,
-                child: TabBarView(
-                  children: [
-                    TeamLookupCategoriesTab(
-                      key: ValueKey('categories-$teamNumberForAnalysis'),
-                      team: teamNumberForAnalysis!,
+            : estimatesOnly
+                ? TeamLookupEstimatesTab(
+                    key: ValueKey('ocr-$teamNumberForAnalysis'),
+                    team: teamNumberForAnalysis!,
+                    api: widget.api)
+                : Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: TabBarView(
+                      children: [
+                        TeamLookupCategoriesTab(
+                          key: ValueKey('categories-$teamNumberForAnalysis'),
+                          team: teamNumberForAnalysis!,
+                        ),
+                        TeamLookupBreakdownsTab(
+                          key: ValueKey('breakdowns-$teamNumberForAnalysis'),
+                          team: teamNumberForAnalysis!,
+                        ),
+                        TeamLookupNotesTab(
+                          key: ValueKey('notes-$teamNumberForAnalysis'),
+                          team: teamNumberForAnalysis!,
+                        ),
+                      ],
                     ),
-                    TeamLookupBreakdownsTab(
-                      key: ValueKey('breakdowns-$teamNumberForAnalysis'),
-                      team: teamNumberForAnalysis!,
-                    ),
-                    TeamLookupNotesTab(
-                      key: ValueKey('notes-$teamNumberForAnalysis'),
-                      team: teamNumberForAnalysis!,
-                    ),
-                  ],
-                ),
-              ),
+                  ),
         drawer: ((ModalRoute.of(context)!.settings.arguments
                     as Map<String, dynamic>?)?['team'] as int?) ==
                 null

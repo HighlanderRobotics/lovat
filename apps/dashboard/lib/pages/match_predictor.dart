@@ -1,4 +1,4 @@
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:scouting_dashboard_app/reusable/ocr_mode_button.dart';
 import 'package:scouting_dashboard_app/reusable/estimate_prediction_view.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
@@ -32,23 +32,9 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
   bool _estimatesOnly = false;
 
   List<Widget> get _scoreSourceActions => [
-        IconButton(
-          tooltip: _estimatesOnly
-              ? 'Use scout report scores'
-              : 'Use OCR + report estimates only',
-          isSelected: _estimatesOnly,
+        OcrModeButton(
+          selected: _estimatesOnly,
           onPressed: () => setState(() => _estimatesOnly = !_estimatesOnly),
-          icon: SvgPicture.asset(
-            'assets/images/eye_tracking.svg',
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(
-              _estimatesOnly
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              BlendMode.srcIn,
-            ),
-          ),
         ),
       ];
 
