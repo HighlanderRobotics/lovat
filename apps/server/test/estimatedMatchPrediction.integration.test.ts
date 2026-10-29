@@ -74,6 +74,22 @@ beforeAll(async () => {
           scoreBreakdown: { foulPoints: color === "RED" ? 5 : 2 },
         },
       });
+    if (n === 1) {
+      await db.scoreboardOcr.create({
+        data: {
+          matchKey,
+          videoKey: "abcdefghijk",
+          templateVersion: "synthetic",
+          status: "PARTIAL",
+          observations: [],
+          channels: {
+            red: [{ time: 0, count: 0, confidence: 95 }],
+            blue: [{ time: 0, count: 0, confidence: 95 }],
+          },
+          analyzeAfter: new Date(),
+        },
+      });
+    }
     await db.estimatedScore.createMany({
       data: teams.flatMap((teamNumber) =>
         [
@@ -171,6 +187,36 @@ it("scopes team lookup estimates to the allowed report owners and tournaments", 
       )
     ).sampleCount,
   ).toBe(0);
+});
+it("shows scoped contributions beside public OCR without crossing source or tournament filters", async () => {
+  const { matchEstimateDetails } =
+    await import("../src/handler/analysis/teamLookUp/matchEstimates.js");
+  const matchKey = `${event}_qm1`;
+  const own = await matchEstimateDetails(user([1967]), matchKey, db);
+  expect(own.teams?.find((t) => t.teamNumber === teams[0])).toMatchObject({
+    totalPoints: 10,
+    scoutAverage: 15,
+    ocrAdjustment: -5,
+  });
+  const masked = await matchEstimateDetails(user([]), matchKey, db);
+  expect(masked.available).toBe(true);
+  expect(
+    masked.teams?.every(
+      (t) => t.totalPoints === null && t.scoutAverage === null,
+    ),
+  ).toBe(true);
+  expect(
+    (
+      await matchEstimateDetails(
+        {
+          ...user([1967]),
+          tournamentSourceRule: { mode: "EXCLUDE", items: [event] },
+        } as User,
+        matchKey,
+        db,
+      )
+    ).available,
+  ).toBe(false);
 });
 it("does not read report scores when a team lacks two usable estimates", async () => {
   await db.estimatedScore.deleteMany({

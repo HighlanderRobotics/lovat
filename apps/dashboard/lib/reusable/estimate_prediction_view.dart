@@ -63,25 +63,22 @@ class EstimatePredictionView extends StatelessWidget {
                     label: 'Alliance win probability',
                     value:
                         'Blue ${(probability * 100).round()}%, Red ${((1 - probability) * 100).round()}%',
-                    child: Container(
-                      height: 16,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(
-                              color: scheme.onSurface.withValues(alpha: .3),
-                              width: 2)),
-                      child: LayoutBuilder(
-                          builder: (_, bar) => Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    SizedBox(
-                                        width: bar.maxWidth * probability,
-                                        child: ColoredBox(color: blue)),
-                                    Expanded(child: ColoredBox(color: red)),
-                                  ])),
-                    ),
+                    child: ClipRRect(
+                        key: const Key('prediction-pill'),
+                        borderRadius: BorderRadius.circular(100),
+                        child: SizedBox(
+                          height: 16,
+                          child: LayoutBuilder(
+                              builder: (_, bar) => Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        SizedBox(
+                                            width: bar.maxWidth * probability,
+                                            child: ColoredBox(color: blue)),
+                                        Expanded(child: ColoredBox(color: red)),
+                                      ])),
+                        )),
                   ),
                   const SizedBox(height: 24),
                   if (bounds.maxWidth >= 800)

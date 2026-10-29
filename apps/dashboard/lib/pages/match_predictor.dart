@@ -627,7 +627,7 @@ class WinningPrediction extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(7)),
+        borderRadius: const BorderRadius.all(Radius.circular(100)),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       clipBehavior: Clip.antiAlias,

@@ -77,6 +77,7 @@ class MatchScheduleMatch {
     required this.blue1,
     required this.blue2,
     required this.blue3,
+    this.matchKey,
     this.ocrAnalyzed = false,
     this.fullyScouted = false,
   });
@@ -92,6 +93,7 @@ class MatchScheduleMatch {
 
   final bool isScouted;
   final bool isFinished;
+  final String? matchKey;
   final bool ocrAnalyzed;
   final bool fullyScouted;
 
@@ -111,6 +113,7 @@ class MatchScheduleMatch {
           json['matchNumber'], tournamentKey),
       isScouted: json['scouted'],
       isFinished: json['finished'],
+      matchKey: json['matchKey'] as String?,
       ocrAnalyzed: json['ocrAnalyzed'] as bool? ?? false,
       fullyScouted: json['fullyScouted'] as bool? ?? false,
       red1: MatchScheduleTeamInfo.fromJson(json['team1'], Alliance.red),

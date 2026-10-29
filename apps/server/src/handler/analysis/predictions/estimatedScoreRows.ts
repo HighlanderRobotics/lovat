@@ -27,6 +27,7 @@ export async function readEstimatedScoreRows(
   user: User,
   teams: number[],
   db: Pick<typeof prisma, "$queryRaw"> = prisma,
+  matchKey?: string,
 ): Promise<EstimatedScoreRow[]> {
   const sources = dataSourceRuleSchema(z.number()).parse(user.teamSourceRule);
   const tournaments = dataSourceRuleSchema(z.string()).parse(
@@ -42,6 +43,7 @@ export async function readEstimatedScoreRows(
     LEFT JOIN "TeamMatchData" t ON t."matchKey"=e."matchKey" AND t."teamNumber"=e."teamNumber"
     LEFT JOIN "MatchAlliance" a ON a."matchKey"=e."matchKey" AND a.color=t.alliance
     WHERE e."teamNumber" = ANY(${teams}::integer[]) AND e."reportCount" > 0
+      AND (${matchKey ?? null}::text IS NULL OR e."matchKey" = ${matchKey ?? null}::text)
       AND cardinality(e."sourceTeams") > 0
       AND ((${sources.mode} = 'INCLUDE' AND e."sourceTeams" <@ ${sources.items}::integer[])
         OR (${sources.mode} = 'EXCLUDE' AND NOT (e."sourceTeams" && ${sources.items}::integer[])))

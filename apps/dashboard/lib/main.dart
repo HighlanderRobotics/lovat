@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/pages/ocr_match.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/pages/alliance.dart';
 import 'package:scouting_dashboard_app/pages/auto_path_selector.dart';
@@ -98,6 +99,13 @@ void main() async {
     },
     onGenerateRoute: (settings) {
       if (settings.name == null) return null;
+      final routeUri = Uri.tryParse(settings.name!);
+      if (routeUri?.path == '/ocr_match') {
+        return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) =>
+                OcrMatchPage(matchKey: routeUri!.queryParameters['matchKey']));
+      }
 
       if (settings.name!.startsWith('/set-url')) {
         // Parse the URL query parameters

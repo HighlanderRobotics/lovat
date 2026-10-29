@@ -35,6 +35,10 @@ class _TeamLookupPageState extends State<TeamLookupPage> {
   @override
   Widget build(BuildContext context) {
     if (teamFieldController == null) {
+      estimatesOnly = ((ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>?)?['estimatesOnly'] as bool?) ??
+          false;
+
       teamFieldController = TextEditingController(
         text: ((ModalRoute.of(context)!.settings.arguments
                 as Map<String, dynamic>?)?['team'] as int?)

@@ -99,6 +99,7 @@ const MatchTeamSchema = z.object({
 });
 
 const MatchSchema = z.object({
+  matchKey: z.string().optional(),
   ocrAnalyzed: z.boolean().optional(),
   fullyScouted: z.boolean().optional(),
   matchNumber: z.number().int(),

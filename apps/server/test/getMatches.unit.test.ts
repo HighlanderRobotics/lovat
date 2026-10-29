@@ -97,6 +97,7 @@ describe("Practice match listing", () => {
     const response = await request(appFor()).get(`/matches/${tournament}`);
     expect(response.status).toBe(200);
     expect(response.body[0]).toMatchObject({
+      matchKey: `${tournament}_qm1`,
       ocrAnalyzed: true,
       fullyScouted: true,
     });

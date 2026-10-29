@@ -1,3 +1,8 @@
+import {
+  matchEstimates,
+  ocrMatchParams,
+  ocrMatchResponse,
+} from "../../handler/analysis/teamLookUp/matchEstimates.js";
 import { Router } from "express";
 import { teamEstimates } from "../../handler/analysis/teamLookUp/teamEstimates.js";
 import { breakdownDetails } from "../../handler/analysis/teamLookUp/breakdownDetails.js";
@@ -184,3 +189,22 @@ router.get("/notes/team/:team", getNotes);
 router.get("/flag/team/:team", multipleFlags);
 
 export default router;
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/analysis/estimates/match/{matchKey}",
+  security: [{ bearerAuth: [] }],
+  tags: ["Analysis - Team Lookup"],
+  summary: "OCR match timeline and source-scoped contributions",
+  request: { params: ocrMatchParams },
+  responses: {
+    200: {
+      description: "Observed alliance fuel and available estimates",
+      content: { "application/json": { schema: ocrMatchResponse } },
+    },
+    400: { description: "Invalid match key" },
+    401: { description: "Unauthorized" },
+    500: { description: "Analysis failed" },
+  },
+});
+router.get("/estimates/match/:matchKey", matchEstimates);

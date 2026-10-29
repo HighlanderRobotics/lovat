@@ -258,6 +258,13 @@ export const getMatches = async (
         );
         return {
           ...match,
+          ...(canonicalKeys.get(`${match.matchType}:${match.matchNumber}`)
+            ? {
+                matchKey: canonicalKeys.get(
+                  `${match.matchType}:${match.matchNumber}`,
+                ),
+              }
+            : {}),
           ocrAnalyzed: status?.ocrAnalyzed ?? false,
           fullyScouted: status?.fullyScouted ?? false,
         };
