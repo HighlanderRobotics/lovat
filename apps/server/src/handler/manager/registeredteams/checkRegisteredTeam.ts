@@ -34,14 +34,14 @@ export const checkRegisteredTeam = async (
         feature: "fullRegistration",
       },
     });
+    // A missing seed row must not crash login or reopen an approved team's
+    // registration. Unapproved teams retain the full verification flow.
+    const fullRegistration = featureToggle?.enabled ?? !row?.teamApproved;
     if (row === null) {
       res.status(200).send({ status: "NOT_STARTED" });
     } else if (row.users[0]?.id === req.user.id) {
       if (row.emailVerified) {
-        if (
-          (featureToggle.enabled && row.website) ||
-          featureToggle.enabled === false
-        ) {
+        if ((fullRegistration && row.website) || fullRegistration === false) {
           if (row.teamApproved) {
             if (req.user.teamNumber === row.number) {
               res.status(200).send({ status: "REGISTERED_ON_TEAM" });

@@ -73,6 +73,53 @@ it("denies registration with an API key", async () => {
   ).toBe(403);
   expect(db.registeredTeam.create).not.toHaveBeenCalled();
 });
+it("keeps approval required when registration configuration is missing", async () => {
+  db.featureToggle.findUnique.mockResolvedValue(null);
+  const result = await invoke(addRegisteredTeam, {
+    body: { email: team.email, number: 8033 },
+  });
+  expect(result.statusCode).toBe(200);
+  expect(db.registeredTeam.create).toHaveBeenCalledWith({
+    data: { email: team.email, number: 8033, code: expect.any(String) },
+  });
+});
+it.each([
+  {
+    approved: true,
+    verified: true,
+    website: null,
+    status: "REGISTERED_ON_TEAM",
+  },
+  { approved: false, verified: true, website: null, status: "PENDING_WEBSITE" },
+  {
+    approved: false,
+    verified: true,
+    website: team.website,
+    status: "PENDING_TEAM_VERIFICATION",
+  },
+  {
+    approved: true,
+    verified: false,
+    website: null,
+    status: "PENDING_EMAIL_VERIFICATION",
+  },
+])(
+  "handles missing registration configuration without bypassing verification: $status",
+  async ({ approved, verified, website, status }) => {
+    db.featureToggle.findUnique.mockResolvedValue(null);
+    db.registeredTeam.findUnique.mockResolvedValue({
+      ...team,
+      teamApproved: approved,
+      emailVerified: verified,
+      website,
+    });
+    const result = await invoke(checkRegisteredTeam, {
+      params: { team: "8033" },
+    });
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({ status });
+  },
+);
 it("rejects malformed registration", async () => {
   expect(
     (
