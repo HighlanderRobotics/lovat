@@ -1,4 +1,5 @@
 import 'package:scouting_dashboard_app/reusable/ocr_mode_button.dart';
+import 'package:scouting_dashboard_app/pages/match_predictor_opener.dart';
 import 'package:scouting_dashboard_app/reusable/estimate_prediction_view.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
@@ -41,20 +42,18 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)!.settings.arguments! as Map<String, dynamic>;
-    _teams = [
-      int.parse(args['red1']),
-      int.parse(args['red2']),
-      int.parse(args['red3']),
-      int.parse(args['blue1']),
-      int.parse(args['blue2']),
-      int.parse(args['blue3']),
-    ];
+    final args = ModalRoute.of(context)!.settings.arguments;
+    _teams = args is Map
+        ? ['red1', 'red2', 'red3', 'blue1', 'blue2', 'blue3']
+            .map((key) => int.tryParse('${args[key]}') ?? 0)
+            .toList()
+        : [];
+    if (_teams.any((team) => team <= 0)) _teams = [];
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_teams.length != 6) return const MatchPredictorOpenerPage();
     final hasDrawer = ModalRoute.of(context)!.settings.arguments == null
         ? const GlobalNavigationDrawer()
         : null;

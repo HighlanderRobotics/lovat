@@ -23,6 +23,18 @@ class PredictorAPI extends LovatAPI {
 }
 
 void main() {
+  testWidgets('direct predictor reload opens team selection without a query',
+      (tester) async {
+    QueryCache.clearAll();
+    final api = PredictorAPI();
+    await tester.pumpWidget(MaterialApp(home: MatchPredictorPage(api: api)));
+    await tester.pump();
+    expect(find.text('Hypothetical Match Prediction'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(6));
+    expect(api.queries, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final estimatesOnly in [false, true]) {
     test(
         'team errors identify setup requirements in either score mode '
