@@ -21,6 +21,12 @@ import { fuseMatch } from "../src/ocr/fusion";
 
 const eventKey = process.env.OCR_BATCH_EVENT ?? "";
 const runId = process.env.OCR_BATCH_RUN_ID ?? "";
+const mediaWaitSeconds = z.coerce
+  .number()
+  .int()
+  .min(0)
+  .max(3600)
+  .parse(process.env.OCR_BATCH_MEDIA_WAIT_SECONDS ?? 3600);
 const sourceTeams = (process.env.OCR_BATCH_SOURCE_TEAMS ?? "")
   .split(",")
   .map(Number);
@@ -100,7 +106,10 @@ try {
         const previous = await output.json();
         if (["COMPLETE", "REJECTED"].includes(previous.status)) {
           if (previous.status === "COMPLETE") {
-            if (previous.matchKey !== match.key || previous.ocr?.matchKey !== match.key)
+            if (
+              previous.matchKey !== match.key ||
+              previous.ocr?.matchKey !== match.key
+            )
               throw new Error("Stored batch match identity mismatch");
             await storeBatchEstimateEvidence(db, previous.ocr, sourceTeams);
           }
@@ -155,7 +164,7 @@ try {
         let evidence: any;
         for (const video of videos) {
           const media = store.file(`media/${eventKey}/${video.key}.mp4`);
-          const deadline = Date.now() + 60 * 60000;
+          const deadline = Date.now() + mediaWaitSeconds * 1000;
           if (!(await media.exists()))
             console.info(
               JSON.stringify({
