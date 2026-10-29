@@ -118,5 +118,11 @@ The existing team-verification middleware correctly rejects predictions with
 401 `No team`. Dashboard now turns that response (and the team-verification
 403) into a team-setup action instead of a generic retry. Six regression tests
 pass, including both score modes, unrelated authentication errors and setup
-navigation. Preview-only team/account initialization is awaiting explicit user
-approval; authentication and source permissions remain enforced.
+navigation. After explicit user approval, the guarded preview-only setup created
+verified team 8033 and linked the single Jack account as an analyst, limited to
+sources 1967/8033 and tournament 2026cacg. Read-only SQL confirms those limits.
+Live Dashboard verification now succeeds for both QM3 alliances in estimate
+mode, showing per-team sample counts, archived provenance, auto/teleop points
+and winning probabilities. Ordinary report mode correctly shows insufficient
+data because the preview has no raw reports. Authentication and source
+permissions remain enforced; production was not changed.
