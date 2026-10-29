@@ -48,6 +48,8 @@ void main() {
       expect(find.text('+5'), findsNWidgets(2));
       expect(find.text('OCR + report estimates only'), findsNothing);
       expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byKey(const Key('estimate-background'))),
+          Size(width, 900));
     });
   }
   testWidgets(

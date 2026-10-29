@@ -24,7 +24,9 @@ class EstimatePredictionView extends StatelessWidget {
     final red = scheme.redAlliance;
     final probability =
         (prediction.blueWinning ?? .5).toDouble().clamp(0.0, 1.0);
-    return DecoratedBox(
+    return SizedBox.expand(
+        child: DecoratedBox(
+      key: const Key('estimate-background'),
       decoration: BoxDecoration(
           gradient: LinearGradient(
         colors: [
@@ -35,9 +37,8 @@ class EstimatePredictionView extends StatelessWidget {
       )),
       child: LayoutBuilder(builder: (context, bounds) {
         final panels = [
-          _AlliancePanel(
-              name: 'Blue', data: prediction.blueAlliance, color: blue),
-          _AlliancePanel(name: 'Red', data: prediction.redAlliance, color: red),
+          _AlliancePanel(name: 'Blue', data: prediction.blueAlliance),
+          _AlliancePanel(name: 'Red', data: prediction.redAlliance),
         ];
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -93,16 +94,14 @@ class EstimatePredictionView extends StatelessWidget {
           )),
         );
       }),
-    );
+    ));
   }
 }
 
 class _AlliancePanel extends StatelessWidget {
-  const _AlliancePanel(
-      {required this.name, required this.data, required this.color});
+  const _AlliancePanel({required this.name, required this.data});
   final String name;
   final AllianceAnalysis data;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
