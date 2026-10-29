@@ -23,6 +23,71 @@ class PredictorAPI extends LovatAPI {
 }
 
 void main() {
+  for (final estimatesOnly in [false, true]) {
+    test(
+        'team errors identify setup requirements in either score mode '
+        '(estimates: $estimatesOnly)', () async {
+      final cases = [
+        (401, 'No team', predictorTeamRequiredMessage),
+        (
+          403,
+          'Your team has not been verified yet',
+          predictorTeamVerificationMessage
+        ),
+      ];
+      for (final (status, body, message) in cases) {
+        final api = PredictorAPI();
+        final request = api
+            .matchPredictionQuery(1, 2, 3, 4, 5, 6,
+                estimatesOnly: estimatesOnly)
+            .queryFn();
+        api.responses.single.complete(http.Response(body, status));
+        await expectLater(
+            request,
+            throwsA(isA<LovatAPIException>()
+                .having((error) => error.message, 'message', message)));
+      }
+      final api = PredictorAPI();
+      final request = api
+          .matchPredictionQuery(1, 2, 3, 4, 5, 6, estimatesOnly: estimatesOnly)
+          .queryFn();
+      api.responses.single.complete(http.Response('Unauthorized', 401));
+      await expectLater(request, throwsA(isNot(isA<LovatAPIException>())));
+    });
+  }
+
+  testWidgets('missing team offers onboarding instead of a failing retry',
+      (tester) async {
+    QueryCache.clearAll();
+    final api = PredictorAPI();
+    await tester.pumpWidget(MaterialApp(
+      routes: {
+        '/loading': (_) => const Scaffold(body: Text('Team setup')),
+      },
+      onGenerateRoute: (_) => MaterialPageRoute(
+        settings: const RouteSettings(arguments: {
+          'red1': '1',
+          'red2': '2',
+          'red3': '3',
+          'blue1': '4',
+          'blue2': '5',
+          'blue3': '6',
+        }),
+        builder: (_) => MatchPredictorPage(api: api),
+      ),
+    ));
+    await tester.pump();
+    api.responses.single.complete(http.Response('No team', 401));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(predictorTeamRequiredMessage), findsOneWidget);
+    expect(find.text('Retry'), findsNothing);
+    // Use the application's route table for the setup destination.
+    await tester.tap(find.text('Set up team'));
+    await tester.pumpAndSettle();
+    expect(find.text('Team setup'), findsOneWidget);
+  });
+
   testWidgets('estimate toggle works while loading and after missing data',
       (tester) async {
     QueryCache.clearAll();

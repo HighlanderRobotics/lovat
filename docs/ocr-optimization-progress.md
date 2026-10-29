@@ -102,8 +102,21 @@ from 1967/8033. A frozen-input archive exporter recomputes all 37 original match
 under the current non-experimental policy and produces 666 source-scoped rows
 (222 team/match estimates, across combined and single-source scopes). Its
 read-only preview guard verified all 37 matches, 222 slots, 74 official alliance
-breakdowns and zero current scoped reports. Import is pending the archived-origin
-migration/deployment. The exporter copies no raw report rows or notes and does
+breakdowns and zero current scoped reports. After explicit user approval, the
+exact guarded SQL was uploaded to the PR #95 Postgres console, verified by
+SHA-256 and executed successfully. Read-only checks confirm 666 ARCHIVE rows,
+37 matches, 222 team/match estimates and 222 rows per source scope. The exporter
+copies no raw report rows or notes and does
 not perform either previously denied production/export action. Local tests prove
 atomic guards, live-row preservation, archive idempotency and invalidation when
 new live inputs arrive. Unchanged provider upserts now preserve valid estimates.
+
+The Dashboard preview deployed commit `1c4b3a9` and serves successfully. Live
+predictor verification exposed a separate prerequisite: the preview has one
+analyst account without a team, and neither source team is registered there.
+The existing team-verification middleware correctly rejects predictions with
+401 `No team`. Dashboard now turns that response (and the team-verification
+403) into a team-setup action instead of a generic retry. Six regression tests
+pass, including both score modes, unrelated authentication errors and setup
+navigation. Preview-only team/account initialization is awaiting explicit user
+approval; authentication and source permissions remain enforced.

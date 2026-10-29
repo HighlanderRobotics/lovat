@@ -5,6 +5,11 @@ import 'package:scouting_dashboard_app/reusable/lovat_api/get_alliance_analysis.
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
 
+const predictorTeamRequiredMessage =
+    'Join your team to use the match predictor.';
+const predictorTeamVerificationMessage =
+    'Complete your team verification to use the match predictor.';
+
 class MatchPrediction {
   const MatchPrediction({
     required this.redWinning,
@@ -76,6 +81,14 @@ extension MatchPredictionQuery on LovatAPI {
       label: 'match prediction',
       queryFn: () async {
         final response = await get(path, query: query);
+
+        if (response?.statusCode == 401 && response?.body.trim() == 'No team') {
+          throw const LovatAPIException(predictorTeamRequiredMessage);
+        }
+        if (response?.statusCode == 403 &&
+            response?.body.trim() == 'Your team has not been verified yet') {
+          throw const LovatAPIException(predictorTeamVerificationMessage);
+        }
 
         if (response?.statusCode != 200) {
           debugPrint(response?.body ?? '');

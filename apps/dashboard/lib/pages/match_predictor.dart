@@ -81,6 +81,8 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             estimatesOnly: _estimatesOnly),
         builder: (context, result) {
           final prediction = result.data;
+          final needsTeamSetup = result.error == predictorTeamRequiredMessage ||
+              result.error == predictorTeamVerificationMessage;
           final notEnoughData =
               result.error?.contains("Not enough data") == true &&
                   prediction == null;
@@ -109,7 +111,28 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                   actions: _scoreSourceActions,
                   bottom: StaleRefreshIndicator.result(result),
                 ),
-                body: FriendlyErrorView.result(result),
+                body: needsTeamSetup
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(result.error!, textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              FilledButton(
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed('/loading')
+                                    .then((_) {
+                                  if (mounted) result.refetch();
+                                }),
+                                child: const Text('Set up team'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : FriendlyErrorView.result(result),
                 drawer: hasDrawer,
               );
             }
