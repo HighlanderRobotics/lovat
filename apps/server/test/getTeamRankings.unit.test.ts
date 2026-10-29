@@ -235,6 +235,30 @@ describe("getTeamRankings", () => {
     );
   });
 
+  it("uses season zero when the tournament key has no numeric year", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
+
+    const { response, errors } = await request("offseason");
+
+    expect(errors).toEqual([]);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(prismaClient.team.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: {
+          seasons: {
+            where: { seasonYear: 0 },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
+      }),
+    );
+  });
+
   it("returns a single 200 response when TBA is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
