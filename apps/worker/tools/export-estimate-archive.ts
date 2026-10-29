@@ -1,7 +1,9 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildEstimateArchive } from "../src/ocr/estimate-archive";
-const [directory, rawSources, output] = Bun.argv.slice(2);
+const [directory, rawSources, output, mode = "restore"] = Bun.argv.slice(2);
+if (mode !== "restore" && mode !== "baselines")
+  throw new Error("Invalid archive mode");
 if (!directory || !rawSources || !output)
   throw new Error(
     "Use export-estimate-archive.ts INPUT_DIRECTORY SOURCE_TEAMS NEW_SQL_PATH",
@@ -22,7 +24,11 @@ for (const name of names) {
     throw new Error("Archive file identity mismatch");
   inputs.push(input);
 }
-const result = buildEstimateArchive(inputs, rawSources.split(",").map(Number));
+const result = buildEstimateArchive(
+  inputs,
+  rawSources.split(",").map(Number),
+  mode,
+);
 for (const [path, data] of [
   [output, result.sql],
   [output + ".verify.sql", result.verificationSql],

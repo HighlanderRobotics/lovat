@@ -622,6 +622,7 @@ model EstimatedScore {
   teleopPoints      Int
   totalFuel         Int
   totalPoints       Int
+  scoutPoints       Float?
   calculatedAt      DateTime @default(now())
   match             Match    @relation(fields: [matchKey], references: [key], onDelete: Cascade)
 

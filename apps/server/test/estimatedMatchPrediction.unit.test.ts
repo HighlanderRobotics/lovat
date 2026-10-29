@@ -2,6 +2,33 @@ import { describe, expect, it } from "vitest";
 import { predictEstimatedScores } from "../src/handler/analysis/predictions/estimatedScoreProbability.js";
 
 describe("combined estimate prediction", () => {
+  it("includes alliance foul credit and its variance without assigning fouls to robots", () => {
+    const scores = Array.from({ length: 6 }, () => [10, 10]);
+    expect(
+      predictEstimatedScores(scores, [
+        [5, 5],
+        [0, 0],
+      ]).redWinning,
+    ).toBe(1);
+    expect(
+      predictEstimatedScores(scores, [
+        [0, 0],
+        [5, 5],
+      ]).redWinning,
+    ).toBe(0);
+    expect(
+      predictEstimatedScores(scores, [
+        [0, 10],
+        [0, 0],
+      ]).redWinning,
+    ).toBeGreaterThan(0.5);
+    expect(
+      predictEstimatedScores(scores, [
+        [0, 10],
+        [0, 0],
+      ]).redWinning,
+    ).toBeLessThan(1);
+  });
   it("handles deterministic wins, losses and ties without a zero-variance NaN", () => {
     expect(
       predictEstimatedScores([

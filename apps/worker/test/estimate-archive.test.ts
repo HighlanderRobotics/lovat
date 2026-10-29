@@ -35,3 +35,12 @@ test("archive export rejects duplicate identities, unsupported official input an
   for (const sources of [[], [0], [NaN], [2147483648]])
     expect(() => buildEstimateArchive([input], sources)).toThrow("scope");
 });
+
+test("baseline mode changes only comparison metadata and guards the original estimates", () => {
+  const result = buildEstimateArchive([fixture()], [8033], "baselines");
+  expect(result.sql).not.toContain('INSERT INTO "EstimatedScore"');
+  expect(result.sql).toContain('SET "scoutPoints"=');
+  expect(result.sql).toContain('e."inputSha256" IS DISTINCT FROM');
+  expect(result.sql).toContain('e."totalPoints" IS DISTINCT FROM');
+  expect(result.manifest.mode).toBe("baselines");
+});

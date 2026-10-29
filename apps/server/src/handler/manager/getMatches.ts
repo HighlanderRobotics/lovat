@@ -5,6 +5,7 @@ import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { addTournamentMatches } from "./addTournamentMatches.js";
 import { ReverseMatchTypeMap } from "./managerConstants.js";
 import { MatchType, Prisma } from "@lovat/db";
+import { matchAnalysisStatus } from "./matchAnalysisStatus.js";
 import {
   dataSourceRuleSchema,
   dataSourceRuleToPrismaFilter,
@@ -119,6 +120,7 @@ export const getMatches = async (
         matchType: true,
         teamNumber: true,
         key: true,
+        matchKey: true,
         _count: {
           // Represents the total number of valid scout reports for this row
           select: {
@@ -232,8 +234,36 @@ export const getMatches = async (
       };
     }[] = [];
 
+    const analysisStatuses = new Map(
+      (
+        await matchAnalysisStatus(params.data.tournamentKey, teamSourceRule)
+      ).map((status) => [status.key, status]),
+    );
+    const canonicalKeys = new Map(
+      rawData
+        .filter((r) => r.matchKey)
+        .map((r) => [
+          `${ReverseMatchTypeMap[r.matchType]}:${r.matchNumber}`,
+          r.matchKey!,
+        ]),
+    );
+    const attachAnalysisStatus = <
+      T extends { matchType: number; matchNumber: number },
+    >(
+      matches: T[],
+    ) =>
+      matches.map((match) => {
+        const status = analysisStatuses.get(
+          canonicalKeys.get(`${match.matchType}:${match.matchNumber}`) ?? "",
+        );
+        return {
+          ...match,
+          ocrAnalyzed: status?.ocrAnalyzed ?? false,
+          fullyScouted: status?.fullyScouted ?? false,
+        };
+      });
     const withPracticeMatches = (matches: typeof finalFormattedMatches) => {
-      if (!params.data.includePractice) return matches;
+      if (!params.data.includePractice) return attachAnalysisStatus(matches);
 
       type MatchRow = (typeof groupedData)[number][number];
       const practiceGroups = new Map<number, MatchRow[]>();
@@ -275,7 +305,7 @@ export const getMatches = async (
             })),
         }));
 
-      return [...matches, ...practiceMatches];
+      return attachAnalysisStatus([...matches, ...practiceMatches]);
     };
 
     // If no team number is set, there are no scouters and all reports are external

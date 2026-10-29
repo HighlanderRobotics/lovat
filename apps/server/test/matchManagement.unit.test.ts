@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { invoke, testUser } from "./helpers/handlerHarness.js";
 const db = vi.hoisted(() => ({
+  $queryRaw: vi.fn(),
   team: { findMany: vi.fn().mockResolvedValue([]), findUnique: vi.fn() },
   tournament: { findMany: vi.fn().mockResolvedValue([]) },
   teamMatchData: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn() },
@@ -50,6 +51,7 @@ const shift = (start: number, end: number) => ({
 });
 beforeEach(() => {
   vi.resetAllMocks();
+  db.$queryRaw.mockResolvedValue([]);
   vi.spyOn(console, "log").mockImplementation(() => undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", db.fetch);

@@ -99,6 +99,8 @@ const MatchTeamSchema = z.object({
 });
 
 const MatchSchema = z.object({
+  ocrAnalyzed: z.boolean().optional(),
+  fullyScouted: z.boolean().optional(),
   matchNumber: z.number().int(),
   matchType: z.number().int(),
   scouted: z.boolean(),
@@ -112,6 +114,8 @@ const MatchSchema = z.object({
 });
 
 const PracticeMatchSchema = z.object({
+  ocrAnalyzed: z.boolean().optional(),
+  fullyScouted: z.boolean().optional(),
   matchNumber: z.number().int(),
   matchType: z.literal(2),
   scouted: z.boolean(),

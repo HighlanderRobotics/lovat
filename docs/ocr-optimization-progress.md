@@ -126,3 +126,27 @@ mode, showing per-team sample counts, archived provenance, auto/teleop points
 and winning probabilities. Ordinary report mode correctly shows insufficient
 data because the preview has no raw reports. Authentication and source
 permissions remain enforced; production was not changed.
+
+## Estimate comparison layout and schedule markers (2026-10-28)
+
+The estimate predictor now adapts Figma node `2123:187` into a compact alliance
+gradient, probability bar, phase totals and per-team comparison table. Stored
+report-score averages use the same estimated matches and source scope as the
+combined scores; the signed adjustment is their difference. Foul credit remains
+an alliance-only value, deduplicated by historical match/alliance, and contributes
+its mean and variance to the win prediction. Missing baselines stay unknown.
+
+An explicitly approved, read-only production query recovered numeric baselines
+for QM1–37 from sources 1967/8033. All 812 reports and their saved timing/count
+inputs matched the archive exactly. A metadata-only import fills 647 report-backed
+rows across the 666 stored scope rows; it verifies the original identities,
+official evidence and score fingerprints and changes only `scoutPoints`.
+Local PostgreSQL checks prove idempotency, unchanged original scores and rejection
+of changed inputs. The production database was not modified.
+
+Match headers independently show the eye-tracking icon for analyzed OCR and a
+Material fact-check icon only when all six teams have a nonexcluded report in
+the selected source scope. Archived estimates can establish OCR analysis, but
+do not substitute for actual report rows in the full-scout coverage check.
+Validation: 1,079 Server unit tests, 166 Worker tests, 11 Dashboard tests and four
+database integration tests pass; responsive checks cover 320, 417 and 1280 pixels.

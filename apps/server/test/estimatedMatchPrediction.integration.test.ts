@@ -13,6 +13,8 @@ if (
 const { createDb } = await import("@lovat/db");
 const { estimatedMatchPrediction } =
   await import("../src/handler/analysis/predictions/estimatedMatchPrediction.js");
+const { matchAnalysisStatus } =
+  await import("../src/handler/manager/matchAnalysisStatus.js");
 const db = createDb(url.href),
   event = `estimate-${randomUUID()}`;
 const teams = [910001, 910002, 910003, 910004, 910005, 910006];
@@ -42,6 +44,34 @@ beforeAll(async () => {
         matchNumber: n,
       },
     });
+    for (const [index, teamNumber] of teams.entries()) {
+      await db.team.upsert({
+        where: { number: teamNumber },
+        create: { number: teamNumber, name: "Synthetic" },
+        update: {},
+      });
+      await db.teamMatchData.create({
+        data: {
+          key: `${matchKey}_${index}`,
+          matchKey,
+          tournamentKey: event,
+          matchNumber: n,
+          matchType: "QUALIFICATION",
+          teamNumber,
+          alliance: index < 3 ? "RED" : "BLUE",
+          station: (index % 3) + 1,
+        },
+      });
+    }
+    for (const color of ["RED", "BLUE"] as const)
+      await db.matchAlliance.create({
+        data: {
+          matchKey,
+          color,
+          score: 10,
+          scoreBreakdown: { foulPoints: color === "RED" ? 5 : 2 },
+        },
+      });
     await db.estimatedScore.createMany({
       data: teams.flatMap((teamNumber) =>
         [
@@ -70,6 +100,7 @@ beforeAll(async () => {
           totalFuel: 0,
           autoPoints: 0,
           teleopPoints: v.totalPoints,
+          scoutPoints: v.totalPoints + 5,
         })),
       ),
     });
@@ -81,7 +112,11 @@ afterAll(async () => {
 });
 it("uses only fully permitted source scopes and counts each match once", async () => {
   const own = await estimatedMatchPrediction(user([1967]), teams, db);
-  expect(own.redAlliance.totalPoints).toBe(30);
+  expect(own.redAlliance.robotPoints).toBe(30);
+  expect(own.redAlliance.totalPoints).toBe(35);
+  expect(own.redAlliance.foulPoints).toBe(5);
+  expect(own.redAlliance.teams[0].scoutAverage).toBe(15);
+  expect(own.redAlliance.teams[0].ocrAdjustment).toBe(-5);
   expect(own.redAlliance.teams[0].estimateSamples).toBe(2);
   expect(own.redAlliance.teams[0].archivedSamples).toBe(2);
   const combined = await estimatedMatchPrediction(
@@ -89,12 +124,12 @@ it("uses only fully permitted source scopes and counts each match once", async (
     teams,
     db,
   );
-  expect(combined.redAlliance.totalPoints).toBe(60);
+  expect(combined.redAlliance.totalPoints).toBe(65);
   expect(combined.redAlliance.teams[0].estimateSamples).toBe(2);
   expect(
     (await estimatedMatchPrediction(user([9999], "EXCLUDE"), teams, db))
       .redAlliance.totalPoints,
-  ).toBe(60);
+  ).toBe(65);
 });
 it("fails closed for empty allowed sources and excluded tournaments", async () => {
   await expect(estimatedMatchPrediction(user([]), teams, db)).rejects.toBe(
@@ -115,4 +150,69 @@ it("does not read report scores when a team lacks two usable estimates", async (
   await expect(
     estimatedMatchPrediction(user([1967, 8033]), teams, db),
   ).rejects.toBe("not enough data");
+});
+
+it("requires valid reports for all six teams within the selected scope for a full-scout marker", async () => {
+  const number = 910099;
+  await db.team.upsert({
+    where: { number },
+    create: { number, name: "Synthetic source" },
+    update: {},
+  });
+  await db.registeredTeam.create({
+    data: { number, code: event, email: `${event}@example.invalid` },
+  });
+  const scouter = await db.scouter.create({
+    data: { sourceTeamNumber: number },
+  });
+  const input = { mode: "INCLUDE" as const, items: [1967] };
+  const before = await matchAnalysisStatus(event, input, db);
+  expect(before.find((m) => m.key === `${event}_qm1`)).toMatchObject({
+    ocrAnalyzed: true,
+    fullyScouted: false,
+  });
+  const reports = [];
+  for (let i = 0; i < 6; i++)
+    reports.push(
+      await db.scoutReport.create({
+        data: {
+          teamMatchKey: `${event}_qm1_${i}`,
+          scouterUuid: scouter.uuid,
+          startTime: new Date(),
+          notes: "",
+          robotRoles: ["SCORING"],
+          driverAbility: 3,
+          autoClimb: "NOT_ATTEMPTED",
+          beached: "NEITHER",
+          defenseEffectiveness: 0,
+          feederTypes: [],
+          intakeType: "NEITHER",
+          fieldTraversal: "NONE",
+          scoresWhileMoving: false,
+          disrupts: false,
+          endgameClimb: "NOT_ATTEMPTED",
+        },
+      }),
+    );
+  expect(
+    (await matchAnalysisStatus(event, input, db)).find(
+      (m) => m.key === `${event}_qm1`,
+    )?.fullyScouted,
+  ).toBe(false);
+  const source = { mode: "INCLUDE" as const, items: [number] };
+  expect(
+    (await matchAnalysisStatus(event, source, db)).find(
+      (m) => m.key === `${event}_qm1`,
+    )?.fullyScouted,
+  ).toBe(true);
+  await db.scoutReport.update({
+    where: { uuid: reports[0].uuid },
+    data: { analysisExcluded: true },
+  });
+  expect(
+    (await matchAnalysisStatus(event, source, db)).find(
+      (m) => m.key === `${event}_qm1`,
+    )?.fullyScouted,
+  ).toBe(false);
+  await db.registeredTeam.delete({ where: { number } });
 });

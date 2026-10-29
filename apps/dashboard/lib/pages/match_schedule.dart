@@ -1,6 +1,7 @@
 import 'package:chips_input/chips_input.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/reusable/match_analysis_badges.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/raw_scout_report.dart';
@@ -835,6 +836,9 @@ class _MatchesState extends State<Matches> {
                                 ),
                               ),
                               if (match.isScouted) const ScoutedFlag(),
+                              MatchAnalysisBadges(
+                                  ocrAnalyzed: match.ocrAnalyzed,
+                                  fullyScouted: match.fullyScouted),
                               const Spacer(),
                               IconButton(
                                 onPressed: () {

@@ -6,21 +6,29 @@ export type EstimatedProbabilities = {
 
 export function predictEstimatedScores(
   series: number[][],
+  fouls: [number[], number[]] = [[0], [0]],
 ): EstimatedProbabilities {
   if (
     series.length !== 6 ||
+    fouls.length !== 2 ||
+    fouls.some(
+      (a) => !a.length || a.some((n) => !Number.isFinite(n) || n < 0),
+    ) ||
     series.some(
       (a) => a.length < 2 || a.some((n) => !Number.isFinite(n) || n < 0),
     )
   )
     throw "not enough data";
-  const means = series.map((a) => a.reduce((s, n) => s + n, 0) / a.length);
-  const variances = series.map(
+  const samples = [...series, ...fouls];
+  const means = samples.map((a) => a.reduce((s, n) => s + n, 0) / a.length);
+  const variances = samples.map(
     (a, i) => a.reduce((s, n) => s + (n - means[i]) ** 2, 0) / a.length,
   );
   const difference =
     means.slice(0, 3).reduce((s, n) => s + n, 0) -
-    means.slice(3).reduce((s, n) => s + n, 0);
+    means.slice(3, 6).reduce((s, n) => s + n, 0) +
+    means[6] -
+    means[7];
   const sd = Math.sqrt(variances.reduce((s, n) => s + n, 0));
   const zScore = sd === 0 ? 0 : difference / sd;
   let redWinning = difference === 0 ? 0.5 : difference > 0 ? 1 : 0;

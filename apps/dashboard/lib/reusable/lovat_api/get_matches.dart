@@ -77,6 +77,8 @@ class MatchScheduleMatch {
     required this.blue1,
     required this.blue2,
     required this.blue3,
+    this.ocrAnalyzed = false,
+    this.fullyScouted = false,
   });
 
   final GameMatchIdentity identity;
@@ -90,6 +92,8 @@ class MatchScheduleMatch {
 
   final bool isScouted;
   final bool isFinished;
+  final bool ocrAnalyzed;
+  final bool fullyScouted;
 
   List<MatchScheduleTeamInfo> get allTeamInfo => [
         red1,
@@ -107,6 +111,8 @@ class MatchScheduleMatch {
           json['matchNumber'], tournamentKey),
       isScouted: json['scouted'],
       isFinished: json['finished'],
+      ocrAnalyzed: json['ocrAnalyzed'] as bool? ?? false,
+      fullyScouted: json['fullyScouted'] as bool? ?? false,
       red1: MatchScheduleTeamInfo.fromJson(json['team1'], Alliance.red),
       red2: MatchScheduleTeamInfo.fromJson(json['team2'], Alliance.red),
       red3: MatchScheduleTeamInfo.fromJson(json['team3'], Alliance.red),

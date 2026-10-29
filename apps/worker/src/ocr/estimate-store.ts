@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { Prisma, PrismaClient } from "@lovat/db";
 import { fusionInputSchema, prepareFusion } from "./fusion-common";
 import { fuseOfficialMatch, OFFICIAL_POLICY } from "./fusion-official";
+import { scoutReportPoints, averageScoutPoints } from "./scout-score";
 
 function validateSourceScope(sourceScope?: number[]) {
   if (
@@ -39,12 +40,16 @@ export async function refreshMatchEstimates(
                 select: {
                   uuid: true,
                   analysisExcluded: true,
+                  accuracy: true,
+                  autoClimb: true,
+                  endgameClimb: true,
                   scouter: { select: { sourceTeamNumber: true } },
                   events: {
                     select: {
                       eventUuid: true,
                       time: true,
                       action: true,
+                      points: true,
                       quantity: true,
                       analysisExcluded: true,
                     },
@@ -73,6 +78,7 @@ export async function refreshMatchEstimates(
           alliance: slot.alliance,
           sourceTeamNumber: report.scouter.sourceTeamNumber,
           analysisExcluded: report.analysisExcluded,
+          scoutPoints: scoutReportPoints(report),
           events: report.events,
         })),
       );
@@ -175,6 +181,7 @@ export async function refreshMatchEstimates(
             teleopPoints: t.teleopPoints,
             totalFuel: t.estimatedFuel,
             totalPoints: t.estimatedPoints,
+            scoutPoints: averageScoutPoints(reports, t.teamNumber, sourceTeams),
           })),
         );
         await tx.estimatedScore.createMany({ data });

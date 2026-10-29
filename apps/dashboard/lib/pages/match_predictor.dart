@@ -1,4 +1,5 @@
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:scouting_dashboard_app/reusable/estimate_prediction_view.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -220,6 +221,17 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                 );
               }
             });
+          }
+
+          if (_estimatesOnly) {
+            return Scaffold(
+              appBar: AppBar(
+                  title: const Text('Match Predictor'),
+                  actions: _scoreSourceActions,
+                  bottom: StaleRefreshIndicator.result(result)),
+              body: EstimatePredictionView(prediction: prediction),
+              drawer: hasDrawer,
+            );
           }
 
           return LayoutBuilder(builder: (context, constraints) {

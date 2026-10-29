@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { fusionInputSchema, prepareFusion } from "./fusion-common";
 import { fuseOfficialMatch, OFFICIAL_POLICY } from "./fusion-official";
+import { averageScoutPoints } from "./scout-score";
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 // Dollar quoting handles both SQL quotes and backslashes without relying on
 // standard_conforming_strings. Reject even a hypothetical delimiter collision.
@@ -27,6 +28,7 @@ const official = z.object({
 export function buildEstimateArchive(
   rawInputs: unknown[],
   selectedSources: number[],
+  mode: "restore" | "baselines" = "restore",
 ) {
   const sources = [...new Set(selectedSources)].sort((a, b) => a - b);
   if (
@@ -73,7 +75,7 @@ export function buildEstimateArchive(
         .flatMap((a) => a.teams)
         .sort((a, b) => a.teamNumber - b.teamNumber)) {
         rows.push(
-          `(${[quote(input.matchKey), team.teamNumber, quote(scope), `ARRAY[${sourceTeams.join(",")}]::integer[]`, quote(estimate.algorithm), quote(estimate.semanticInputSha256), quote(estimate.attributionStatus), team.reports, team.autoFuelCount, team.autoPoints, team.teleopFuelCount, team.teleopPoints, team.estimatedFuel, team.estimatedPoints, quote("ARCHIVE")].join(",")})`,
+          `(${[quote(input.matchKey), team.teamNumber, quote(scope), `ARRAY[${sourceTeams.join(",")}]::integer[]`, quote(estimate.algorithm), quote(estimate.semanticInputSha256), quote(estimate.attributionStatus), team.reports, team.autoFuelCount, team.autoPoints, team.teleopFuelCount, team.teleopPoints, team.estimatedFuel, team.estimatedPoints, quote("ARCHIVE"), averageScoutPoints(input.reports, team.teamNumber, sourceTeams) ?? "NULL"].join(",")})`,
         );
       }
     }
@@ -88,12 +90,26 @@ checks AS (SELECT
  (SELECT count(*) FROM "ScoutReport" r JOIN "Scouter" s ON s.uuid=r."scouterUuid" JOIN "TeamMatchData" t ON t.key=r."teamMatchKey" JOIN expected_matches e ON e.key=t."matchKey" WHERE s."sourceTeamNumber" IN (${sources.join(",")})) AS reports)`;
   const verificationSql = `WITH ${expected} SELECT * FROM checks;\n`;
   const columns =
-    '"matchKey","teamNumber","scopeKey","sourceTeams",algorithm,"inputSha256","attributionStatus","reportCount","autoFuel","autoPoints","teleopFuel","teleopPoints","totalFuel","totalPoints","inputOrigin"';
+    '"matchKey","teamNumber","scopeKey","sourceTeams",algorithm,"inputSha256","attributionStatus","reportCount","autoFuel","autoPoints","teleopFuel","teleopPoints","totalFuel","totalPoints","inputOrigin","scoutPoints"';
   const assignments = columns
     .split(",")
     .filter((c) => !['"matchKey"', '"teamNumber"', '"scopeKey"'].includes(c))
     .map((c) => `${c}=EXCLUDED.${c}`)
     .join(",");
+  const baselineUpdate = `
+ IF EXISTS (WITH expected(${columns}) AS (VALUES ${rows.join(",\n")})
+   SELECT 1 FROM expected s LEFT JOIN "EstimatedScore" e
+   ON e."matchKey"=s."matchKey" AND e."teamNumber"=s."teamNumber" AND e."scopeKey"=s."scopeKey"
+   WHERE e."inputOrigin" IS DISTINCT FROM 'ARCHIVE' OR e."inputSha256" IS DISTINCT FROM s."inputSha256"
+     OR e."totalPoints" IS DISTINCT FROM s."totalPoints" OR e."reportCount" IS DISTINCT FROM s."reportCount") THEN
+   RAISE EXCEPTION 'Archived estimates changed; no baselines updated';
+ END IF;
+ WITH expected(${columns}) AS (VALUES ${rows.join(",\n")})
+ UPDATE "EstimatedScore" e SET "scoutPoints"=s."scoutPoints"::double precision FROM expected s
+ WHERE e."matchKey"=s."matchKey" AND e."teamNumber"=s."teamNumber" AND e."scopeKey"=s."scopeKey";`;
+  const restore = `INSERT INTO "EstimatedScore" (${columns}) VALUES ${rows.join(",\n")}
+ ON CONFLICT ("matchKey","teamNumber","scopeKey") DO UPDATE SET ${assignments},"calculatedAt"=CURRENT_TIMESTAMP
+ WHERE "EstimatedScore"."inputOrigin"='ARCHIVE';`;
   const body = `DECLARE verified RECORD;
 BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(k.key,195)) FROM (VALUES ${matches.join(",")}) AS k(key) ORDER BY k.key;
@@ -101,9 +117,7 @@ BEGIN
  IF verified.matches <> ${inputs.length} OR verified.slots <> ${inputs.length * 6} OR verified.officials <> ${inputs.length * 2} OR verified.reports <> 0 THEN
    RAISE EXCEPTION 'Archive prerequisites changed; no estimates restored';
  END IF;
- INSERT INTO "EstimatedScore" (${columns}) VALUES ${rows.join(",\n")}
- ON CONFLICT ("matchKey","teamNumber","scopeKey") DO UPDATE SET ${assignments},"calculatedAt"=CURRENT_TIMESTAMP
- WHERE "EstimatedScore"."inputOrigin"='ARCHIVE';
+ ${mode === "baselines" ? baselineUpdate : restore}
 END;`;
   const tag = `$archive_${sha(body).slice(0, 24)}$`;
   if (body.includes(tag)) throw new Error("Archive block delimiter collision");
@@ -119,6 +133,7 @@ END;`;
       sourceScopes: groups,
       algorithm: "scoreboard-constrained-fusion-v5-tba-consensus",
       inputOrigin: "ARCHIVE",
+      mode,
       sqlSha256: sha(sql),
       verificationSha256: sha(verificationSql),
     },

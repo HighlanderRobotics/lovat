@@ -16,6 +16,7 @@ const reportSchema = z.object({
   sourceTeamNumber: z.number().int().positive(),
   analysisExcluded: z.boolean().default(false),
   events: z.array(eventSchema).max(5000),
+  scoutPoints: z.number().finite().nonnegative().nullable().optional(),
 });
 export const fusionInputSchema = z.object({
   matchKey: z.string().min(1).max(80),

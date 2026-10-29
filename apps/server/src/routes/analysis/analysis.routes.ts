@@ -33,6 +33,8 @@ const AllianceTeam = z.object({
   role: z.number().nullable(),
   estimateSamples: z.number().int().optional(),
   archivedSamples: z.number().int().optional(),
+  scoutAverage: z.number().nullable().optional(),
+  ocrAdjustment: z.number().nullable().optional(),
   averagePoints: z.number(),
   paths: z.array(AlliancePath),
 });
@@ -46,6 +48,8 @@ const AllianceResponseSchema = z.object({
   totalBallThroughput: z.number().nullable(),
   autoPoints: z.number().optional(),
   teleopPoints: z.number().optional(),
+  robotPoints: z.number().optional(),
+  foulPoints: z.number().nullable().optional(),
 });
 
 registry.registerPath({
