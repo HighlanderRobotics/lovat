@@ -7,6 +7,7 @@ const tbaTeamStatusSchema = z.object({
     .object({
       ranking: z.object({
         rank: z.number().nullable(),
+        ranking_points: z.number().nullish(),
         matches_played: z.number(),
         sort_orders: z.array(z.number()),
       }),
@@ -22,6 +23,11 @@ const fetchTbaTeamStatuses = async (
   try {
     const tbaResponse = await fetch(
       `https://www.thebluealliance.com/api/v3/event/${tournamentKey}/teams/statuses`,
+      {
+        headers: process.env.TBA_KEY?.trim()
+          ? { "X-TBA-Auth-Key": process.env.TBA_KEY.trim() }
+          : {},
+      },
     );
     if (!tbaResponse.ok) {
       return {};
@@ -72,6 +78,7 @@ export const getTeamRankings = async (
     const teams: {
       number: number;
       name: string;
+      avatar: string | null;
       rank: number | null;
       rankingPoints: number | null;
       matchesPlayed: number | null;
@@ -82,9 +89,19 @@ export const getTeamRankings = async (
             in: uniqueTeamNumbers,
           },
         },
+        include: {
+          seasons: {
+            where: {
+              seasonYear: Number(params.data.tournamentKey.slice(0, 4)) || 0,
+            },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
       })
-    ).map((e) => ({
-      ...e,
+    ).map(({ seasons, ...team }) => ({
+      ...team,
+      avatar: seasons?.[0]?.avatar ?? null,
       rank: null,
       rankingPoints: null,
       matchesPlayed: null,
@@ -102,9 +119,11 @@ export const getTeamRankings = async (
 
       team.rank = ranking.rank;
       team.matchesPlayed = ranking.matches_played;
-      team.rankingPoints = Math.round(
-        ranking.sort_orders[0] * ranking.matches_played,
-      );
+      team.rankingPoints =
+        ranking.ranking_points ??
+        (ranking.sort_orders.length > 0
+          ? Math.round(ranking.sort_orders[0] * ranking.matches_played)
+          : null);
     }
 
     res.status(200).send(teams);
