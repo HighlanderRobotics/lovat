@@ -52,6 +52,7 @@ export const breakdownDetails = createAnalysisHandler({
         LEFT JOIN "Scouter" teamScouter
             ON teamScouter."uuid" = s."scouterUuid"
             AND teamScouter."sourceTeamNumber" = ${ctx.user.teamNumber}
+        WHERE s."training" = false
         ORDER BY tmnt."date" DESC, tmd."matchType" DESC, tmd."matchNumber" DESC
         `;
     interface QueryRow {

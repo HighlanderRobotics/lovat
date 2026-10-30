@@ -1,0 +1,445 @@
+{
+  "status": "TRANSCRIBED",
+  "label": "118 \u00b7 Johnson \u00b7 Qualification 19",
+  "sameRobotForAllScouts": true,
+  "fieldOrientation": "AUSPICIOUS",
+  "startingPose": "FAR_TRENCH",
+  "timing": {
+    "sourceExcludesAutoTeleopTransition": true,
+    "transitionSeconds": 3,
+    "chronologyConfirmed": true,
+    "transitionAdjustmentConfirmed": true,
+    "corrections": {
+      "1:01 Into Outpost": "2:01",
+      "1:05 Start Shooting": "2:05",
+      "1:07 Finish shooting 15": "2:07"
+    },
+    "endTimeSeconds": 163
+  },
+  "timeline": [
+    {
+      "sourceTime": "0:00",
+      "sourceSeconds": 0,
+      "phase": "AUTO",
+      "text": "Far Trench",
+      "action": "CROSS",
+      "position": "FAR_TRENCH",
+      "direction": "OUT",
+      "correctedTime": "0:00",
+      "reportSeconds": 0
+    },
+    {
+      "sourceTime": "0:02",
+      "sourceSeconds": 2,
+      "phase": "AUTO",
+      "text": "Intake",
+      "action": "INTAKE",
+      "position": "NEUTRAL_ZONE",
+      "correctedTime": "0:02",
+      "reportSeconds": 2
+    },
+    {
+      "sourceTime": "0:05",
+      "sourceSeconds": 5,
+      "phase": "AUTO",
+      "text": "Far Trench in",
+      "action": "CROSS",
+      "position": "FAR_TRENCH",
+      "direction": "IN",
+      "correctedTime": "0:05",
+      "reportSeconds": 5
+    },
+    {
+      "sourceTime": "0:05",
+      "sourceSeconds": 5,
+      "phase": "AUTO",
+      "text": "Start shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "0:05",
+      "reportSeconds": 5
+    },
+    {
+      "sourceTime": "0:08",
+      "sourceSeconds": 8,
+      "phase": "AUTO",
+      "text": "Finish Shooting 36 Fuel",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 36,
+      "correctedTime": "0:08",
+      "reportSeconds": 8
+    },
+    {
+      "sourceTime": "0:09",
+      "sourceSeconds": 9,
+      "phase": "AUTO",
+      "text": "Far Trench",
+      "action": "CROSS",
+      "position": "FAR_TRENCH",
+      "direction": "OUT",
+      "correctedTime": "0:09",
+      "reportSeconds": 9
+    },
+    {
+      "sourceTime": "0:10",
+      "sourceSeconds": 10,
+      "phase": "AUTO",
+      "text": "Intake",
+      "action": "INTAKE",
+      "position": "NEUTRAL_ZONE",
+      "correctedTime": "0:10",
+      "reportSeconds": 10
+    },
+    {
+      "sourceTime": "0:13",
+      "sourceSeconds": 13,
+      "phase": "AUTO",
+      "text": "Far Trench In",
+      "action": "CROSS",
+      "position": "FAR_TRENCH",
+      "direction": "IN",
+      "correctedTime": "0:13",
+      "reportSeconds": 13
+    },
+    {
+      "sourceTime": "0:13",
+      "sourceSeconds": 13,
+      "phase": "AUTO",
+      "text": "Start shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "0:13",
+      "reportSeconds": 13
+    },
+    {
+      "sourceTime": "0:17",
+      "sourceSeconds": 17,
+      "phase": "AUTO",
+      "text": "Finish Shooting 28",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 28,
+      "correctedTime": "0:17",
+      "reportSeconds": 17
+    },
+    {
+      "sourceTime": "0:19",
+      "sourceSeconds": 19,
+      "phase": "AUTO",
+      "text": "Far Trench",
+      "action": "CROSS",
+      "position": "FAR_TRENCH",
+      "direction": "OUT",
+      "correctedTime": "0:19",
+      "reportSeconds": 19
+    },
+    {
+      "sourceTime": "0:19",
+      "sourceSeconds": 19,
+      "phase": "AUTO",
+      "text": "Intake",
+      "action": "INTAKE",
+      "position": "NEUTRAL_ZONE",
+      "correctedTime": "0:19",
+      "reportSeconds": 19
+    },
+    {
+      "sourceTime": "0:26",
+      "sourceSeconds": 26,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "0:26",
+      "reportSeconds": 29
+    },
+    {
+      "sourceTime": "0:29",
+      "sourceSeconds": 29,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 27",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 27,
+      "correctedTime": "0:29",
+      "reportSeconds": 32
+    },
+    {
+      "sourceTime": "0:42",
+      "sourceSeconds": 42,
+      "phase": "TELEOP",
+      "text": "Feed Shot",
+      "action": "START_FEEDING",
+      "position": "NEUTRAL_ZONE",
+      "correctedTime": "0:42",
+      "reportSeconds": 45
+    },
+    {
+      "sourceTime": "0:44",
+      "sourceSeconds": 44,
+      "phase": "TELEOP",
+      "text": "Finish Feeding 18",
+      "action": "STOP_FEEDING",
+      "position": "NEUTRAL_ZONE",
+      "quantity": 18,
+      "correctedTime": "0:44",
+      "reportSeconds": 47
+    },
+    {
+      "sourceTime": "0:58",
+      "sourceSeconds": 58,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "0:58",
+      "reportSeconds": 61
+    },
+    {
+      "sourceTime": "1:00",
+      "sourceSeconds": 60,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 24",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 24,
+      "correctedTime": "1:00",
+      "reportSeconds": 63
+    },
+    {
+      "sourceTime": "1:07",
+      "sourceSeconds": 67,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "1:07",
+      "reportSeconds": 70
+    },
+    {
+      "sourceTime": "1:10",
+      "sourceSeconds": 70,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 19",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 19,
+      "correctedTime": "1:10",
+      "reportSeconds": 73
+    },
+    {
+      "sourceTime": "1:18",
+      "sourceSeconds": 78,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "1:18",
+      "reportSeconds": 81
+    },
+    {
+      "sourceTime": "1:19",
+      "sourceSeconds": 79,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 14",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 14,
+      "correctedTime": "1:19",
+      "reportSeconds": 82
+    },
+    {
+      "sourceTime": "1:30",
+      "sourceSeconds": 90,
+      "phase": "TELEOP",
+      "text": "Start Feeding",
+      "action": "START_FEEDING",
+      "position": "NEUTRAL_ZONE",
+      "correctedTime": "1:30",
+      "reportSeconds": 93
+    },
+    {
+      "sourceTime": "1:31",
+      "sourceSeconds": 91,
+      "phase": "TELEOP",
+      "text": "Finish Feeding 10",
+      "action": "STOP_FEEDING",
+      "position": "NEUTRAL_ZONE",
+      "quantity": 10,
+      "correctedTime": "1:31",
+      "reportSeconds": 94
+    },
+    {
+      "sourceTime": "1:51",
+      "sourceSeconds": 111,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "1:51",
+      "reportSeconds": 114
+    },
+    {
+      "sourceTime": "1:52",
+      "sourceSeconds": 112,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 10",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 10,
+      "correctedTime": "1:52",
+      "reportSeconds": 115
+    },
+    {
+      "sourceTime": "1:01",
+      "sourceSeconds": 61,
+      "phase": "TELEOP",
+      "text": "Into Outpost",
+      "action": null,
+      "position": "OUTPOST",
+      "correctedTime": "2:01",
+      "reportSeconds": 124
+    },
+    {
+      "sourceTime": "1:05",
+      "sourceSeconds": 65,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "2:05",
+      "reportSeconds": 128
+    },
+    {
+      "sourceTime": "1:07",
+      "sourceSeconds": 67,
+      "phase": "TELEOP",
+      "text": "Finish shooting 15",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 15,
+      "correctedTime": "2:07",
+      "reportSeconds": 130
+    },
+    {
+      "sourceTime": "2:20",
+      "sourceSeconds": 140,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "2:20",
+      "reportSeconds": 143
+    },
+    {
+      "sourceTime": "2:21",
+      "sourceSeconds": 141,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 10",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 10,
+      "correctedTime": "2:21",
+      "reportSeconds": 144
+    },
+    {
+      "sourceTime": "2:27",
+      "sourceSeconds": 147,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "2:27",
+      "reportSeconds": 150
+    },
+    {
+      "sourceTime": "2:29",
+      "sourceSeconds": 149,
+      "phase": "TELEOP",
+      "text": "Finish shooting 11",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 11,
+      "correctedTime": "2:29",
+      "reportSeconds": 152
+    },
+    {
+      "sourceTime": "2:30",
+      "sourceSeconds": 150,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "2:30",
+      "reportSeconds": 153
+    },
+    {
+      "sourceTime": "2:33",
+      "sourceSeconds": 153,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 12",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 12,
+      "correctedTime": "2:33",
+      "reportSeconds": 156
+    },
+    {
+      "sourceTime": "2:39",
+      "sourceSeconds": 159,
+      "phase": "TELEOP",
+      "text": "Start Shooting",
+      "action": "START_SCORING",
+      "position": "HUB",
+      "correctedTime": "2:39",
+      "reportSeconds": 162
+    },
+    {
+      "sourceTime": "2:40",
+      "sourceSeconds": 160,
+      "phase": "TELEOP",
+      "text": "Finish Shooting 1",
+      "action": "STOP_SCORING",
+      "position": "HUB",
+      "quantity": 1,
+      "correctedTime": "2:40",
+      "reportSeconds": 163
+    }
+  ],
+  "expected": {
+    "autoFuelScored": 64,
+    "teleopFuelScored": 143,
+    "fuelScored": 207,
+    "fuelFed": 28,
+    "scoringRuns": 12,
+    "feedingRuns": 2
+  },
+  "unconfirmed": {
+    "outpostAction": "Into Outpost records a visit, not whether fuel was intaken or outtaken. Do not invent either event.",
+    "feederTypes": "Feeding runs are recorded, but feeding style was not explicitly provided.",
+    "disrupts": "Not specified.",
+    "defenseEffectiveness": "Not specified; being defended is not a defense rating."
+  },
+  "encodingNotes": [
+    "Accuracy 80%-ish is provisionally encoded as Collection category 4 (80\u201390%).",
+    "Exceptional driver ability is Collection rating 5.",
+    "SOTM is interpreted as scoresWhileMoving = true.",
+    "A raw quantity is fuel, not accuracy-adjusted fuel or alliance points.",
+    "All source timeline rows remain in their original order and timebase.",
+    "The JSON report has synthetic client/scout UUIDs and startTime = 0 for repeatable tests; replace these with the current attempt context on upload.",
+    "Far Trench is RIGHT_TRENCH (position 3) for red in the Auspicious field layout.",
+    "The Outpost visit is preserved as an annotation, not encoded as an intake or outtake.",
+    "Source times are unchanged in the annotated timeline; correctedTime and reportSeconds capture the confirmed correction and transition adjustment.",
+    "No climb events are inserted: both auto and endgame are confirmed NOT_ATTEMPTED."
+  ],
+  "matchKey": "2026joh_qm19",
+  "eventSource": "https://www.thebluealliance.com/event/2026joh",
+  "allianceColor": "RED",
+  "startingPosition": "RIGHT_TRENCH",
+  "grading": {
+    "excludeFields": ["feederTypes", "disrupts", "defenseEffectiveness"],
+    "reason": "These fields were not specified. The complete test payload uses neutral transport defaults, which are not answer-key observations."
+  },
+  "reportFile": "118-johnson-qual-19.report.json"
+}

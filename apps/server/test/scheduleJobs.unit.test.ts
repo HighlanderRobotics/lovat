@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../src/lib/fetchTournaments.js", () => ({ default: vi.fn() }));
 vi.mock("../src/lib/fetchTeams.js", () => ({ default: vi.fn() }));
 vi.mock("../src/lib/fetchMatches.js", () => ({ default: vi.fn() }));
+vi.mock("../src/lib/expireReportsInProgress.js", () => ({
+  default: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("../src/lib/deleteOldRequests.js", () => ({ default: vi.fn() }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
@@ -16,6 +19,7 @@ import scheduleJobs from "../src/lib/scheduleJobs.js";
 import fetchTournaments from "../src/lib/fetchTournaments.js";
 import fetchTeams from "../src/lib/fetchTeams.js";
 import fetchMatches from "../src/lib/fetchMatches.js";
+import expireReportsInProgress from "../src/lib/expireReportsInProgress.js";
 import deleteOldRequests from "../src/lib/deleteOldRequests.js";
 
 describe("background jobs at startup", () => {
@@ -43,6 +47,7 @@ describe("background jobs at startup", () => {
     expect(fetchTeams).not.toHaveBeenCalled();
     expect(fetchMatches).not.toHaveBeenCalled();
     expect(deleteOldRequests).toHaveBeenCalledTimes(2);
+    expect(expireReportsInProgress).toHaveBeenCalledTimes(2);
   });
 
   it("imports and refreshes TBA data when development has a key", async () => {

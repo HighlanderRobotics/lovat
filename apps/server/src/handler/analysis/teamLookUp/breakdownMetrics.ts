@@ -31,6 +31,7 @@ export const breakdownMetrics = createAnalysisHandler({
 
     const reportCount = await prismaClient.scoutReport.count({
       where: {
+        training: false,
         teamMatchData: {
           teamNumber: params.team,
           matchType: { not: "PRACTICE" },

@@ -211,7 +211,7 @@ const Match = ({ match }: { match: HistoryEntry }) => {
             key="upload"
             onSelect={async () => {
               try {
-                await uploadReport(match!.scoutReport);
+                await uploadReport(match!.scoutReport, match!.meta);
                 setMatchUploaded(match!.scoutReport.uuid);
               } catch (e) {
                 let message;

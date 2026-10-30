@@ -1,0 +1,54 @@
+118 Qual 19 Johnson
+Auspicious
+Starting Pose is Far Trench
+Times are not including the 3 sec transition from auto to teleop
+0:00 Far Trench
+0:02 Intake
+0:05 Far Trench in
+0:05 Start shooting
+0:08 Finish Shooting 36 Fuel
+0:09 Far Trench
+0:10 Intake
+0:13 Far Trench In
+0:13 Start shooting
+0:17 Finish Shooting 28
+0:19 Far Trench
+0:19 Intake
+AUTO Ends
+0:26 Start Shooting
+0:29 Finish Shooting 27
+0:42 Feed Shot
+0:44 Finish Feeding 18
+0:58 Start Shooting
+1:00 Finish Shooting 24
+1:07 Start Shooting
+1:10 Finish Shooting 19
+1:18 Start Shooting
+1:19 Finish Shooting 14
+1:30 Start Feeding
+1:31 Finish Feeding 10
+1:51 Start Shooting
+1:52 Finish Shooting 10
+1:01 Into Outpost
+1:05 Start Shooting
+1:07 Finish shooting 15
+2:20 Start Shooting
+2:21 Finish Shooting 10
+2:27 Start Shooting
+2:29 Finish shooting 11
+2:30 Start Shooting
+2:33 Finish Shooting 12
+2:39 Start Shooting
+2:40 Finish Shooting 1
+Post Game
+Cycling & Scoring
+80%-ish Accuracy
+Ground intake
+Trench & Bump
+No Auto Climb Attempeted
+No Beaching
+Driver Ability Exceptional
+SOTM
+Extendo Hopper Broke at 1:24
+went over to pick up fuel from under blue trench and the hopper caught. It led to not being able to hold as many fuel and many fuel leaked out. It seems easily repairable & another opponent got caught on the same trench this match
+Notes: Seems like they got caught up in defence by 4451 molementarily but were quite confident in being able to get out, it just took a second. They have a strong well trained drive team and led the alliance. They also seem to prefer to shoot from within the trench even when they pick up fuel within their alliance zone.

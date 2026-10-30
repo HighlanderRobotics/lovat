@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import prismaClient from "../../../prismaClient.js";
+import prismaClient from "../../prismaClient.js";
 import z from "zod";
-import { PositionMap, EventActionMap } from "../managerConstants.js";
-import { addTournamentMatches } from "../addTournamentMatches.js";
+import { PositionMap, EventActionMap } from "../manager/managerConstants.js";
+import { addTournamentMatches } from "../manager/addTournamentMatches.js";
 import {
   AutoClimb,
   Beached,
@@ -18,8 +18,8 @@ import {
   ClimbSide,
   EndgameClimb,
 } from "@lovat/db";
-import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
-import { invalidateCache } from "../../../lib/clearCache.js";
+import { sendWarningToSlack } from "../slack/sendWarningNotification.js";
+import { invalidateCache } from "../../lib/clearCache.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 

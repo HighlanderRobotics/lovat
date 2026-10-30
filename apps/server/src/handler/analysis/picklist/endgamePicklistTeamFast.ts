@@ -32,6 +32,7 @@ export const endgamePicklistTeamFast = async (
         _all: true,
       },
       where: {
+        training: false,
         teamMatchData: {
           teamNumber: team,
           matchType: { not: "PRACTICE" },

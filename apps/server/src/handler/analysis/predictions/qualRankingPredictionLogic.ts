@@ -87,7 +87,7 @@ const config = {
           tournamentKey: args.tournamentKey,
           matchType: "QUALIFICATION",
           scoutReports: {
-            some: {},
+            some: { training: false },
           },
         },
         orderBy: {
