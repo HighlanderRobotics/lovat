@@ -241,6 +241,14 @@ updated worker.
 
 ## Railway deployment
 
+Match refreshes flag unverified reports as `FLAGGED_SYSTEM` when their scored
+ball total exceeds their own alliance's completed official score. The count
+sums `STOP_SCORING` quantities, falling back to event points for older events;
+feeding and climb points do not count. Cached match responses also check reports
+uploaded since the last import. Verified reports and existing user flags or bad
+reports are preserved. New flags invalidate registered analysis caches; apply
+the report reliability migration before running this worker version.
+
 Build from the repository root with `docker build -f apps/worker/Dockerfile .`.
 The image pins Node 22.20.0 and Bun 1.3.14, builds the shared Prisma package
 before installing the worker with its frozen lockfile, checks TypeScript, and

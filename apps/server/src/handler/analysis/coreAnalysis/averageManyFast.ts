@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   autoEnd,
@@ -83,7 +84,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
         teamNumber: true,
         tournamentKey: true,
         scoutReports: {
-          where: srWhere,
+          where: { ...srWhere, ...analysisReportFilter },
           select: {
             events: true,
             driverAbility: true,

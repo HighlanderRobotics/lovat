@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import {
@@ -33,6 +34,7 @@ export const getNotes = createAnalysisHandler({
 
     const reportCount = await prismaClient.scoutReport.count({
       where: {
+        ...analysisReportFilter,
         teamMatchData: {
           teamNumber: params.team,
           matchType: { not: "PRACTICE" },
@@ -61,6 +63,7 @@ export const getNotes = createAnalysisHandler({
 
     const noteData = await prismaClient.scoutReport.findMany({
       where: {
+        ...analysisReportFilter,
         teamMatchData: {
           teamNumber: params.team,
           tournamentKey: sourceTnmtFilter,

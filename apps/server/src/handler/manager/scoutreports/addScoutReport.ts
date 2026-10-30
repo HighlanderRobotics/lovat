@@ -20,6 +20,7 @@ import {
 } from "@lovat/db";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { classifyReportReliability } from "./reportReliability.js";
 
 const { PrismaClientKnownRequestError } = Prisma;
 
@@ -270,6 +271,10 @@ export const addScoutReport = async (
       prismaClient.scoutReport.create({
         data: {
           uuid: paramsScoutReport.uuid,
+          reliability: classifyReportReliability({
+            ...paramsScoutReport,
+            events: eventDataArray,
+          }),
           startTime: new Date(paramsScoutReport.startTime),
           teamMatchData: { connect: { key: matchKey } },
           scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },

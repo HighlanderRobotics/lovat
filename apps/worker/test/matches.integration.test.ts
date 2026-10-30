@@ -322,6 +322,136 @@ test("rejects empty tournament keys before loading clients", async () => {
 });
 
 test.skipIf(!enabled)(
+  "flags impossible ball totals on fresh and cached score imports without changing verified reports",
+  async () => {
+    const { uuid: _uuid, ...reportData } =
+      await db.scoutReport.findUniqueOrThrow({ where: { uuid: reportId } });
+    const cases = [
+      ["UNVERIFIED", 99, "UNVERIFIED"],
+      ["UNVERIFIED", 100, "UNVERIFIED"],
+      ["UNVERIFIED", 101, "FLAGGED_SYSTEM"],
+      ["VERIFIED", 1000, "VERIFIED"],
+      ["FLAGGED_USER", 1000, "FLAGGED_USER"],
+      ["BAD_REPORT", 1000, "BAD_REPORT"],
+    ] as const;
+    const reports = [];
+    for (const [reliability, balls, expected] of cases) {
+      const report = await db.scoutReport.create({
+        data: {
+          ...reportData,
+          reliability,
+          events: {
+            create: [
+              {
+                time: 10,
+                action: "STOP_SCORING",
+                position: "HUB",
+                points: 50,
+                quantity: 50,
+              },
+              {
+                time: 20,
+                action: "STOP_SCORING",
+                position: "HUB",
+                points: balls - 50,
+                quantity: balls - 50,
+              },
+              {
+                time: 30,
+                action: "STOP_FEEDING",
+                position: "HUB",
+                points: 0,
+                quantity: 1000,
+              },
+            ],
+          },
+        },
+      });
+      reports.push({ uuid: report.uuid, expected });
+    }
+    await importMatches(eventKey, { db, tba: provider([match()]) });
+    expect(
+      (
+        await db.scoutReport.findUniqueOrThrow({
+          where: { uuid: reports[2]!.uuid },
+        })
+      ).reliability,
+    ).toBe("UNVERIFIED");
+
+    const completed = match();
+    completed.alliances.red.score = 100;
+    completed.alliances.blue.score = 20;
+    const blueReport = await db.scoutReport.create({
+      data: {
+        ...reportData,
+        teamMatchKey: `${eventKey}_qm1_3`,
+        events: {
+          create: {
+            time: 20,
+            action: "STOP_SCORING",
+            position: "HUB",
+            points: 21,
+            quantity: 21,
+          },
+        },
+      },
+    });
+    const cacheKey = `flag-cache-${crypto.randomUUID()}`;
+    await db.cachedAnalysis.create({ data: { key: cacheKey } });
+    await importMatches(eventKey, { db, tba: provider([completed]) });
+    expect(
+      (
+        await db.scoutReport.findUniqueOrThrow({
+          where: { uuid: blueReport.uuid },
+        })
+      ).reliability,
+    ).toBe("FLAGGED_SYSTEM");
+    for (const { uuid, expected } of reports) {
+      expect(
+        (await db.scoutReport.findUniqueOrThrow({ where: { uuid } }))
+          .reliability,
+      ).toBe(expected);
+    }
+    expect(
+      await db.cachedAnalysis.findUnique({ where: { key: cacheKey } }),
+    ).toBeNull();
+
+    const lateReport = await db.scoutReport.create({
+      data: {
+        ...reportData,
+        events: {
+          create: {
+            time: 20,
+            action: "STOP_SCORING",
+            position: "HUB",
+            points: 101,
+            quantity: null,
+          },
+        },
+      },
+    });
+    await importMatches(eventKey, {
+      db,
+      tba: {
+        ...provider([]),
+        getMatches: async () => ({
+          modified: false as const,
+          etag: "matches-v1",
+          lastModified: null,
+        }),
+      },
+    });
+    expect(
+      (
+        await db.scoutReport.findUniqueOrThrow({
+          where: { uuid: lateReport.uuid },
+        })
+      ).reliability,
+    ).toBe("FLAGGED_SYSTEM");
+  },
+);
+
+test.skipIf(!enabled)(
   "imports historical bracket display order and gaps in play sequence",
   async () => {
     const games = [

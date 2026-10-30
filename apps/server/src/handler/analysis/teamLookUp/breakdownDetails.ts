@@ -1,3 +1,4 @@
+import { analysisReportsSql } from "../reportReliability.js";
 import z from "zod";
 import {
   allTeamNumbers,
@@ -40,7 +41,7 @@ export const breakdownDetails = createAnalysisHandler({
             tmnt."name" AS tournament,
             sc."sourceTeamNumber" AS sourceteam,
             teamScouter."name" AS scouter
-        FROM "ScoutReport" s
+        FROM ${analysisReportsSql} s
         JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
         JOIN "TeamMatchData" tmd
             ON tmd."teamNumber" = ${params.team}

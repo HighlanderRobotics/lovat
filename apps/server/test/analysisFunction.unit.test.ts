@@ -6,12 +6,15 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   set: vi.fn(),
   create: vi.fn(),
+  findUnique: vi.fn(),
 }));
 vi.mock("../src/redisClient.js", () => ({
   kv: { get: mocks.get, set: mocks.set },
 }));
 vi.mock("../src/prismaClient.js", () => ({
-  default: { cachedAnalysis: { create: mocks.create } },
+  default: {
+    cachedAnalysis: { create: mocks.create, findUnique: mocks.findUnique },
+  },
 }));
 const { runAnalysis, createAnalysisFunction } =
   await import("../src/handler/analysis/analysisFunction.js");
@@ -42,12 +45,21 @@ const config = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.get.mockResolvedValue(null);
+  mocks.findUnique.mockResolvedValue({ key: "cached" });
   mocks.set.mockResolvedValue(undefined);
   mocks.create.mockResolvedValue(undefined);
   calculate.mockResolvedValue({ score: 1.2345 });
 });
 
 describe("analysis result caching", () => {
+  it("recalculates a Redis result when the worker invalidated its registration", async () => {
+    mocks.get.mockResolvedValue(JSON.stringify({ score: 999 }));
+    mocks.findUnique.mockResolvedValue(null);
+    expect(await runAnalysis(config, user, { team: 254 })).toEqual({
+      score: 1.23,
+    });
+    expect(calculate).toHaveBeenCalledOnce();
+  });
   it("rounds nested values, replaces non-finite numbers, and preserves other values", async () => {
     calculate.mockResolvedValue({
       values: [1.2345, NaN, Infinity, -Infinity],
@@ -91,7 +103,7 @@ describe("analysis result caching", () => {
       score: 1.23,
     });
     const cacheKey =
-      "analysis:v2:function:analysis-user:test:{INCLUDE:[8033]}:{EXCLUDE:[private]}";
+      "analysis:v3:function:analysis-user:test:{INCLUDE:[8033]}:{EXCLUDE:[private]}";
     expect(mocks.get).toHaveBeenCalledWith(cacheKey);
     expect(mocks.set).toHaveBeenCalledWith(cacheKey, '{"score":1.23}');
     expect(mocks.create).toHaveBeenCalledWith({
@@ -114,7 +126,7 @@ describe("analysis result caching", () => {
     );
     expect(mocks.create).toHaveBeenCalledWith({
       data: {
-        key: "analysis:v2:function:analysis-user:test",
+        key: "analysis:v3:function:analysis-user:test",
         teamDependencies: [],
         tournamentDependencies: [],
       },

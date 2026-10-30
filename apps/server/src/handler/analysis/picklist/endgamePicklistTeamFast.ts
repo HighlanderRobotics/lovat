@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import { EndgameClimb, Prisma } from "@lovat/db";
 import prismaClient from "../../../prismaClient.js";
 import { defaultEndgamePoints, endgameToPoints } from "../analysisConstants.js";
@@ -32,6 +33,7 @@ export const endgamePicklistTeamFast = async (
         _all: true,
       },
       where: {
+        ...analysisReportFilter,
         teamMatchData: {
           teamNumber: team,
           matchType: { not: "PRACTICE" },

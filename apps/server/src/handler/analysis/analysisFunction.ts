@@ -6,7 +6,7 @@ import { AnalysisContext } from "./analysisConstants.js";
 import { User } from "@lovat/db";
 
 // Bump when formulas change so existing Redis entries cannot return old results.
-export const analysisCacheVersion = "v2";
+export const analysisCacheVersion = "v3";
 
 export type CreateKeyResult = {
   key: string[];
@@ -107,7 +107,12 @@ export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
     user.id,
     ...keyFragments,
   ].join(":");
-  const cacheRow = await kv.get(key);
+  const cachedValue = await kv.get(key);
+  const cacheRow =
+    cachedValue &&
+    (await prismaClient.cachedAnalysis.findUnique({ where: { key } }))
+      ? cachedValue
+      : null;
 
   if (!cacheRow) {
     const result = await config.calculateAnalysis(passedArgs, context);

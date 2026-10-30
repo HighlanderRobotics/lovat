@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
 import { matchPredictionLogic } from "./matchPredictionLogic.js";
@@ -87,7 +88,7 @@ const config = {
           tournamentKey: args.tournamentKey,
           matchType: "QUALIFICATION",
           scoutReports: {
-            some: {},
+            some: analysisReportFilter,
           },
         },
         orderBy: {
