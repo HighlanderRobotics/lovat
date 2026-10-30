@@ -426,7 +426,7 @@ test('grade details explain tolerances, counts, post-match answers and missed ev
 		'87%',
 		'training-v3',
 		'±5s',
-		'allowance ±6',
+		'allowance ±30',
 		'Missing event',
 		'Extra event',
 		'+4s',
