@@ -64,6 +64,10 @@ Several applications require environment files or external services for full run
 
 Read [`AGENTS.md`](AGENTS.md) and the nearest app-local `AGENTS.md` before editing. Keep changes within the app that owns the behavior. Update all affected producers and consumers together when a shared contract changes.
 
+## Pull request review
+
+Internal pull requests receive an automated OpenRouter review when they are opened, updated, or reopened. The reviewer lives in [`tools/pr-reviewer`](tools/pr-reviewer), follows [`CODE_REVIEW.md`](CODE_REVIEW.md), and is configured by [`.lovat-review.json`](.lovat-review.json). Fork pull requests and drafts are skipped by default. Maintainers configure the `OPENROUTER_API_KEY` secret and may override the model with the `OPENROUTER_MODEL` variable. See the [reviewer README](tools/pr-reviewer/README.md) for setup, permissions, and limits.
+
 ## Linear MCP
 
 This repository configures Linear as a project-scoped MCP server for Codex. Authentication is stored per user and is never committed.

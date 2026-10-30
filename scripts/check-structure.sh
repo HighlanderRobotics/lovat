@@ -29,6 +29,9 @@ required_paths=(
   packages/db/prisma/schema.prisma
   packages/db/prisma/migrations
   packages/db/prisma.config.ts
+  tools/pr-reviewer/package.json
+  tools/pr-reviewer/package-lock.json
+  tools/pr-reviewer/README.md
 )
 
 for required_path in "${required_paths[@]}"; do
