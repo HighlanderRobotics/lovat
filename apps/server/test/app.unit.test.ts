@@ -50,6 +50,15 @@ describe("Server HTTP routes", () => {
     expect(response.headers.ratelimit).toBeDefined();
   });
 
+  it("rejects report flagging without a token", async () => {
+    const response = await request(app)
+      .post("/v1/manager/scoutreports/setflag/test-report")
+      .query({ flag: "true" });
+
+    expect(response.status).toBe(401);
+    expect(response.text).toBe("No authorization token provided");
+  });
+
   it("allows configured browser origins and rejects unrelated origins", async () => {
     const trusted = await request(app)
       .get("/status")

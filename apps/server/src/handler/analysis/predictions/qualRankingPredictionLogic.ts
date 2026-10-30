@@ -6,6 +6,8 @@ import { alliancePage } from "./alliancePage.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
 import { addTournamentMatches } from "../../manager/addTournamentMatches.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
+import { scoutReportSourceFilter } from "../scoutReportSourceFilter.js";
 
 type TeamRanking = {
   teamNumber: number;
@@ -81,20 +83,26 @@ const config = {
 
     matchesResponse.data.sort((a, b) => a.predicted_time - b.predicted_time);
 
-    const lastMatch = (
-      await prismaClient.teamMatchData.findFirstOrThrow({
-        where: {
-          tournamentKey: args.tournamentKey,
-          matchType: "QUALIFICATION",
-          scoutReports: {
-            some: {},
+    const lastScoutedMatch = await prismaClient.teamMatchData.findFirst({
+      where: {
+        tournamentKey: args.tournamentKey,
+        matchType: "QUALIFICATION",
+        scoutReports: {
+          some: {
+            AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
           },
         },
-        orderBy: {
-          matchNumber: "desc",
-        },
-      })
-    ).matchNumber;
+      },
+      orderBy: {
+        matchNumber: "desc",
+      },
+    });
+
+    if (!lastScoutedMatch) {
+      return [];
+    }
+
+    const lastMatch = lastScoutedMatch.matchNumber;
 
     const teams: Record<number, TeamRanking> = teamsResponse.data.reduce(
       (acc, team) => {

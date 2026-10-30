@@ -23,6 +23,7 @@ import {
   dataSourceRuleSchema,
 } from "../dataSourceRule.js";
 import { averageScoutReport } from "../coreAnalysis/averageScoutReport.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Scouting report condensed into a single dimension that can be pushed to a row in the csv
 export interface CondensedReport {
@@ -137,6 +138,7 @@ export const getReportCSV = async (
     // Select scout reports from the given tournament and team sources
     // These instances will be looped through and remade into rows of the csv
     const where: any = {
+      ...reportReliabilityFilter,
       teamMatchData: {
         tournamentKey: params.data.tournamentKey,
       },

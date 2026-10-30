@@ -46,6 +46,7 @@ export const breakdownDetails = createAnalysisHandler({
             ON tmd."teamNumber" = ${params.team}
             AND tmd."key" = s."teamMatchKey"
             AND tmd."matchType" <> 'PRACTICE'
+            AND s."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
             AND sc."sourceTeamNumber" = ANY($1)
             AND tmd."tournamentKey" = ANY($2)
         JOIN "Tournament" tmnt ON tmd."tournamentKey" = tmnt."key"

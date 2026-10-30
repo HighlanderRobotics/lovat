@@ -235,11 +235,13 @@ enum TournamentGapTimingSource {
 }
 
 model TeamMatchData {
-  key           String    @id
-  tournamentKey String
-  matchNumber   Int       @db.SmallInt
-  teamNumber    Int
-  matchType     MatchType
+  key               String    @id
+  tournamentKey     String
+  matchNumber       Int       @db.SmallInt
+  teamNumber        Int
+  matchType         MatchType
+  /// True only when a public provider schedule includes this practice team.
+  practiceScheduled Boolean   @default(false)
 
   matchKey String?
   alliance AllianceColor?
@@ -303,6 +305,8 @@ model ScoutReport {
   events                Event[]
   scouter               Scouter       @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
   teamMatchData         TeamMatchData @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
+  reliability           ReportReliability @default(UNVERIFIED)
+  flaggedBy             User[] @relation("ReportFlags")
 
   // year specific fields
   accuracy             Int?
@@ -441,6 +445,7 @@ model User {
   mutablePicklists     MutablePicklist[]
   sharedPicklists      SharedPicklist[]
   team                 RegisteredTeam?   @relation(fields: [teamNumber], references: [number], onDelete: Cascade)
+  flaggedReports       ScoutReport[] @relation("ReportFlags")
 }
 
 model ApiKey {
@@ -561,4 +566,11 @@ enum MatchType {
   QUALIFICATION
   ELIMINATION
   PRACTICE
+}
+
+enum ReportReliability {
+  UNVERIFIED
+  VERIFIED
+  FLAGGED
+  BAD_REPORT
 }

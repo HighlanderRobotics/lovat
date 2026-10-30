@@ -11,6 +11,7 @@ import {
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import { User } from "@lovat/db";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 interface AutoPosition {
   location: number;
@@ -83,6 +84,7 @@ const config = {
 
     const autoData = await prismaClient.scoutReport.findMany({
       where: {
+        ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: teamNumber,
           tournamentKey: sourceTnmtFilter,

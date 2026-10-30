@@ -3,7 +3,7 @@ import { requireAuth } from "../../lib/middleware/requireAuth.js";
 import { addScoutReport } from "../../handler/manager/scoutreports/addScoutReport.js";
 import { deleteScoutReport } from "../../handler/manager/scoutreports/deleteScoutReport.js";
 import { getScoutReport } from "../../handler/manager/scoutreports/getScoutReport.js";
-
+import { setScoutReportFlag } from "../../handler/manager/scoutreports/setScoutReportFlag.js";
 import { registry } from "../../lib/openapi.js";
 import { z } from "zod";
 
@@ -114,11 +114,47 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: "post",
+  path: "/v1/manager/scoutreports/setflag/{report}",
+  security: [{ bearerAuth: [] }],
+  tags: ["Manager - Scout Reports"],
+  summary: "Set or remove your flag on a scout report",
+  request: {
+    params: z.object({
+      report: z.string().min(1),
+    }),
+    query: z.object({
+      flag: z.enum(["true", "false"]),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Flag updated",
+      content: {
+        "application/json": {
+          schema: z.object({
+            flagged: z.boolean(),
+            flagCount: z.number().int().nonnegative(),
+          }),
+        },
+      },
+    },
+    400: { description: "Invalid report parameter or flag value" },
+    401: { description: "Authentication required or no team assigned" },
+    403: { description: "Team is not verified" },
+    404: { description: "Report not found or outside allowed sources" },
+    500: { description: "Server error" },
+  },
+});
+
 const router = Router();
 
 router.post("/", addScoutReport);
 
 router.use(requireAuth, requireVerifiedTeam);
+
+router.post("/setflag/:report", setScoutReportFlag);
 
 router.get("/:uuid", getScoutReport);
 router.delete("/:uuid", deleteScoutReport);

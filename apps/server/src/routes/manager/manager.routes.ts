@@ -119,7 +119,7 @@ const PracticeMatchSchema = z.object({
   teams: z
     .array(MatchTeamSchema)
     .describe(
-      "Reported practice teams, sorted by team number; no alliance slots",
+      "Publicly scheduled or visibly reported practice teams, sorted by team number; no alliance slots",
     ),
 });
 

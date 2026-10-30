@@ -17,9 +17,7 @@ npm run build
 npm run preview
 ```
 
-Magnolia is pinned to an archive of the same commit previously recorded in the lockfile.
-The archive includes its compiled `dist` files, so clean installs avoid preparing the
-library's development dependencies. Keep the archive URL pinned when updating Magnolia.
+Magnolia is pinned to a GitHub archive of the commit recorded in the lockfile. The archive includes its compiled `dist` files, so npm can install it without preparing the library's development dependencies. Keep this archive URL pinned when updating Magnolia; a Git dependency makes npm install those development tools again and can fail before the Website builds.
 
 Production server routes require provider-managed values such as `SLACK_SIGNING_SECRET`, `SLACK_WEBHOOK`, `RESEND_KEY`, and `LOVAT_SIGNING_KEY`. Never expose them to browser code or commit them.
 
