@@ -91,8 +91,8 @@ class _OcrMatchTimelineState extends State<OcrMatchTimeline> {
   Widget build(BuildContext context) {
     final data = widget.data,
         theme = Theme.of(context),
-        blue = theme.colorScheme.blueAlliance,
-        red = theme.colorScheme.redAlliance;
+        blue = theme.colorScheme.onBlueAlliance,
+        red = theme.colorScheme.onRedAlliance;
     final maxCount = [...data.red, ...data.blue]
         .fold<int>(0, (n, s) => math.max(n, s.count));
     Widget score(String label, num? value, Color color) => Expanded(

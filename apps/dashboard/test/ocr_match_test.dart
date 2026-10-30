@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math' as math;
+import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -79,12 +81,24 @@ void main() {
             OcrMatchTeam(8033, 'RED', 100, -5, 95),
             OcrMatchTeam(1967, 'BLUE', 90, 10, 100)
           ]);
-      await tester.pumpWidget(
-          MaterialApp(home: Scaffold(body: OcrMatchTimeline(data: data))));
+      await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(colorScheme: darkColorScheme),
+          home: Scaffold(body: OcrMatchTimeline(data: data))));
       await tester.pump();
       expect(find.text('Fuel timeline'), findsOneWidget);
       final chart = tester.widget<LineChart>(find.byType(LineChart));
       expect(chart.data.lineBarsData.length, 4);
+      final background = Theme.of(tester.element(find.byType(LineChart)))
+          .scaffoldBackgroundColor
+          .computeLuminance();
+      for (final line in chart.data.lineBarsData) {
+        final color = line.color!.computeLuminance();
+        expect(
+            (math.max(color, background) + .05) /
+                (math.min(color, background) + .05),
+            greaterThanOrEqualTo(4.5));
+      }
+
       final slider = find.byKey(const Key('ocr-time-slider'));
       await tester.ensureVisible(slider);
       await tester.drag(slider, const Offset(70, 0));
