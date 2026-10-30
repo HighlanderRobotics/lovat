@@ -256,3 +256,16 @@ test("existing preview reports can be analyzed without a production source servi
   expect(h.stages).not.toContain("import-source");
   expect(h.writes).toHaveLength(2);
 });
+
+test("unreviewed broadcast crops cannot publish validated scores", async () => {
+  const h = harness();
+  await runEventAnalysis("2026casnf", h.db, {
+    ...h.deps,
+    templateReviewed: () => false,
+  });
+  expect(h.writes).toHaveLength(2);
+  expect(
+    h.writes.every((w) => w.create.status === "PROFILE_REVIEW_REQUIRED"),
+  ).toBe(true);
+  expect(h.stages.filter((s) => s === "refresh")).toHaveLength(2);
+});

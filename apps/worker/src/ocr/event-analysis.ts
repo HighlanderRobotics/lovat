@@ -33,6 +33,21 @@ export function eventTemplate(eventKey: string): Template {
     configured[eventKey] ?? (eventKey === "2026cacg" ? calgames : standard),
   );
 }
+/** Only profiles reviewed against real event frames may publish scores. */
+export function templateReviewed(version: string): boolean {
+  const reviewed = [
+    calgames.version,
+    ...(calgames.alternatives ?? []).map((t) => t.version),
+  ];
+  return (
+    reviewed.includes(version) ||
+    (process.env.OCR_REVIEWED_TEMPLATE_VERSIONS ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .includes(version)
+  );
+}
 function mediaStore() {
   if (!process.env.OCR_MEDIA_ENDPOINT || !process.env.OCR_MEDIA_BUCKET)
     return undefined;
@@ -79,6 +94,7 @@ const defaultDependencies = {
   readSourceReports,
   importSourceReports,
   eventTemplate,
+  templateReviewed,
   withEventVideo,
   extractServiceEvidence,
   refreshMatchEstimates,
@@ -195,7 +211,10 @@ export async function runEventAnalysis(
       const prior = match.scoreboardOcr;
       if (
         prior &&
-        ["VALIDATED", "PARTIAL"].includes(prior.status) &&
+        ((["VALIDATED", "PARTIAL"].includes(prior.status) &&
+          deps.templateReviewed(prior.templateVersion)) ||
+          (prior.status === "PROFILE_REVIEW_REQUIRED" &&
+            !deps.templateReviewed(prior.templateVersion))) &&
         [
           template.version,
           ...(template.alternatives ?? []).map((t) => t.version),
@@ -277,6 +296,12 @@ export async function runEventAnalysis(
             channels = evidence.channels;
             videoKey = video;
             if (!validateEstimateEvidence(evidence.observations)) continue;
+            if (!deps.templateReviewed(layoutVersion)) {
+              status = "PROFILE_REVIEW_REQUIRED";
+              reason =
+                "Scoreboard crop profile needs review against real event video";
+              break;
+            }
             status = validateObservations(evidence.observations)
               ? "VALIDATED"
               : "PARTIAL";

@@ -385,10 +385,10 @@ the runner required identical media, evidence and runtime fingerprints across
 repeats. These are processing measurements on already cached video, excluding
 public download time and report import/fusion.
 
-| Concurrency | Match runs | Total wall time | Throughput | Median request times across repeats | Peak sampled container memory |
-|---|---:|---:|---:|---:|---:|
-| 1 | 8 | 104.751 s | 4.582 matches/min | 12.334 / 13.045 s | 426 MiB |
-| 2 | 8 | 86.160 s | 5.571 matches/min | 19.668 / 22.338 s | 555 MiB |
+| Concurrency | Match runs | Total wall time |        Throughput | Median request times across repeats | Peak sampled container memory |
+| ----------- | ---------: | --------------: | ----------------: | ----------------------------------: | ----------------------------: |
+| 1           |          8 |       104.751 s | 4.582 matches/min |                   12.334 / 13.045 s |                       426 MiB |
+| 2           |          8 |        86.160 s | 5.571 matches/min |                   19.668 / 22.338 s |                       555 MiB |
 
 Concurrency two improved measured throughput by 21.6%, with higher individual
 request latency. This supports the bounded event pool; it is not a universal
@@ -428,3 +428,11 @@ and `OCR_RESOURCE_EXPERIMENT_RECOGNITION_CACHE=0` select recovery/cache modes
 for those extraction requests. Ordinary event jobs do not forward tuning from
 the public request body. The native service accepts only boolean tuning flags;
 identity, confidence, resource limits and official accounting remain fixed.
+
+### Broadcast crop review
+
+CalGames uses the reviewed Cheesy Arena profile. `2026casnf` and `2026cagle`
+use the separate FIRST FMS candidate. Candidate results are held as
+`PROFILE_REVIEW_REQUIRED` and excluded from live estimates until real event
+frames verify the layout. `OCR_REVIEWED_TEMPLATE_VERSIONS` accepts explicitly
+reviewed version identifiers. Held evidence is reused while awaiting review.
