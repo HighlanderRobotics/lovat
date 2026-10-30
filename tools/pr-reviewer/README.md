@@ -39,7 +39,7 @@ The workflow needs two repository settings:
 | `OPENROUTER_MODEL` | Actions variable | Overrides the model in `.lovat-review.json`. Optional. |
 
 Set them under **Settings → Secrets and variables → Actions**. The model value
-must be an OpenRouter model identifier such as `anthropic/claude-sonnet-5.5`.
+must be an OpenRouter model identifier such as `z-ai/glm-5.3-flash`.
 The checked-in configuration supplies a default, so the variable can be left
 unset.
 
@@ -57,7 +57,7 @@ being ignored. All fields are optional because the tool applies defaults.
 |---|---|---|
 | `enabled` | `true` | Set to `false` to skip reviews without removing the workflow. |
 | `reviewDrafts` | `false` | Review draft pull requests. |
-| `model` | required | OpenRouter model identifier. `OPENROUTER_MODEL` wins when set. |
+| `model` | required | OpenRouter model identifier. The repository default is `z-ai/glm-5.3-flash`; `OPENROUTER_MODEL` wins when set. |
 | `maxDiffCharacters` | `80000` | Approximate diff budget per model request. Larger diffs are split into batches. |
 | `maxFindings` | `20` | Maximum findings kept across the whole review. |
 | `minimumConfidence` | `0.75` | Findings below this confidence are discarded. |
@@ -167,7 +167,7 @@ To exercise the reviewer locally, provide a GitHub event payload and tokens:
 GITHUB_EVENT_PATH=/path/to/pr-event.json \
 GITHUB_TOKEN=... \
 OPENROUTER_API_KEY=... \
-OPENROUTER_MODEL=anthropic/claude-sonnet-5.5 \
+OPENROUTER_MODEL=z-ai/glm-5.3-flash \
 node dist/index.js
 ```
 
