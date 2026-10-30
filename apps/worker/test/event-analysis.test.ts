@@ -51,6 +51,10 @@ function harness(
   const db = {
     season: { upsert: async () => {} },
     tournament: { upsert: async () => {} },
+    scouter: {
+      findMany: async () =>
+        options.noReports ? [] : [{ sourceTeamNumber: 8033 }],
+    },
     match: { findMany: async () => matches },
     scoreboardOcr: {
       upsert: async (write: unknown) => {
@@ -104,6 +108,7 @@ function harness(
     elapsedMs: 1,
   };
   const deps = {
+    reportSourceConfigured: () => true,
     createTbaClient: () => tba,
     importMatches: async () => {
       stages.push("canonical");
@@ -241,4 +246,13 @@ test("losing job ownership drains work without writing stale checkpoints", async
   ).rejects.toThrow();
   expect(h.writes).toHaveLength(0);
   expect(h.stages).not.toContain("refresh");
+});
+
+test("existing preview reports can be analyzed without a production source service", async () => {
+  const h = harness();
+  h.deps.reportSourceConfigured = () => false;
+  await runEventAnalysis("2026casnf", h.db, h.deps);
+  expect(h.stages).not.toContain("read-source");
+  expect(h.stages).not.toContain("import-source");
+  expect(h.writes).toHaveLength(2);
 });

@@ -65,6 +65,13 @@ export async function eventAnalysisProxy(
       signal: AbortSignal.timeout(15000),
       redirect: "error",
     });
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      response.status === 429 ||
+      response.status >= 500
+    )
+      throw Error("Worker unavailable");
     const body = await response.json();
     res.status(response.status).json(body);
   } catch {

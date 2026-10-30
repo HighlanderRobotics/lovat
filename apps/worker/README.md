@@ -337,8 +337,10 @@ lease renewal, retry/backoff and numeric progress logs. Event OCR runs at bounde
 concurrency two by default; `OCR_EVENT_CONCURRENCY=1` provides a serial option. An accepted broadcast
 version is reused on retry, and estimates are rebuilt from current reports.
 
-Production reports come from `tools/report-source-service.ts`, deployed as a
-separate Bun service. It uses only the role provisioned by
+By default, analysis uses reports already present in the preview database.
+A direct scoped copy does not require a new production role or service.
+Optionally, production reports can come from `tools/report-source-service.ts`,
+deployed as a separate Bun service. It uses only the role provisioned by
 `ops/ocr-report-source.sql`, which can select one event-restricted numeric view
 and cannot select raw report tables. Apply that script through the approved
 production migration owner, supplying `source_role` and `source_password` as
@@ -403,8 +405,8 @@ The native processor also has a prepared-image cache, bounded to 128 entries
 and 4 MiB per request (individual entries at most 256 KiB). Keys include image
 geometry, numeric mode and page segmentation mode; a hash lookup is followed
 by a complete byte comparison. It can reuse identical normalized/binary crops
-across timestamps without approximating digits. `OCR_RECOGNITION_CACHE=0`
-disables it for controlled comparisons. Field microbenchmarks deliberately
+across timestamps without approximating digits. It is disabled by default; `OCR_RECOGNITION_CACHE=1`
+enables it for controlled comparisons. Field microbenchmarks deliberately
 disable this cache so repeated pixels cannot distort recognition timings.
 
 To evaluate a recovery policy, `OCR_RESOURCE_REFERENCE_MODE=extend` requires
@@ -414,3 +416,15 @@ still have identical evidence hashes. This guards regressions; newly recovered
 readings still require independent validation. Keep the default `exact` mode
 for pure runtime changes. A deliberate recognition-policy change needs a new
 reviewed broadcast version before rerunning accepted event checkpoints.
+
+The prepared-cache run (`railway-prepared-cache-20261029-a`) preserved all
+baseline observations but measured 4.123 matches/minute serially and 5.472 at
+concurrency two (eight runs per mode). It did not demonstrate a throughput gain,
+so prepared-image memoization remains opt-in. These runs used separate native
+deployments and do not isolate small timing differences from host variability.
+
+Benchmark-only request overrides `OCR_RESOURCE_EXPERIMENT_WORD_FALLBACK=1`
+and `OCR_RESOURCE_EXPERIMENT_RECOGNITION_CACHE=0` select recovery/cache modes
+for those extraction requests. Ordinary event jobs do not forward tuning from
+the public request body. The native service accepts only boolean tuning flags;
+identity, confidence, resource limits and official accounting remain fixed.

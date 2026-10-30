@@ -52,6 +52,13 @@ struct Request {
     template: Layout,
     expected_teams: Vec<u32>,
     expected_match_label: String,
+    tuning: Option<Tuning>,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Tuning {
+    fuel_word_fallback: Option<bool>,
+    recognition_cache: Option<bool>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -299,7 +306,7 @@ impl Engine {
                 recognition_cache: Default::default(),
                 recognition_cache_bytes: 0,
                 recognition_cache_enabled: std::env::var("OCR_RECOGNITION_CACHE").as_deref()
-                    != Ok("0"),
+                    == Ok("1"),
                 api: TessBaseAPICreate(),
                 cache: Default::default(),
                 scalers: Default::default(),
@@ -352,6 +359,16 @@ impl Engine {
             Ok(engine)
         }
     }
+    fn apply_tuning(&mut self, tuning: Option<&Tuning>) {
+        if let Some(tuning) = tuning {
+            if let Some(enabled) = tuning.fuel_word_fallback {
+                self.fuel_word_fallback = enabled;
+            }
+            if let Some(enabled) = tuning.recognition_cache {
+                self.recognition_cache_enabled = enabled;
+            }
+        }
+    }
     fn recognize(
         &mut self,
         prepared: &Prepared,
@@ -363,17 +380,21 @@ impl Engine {
         // Tesseract resets its adaptive classifier on every call. Reuse only
         // byte-identical prepared pixels with identical geometry and OCR mode.
         // A hash is an index, never evidence of equality: verify all bytes too.
-        let mut hash = std::collections::hash_map::DefaultHasher::new();
-        prepared.image.hash(&mut hash);
-        let key = (
-            hash.finish(),
-            prepared.width,
-            prepared.height,
-            prepared.stride,
-            numeric,
-            psm,
-        );
         let cacheable = self.recognition_cache_enabled && prepared.image.len() <= 256 * 1024;
+        let key = if cacheable {
+            let mut hash = std::collections::hash_map::DefaultHasher::new();
+            prepared.image.hash(&mut hash);
+            (
+                hash.finish(),
+                prepared.width,
+                prepared.height,
+                prepared.stride,
+                numeric,
+                psm,
+            )
+        } else {
+            (0, 0, 0, 0, numeric, psm)
+        };
         if cacheable
             && let Some((pixels, result)) = self.recognition_cache.get(&key)
             && pixels == &prepared.image
@@ -1146,6 +1167,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
     let decoder = Decoder::new(child, Duration::from_secs(480));
     let mut stdout = decoder.stdout().ok_or("Missing decoder output")?;
     let mut engine = Engine::new()?;
+    engine.apply_tuning(request.tuning.as_ref());
     let mut confirmed = vec![0; 1 + request.template.alternatives.len()];
     let layouts: Vec<_> = std::iter::once(&request.template)
         .chain(request.template.alternatives.iter())
@@ -1676,6 +1698,25 @@ mod tests {
             engine.field_stats[CropKind::Clock as usize][RecognitionStage::Word as usize].calls,
             0
         );
+    }
+    #[test]
+    fn request_tuning_changes_only_optional_recovery_and_cache_modes() {
+        let mut engine = Engine::new().unwrap();
+        engine.fuel_word_fallback = false;
+        engine.recognition_cache_enabled = false;
+        engine.apply_tuning(None);
+        assert!(!engine.fuel_word_fallback && !engine.recognition_cache_enabled);
+        engine.apply_tuning(Some(&Tuning {
+            fuel_word_fallback: Some(true),
+            recognition_cache: None,
+        }));
+        assert!(engine.fuel_word_fallback && !engine.recognition_cache_enabled);
+        engine.apply_tuning(Some(&Tuning {
+            fuel_word_fallback: Some(false),
+            recognition_cache: Some(true),
+        }));
+        assert!(!engine.fuel_word_fallback && engine.recognition_cache_enabled);
+        assert!(serde_json::from_str::<Tuning>(r#"{"confidence":0}"#).is_err());
     }
     #[test]
     fn prepared_pixel_cache_preserves_modes_and_invalidates_exact_changes() {

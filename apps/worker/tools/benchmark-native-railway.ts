@@ -26,6 +26,16 @@ async function main() {
     (referenceMode === "extend" && !referenceRun)
   )
     throw Error("Invalid reference mode");
+  const setting = (name: string) => {
+    const value = process.env[name];
+    if (value !== undefined && !["0", "1"].includes(value))
+      throw Error("Invalid benchmark tuning");
+    return value === undefined ? undefined : value === "1";
+  };
+  const tuning = {
+    fuelWordFallback: setting("OCR_RESOURCE_EXPERIMENT_WORD_FALLBACK"),
+    recognitionCache: setting("OCR_RESOURCE_EXPERIMENT_RECOGNITION_CACHE"),
+  };
   const expectedThreads = Number(process.env.OCR_RESOURCE_DECODER_THREADS);
   const endpoint = process.env.OCR_SERVICE_URL ?? "",
     token = process.env.OCR_SERVICE_TOKEN ?? "";
@@ -104,7 +114,14 @@ async function main() {
     if (await sentinel.exists())
       throw new Error("Benchmark run ID already used");
     await sentinel.write(
-      JSON.stringify({ runId, expectedThreads, template, cases, initial }),
+      JSON.stringify({
+        runId,
+        expectedThreads,
+        template,
+        cases,
+        initial,
+        tuning,
+      }),
     );
     stage = "load-fixed-media";
     const media: {
@@ -179,6 +196,7 @@ async function main() {
             template,
             endpoint,
             token,
+            tuning,
           );
           const record = {
             runId,
@@ -208,6 +226,13 @@ async function main() {
             blueSamples: evidence.channels?.blue.length ?? 0,
             decoderThreads: evidence.profile?.decoderThreads,
           };
+          if (
+            (tuning.fuelWordFallback !== undefined &&
+              evidence.fuelWordFallback !== tuning.fuelWordFallback) ||
+            (tuning.recognitionCache !== undefined &&
+              evidence.recognitionCache !== tuning.recognitionCache)
+          )
+            throw Error("Native benchmark tuning was not applied");
           const prior = baseline[item.matchKey];
           const repeat = reference[item.matchKey];
           if (repeat && repeat.evidenceSha256 !== record.evidenceSha256)

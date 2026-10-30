@@ -74,3 +74,115 @@ it("does not expose internal credentials or failures", async () => {
   expect(JSON.stringify(response.body)).not.toContain("external.example");
   expect(fetch).not.toHaveBeenCalled();
 });
+it.each([
+  ["OCR_WORKER_URL", ""],
+  ["OCR_CONTROL_TOKEN", ""],
+  ["OCR_CONTROL_TOKEN", "short"],
+])("fails closed when %s is missing or insufficient", async (key, value) => {
+  vi.stubEnv(key, value);
+  vi.stubGlobal("fetch", vi.fn());
+  const response = await invoke(eventAnalysisProxy, {
+    params: { event: "2026casnf" },
+    method: "GET",
+  });
+  expect(response.statusCode).toBe(503);
+  expect(fetch).not.toHaveBeenCalled();
+});
+it.each([
+  "not a URL",
+  "ftp://worker.railway.internal",
+  "http://user@worker.railway.internal",
+  "http://:secret@worker.railway.internal",
+  "http://worker.railway.internal?token=secret",
+  "http://worker.railway.internal#secret",
+])("rejects unsafe worker configuration %s", async (url) => {
+  vi.stubEnv("OCR_WORKER_URL", url);
+  vi.stubGlobal("fetch", vi.fn());
+  const response = await invoke(eventAnalysisProxy, {
+    params: { event: "2026casnf" },
+    method: "GET",
+  });
+  expect(response.statusCode).toBe(503);
+  expect(fetch).not.toHaveBeenCalled();
+});
+it("supports status reads by leads and empty POST requests without forwarding user input", async () => {
+  const fetcher = vi
+    .fn()
+    .mockImplementation(async () => Response.json({ status: "RUNNING" }));
+  vi.stubGlobal("fetch", fetcher);
+  const response = await invoke(eventAnalysisProxy, {
+    params: { event: "2026cagle" },
+    method: "GET",
+    user: { ...testUser, role: "SCOUTING_LEAD" },
+  });
+  expect(response.statusCode).toBe(200);
+  expect(fetcher.mock.calls[0]?.[1].body).toBeUndefined();
+  expect(
+    (
+      await invoke(eventAnalysisProxy, {
+        params: { event: "2026casnf" },
+        method: "POST",
+        body: {},
+      })
+    ).statusCode,
+  ).toBe(200);
+});
+it.each([401, 403, 429, 500, 503])(
+  "reports upstream %i as unavailable without logging out a valid user",
+  async (status) => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response("private internal failure", { status }),
+        ),
+    );
+    const response = await invoke(eventAnalysisProxy, {
+      params: { event: "2026casnf" },
+      method: "GET",
+    });
+    expect(response.statusCode).toBe(503);
+    expect(JSON.stringify(response.body)).not.toContain("private");
+  },
+);
+it("sanitizes network failures and non-JSON worker replies", async () => {
+  for (const fetcher of [
+    vi.fn().mockRejectedValue(Error("secret connection details")),
+    vi.fn().mockResolvedValue(new Response("not JSON")),
+  ]) {
+    vi.stubGlobal("fetch", fetcher);
+    const response = await invoke(eventAnalysisProxy, {
+      params: { event: "2026casnf" },
+      method: "GET",
+    });
+    expect(response.statusCode).toBe(503);
+    expect(JSON.stringify(response.body)).not.toContain("secret");
+  }
+});
+it("rejects unsupported account roles and handles POST without a JSON body", async () => {
+  expect(
+    (
+      await invoke(eventAnalysisProxy, {
+        params: { event: "2026casnf" },
+        method: "POST",
+        user: { ...testUser, role: "UNSUPPORTED" as typeof testUser.role },
+      })
+    ).statusCode,
+  ).toBe(403);
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue(Response.json({ status: "QUEUED" }, { status: 202 })),
+  );
+  expect(
+    (
+      await invoke(eventAnalysisProxy, {
+        params: { event: "2026casnf" },
+        method: "POST",
+        body: undefined,
+      })
+    ).statusCode,
+  ).toBe(202);
+});

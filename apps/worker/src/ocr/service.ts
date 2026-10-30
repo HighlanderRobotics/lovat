@@ -105,6 +105,7 @@ export async function extractServiceEvidence(
   template: Template,
   url: string,
   token: string,
+  tuning?: { fuelWordFallback?: boolean; recognitionCache?: boolean },
 ) {
   const endpoint = new URL(url);
   if (
@@ -117,7 +118,7 @@ export async function extractServiceEvidence(
   const body = new FormData();
   body.append(
     "metadata",
-    JSON.stringify({ template, expectedTeams, expectedMatchLabel }),
+    JSON.stringify({ template, expectedTeams, expectedMatchLabel, tuning }),
   );
   body.append("video", Bun.file(path), "match.mp4");
   let response: Response;

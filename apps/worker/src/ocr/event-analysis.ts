@@ -9,6 +9,7 @@ import { importMatches } from "../jobs/matches";
 import { readSourceReports, importSourceReports } from "./report-source";
 import { analysisEventAllowed } from "./event-control";
 import { runOcrPool } from "./pool";
+import { eventMatchLabel } from "./match-label";
 import { templateSchema, downloadMatchVideo, type Template } from "./media";
 import { extractServiceEvidence, OcrServiceUnavailable } from "./service";
 import {
@@ -81,6 +82,10 @@ const defaultDependencies = {
   withEventVideo,
   extractServiceEvidence,
   refreshMatchEstimates,
+  reportSourceConfigured: () =>
+    Boolean(
+      process.env.OCR_REPORT_SOURCE_URL || process.env.OCR_REPORT_SOURCE_TOKEN,
+    ),
   hasCachedVideo: async (eventKey: string, video: string) => {
     const object = mediaStore()?.file(`media/${eventKey}/${video}.mp4`);
     return Boolean(object && (await object.exists()));
@@ -142,14 +147,35 @@ export async function runEventAnalysis(
     update: data,
   });
   await deps.importMatches(eventKey, { db, tba });
-  const source = await deps.readSourceReports(eventKey),
-    imported = await deps.importSourceReports(db, eventKey, source);
-  console.info(
-    JSON.stringify({ eventKey, stage: "REPORTS_IMPORTED", ...imported }),
-  );
-  const sources = [...new Set(source.map((r) => r.sourceTeamNumber))].sort(
-    (a, b) => a - b,
-  );
+  let sources: number[];
+  if (deps.reportSourceConfigured()) {
+    const source = await deps.readSourceReports(eventKey),
+      imported = await deps.importSourceReports(db, eventKey, source);
+    sources = [...new Set(source.map((r) => r.sourceTeamNumber))].sort(
+      (a, b) => a - b,
+    );
+    console.info(
+      JSON.stringify({ eventKey, stage: "REPORTS_IMPORTED", ...imported }),
+    );
+  } else {
+    // A direct, approved report copy is enough to run the endpoint. Do not
+    // require new production credentials or services to analyze preview data.
+    const rows = await db.scouter.findMany({
+      where: {
+        scoutReports: { some: { teamMatchData: { tournamentKey: eventKey } } },
+      },
+      distinct: ["sourceTeamNumber"],
+      select: { sourceTeamNumber: true },
+    });
+    sources = rows.map((r) => r.sourceTeamNumber).sort((a, b) => a - b);
+    console.info(
+      JSON.stringify({
+        eventKey,
+        stage: "USING_PREVIEW_REPORTS",
+        sourceTeams: sources.length,
+      }),
+    );
+  }
   const matches = await db.match.findMany({
     where: { tournamentKey: eventKey, status: "COMPLETED" },
     include: { teamSlots: true, scoreboardOcr: true },
@@ -198,10 +224,7 @@ export async function runEventAnalysis(
             .map((v) => v.key),
         ),
       ].slice(0, 3);
-      const label =
-        match.competitionLevel === "QUALIFICATION"
-          ? `Qualification ${match.matchNumber}`
-          : `${match.competitionLevel} ${match.setNumber} ${match.matchNumber}`;
+      const label = eventMatchLabel(match, event.playoff_type);
       let status = videos.length ? "REJECTED" : "NO_VIDEO",
         reason = videos.length
           ? "No validated scoreboard evidence"

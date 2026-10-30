@@ -87,12 +87,10 @@ it("does not fetch hidden tournaments", async () => {
   expect(db.$queryRaw).not.toHaveBeenCalled();
 });
 it("does not expose rejected or absent OCR", async () => {
-  db.match.findUnique
-    .mockResolvedValueOnce(null)
-    .mockResolvedValueOnce({
-      ...fixture(),
-      scoreboardOcr: { ...fixture().scoreboardOcr, status: "REJECTED" },
-    });
+  db.match.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
+    ...fixture(),
+    scoreboardOcr: { ...fixture().scoreboardOcr, status: "REJECTED" },
+  });
   for (let i = 0; i < 2; i++)
     expect(await matchEstimateDetails(testUser, "2026test_qm1")).toMatchObject({
       available: false,

@@ -32,7 +32,7 @@ See [`docs/architecture.md`](docs/architecture.md) for boundaries and cross-appl
 
 ## Railway OCR event analysis
 
-The event endpoint queues durable work; it does not hold an HTTP request open while videos are analyzed. The initial operator scope is team 8033 and the approved 2026 events. Production remains the read-only report source; OCR evidence and estimates belong to the PR environment.
+The event endpoint queues durable work; it does not hold an HTTP request open while videos are analyzed. The initial operator scope is team 8033 and the approved 2026 events. Reports already copied into the PR database can be analyzed directly. An optional, separately provisioned bridge can sync numeric production reports; OCR evidence and estimates stay in the PR environment.
 
 ```mermaid
 flowchart TB
@@ -42,7 +42,7 @@ flowchart TB
     Queue --> Lease["Worker consumer: 90-second lease, renew every 30 seconds"]
     Lease --> TBA["TBA: event metadata, canonical matches, six station slots, video links"]
     TBA --> Canonical[("Preview canonical event / match tables")]
-    Lease --> Source["Authenticated HTTPS report-source service"]
+    Lease -->|"optional configured sync"| Source["Authenticated HTTPS report-source service"]
     Source --> View["Production: view-only database role, approved events only"]
     View --> Reports["Numeric and categorical reports + timestamped events"]
     Reports --> Import["Validate identities; add missing reports atomically; preserve existing notes and exclusions"]
@@ -53,6 +53,7 @@ flowchart TB
     Cache --> Native["Private Rust OCR service"]
     Native --> Evidence["Validate identity, clock, confidence, corrections and observed coverage"]
     Evidence --> Numeric[("ScoreboardOcr: paired samples + independent alliance channels")]
+    Lease -->|"use existing imported reports"| PreviewReports
     PreviewReports --> Fusion["Deterministic source-balanced fusion"]
     Numeric --> Fusion
     TBA --> Budgets["Official auto / teleop fuel, tower points, and alliance foul credit"]
@@ -73,7 +74,7 @@ flowchart LR
     Decode --> Identity["Match label + all six teams must agree on two frames"]
     Identity --> Crops["Crop clock and cumulative fuel numerators; optional point digits"]
     Crops --> Scale["Reuse scaler buffers; normalize grayscale / binary / glyph views"]
-    Scale --> Cache["Exact source + prepared-pixel caches; verify bytes and OCR mode"]
+    Scale --> Cache["Exact-pixel crop cache; optional prepared-image cache with mode + byte checks"]
     Cache --> Tess["Persistent Tesseract engines; record field and stage timings"]
     Tess --> Clock["Convert displayed clocks to continuous 0–163 match seconds"]
     Clock --> Channels["Track red and blue independently; preserve gaps and quarantine corrections"]
