@@ -66,7 +66,7 @@ Read [`AGENTS.md`](AGENTS.md) and the nearest app-local `AGENTS.md` before editi
 
 ## Pull request review
 
-Internal pull requests receive an automated OpenRouter review when they are opened, updated, or reopened. The reviewer lives in [`tools/pr-reviewer`](tools/pr-reviewer), follows [`CODE_REVIEW.md`](CODE_REVIEW.md), and is configured by [`.lovat-review.json`](.lovat-review.json). Fork pull requests and drafts are skipped by default. Maintainers configure the `OPENROUTER_API_KEY` secret and may override the model with the `OPENROUTER_MODEL` variable. See the [reviewer README](tools/pr-reviewer/README.md) for setup, permissions, and limits.
+Internal pull requests receive an automated OpenRouter review when they are opened, updated, reopened, or marked ready for review. The reviewer lives in [`tools/pr-reviewer`](tools/pr-reviewer), follows [`CODE_REVIEW.md`](CODE_REVIEW.md), and is configured by [`.lovat-review.json`](.lovat-review.json). Fork pull requests and drafts are skipped by default. Maintainers configure the `OPENROUTER_API_KEY` secret and may override the model with the `OPENROUTER_MODEL` variable. See the [reviewer README](tools/pr-reviewer/README.md) for setup, permissions, and limits.
 
 ## Linear MCP
 

@@ -12,8 +12,9 @@ application's dependencies.
 
 The workflow is [`.github/workflows/ai-review.yml`](../../.github/workflows/ai-review.yml).
 
-- It triggers on `pull_request` `opened`, `synchronize`, and `reopened`. Editing
-  only a title or description does not start a review.
+- It triggers on `pull_request` `opened`, `synchronize`, `reopened`, and
+  `ready_for_review`. Editing only a title or description does not start a
+  review.
 - It checks out and runs the reviewer from the pull request's **base** revision,
   so a pull request cannot change the reviewer that inspects it.
 - `.lovat-review.json` and `CODE_REVIEW.md` are also read at the base revision
@@ -134,9 +135,10 @@ A review failure is visible:
 3. The workflow exits non-zero, so the failed job is visible in Actions.
 
 Failures include missing configuration, invalid `.lovat-review.json`, OpenRouter
-authentication or model errors, exhausted retries, output token limits, and
-GitHub API errors. A missing `OPENROUTER_API_KEY` fails before any review is
-published; configure the secret and re-run the workflow.
+authentication or model errors, empty responses after retries, exhausted
+retries, output token limits, and GitHub API errors. A missing
+`OPENROUTER_API_KEY` fails before any review is published; configure the secret
+and re-run the workflow.
 
 ## Local checks
 
@@ -176,7 +178,8 @@ Use a disposable pull request. The command creates a real GitHub review.
 | `No OpenRouter model is configured` | Set the `OPENROUTER_MODEL` variable or `model` in `.lovat-review.json`. |
 | `OpenRouter returned 401` or `403` | The API key is invalid, expired, or lacks access to the model. |
 | `OpenRouter returned 404` | The model identifier is wrong or unavailable on OpenRouter. |
+| `OpenRouter returned an empty response` | Empty responses are retried. If retries are exhausted, re-run later or switch models. |
 | `output_limit` | Increase `maxOutputTokens` or lower `maxDiffCharacters`. |
 | Review skipped as a fork | Expected. Fork pull requests do not receive secrets. |
-| Review skipped as a draft | Enable `reviewDrafts`, then push a commit or reopen the pull request. A ready-for-review event alone does not start a review. |
+| Review skipped as a draft | Enable `reviewDrafts`, push a commit, reopen the pull request, or mark it ready for review. |
 | `422` from GitHub on a review | Inline positions were rejected; the reviewer retries with findings in the summary. |
