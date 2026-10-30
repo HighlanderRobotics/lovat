@@ -1,0 +1,68 @@
+name: AI review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review pull request
+    # Fork workflows do not receive repository secrets. Reviewing a fork from a
+    # privileged context would expose the OpenRouter key, so forks are skipped.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: tools/pr-reviewer
+    steps:
+      - name: Check out the base revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Check reviewer availability at base revision
+        id: reviewer
+        working-directory: .
+        shell: bash
+        run: |
+          if [[ -f tools/pr-reviewer/package.json && -f tools/pr-reviewer/package-lock.json ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "The PR reviewer is not present at this pull request's base revision. Skipping this review so the introducing pull request can land." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Set up Node.js
+        if: steps.reviewer.outputs.available == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: tools/pr-reviewer/package-lock.json
+
+      - name: Install reviewer
+        if: steps.reviewer.outputs.available == 'true'
+        run: npm ci
+
+      - name: Build reviewer
+        if: steps.reviewer.outputs.available == 'true'
+        run: npm run build
+
+      - name: Run reviewer
+        if: steps.reviewer.outputs.available == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+        run: node dist/index.js
