@@ -24,6 +24,7 @@ export const jobKinds = [
   "gaps",
   "scoreboard-ocr",
   "scoreboard-review",
+  "ocr-event-analysis",
 ] as const;
 export type JobKind = (typeof jobKinds)[number];
 
@@ -188,6 +189,7 @@ export async function claimJob(db: PrismaClient, now = new Date()) {
 export async function executeImport(
   job: Pick<ImportJob, "kind" | "targetKey">,
   db: PrismaClient,
+  signal?: AbortSignal,
 ) {
   const { tba } = await import("./tba");
   const dependencies = { db, tba };
@@ -212,6 +214,10 @@ export async function executeImport(
       return importTournamentDetails(job.targetKey, dependencies);
     case "matches":
       return importMatches(job.targetKey, dependencies);
+    case "ocr-event-analysis": {
+      const { runEventAnalysis } = await import("./ocr/event-analysis");
+      return runEventAnalysis(job.targetKey, db, {}, signal);
+    }
     case "scoreboard-ocr": {
       if (process.env.OCR_ENABLED !== "true") return;
       const { scanScoreboardTournament } =
@@ -241,6 +247,7 @@ export async function executeImport(
 }
 
 async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
+  if (job.kind === "ocr-event-analysis") return 6 * hour;
   if (job.kind === "gaps") return day;
   if (job.kind.startsWith("scoreboard-")) {
     if (
@@ -303,7 +310,11 @@ export function retryDelay(attempts: number, error: unknown, now = new Date()) {
 
 export async function runNextJob(
   db: PrismaClient,
-  execute: (job: ImportJob, db: PrismaClient) => Promise<void> = executeImport,
+  execute: (
+    job: ImportJob,
+    db: PrismaClient,
+    signal?: AbortSignal,
+  ) => Promise<void> = executeImport,
 ) {
   const job = await claimJob(db);
 
@@ -311,6 +322,7 @@ export async function runNextJob(
 
   let renewing = false;
   let lostLease = false;
+  const ownership = new AbortController();
 
   const heartbeat = setInterval(async () => {
     if (renewing || lostLease) return;
@@ -332,12 +344,13 @@ export async function runNextJob(
     } catch {
       lostLease = true;
     } finally {
+      if (lostLease) ownership.abort();
       renewing = false;
     }
   }, 30_000);
 
   try {
-    await execute(job, db);
+    await execute(job, db, ownership.signal);
 
     const now = new Date();
     const interval = await refreshInterval(db, job, now);

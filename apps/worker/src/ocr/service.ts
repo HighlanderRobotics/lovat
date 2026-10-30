@@ -22,10 +22,14 @@ export const channelsSchema = z.object({
   blue: channelSchema,
 });
 const resultSchema = z.object({
+  fuelWordFallback: z.boolean().optional(),
+  recognitionCache: z.boolean().optional(),
   profile: z
     .object({
       probeMs: z.number().int().nonnegative(),
-      decoderThreads: z.union([z.literal(1), z.literal(2), z.literal(4)]).optional(),
+      decoderThreads: z
+        .union([z.literal(1), z.literal(2), z.literal(4)])
+        .optional(),
       decoderReadWaitMs: z.number().int().nonnegative(),
       identityMs: z.number().int().nonnegative(),
       clockMs: z.number().int().nonnegative(),
@@ -40,7 +44,13 @@ const resultSchema = z.object({
           z
             .object({
               field: z.enum(["text", "fuel", "points", "clock"]),
-              stage: z.enum(["primary", "normalizedGray", "binary", "glyph"]),
+              stage: z.enum([
+                "primary",
+                "normalizedGray",
+                "binary",
+                "glyph",
+                "word",
+              ]),
               calls: z.number().int().nonnegative(),
               confidentSyntax: z.number().int().nonnegative(),
               elapsedMicros: z.number().int().nonnegative(),
@@ -50,7 +60,7 @@ const resultSchema = z.object({
               "Syntax count exceeds calls",
             ),
         )
-        .max(16)
+        .max(20)
         .optional(),
     })
     .refine(
@@ -167,7 +177,7 @@ export async function extractWithService(
   return (await extractServiceEvidence(...args)).observations;
 }
 
-async function boundedText(
+export async function boundedText(
   response: Response,
   maximum: number,
 ): Promise<string> {

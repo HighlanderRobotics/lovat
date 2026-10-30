@@ -30,6 +30,58 @@ Website provides public pages and selected operational integrations.
 
 See [`docs/architecture.md`](docs/architecture.md) for boundaries and cross-application contracts.
 
+## Railway OCR event analysis
+
+The event endpoint queues durable work; it does not hold an HTTP request open while videos are analyzed. The initial operator scope is team 8033 and the approved 2026 events. Production remains the read-only report source; OCR evidence and estimates belong to the PR environment.
+
+```mermaid
+flowchart TB
+    Caller["8033 analyst or scouting lead"] -->|"POST /v1/manager/ocr/events/:event"| API["Server: authenticate, validate event, return 202"]
+    API -->|"private network + control bearer token"| Control["Worker control endpoint"]
+    Control --> Queue[("PostgreSQL ImportJob: unique event job")]
+    Queue --> Lease["Worker consumer: 90-second lease, renew every 30 seconds"]
+    Lease --> TBA["TBA: event metadata, canonical matches, six station slots, video links"]
+    TBA --> Canonical[("Preview canonical event / match tables")]
+    Lease --> Source["Authenticated HTTPS report-source service"]
+    Source --> View["Production: view-only database role, approved events only"]
+    View --> Reports["Numeric and categorical reports + timestamped events"]
+    Reports --> Import["Validate identities; add missing reports atomically; preserve existing notes and exclusions"]
+    Import --> PreviewReports[("Preview ScoutReport + Event")]
+    TBA --> Videos["Dedicated public match videos"]
+    Videos --> Acquire["Railway downloader: bounded duration, bytes, retries and time"]
+    Acquire --> Cache[("Private media cache: event / video ID")]
+    Cache --> Native["Private Rust OCR service"]
+    Native --> Evidence["Validate identity, clock, confidence, corrections and observed coverage"]
+    Evidence --> Numeric[("ScoreboardOcr: paired samples + independent alliance channels")]
+    PreviewReports --> Fusion["Deterministic source-balanced fusion"]
+    Numeric --> Fusion
+    TBA --> Budgets["Official auto / teleop fuel, tower points, and alliance foul credit"]
+    Budgets --> Fusion
+    Fusion --> Conserved["Per-team estimates + explicit unattributed fuel; conserve official phase totals"]
+    Conserved --> Estimates[("EstimatedScore: source scope, provenance, input hash")]
+    Estimates --> Dashboard["Dashboard eye toggle, team lookup and match timeline"]
+    Acquire -->|"provider blocked / encode pending / no video"| MediaFailure["Visible media status; retry later; never count as completed OCR"]
+    Native -->|"busy or transient service failure"| Retry["Release job safely and retry with backoff"]
+    Evidence -->|"insufficient or inconsistent evidence"| Rejected["Store rejection and numeric diagnostics; no invented observations"]
+    Retry --> Queue
+    Control -->|"authenticated GET status"| Progress["Counts, per-match outcomes and pending work"]
+```
+
+```mermaid
+flowchart LR
+    Video["Bounded match file"] --> Decode["One FFmpeg decoder; sample one frame / second"]
+    Decode --> Identity["Match label + all six teams must agree on two frames"]
+    Identity --> Crops["Crop clock and cumulative fuel numerators; optional point digits"]
+    Crops --> Scale["Reuse scaler buffers; normalize grayscale / binary / glyph views"]
+    Scale --> Cache["Exact source + prepared-pixel caches; verify bytes and OCR mode"]
+    Cache --> Tess["Persistent Tesseract engines; record field and stage timings"]
+    Tess --> Clock["Convert displayed clocks to continuous 0–163 match seconds"]
+    Clock --> Channels["Track red and blue independently; preserve gaps and quarantine corrections"]
+    Channels --> Out["Bounded numeric response + runtime / model provenance"]
+```
+
+No robot receives guessed fuel merely to fill an OCR gap. Foul credit is kept at alliance level, and official endgame / autonomous points are accounted separately. A provider-blocked video is an availability failure, not an OCR result. See [the operational OCR guide](docs/scoreboard-ocr.md) and [fusion accounting](docs/scoreboard-fusion.md).
+
 ## Prerequisites
 
 - Server: Node.js 22.20.0, PostgreSQL, and Redis.

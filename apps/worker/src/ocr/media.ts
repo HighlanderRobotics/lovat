@@ -218,6 +218,35 @@ export async function readScoreboardImage(
   }
 }
 
+export async function downloadMatchVideo(videoKey: string, path: string) {
+  if (!/^[-\w]{11}$/.test(videoKey)) throw Error("Invalid video identity");
+  await command(
+    [
+      "yt-dlp",
+      "--ignore-config",
+      "--js-runtimes",
+      "node",
+      "--no-playlist",
+      "--no-cache-dir",
+      "--max-filesize",
+      "96M",
+      "--match-filter",
+      "duration < 600 & !is_live",
+      "-f",
+      "bestvideo[height<=720]/best[height<=720]",
+      "--socket-timeout",
+      "15",
+      "--retries",
+      "1",
+      "-o",
+      path,
+      "--",
+      `https://www.youtube.com/watch?v=${videoKey}`,
+    ],
+    120000,
+  );
+}
+
 export async function extractScoreboard(
   videoKey: string,
   expectedTeams: number[],
@@ -234,31 +263,7 @@ export async function extractScoreboard(
     if (options.localVideo) {
       await copyFile(options.localVideo, path);
     } else {
-      await command(
-        [
-          "yt-dlp",
-          "--ignore-config",
-          "--js-runtimes",
-          "node",
-          "--no-playlist",
-          "--no-cache-dir",
-          "--max-filesize",
-          "96M",
-          "--match-filter",
-          "duration < 600 & !is_live",
-          "-f",
-          "bestvideo[height<=720]/best[height<=720]",
-          "--socket-timeout",
-          "15",
-          "--retries",
-          "1",
-          "-o",
-          path,
-          "--",
-          `https://www.youtube.com/watch?v=${videoKey}`,
-        ],
-        120000,
-      );
+      await downloadMatchVideo(videoKey, path);
     }
     const meta = JSON.parse(
       await command(

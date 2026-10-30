@@ -106,6 +106,8 @@ pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
         .open(output)
         .map_err(|_| "Output must be a new file")?;
     let mut engine = Engine::new()?;
+    // Measure recognition, not repeated identical-input cache lookups.
+    engine.recognition_cache_enabled = false;
     let mut variants = Vec::new();
     for scale in [2, 3, 4] {
         for psm in [7, 8, 13] {
@@ -151,7 +153,7 @@ pub(super) fn run(input: &Path, output: &Path) -> Result<(), String> {
                             normalize(&mut crop, variant.padding, false)
                         }
                         RecognitionStage::Binary => normalize(&mut crop, variant.padding, true),
-                        RecognitionStage::Glyph => unreachable!(),
+                        RecognitionStage::Glyph | RecognitionStage::Word => unreachable!(),
                     }
                     let (text, confidence) = engine.recognize(
                         &crop,

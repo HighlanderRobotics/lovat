@@ -1,4 +1,5 @@
 import { Router } from "express";
+import ocr from "./ocr.routes.js";
 
 import onboarding from "./onboarding.routes.js";
 import picklists from "./picklists.routes.js";
@@ -471,6 +472,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
 });
 
+router.use("/ocr", ocr);
 router.use("/onboarding", onboarding);
 router.use("/picklists", picklists);
 router.use("/mutablepicklists", mutablepicklist);

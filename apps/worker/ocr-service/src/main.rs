@@ -10,6 +10,7 @@ use sha2::{Digest, Sha256};
 use std::{
     cell::RefCell,
     ffi::{CStr, c_char, c_int, c_void},
+    hash::{Hash, Hasher},
     io::{Read, Write},
     ops::Deref,
     process::{Command, Stdio},
@@ -76,6 +77,8 @@ struct Output {
     frames: usize,
     profile: Profile,
     runtime: RuntimeIdentity,
+    fuel_word_fallback: bool,
+    recognition_cache: bool,
 }
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -107,6 +110,7 @@ enum RecognitionStage {
     NormalizedGray,
     Binary,
     Glyph,
+    Word,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -267,15 +271,21 @@ impl CropKind {
 }
 type CropKey = (u32, u32, u32, u32, CropKind, u32);
 type CachedCrop = (Vec<u8>, Vec<u8>, (String, f64));
+type RecognitionKey = (u64, u32, u32, u32, bool, i32);
+type CachedRecognition = (Vec<u8>, (String, f64));
 struct Engine {
+    recognition_cache: std::collections::HashMap<RecognitionKey, CachedRecognition>,
+    recognition_cache_bytes: usize,
+    recognition_cache_enabled: bool,
     api: *mut c_void,
     cache: std::collections::HashMap<CropKey, CachedCrop>,
     scalers: Scalers,
     calls: usize,
     hits: usize,
     recognition_time: Duration,
-    field_stats: [[RecognitionStats; 4]; 4],
+    field_stats: [[RecognitionStats; 5]; 4],
     runtime: RuntimeIdentity,
+    fuel_word_fallback: bool,
 }
 impl Drop for Engine {
     fn drop(&mut self) {
@@ -286,13 +296,18 @@ impl Engine {
     fn new() -> Result<Self, String> {
         unsafe {
             let mut engine = Self {
+                recognition_cache: Default::default(),
+                recognition_cache_bytes: 0,
+                recognition_cache_enabled: std::env::var("OCR_RECOGNITION_CACHE").as_deref()
+                    != Ok("0"),
                 api: TessBaseAPICreate(),
                 cache: Default::default(),
                 scalers: Default::default(),
                 calls: 0,
                 hits: 0,
                 recognition_time: Duration::ZERO,
-                field_stats: [[RecognitionStats::default(); 4]; 4],
+                field_stats: [[RecognitionStats::default(); 5]; 4],
+                fuel_word_fallback: std::env::var("OCR_FUEL_WORD_FALLBACK").as_deref() == Ok("1"),
                 runtime: RuntimeIdentity {
                     tesseract_version: String::new(),
                     language: "eng".into(),
@@ -345,6 +360,27 @@ impl Engine {
         field: CropKind,
         stage: RecognitionStage,
     ) -> (String, f64) {
+        // Tesseract resets its adaptive classifier on every call. Reuse only
+        // byte-identical prepared pixels with identical geometry and OCR mode.
+        // A hash is an index, never evidence of equality: verify all bytes too.
+        let mut hash = std::collections::hash_map::DefaultHasher::new();
+        prepared.image.hash(&mut hash);
+        let key = (
+            hash.finish(),
+            prepared.width,
+            prepared.height,
+            prepared.stride,
+            numeric,
+            psm,
+        );
+        let cacheable = self.recognition_cache_enabled && prepared.image.len() <= 256 * 1024;
+        if cacheable
+            && let Some((pixels, result)) = self.recognition_cache.get(&key)
+            && pixels == &prepared.image
+        {
+            self.hits += 1;
+            return result.clone();
+        }
         let started = Instant::now();
         let result = self.recognize_inner(prepared, numeric, psm);
         let elapsed = started.elapsed();
@@ -353,6 +389,20 @@ impl Engine {
         stats.calls += 1;
         stats.confident_syntax += usize::from(result.1 >= 85.0 && field.accepts(&result.0));
         stats.elapsed_micros += elapsed.as_micros();
+        if cacheable {
+            if self.recognition_cache.len() >= 128
+                || self.recognition_cache_bytes + prepared.image.len() > 4 * 1024 * 1024
+            {
+                self.recognition_cache.clear();
+                self.recognition_cache_bytes = 0;
+            }
+            if let Some((pixels, _)) = self.recognition_cache.remove(&key) {
+                self.recognition_cache_bytes -= pixels.len();
+            }
+            self.recognition_cache_bytes += prepared.image.len();
+            self.recognition_cache
+                .insert(key, (prepared.image.clone(), result.clone()));
+        }
         result
     }
     fn recognize_inner(&mut self, prepared: &Prepared, numeric: bool, psm: i32) -> (String, f64) {
@@ -430,6 +480,16 @@ impl Engine {
         }
         let mut best = self.recognize(&original, numeric, 7, kind, RecognitionStage::Primary);
         let valid = |r: &(String, f64)| r.1 >= 85.0 && kind.accepts(&r.0);
+        // A word-segmentation recovery can recognize compressed counters such
+        // as 118 that the line model rejects. Never replace a valid primary
+        // reading and never lower the syntax/confidence threshold. Opt-in until
+        // the fixed Railway videos and rejected matches have been reviewed.
+        if !valid(&best) && self.fuel_word_fallback && kind == CropKind::Fuel {
+            let candidate = self.recognize(&original, true, 8, kind, RecognitionStage::Word);
+            if valid(&candidate) || candidate.1 > best.1 {
+                best = candidate;
+            }
+        }
         if !valid(&best)
             && let Some(mut recovered) = prepare_with(frame, rect, 10, &mut self.scalers)
         {
@@ -1285,6 +1345,7 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
             RecognitionStage::NormalizedGray,
             RecognitionStage::Binary,
             RecognitionStage::Glyph,
+            RecognitionStage::Word,
         ] {
             let stats = engine.field_stats[field as usize][stage as usize];
             if stats.calls > 0 {
@@ -1306,6 +1367,8 @@ fn extract(path: &std::path::Path, request: Request) -> Result<Output, String> {
         frames,
         profile,
         runtime: engine.runtime.clone(),
+        fuel_word_fallback: engine.fuel_word_fallback,
+        recognition_cache: engine.recognition_cache_enabled,
     })
 }
 fn authorized(actual: &str, expected: &str) -> bool {
@@ -1557,6 +1620,8 @@ mod tests {
     #[test]
     fn field_profiling_counts_actual_stages_and_preserves_results() {
         let mut engine = Engine::new().unwrap();
+        engine.recognition_cache_enabled = false;
+        engine.fuel_word_fallback = false;
         let frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
         let rect = [0.2, 0.1, 0.05, 0.05];
         let result = engine.read(&frame, rect, CropKind::Fuel, 0);
@@ -1589,6 +1654,53 @@ mod tests {
         );
         assert_eq!(engine.runtime.model_sha256.len(), 64);
         assert!(!engine.runtime.tesseract_version.is_empty());
+    }
+    #[test]
+    fn experimental_word_recovery_is_fuel_only_and_cached() {
+        let mut engine = Engine::new().unwrap();
+        engine.recognition_cache_enabled = false;
+        engine.fuel_word_fallback = true;
+        let frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
+        let rect = [0.2, 0.1, 0.05, 0.05];
+        let result = engine.read(&frame, rect, CropKind::Fuel, 0);
+        assert!(result.1 < 85.0 || !CropKind::Fuel.accepts(&result.0));
+        assert_eq!(engine.calls, 4);
+        assert_eq!(
+            engine.field_stats[CropKind::Fuel as usize][RecognitionStage::Word as usize].calls,
+            1
+        );
+        assert_eq!(engine.read(&frame, rect, CropKind::Fuel, 0), result);
+        assert_eq!(engine.calls, 4);
+        engine.read(&frame, rect, CropKind::Clock, 0);
+        assert_eq!(
+            engine.field_stats[CropKind::Clock as usize][RecognitionStage::Word as usize].calls,
+            0
+        );
+    }
+    #[test]
+    fn prepared_pixel_cache_preserves_modes_and_invalidates_exact_changes() {
+        let mut engine = Engine::new().unwrap();
+        engine.recognition_cache_enabled = true;
+        let mut crop = Prepared {
+            image: vec![255; 400],
+            width: 20,
+            height: 20,
+            stride: 20,
+        };
+        let first = engine.recognize(&crop, true, 7, CropKind::Fuel, RecognitionStage::Primary);
+        assert_eq!(
+            engine.recognize(&crop, true, 7, CropKind::Clock, RecognitionStage::Binary),
+            first
+        );
+        assert_eq!(engine.calls, 1);
+        assert_eq!(engine.hits, 1);
+        engine.recognize(&crop, true, 8, CropKind::Fuel, RecognitionStage::Word);
+        engine.recognize(&crop, false, 7, CropKind::Text, RecognitionStage::Primary);
+        crop.image[0] = 0;
+        engine.recognize(&crop, true, 7, CropKind::Fuel, RecognitionStage::Primary);
+        assert_eq!(engine.calls, 4);
+        assert_eq!(engine.recognition_cache.len(), 4);
+        assert!(engine.recognition_cache_bytes <= 4 * 1024 * 1024);
     }
     #[test]
     fn prefix_frames_move_without_copying_and_return_only_one_spare() {
@@ -1676,6 +1788,7 @@ mod tests {
     #[test]
     fn a_failed_match_label_skips_all_six_team_crops() {
         let mut engine = Engine::new().unwrap();
+        engine.recognition_cache_enabled = false;
         let frame = RgbImage::from_pixel(WIDTH, HEIGHT, image::Rgb([255, 255, 255]));
         assert!(!identity_matches(
             &mut engine,
@@ -1811,9 +1924,10 @@ mod tests {
         let rect = [0.1, 0.1, 0.05, 0.05];
         let first = engine.read(&frame, rect, CropKind::Fuel, 0);
         let calls = engine.calls;
+        let hits = engine.hits;
         assert_eq!(engine.read(&frame, rect, CropKind::Fuel, 0), first);
         assert_eq!(engine.calls, calls);
-        assert_eq!(engine.hits, 1);
+        assert_eq!(engine.hits, hits + 1);
         frame.put_pixel(130, 75, image::Rgb([0, 0, 0]));
         engine.read(&frame, rect, CropKind::Fuel, 0);
         assert!(engine.calls > calls);

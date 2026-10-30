@@ -1,3 +1,7 @@
+import {
+  enqueueEventAnalysis,
+  eventAnalysisStatus,
+} from "./src/ocr/event-control";
 import { db } from "./src/db";
 import { tba } from "./src/tba";
 import { runWorker } from "./src/worker";
@@ -19,6 +23,11 @@ let lastReconciledAt = 0;
 const port = healthPort();
 const concurrency = Number(process.env.WORKER_CONCURRENCY ?? 2);
 const app = createHealthApp({
+  ocr: {
+    token: process.env.OCR_CONTROL_TOKEN,
+    enqueue: (key) => enqueueEventAnalysis(db, key),
+    status: (key) => eventAnalysisStatus(db, key),
+  },
   isReady: () =>
     !shutdown.signal.aborted &&
     lastReconciledAt > 0 &&
