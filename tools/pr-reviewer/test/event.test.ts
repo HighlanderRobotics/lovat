@@ -18,8 +18,13 @@ function payload(overrides: Record<string, unknown> = {}): unknown {
 }
 
 describe("evaluatePullRequestEvent", () => {
-  it("accepts opened, synchronize, and reopened events from the same repository", () => {
-    for (const action of ["opened", "synchronize", "reopened"]) {
+  it("accepts opened, synchronize, reopened, and ready_for_review events from the same repository", () => {
+    for (const action of [
+      "opened",
+      "synchronize",
+      "reopened",
+      "ready_for_review",
+    ]) {
       const event = { ...(payload() as Record<string, unknown>), action };
       const result = evaluatePullRequestEvent(event, "pull_request");
       expect(result.eligible).toBe(true);
