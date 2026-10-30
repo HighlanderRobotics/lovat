@@ -50,7 +50,7 @@ const ConfigFileSchema = z.strictObject({
     .min(1)
     .default([...CATEGORIES]),
   temperature: z.number().min(0).max(2).default(0.1),
-  maxOutputTokens: z.number().int().min(256).max(32_000).default(4_096),
+  maxOutputTokens: z.number().int().min(256).max(32_000).default(32_000),
   maxInputTokens: z.number().int().min(1_000).max(2_000_000).optional(),
   requestTimeoutMs: z.number().int().min(1_000).max(600_000).default(120_000),
   maxRetries: z.number().int().min(0).max(10).default(3),

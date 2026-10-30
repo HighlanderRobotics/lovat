@@ -6,7 +6,7 @@
   "maxFindings": 20,
   "minimumConfidence": 0.75,
   "temperature": 0.1,
-  "maxOutputTokens": 4096,
+  "maxOutputTokens": 32000,
   "requestTimeoutMs": 120000,
   "maxRetries": 3,
   "categories": [

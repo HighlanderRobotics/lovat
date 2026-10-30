@@ -64,7 +64,7 @@ being ignored. All fields are optional because the tool applies defaults.
 | `excludedPaths` | built-in list | Gitignore-like globs. An explicit list **replaces** the defaults. |
 | `categories` | all | Allowed categories: `BUG`, `SECURITY`, `PERFORMANCE`, `DATABASE`, `TYPE_SAFETY`, `ARCHITECTURE`. |
 | `temperature` | `0.1` | Sampling temperature. |
-| `maxOutputTokens` | `4096` | Per-request output limit. |
+| `maxOutputTokens` | `32000` | Per-request output limit. |
 | `maxInputTokens` | unset | Optional cap used to shrink the per-request diff budget. |
 | `requestTimeoutMs` | `120000` | Timeout for one OpenRouter request. |
 | `maxRetries` | `3` | Retries for timeouts, network failures, rate limits, and transient server errors. |
