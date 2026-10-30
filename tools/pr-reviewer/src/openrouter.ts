@@ -1,5 +1,7 @@
+import { redactSecrets } from "./redact.js";
 import { reviewResponseJsonSchema } from "./response.js";
 import type {
+  Logger,
   ModelReviewRequest,
   ModelReviewResult,
   ModelUsage,
@@ -20,6 +22,7 @@ export interface OpenRouterOptions {
   sleep?: (milliseconds: number) => Promise<void>;
   random?: () => number;
   now?: () => number;
+  logger?: Logger;
 }
 
 export class OpenRouterError extends Error {
@@ -45,10 +48,16 @@ export class OpenRouterError extends Error {
 }
 
 interface ChatCompletionPayload {
+  id?: string;
+  model?: string;
+  provider?: string;
   choices?: Array<{
     finish_reason?: string;
+    native_finish_reason?: string;
     message?: {
       content?: string | Array<{ type?: string; text?: string }>;
+      reasoning?: string;
+      refusal?: string;
     };
   }>;
   usage?: {
@@ -56,6 +65,9 @@ interface ChatCompletionPayload {
     completion_tokens?: number;
     total_tokens?: number;
     cost?: number;
+    completion_tokens_details?: {
+      reasoning_tokens?: number;
+    };
   };
   error?: {
     message?: string;
@@ -70,6 +82,7 @@ export class OpenRouterClient implements ReviewerModel {
   private readonly sleep: (milliseconds: number) => Promise<void>;
   private readonly random: () => number;
   private readonly now: () => number;
+  private readonly logger: Logger;
 
   constructor(private readonly options: OpenRouterOptions) {
     this.fetchImpl = options.fetchImpl ?? globalThis.fetch;
@@ -81,6 +94,13 @@ export class OpenRouterClient implements ReviewerModel {
         }));
     this.random = options.random ?? Math.random;
     this.now = options.now ?? Date.now;
+    this.logger =
+      options.logger ??
+      {
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+      };
   }
 
   async review(request: ModelReviewRequest): Promise<ModelReviewResult> {
@@ -88,9 +108,16 @@ export class OpenRouterClient implements ReviewerModel {
     let useJsonSchema = true;
     let schemaFallbackUsed = false;
     let attempts = 0;
+    const requestLabel = `batch ${request.batchIndex + 1}/${request.batchCount}`;
 
     while (true) {
       attempts += 1;
+      const attemptStartedAt = this.now();
+      const attemptLabel = `${requestLabel} attempt ${attempts}/${this.options.maxRetries + 1}`;
+
+      this.logger.info(
+        `OpenRouter request starting: ${attemptLabel}, model=${this.options.model}, prompt_chars=${request.systemPrompt.length + request.userPrompt.length}, max_output_tokens=${this.options.maxOutputTokens}, structured_output=${useJsonSchema}.`,
+      );
 
       let response: Response;
       try {
@@ -115,8 +142,15 @@ export class OpenRouterClient implements ReviewerModel {
           { retryable: true, code: timedOut ? "timeout" : "network", cause: error },
         );
 
+        this.logger.warn(
+          `OpenRouter request failed: ${attemptLabel} after ${this.now() - attemptStartedAt}ms (${wrapped.code}).`,
+        );
+
         if (attempts > this.options.maxRetries) throw wrapped;
-        await this.waitBeforeRetry(attempts - 1);
+        await this.waitBeforeRetry(
+          attempts - 1,
+          `${attemptLabel} failed with ${wrapped.code}`,
+        );
         continue;
       }
 
@@ -133,6 +167,9 @@ export class OpenRouterClient implements ReviewerModel {
         useJsonSchema = false;
         schemaFallbackUsed = true;
         attempts -= 1;
+        this.logger.warn(
+          `OpenRouter rejected structured output for ${requestLabel}; retrying once without response_format.`,
+        );
         continue;
       }
 
@@ -148,15 +185,31 @@ export class OpenRouterClient implements ReviewerModel {
           },
         );
 
+        this.logger.warn(
+          `OpenRouter response rejected: ${attemptLabel} HTTP ${response.status}, retryable=${retryable}, body_chars=${responseText.length}, provider_message=${redactProviderMessage(message, this.options.apiKey)}.`,
+        );
+
         if (retryable && attempts <= this.options.maxRetries) {
-          await this.waitBeforeRetry(attempts - 1, response.headers.get("retry-after"));
+          await this.waitBeforeRetry(
+            attempts - 1,
+            `${attemptLabel} returned HTTP ${response.status}`,
+            response.headers.get("retry-after"),
+          );
           continue;
         }
 
         throw error;
       }
 
-      const payload = this.parsePayload(responseText);
+      let payload: ChatCompletionPayload;
+      try {
+        payload = this.parsePayload(responseText);
+      } catch (error) {
+        this.logger.error(
+          `OpenRouter response was not valid JSON: ${attemptLabel} HTTP ${response.status}, body_chars=${responseText.length}.`,
+        );
+        throw error;
+      }
 
       if (payload.error) {
         const code = payload.error.code;
@@ -172,8 +225,15 @@ export class OpenRouterClient implements ReviewerModel {
           },
         );
 
+        this.logger.warn(
+          `OpenRouter error payload: ${attemptLabel} code=${code ?? "none"}, retryable=${retryable}, provider_message=${redactProviderMessage(payload.error.message ?? "", this.options.apiKey)}.`,
+        );
+
         if (retryable && attempts <= this.options.maxRetries) {
-          await this.waitBeforeRetry(attempts - 1);
+          await this.waitBeforeRetry(
+            attempts - 1,
+            `${attemptLabel} returned an error payload`,
+          );
           continue;
         }
 
@@ -182,6 +242,12 @@ export class OpenRouterClient implements ReviewerModel {
 
       const choice = payload.choices?.[0];
       const content = extractContent(choice?.message?.content);
+      const responseDetails = describeResponse(
+        payload,
+        choice,
+        content,
+        responseText.length,
+      );
 
       if (content === null || content.trim().length === 0) {
         const error = new OpenRouterError("OpenRouter returned an empty response.", {
@@ -189,8 +255,15 @@ export class OpenRouterClient implements ReviewerModel {
           code: "empty_response",
         });
 
+        this.logger.warn(
+          `OpenRouter returned an empty response: ${attemptLabel} ${responseDetails}.`,
+        );
+
         if (attempts <= this.options.maxRetries) {
-          await this.waitBeforeRetry(attempts - 1);
+          await this.waitBeforeRetry(
+            attempts - 1,
+            `${attemptLabel} returned an empty response`,
+          );
           continue;
         }
 
@@ -198,11 +271,18 @@ export class OpenRouterClient implements ReviewerModel {
       }
 
       if (choice?.finish_reason === "length") {
+        this.logger.error(
+          `OpenRouter output was truncated: ${attemptLabel} ${responseDetails}.`,
+        );
         throw new OpenRouterError(
           "OpenRouter stopped because the output token limit was reached. Increase maxOutputTokens or reduce the review batch size.",
           { code: "output_limit" },
         );
       }
+
+      this.logger.info(
+        `OpenRouter response received: ${attemptLabel} in ${this.now() - attemptStartedAt}ms, ${responseDetails}, structured_output=${useJsonSchema}.`,
+      );
 
       return {
         content,
@@ -259,12 +339,14 @@ export class OpenRouterClient implements ReviewerModel {
 
   private async waitBeforeRetry(
     attempt: number,
+    reason: string,
     retryAfterHeader?: string | null,
   ): Promise<void> {
     const retryAfter = parseRetryAfter(retryAfterHeader);
     const exponential = Math.min(30_000, 1_000 * 2 ** attempt);
     const jitter = retryAfter === undefined ? 0.5 + this.random() * 0.5 : 1;
     const delay = Math.min(60_000, Math.round((retryAfter ?? exponential) * jitter));
+    this.logger.warn(`OpenRouter retrying in ${delay}ms: ${reason}.`);
     await this.sleep(delay);
   }
 }
@@ -276,6 +358,47 @@ function isAbortError(error: unknown): boolean {
     "name" in error &&
     (error.name === "AbortError" || error.name === "TimeoutError")
   );
+}
+
+type ChatCompletionChoice = NonNullable<ChatCompletionPayload["choices"]>[number];
+
+function describeResponse(
+  payload: ChatCompletionPayload,
+  choice: ChatCompletionChoice | undefined,
+  content: string | null,
+  responseCharacters: number,
+): string {
+  const rawContent = choice?.message?.content;
+  const contentKind =
+    typeof rawContent === "string"
+      ? "string"
+      : Array.isArray(rawContent)
+        ? "array"
+        : "missing";
+  const reasoningCharacters =
+    typeof choice?.message?.reasoning === "string"
+      ? choice.message.reasoning.length
+      : 0;
+  const messageKeys = Object.keys(choice?.message ?? {}).sort().join(",");
+
+  return [
+    `http_body_chars=${responseCharacters}`,
+    `choices=${payload.choices?.length ?? 0}`,
+    `response_model=${payload.model ?? "unknown"}`,
+    `finish_reason=${choice?.finish_reason ?? "none"}`,
+    `native_finish_reason=${choice?.native_finish_reason ?? "none"}`,
+    `content_kind=${contentKind}`,
+    `content_chars=${content?.length ?? 0}`,
+    `reasoning_chars=${reasoningCharacters}`,
+    `message_keys=${messageKeys || "none"}`,
+    `prompt_tokens=${payload.usage?.prompt_tokens ?? 0}`,
+    `completion_tokens=${payload.usage?.completion_tokens ?? 0}`,
+    `reasoning_tokens=${payload.usage?.completion_tokens_details?.reasoning_tokens ?? 0}`,
+  ].join(", ");
+}
+
+function redactProviderMessage(message: string, apiKey: string): string {
+  return redactSecrets(message, [apiKey]).replace(/\s+/g, " ").slice(0, 300);
 }
 
 export function parseRetryAfter(value: string | null | undefined): number | undefined {

@@ -89,8 +89,15 @@ async function runReviewInner(
   logger: Logger,
 ): Promise<ReviewOutcome> {
   const pullRequest = await input.github.getPullRequest();
+  logger.info(
+    `AI review starting: ${input.repoFullName}#${input.pullNumber} at ${shortSha(pullRequest.headSha)} (base ${shortSha(pullRequest.baseSha)}), ${pullRequest.changedFiles} changed file(s)${pullRequest.draft ? ", draft" : ""}.`,
+  );
+
   const config = await loadConfig(input.github, input.baseSha, input.env);
   onConfig(config);
+  logger.info(
+    `AI review config: model=${config.model}, max_output_tokens=${config.maxOutputTokens}, max_input_tokens=${config.maxInputTokens ?? "unset"}, max_diff_characters=${config.maxDiffCharacters}, max_findings=${config.maxFindings}, min_confidence=${config.minimumConfidence}, max_retries=${config.maxRetries}, timeout_ms=${config.requestTimeoutMs}, review_drafts=${config.reviewDrafts}.`,
+  );
 
   if (!config.enabled) {
     return { status: "skipped", reason: "reviewer is disabled by configuration" };
@@ -104,6 +111,9 @@ async function runReviewInner(
   const systemPrompt = buildSystemPrompt({ guide: guide.text, config });
   const files = await input.github.listPullRequestFiles();
   const selection = selectReviewableFiles(files, config.excludedPaths);
+  logger.info(
+    `AI review selection: ${selection.reviewable.length} reviewable file(s), ${selection.excluded.length} excluded, ${selection.missingPatch.length} without a patch, ${files.length}/${pullRequest.changedFiles} changed file(s) returned, guide_chars=${guide.text.length}${guide.truncated ? " (truncated)" : ""}.`,
+  );
 
   const inputBudget =
     config.maxInputTokens === undefined
@@ -122,12 +132,18 @@ async function runReviewInner(
       batch.segments.reduce((sum, segment) => sum + segment.patch.length, 0),
     0,
   );
+  logger.info(
+    `AI review batching: ${batches.length} batch(es), ${diffCharacters.toLocaleString("en-US")} diff character(s), per-batch budget ${diffBudget.toLocaleString("en-US")}${budgetIsBelowMinimum ? " (configured input budget is below the prompt size)" : ""}.`,
+  );
 
   const [reviews, comments] = await Promise.all([
     input.github.listReviews(),
     input.github.listReviewComments(),
   ]);
   const priorFingerprints = collectPriorFingerprints(reviews, comments);
+  logger.info(
+    `AI review state: ${reviews.length} prior review(s), ${comments.length} prior comment(s), ${priorFingerprints.size} known finding fingerprint(s).`,
+  );
 
   const rawFindings: ModelFinding[] = [];
   const assessments: string[] = [];
@@ -146,16 +162,22 @@ async function runReviewInner(
 
     for (let index = 0; index < batches.length; index += 1) {
       const batch = batches[index]!;
+      const userPrompt = buildUserPrompt({
+        repoFullName: input.repoFullName,
+        pullRequest,
+        batch,
+        batchIndex: index,
+        batchCount: batches.length,
+        maxFindings: config.maxFindings,
+      });
+      const batchFiles = new Set(batch.segments.map((segment) => segment.path));
+      logger.info(
+        `AI review batch ${index + 1}/${batches.length} starting: ${batchFiles.size} file(s), ${batch.segments.length} segment(s), ${batch.characters.toLocaleString("en-US")} diff character(s), prompt ${(systemPrompt.length + userPrompt.length).toLocaleString("en-US")} characters.`,
+      );
+
       const result = await model.review({
         systemPrompt,
-        userPrompt: buildUserPrompt({
-          repoFullName: input.repoFullName,
-          pullRequest,
-          batch,
-          batchIndex: index,
-          batchCount: batches.length,
-          maxFindings: config.maxFindings,
-        }),
+        userPrompt,
         batchIndex: index,
         batchCount: batches.length,
       });
@@ -171,7 +193,19 @@ async function runReviewInner(
       usage = addUsage(usage, result.usage);
       usedJsonSchema = usedJsonSchema && result.usedJsonSchema;
       modelDurationMs += result.durationMs;
+
+      logger.info(
+        `AI review batch ${index + 1}/${batches.length} finished: ${result.durationMs}ms, ${result.usage.promptTokens.toLocaleString("en-US")} prompt + ${result.usage.completionTokens.toLocaleString("en-US")} completion tokens, finish_reason=${result.finishReason ?? "none"}, structured_output=${result.usedJsonSchema}, response_chars=${result.content.length}, findings=${parsed.findings.length}, invalid_findings=${parsed.invalidFindings}, assessment_chars=${parsed.assessment.length}.`,
+      );
     }
+
+    logger.info(
+      `AI review model calls complete: ${batches.length} batch(es) in ${modelDurationMs}ms, ${rawFindings.length} raw finding(s), ${usage.totalTokens.toLocaleString("en-US")} total token(s)${usage.costUsd === undefined ? "" : `, estimated cost $${usage.costUsd.toFixed(4)}`}.`,
+    );
+  } else {
+    logger.info(
+      "AI review model calls skipped: no reviewable diff was found.",
+    );
   }
 
   const prepared = prepareFindings(rawFindings, {
@@ -250,8 +284,16 @@ async function runReviewInner(
       body: renderInlineComment(finding, config.model),
     }));
 
+  logger.info(
+    `AI review findings: ${prepared.findings.length} accepted, ${previouslyReported.size} previously reported, ${newFindings.length} new, ${positionlessNewFindings.length} summary-only, ${prepared.stats.filteredByConfidence} below confidence, ${prepared.stats.filteredByCategory} outside categories, ${prepared.stats.unknownFile} outside the diff, ${prepared.stats.duplicated} duplicate(s), ${prepared.stats.capped} capped.`,
+  );
+
   let inlineFallback = false;
   let body = renderCompletedSummary({ ...summaryInput, inlineFallback: false });
+
+  logger.info(
+    `AI review publishing: ${inlineComments.length} inline comment(s), summary body ${body.length.toLocaleString("en-US")} characters.`,
+  );
 
   try {
     await input.github.createReview({ body, comments: inlineComments });
@@ -477,4 +519,8 @@ function addUsage(left: ModelUsage, right: ModelUsage): ModelUsage {
 
 function unique(values: readonly string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function shortSha(value: string): string {
+  return value.length > 12 ? value.slice(0, 12) : value;
 }

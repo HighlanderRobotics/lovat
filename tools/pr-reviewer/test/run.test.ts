@@ -81,6 +81,36 @@ describe("runReview lifecycle", () => {
     expect(model.calls[0]!.userPrompt).toContain("+  if (!report)");
   });
 
+  it("logs review progress without exposing diffs or model content", async () => {
+    const github = new FakeGitHub({
+      contents: { "CODE_REVIEW.md": guide },
+    });
+    const model = new FakeModel(
+      modelResponse([rawFinding({ line: 12 })], "Looks reasonable."),
+    );
+    const logs: string[] = [];
+    const logger = {
+      info: (message: string) => logs.push(`info:${message}`),
+      warn: (message: string) => logs.push(`warn:${message}`),
+      error: (message: string) => logs.push(`error:${message}`),
+    };
+
+    await runReview(input(github, model, { logger }));
+
+    const output = logs.join("\n");
+    expect(output).toContain("AI review starting:");
+    expect(output).toContain("AI review config:");
+    expect(output).toContain("AI review selection:");
+    expect(output).toContain("AI review batching:");
+    expect(output).toContain("AI review batch 1/1 starting:");
+    expect(output).toContain("AI review batch 1/1 finished:");
+    expect(output).toContain("AI review findings:");
+    expect(output).toContain("AI review publishing:");
+    expect(output).not.toContain("+  if (!report)");
+    expect(output).not.toContain("Looks reasonable.");
+    expect(output).not.toContain("Missing null check");
+  });
+
   it("suppresses previously reported findings on later reviews", async () => {
     const github = new FakeGitHub();
     const model = new FakeModel(

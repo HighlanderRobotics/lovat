@@ -37,6 +37,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
       : { apiUrl: env.GITHUB_API_URL }),
   });
 
+  const runUrl = buildRunUrl(env);
   const outcome = await runReview({
     repoFullName: context.repoFullName,
     pullNumber: context.pullNumber,
@@ -46,7 +47,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     github,
     logger: consoleLogger,
     knownSecrets: [apiKey, token],
-    ...(buildRunUrl(env) === undefined ? {} : { runUrl: buildRunUrl(env) }),
+    ...(runUrl === undefined ? {} : { runUrl }),
     createModel: (model: string, config: ReviewConfig) =>
       new OpenRouterClient({
         apiKey,
@@ -55,6 +56,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
         maxOutputTokens: config.maxOutputTokens,
         timeoutMs: config.requestTimeoutMs,
         maxRetries: config.maxRetries,
+        logger: consoleLogger,
       }),
   });
 

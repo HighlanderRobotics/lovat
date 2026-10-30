@@ -21,6 +21,9 @@ The workflow is [`.github/workflows/ai-review.yml`](../../.github/workflows/ai-r
   for the same reason.
 - Only file patches returned by GitHub are reviewed. Pull request code is never
   checked out, built, installed, or executed.
+- Workflow logs report progress, batch sizes, token usage, retry delays, and
+  response metadata such as finish reasons and content lengths. They do not
+  include prompts, diffs, findings, or credentials.
 - Fork pull requests are skipped. Repository secrets are not available to fork
   workflows, and reviewing a fork from a privileged context would expose the
   OpenRouter key.
