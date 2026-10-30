@@ -5,6 +5,11 @@ import 'package:scouting_dashboard_app/reusable/lovat_api/get_alliance_analysis.
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
 
+const predictorTeamRequiredMessage =
+    'Join your team to use the match predictor.';
+const predictorTeamVerificationMessage =
+    'Complete your team verification to use the match predictor.';
+
 class MatchPrediction {
   const MatchPrediction({
     required this.redWinning,
@@ -39,8 +44,9 @@ extension MatchPredictionQuery on LovatAPI {
     int red3,
     int blue1,
     int blue2,
-    int blue3,
-  ) {
+    int blue3, {
+    bool estimatesOnly = false,
+  }) {
     const path = '/v1/analysis/matchprediction';
     final query = {
       'red1': red1.toString(),
@@ -49,12 +55,40 @@ extension MatchPredictionQuery on LovatAPI {
       'blue1': blue1.toString(),
       'blue2': blue2.toString(),
       'blue3': blue3.toString(),
+      if (estimatesOnly) 'scoreSource': 'combined',
     };
+    MatchPrediction parsePrediction(dynamic value) {
+      final json = value as Map<String, dynamic>;
+      if (estimatesOnly && json['scoreSource'] != 'combined') {
+        throw const LovatAPIException(
+          'OCR + report estimates are not available on this server',
+        );
+      }
+      return MatchPrediction.fromJson(json);
+    }
+
     return CachedQuery(
-      queryKey: ['matchPrediction', red1, red2, red3, blue1, blue2, blue3],
+      queryKey: [
+        'matchPrediction',
+        red1,
+        red2,
+        red3,
+        blue1,
+        blue2,
+        blue3,
+        estimatesOnly
+      ],
       label: 'match prediction',
       queryFn: () async {
         final response = await get(path, query: query);
+
+        if (response?.statusCode == 401 && response?.body.trim() == 'No team') {
+          throw const LovatAPIException(predictorTeamRequiredMessage);
+        }
+        if (response?.statusCode == 403 &&
+            response?.body.trim() == 'Your team has not been verified yet') {
+          throw const LovatAPIException(predictorTeamVerificationMessage);
+        }
 
         if (response?.statusCode != 200) {
           debugPrint(response?.body ?? '');
@@ -65,15 +99,12 @@ extension MatchPredictionQuery on LovatAPI {
           throw const LovatAPIException('Not enough data');
         }
 
-        return MatchPrediction.fromJson(
-          jsonDecode(response!.body) as Map<String, dynamic>,
-        );
+        return parsePrediction(jsonDecode(response!.body));
       },
       cacheReader: () => getCachedData(
         path,
         query: query,
-        parser: (json) =>
-            MatchPrediction.fromJson(json as Map<String, dynamic>),
+        parser: parsePrediction,
       ),
       cacheTimestampReader: () => getCachedTimestamp(path, query: query),
     );

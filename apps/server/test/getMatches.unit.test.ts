@@ -9,6 +9,7 @@ vi.hoisted(() => {
 
 vi.mock("../src/prismaClient.js", () => ({
   default: {
+    $queryRaw: vi.fn(),
     teamMatchData: { findFirst: vi.fn(), findMany: vi.fn() },
     scouterScheduleShift: { findMany: vi.fn() },
   },
@@ -26,6 +27,7 @@ const tournament = "2026fixture";
 const officialRows = (matchType: "QUALIFICATION" | "ELIMINATION") =>
   Array.from({ length: 6 }, (_, slot) => ({
     key: `${tournament}_${matchType === "QUALIFICATION" ? "qm" : "em"}1_${slot}`,
+    matchKey: `${tournament}_${matchType === "QUALIFICATION" ? "qm" : "em"}1`,
     matchNumber: 1,
     matchType,
     teamNumber: 1000 + slot,
@@ -63,6 +65,7 @@ function appFor(teamNumber: number | null = 8033) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(prismaClient.$queryRaw).mockResolvedValue([]);
   vi.mocked(prismaClient.teamMatchData.findFirst).mockResolvedValue({
     matchNumber: 1,
   } as never);
@@ -87,6 +90,22 @@ beforeEach(() => {
 });
 
 describe("Practice match listing", () => {
+  it("attaches OCR and complete coverage flags to their canonical match", async () => {
+    vi.mocked(prismaClient.$queryRaw).mockResolvedValue([
+      { key: `${tournament}_qm1`, ocrAnalyzed: true, fullyScouted: true },
+    ]);
+    const response = await request(appFor()).get(`/matches/${tournament}`);
+    expect(response.status).toBe(200);
+    expect(response.body[0]).toMatchObject({
+      matchKey: `${tournament}_qm1`,
+      ocrAnalyzed: true,
+      fullyScouted: true,
+    });
+    expect(response.body[1]).toMatchObject({
+      ocrAnalyzed: false,
+      fullyScouted: false,
+    });
+  });
   it.each([undefined, "false"])(
     "excludes practice when includePractice is %s",
     async (includePractice) => {
@@ -121,6 +140,8 @@ describe("Practice match listing", () => {
     });
     expect(response.body[1].team1.scouters).toEqual([]);
     expect(response.body[2]).toEqual({
+      ocrAnalyzed: false,
+      fullyScouted: false,
       matchNumber: 1,
       matchType: 2,
       scouted: true,

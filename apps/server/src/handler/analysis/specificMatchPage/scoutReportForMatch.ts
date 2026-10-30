@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { createAnalysisHandler } from "../analysisHandler.js";
@@ -12,25 +13,27 @@ export const scoutReportForMatch = createAnalysisHandler({
   usesDataSource: false,
   shouldCache: false,
   calculateAnalysis: async ({ params }, ctx) => {
-    const scoutReports = await prismaClient.scoutReport.findMany({
-      where: {
-        teamMatchKey: params.match,
-      },
+    const scoutReports = await prismaClient.scoutReport.findMany(
+      analysisReadArgs("scoutReport", {
+        where: {
+          teamMatchKey: params.match,
+        },
 
-      select: {
-        uuid: true,
-        scouterUuid: true,
-        notes: true,
-        startTime: true,
-        robotBrokeDescription: true,
-        scouter: {
-          select: {
-            name: true,
-            sourceTeamNumber: true,
+        select: {
+          uuid: true,
+          scouterUuid: true,
+          notes: true,
+          startTime: true,
+          robotBrokeDescription: true,
+          scouter: {
+            select: {
+              name: true,
+              sourceTeamNumber: true,
+            },
           },
         },
-      },
-    });
+      }),
+    );
 
     return scoutReports.map((report) => ({
       ...report,

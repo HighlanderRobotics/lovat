@@ -1,3 +1,4 @@
+import { ocrTournamentKeys, ocrTournamentAllowed } from "./ocr/config";
 import type { ImportJob, PrismaClient } from "@lovat/db";
 import { importAllTeams } from "./jobs/teams";
 import { importTournaments } from "./jobs/tournaments";
@@ -21,6 +22,9 @@ export const jobKinds = [
   "tournament-details",
   "matches",
   "gaps",
+  "scoreboard-ocr",
+  "scoreboard-review",
+  "ocr-event-analysis",
 ] as const;
 export type JobKind = (typeof jobKinds)[number];
 
@@ -125,6 +129,22 @@ export async function reconcileSchedule(
   for (const district of districts)
     await ensure("district-teams", district.key, day);
 
+  if (process.env.OCR_ENABLED === "true") {
+    const eventKeys = ocrTournamentKeys();
+    const covered = await db.teamTournament.findMany({
+      where: {
+        teamNumber: 8033,
+        tournament: { seasonYear: 2026 },
+        ...(eventKeys ? { tournamentKey: { in: eventKeys } } : {}),
+      },
+      select: { tournamentKey: true },
+    });
+    for (const event of covered) {
+      await ensure("scoreboard-ocr", event.tournamentKey, 5 * minute);
+      await ensure("scoreboard-review", event.tournamentKey, 5 * minute);
+    }
+  }
+
   for (const tournament of tournaments) {
     const cadence = tournamentCadence(tournament, now);
 
@@ -169,6 +189,7 @@ export async function claimJob(db: PrismaClient, now = new Date()) {
 export async function executeImport(
   job: Pick<ImportJob, "kind" | "targetKey">,
   db: PrismaClient,
+  signal?: AbortSignal,
 ) {
   const { tba } = await import("./tba");
   const dependencies = { db, tba };
@@ -193,6 +214,31 @@ export async function executeImport(
       return importTournamentDetails(job.targetKey, dependencies);
     case "matches":
       return importMatches(job.targetKey, dependencies);
+    case "ocr-event-analysis": {
+      const { runEventAnalysis } = await import("./ocr/event-analysis");
+      return runEventAnalysis(job.targetKey, db, {}, signal);
+    }
+    case "scoreboard-ocr": {
+      if (process.env.OCR_ENABLED !== "true") return;
+      const { scanScoreboardTournament } =
+        await import("./jobs/scoreboard-ocr");
+      return db.$transaction(
+        async (tx) => {
+          const locks = await tx.$queryRaw<
+            { locked: boolean }[]
+          >`SELECT pg_try_advisory_xact_lock(hashtext('lovat-scoreboard-ocr')) AS locked`;
+          if (locks[0]?.locked)
+            await scanScoreboardTournament(job.targetKey, dependencies);
+        },
+        { timeout: 12 * minute },
+      );
+    }
+    case "scoreboard-review": {
+      if (process.env.OCR_ENABLED !== "true") return;
+      const { analyzeScoreboardTournament } =
+        await import("./jobs/scoreboard-ocr");
+      return analyzeScoreboardTournament(job.targetKey, db);
+    }
     case "gaps":
       return refreshTournamentGaps(job.targetKey, { db });
     default:
@@ -201,7 +247,42 @@ export async function executeImport(
 }
 
 async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
+  if (job.kind === "ocr-event-analysis") return 6 * hour;
   if (job.kind === "gaps") return day;
+  if (job.kind.startsWith("scoreboard-")) {
+    if (
+      job.kind === "scoreboard-ocr" &&
+      process.env.OCR_BATCH === "true" &&
+      ocrTournamentAllowed(job.targetKey)
+    ) {
+      const version = JSON.parse(
+        process.env.OCR_SCOREBOARD_TEMPLATE ?? "{}",
+      ).version;
+      const pending = await db.match.count({
+        where: {
+          tournamentKey: job.targetKey,
+          status: "COMPLETED",
+          OR: [
+            { scoreboardOcr: null },
+            ...(typeof version === "string"
+              ? [
+                  {
+                    scoreboardOcr: {
+                      is: {
+                        status: { not: "VALIDATED" },
+                        templateVersion: { not: version },
+                      },
+                    },
+                  },
+                ]
+              : []),
+          ],
+        },
+      });
+      if (pending > 0) return 1000;
+    }
+    return 5 * minute;
+  }
   if (job.kind === "teams" || job.kind === "team-seasons") return 7 * day;
   if (job.kind === "tournaments") return 6 * hour;
   if (job.kind === "districts" || job.kind === "district-teams") return day;
@@ -229,7 +310,11 @@ export function retryDelay(attempts: number, error: unknown, now = new Date()) {
 
 export async function runNextJob(
   db: PrismaClient,
-  execute: (job: ImportJob, db: PrismaClient) => Promise<void> = executeImport,
+  execute: (
+    job: ImportJob,
+    db: PrismaClient,
+    signal?: AbortSignal,
+  ) => Promise<void> = executeImport,
 ) {
   const job = await claimJob(db);
 
@@ -237,6 +322,7 @@ export async function runNextJob(
 
   let renewing = false;
   let lostLease = false;
+  const ownership = new AbortController();
 
   const heartbeat = setInterval(async () => {
     if (renewing || lostLease) return;
@@ -258,12 +344,13 @@ export async function runNextJob(
     } catch {
       lostLease = true;
     } finally {
+      if (lostLease) ownership.abort();
       renewing = false;
     }
   }, 30_000);
 
   try {
-    await execute(job, db);
+    await execute(job, db, ownership.signal);
 
     const now = new Date();
     const interval = await refreshInterval(db, job, now);

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import ocr from "./ocr.routes.js";
 
 import onboarding from "./onboarding.routes.js";
 import picklists from "./picklists.routes.js";
@@ -99,6 +100,9 @@ const MatchTeamSchema = z.object({
 });
 
 const MatchSchema = z.object({
+  matchKey: z.string().optional(),
+  ocrAnalyzed: z.boolean().optional(),
+  fullyScouted: z.boolean().optional(),
   matchNumber: z.number().int(),
   matchType: z.number().int(),
   scouted: z.boolean(),
@@ -112,6 +116,8 @@ const MatchSchema = z.object({
 });
 
 const PracticeMatchSchema = z.object({
+  ocrAnalyzed: z.boolean().optional(),
+  fullyScouted: z.boolean().optional(),
   matchNumber: z.number().int(),
   matchType: z.literal(2),
   scouted: z.boolean(),
@@ -466,6 +472,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
 });
 
+router.use("/ocr", ocr);
 router.use("/onboarding", onboarding);
 router.use("/picklists", picklists);
 router.use("/mutablepicklists", mutablepicklist);

@@ -285,3 +285,154 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 ### Historical seasons
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
+
+## Scoreboard OCR
+
+Optional 2026 video processing and reversible scouting-lead review are documented
+in [scoreboard-ocr.md](../../docs/scoreboard-ocr.md). It is disabled by default;
+configure a reviewed broadcast layout before enabling it. No match images are
+retained in the database, and flags do not automatically exclude scouting data.
+
+### Private resource benchmark
+
+`bun tools/benchmark-native-railway.ts` is an operator-only, one-shot task.
+Use it only on PR #95's Worker with its existing private native/media access;
+the runner refuses other environments and never opens SQL connections. Save the
+original service configuration before temporarily replacing the start command
+and disabling automatic restarts. Set a fresh `OCR_RESOURCE_RUN_ID`,
+`OCR_RESOURCE_DECODER_THREADS` (1/2/4), and first set `OCR_RESOURCE_PREFLIGHT=1`
+to read authenticated numeric counters without opening the media bucket.
+The full run requires a verified two-CPU native quota, native concurrency two,
+an idle processor, and the expected decoder setting.
+
+After preflight, clear `OCR_RESOURCE_PREFLIGHT`, use a new run ID, and optionally
+set `OCR_RESOURCE_REFERENCE_RUN` to a completed run to require identical evidence
+across decoder settings. Numeric phase summaries are written to private logs;
+full results stay in the existing private media store. Restore the original
+configuration, tuning values and normal Worker command when finished or if the
+experiment fails. Keep automatic restarts disabled during the experiment so a
+failed run cannot silently reuse a result prefix.
+
+Railway's connector currently rejects new Config as Code file selections. Do
+not rely on a new `railway.json` descriptor for this task or migrate the whole
+project to IaC merely to run the benchmark. Verify the effective build/start
+configuration and actual numeric preflight before processing videos.
+
+### Automatic event analysis (PR #95)
+
+The authenticated Server endpoints are `POST` and `GET`
+`/v1/manager/ocr/events/:event`. POST accepts an empty JSON object and returns
+202 with the durable job ID. GET returns the queue state, per-match evidence
+status, report/estimate counts and missing-input warnings. Access is limited to
+verified team 8033 analysts and scouting leads using normal account tokens.
+API keys cannot enqueue or inspect these jobs. Approved events are `2026cacg`,
+`2026casnf`, and `2026cagle`; the event runner also checks the PR #95 Railway
+service environment before importing any records.
+
+Configure the API with `OCR_WORKER_URL` (the Worker's private Railway host and
+port) and `OCR_CONTROL_TOKEN` (at least 32 random characters). Set the same
+control token on the Worker. Do not give the Worker a public domain. The normal
+Worker command remains `bun index.ts`; event work shares the existing scheduler,
+lease renewal, retry/backoff and numeric progress logs. Event OCR runs at bounded
+concurrency two by default; `OCR_EVENT_CONCURRENCY=1` provides a serial option. An accepted broadcast
+version is reused on retry, and estimates are rebuilt from current reports.
+
+By default, analysis uses reports already present in the preview database.
+A direct scoped copy does not require a new production role or service.
+Optionally, production reports can come from `tools/report-source-service.ts`,
+deployed as a separate Bun service. It uses only the role provisioned by
+`ops/ocr-report-source.sql`, which can select one event-restricted numeric view
+and cannot select raw report tables. Apply that script through the approved
+production migration owner, supplying `source_role` and `source_password` as
+private psql variables; do not save passwords in SQL, Git or logs. Review and
+approve the new data access before provisioning it.
+
+The source service requires `PGHOST`, `PGPORT`, `PGDATABASE`,
+`OCR_REPORT_SOURCE_USER`, `OCR_REPORT_SOURCE_PASSWORD`, and
+`OCR_REPORT_SOURCE_TOKEN`. Its HTTPS endpoint accepts a bearer token and a UUID
+cursor only. It excludes notes, scout names, training/practice reports,
+accounts and join codes. Never configure it with the database owner's role.
+Configure only `OCR_REPORT_SOURCE_URL` and the shared source bearer token on the
+preview Worker; production database credentials stay with the source service.
+Source exclusion flags are preserved; neither source nor preview exclusions are cleared.
+Numeric report changes that conflict with an existing preview report stop the
+sync for review rather than overwriting preview edits. Import batches are
+atomic and repeat runs skip identical records.
+
+The Worker also needs `TBA_KEY`, its existing `OCR_SERVICE_URL` and service token,
+and the existing private `OCR_MEDIA_*` cache configuration. Set reviewed event
+layouts using `OCR_EVENT_TEMPLATES` if the broadcaster differs from the default.
+The generic FIRST layout is a candidate, not a promise of coverage: identity,
+clock and evidence checks must pass on the actual broadcast. Public-provider
+blocking opens a circuit for uncached downloads for the remainder of the pass;
+cached videos can continue. Blocked videos remain `MEDIA_BLOCKED` and cause a
+backoff retry, not a successful result. No browser cookies or operator media
+imports are required or used by this workflow.
+
+Native timing logs include selected layout, frame/sample counts, per-field
+recognition stages, decoder waits, cache hits and runtime/model provenance.
+`OCR_FUEL_WORD_FALLBACK=1` on the native service enables an experimental PSM 8
+fuel recovery only after the normal reading fails. It keeps the 85 confidence
+threshold and never replaces a valid primary reading; leave it disabled until
+fixed-video Railway benchmarks and recovered counters have been reviewed.
+
+### Railway baseline, 2026-10-29
+
+Run `railway-baseline-20261029-a` used the fixed CalGames QM1, QM3, QM35 and
+QM37 files, one decoder thread, the pinned model, two native CPUs and a native
+capacity of two. Each video ran twice serially and twice at concurrency two;
+the runner required identical media, evidence and runtime fingerprints across
+repeats. These are processing measurements on already cached video, excluding
+public download time and report import/fusion.
+
+| Concurrency | Match runs | Total wall time |        Throughput | Median request times across repeats | Peak sampled container memory |
+| ----------- | ---------: | --------------: | ----------------: | ----------------------------------: | ----------------------------: |
+| 1           |          8 |       104.751 s | 4.582 matches/min |                   12.334 / 13.045 s |                       426 MiB |
+| 2           |          8 |        86.160 s | 5.571 matches/min |                   19.668 / 22.338 s |                       555 MiB |
+
+Concurrency two improved measured throughput by 21.6%, with higher individual
+request latency. This supports the bounded event pool; it is not a universal
+runtime claim for other broadcast layouts or an accuracy measurement. Numeric
+phase records and evidence fingerprints remain in the existing private media
+store under `benchmarks/calgames-resource/railway-baseline-20261029-a/`.
+
+The two-decoder-thread comparison (`railway-decoder2-20261029-a`) preserved
+all baseline evidence but reduced throughput: 4.458 matches/minute serially
+and 4.682 at concurrency two, versus 4.582 and 5.571 with one decoder thread.
+Keep `OCR_DECODER_THREADS=1` for this measured two-CPU setup.
+
+The native processor also has a prepared-image cache, bounded to 128 entries
+and 4 MiB per request (individual entries at most 256 KiB). Keys include image
+geometry, numeric mode and page segmentation mode; a hash lookup is followed
+by a complete byte comparison. It can reuse identical normalized/binary crops
+across timestamps without approximating digits. It is disabled by default; `OCR_RECOGNITION_CACHE=1`
+enables it for controlled comparisons. Field microbenchmarks deliberately
+disable this cache so repeated pixels cannot distort recognition timings.
+
+To evaluate a recovery policy, `OCR_RESOURCE_REFERENCE_MODE=extend` requires
+all previously accepted paired and individual readings to remain present and
+unchanged, while counting added observations. Repeated candidate runs must
+still have identical evidence hashes. This guards regressions; newly recovered
+readings still require independent validation. Keep the default `exact` mode
+for pure runtime changes. A deliberate recognition-policy change needs a new
+reviewed broadcast version before rerunning accepted event checkpoints.
+
+The prepared-cache run (`railway-prepared-cache-20261029-a`) preserved all
+baseline observations but measured 4.123 matches/minute serially and 5.472 at
+concurrency two (eight runs per mode). It did not demonstrate a throughput gain,
+so prepared-image memoization remains opt-in. These runs used separate native
+deployments and do not isolate small timing differences from host variability.
+
+Benchmark-only request overrides `OCR_RESOURCE_EXPERIMENT_WORD_FALLBACK=1`
+and `OCR_RESOURCE_EXPERIMENT_RECOGNITION_CACHE=0` select recovery/cache modes
+for those extraction requests. Ordinary event jobs do not forward tuning from
+the public request body. The native service accepts only boolean tuning flags;
+identity, confidence, resource limits and official accounting remain fixed.
+
+### Broadcast crop review
+
+CalGames uses the reviewed Cheesy Arena profile. `2026casnf` and `2026cagle`
+use the separate FIRST FMS candidate. Candidate results are held as
+`PROFILE_REVIEW_REQUIRED` and excluded from live estimates until real event
+frames verify the layout. `OCR_REVIEWED_TEMPLATE_VERSIONS` accepts explicitly
+reviewed version identifiers. Held evidence is reused while awaiting review.

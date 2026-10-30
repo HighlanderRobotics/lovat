@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:scouting_dashboard_app/reusable/report_validation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -190,6 +192,7 @@ class RawScoutReportPage extends StatefulWidget {
 class _RawScoutReportPageState extends State<RawScoutReportPage> {
   SingleScoutReportAnalysis? reportAnalysis;
   List<ScoutReportEvent>? timeline;
+  Map<String, dynamic>? validation;
   bool loading = false;
   String? error;
 
@@ -200,12 +203,29 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
         loading = true;
       });
 
+      final validationResponse = await lovatAPI
+          .get('/v1/manager/scoutreports/${widget.uuid}/validation');
+      if (validationResponse?.statusCode != 200) {
+        throw Exception('Could not load validation status');
+      }
+      final validation =
+          jsonDecode(validationResponse!.body) as Map<String, dynamic>;
+
+      if (validation['analysisExcluded'] == true) {
+        if (mounted) {
+          setState(() {
+            this.validation = validation;
+          });
+        }
+        return;
+      }
       final reportAnalysis = await lovatAPI.getScoutReportAnalysis(widget.uuid);
       final timeline = await lovatAPI.getEventsForScoutReport(widget.uuid);
 
       setState(() {
         this.reportAnalysis = reportAnalysis;
         this.timeline = timeline;
+        this.validation = validation;
       });
     } on LovatAPIException catch (e) {
       setState(() {
@@ -244,6 +264,13 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
     final appBarTitle = Text(
         "${widget.teamNumber} in ${widget.matchIdentity.getShortLocalizedDescription()} - ${widget.scoutName}");
 
+    if (validation?['analysisExcluded'] == true) {
+      return Scaffold(
+          appBar: AppBar(title: appBarTitle),
+          body:
+              ReportValidation(reportUuid: widget.uuid, onReviewed: fetchData));
+    }
+
     if (reportAnalysis == null) {
       return Scaffold(
         appBar: AppBar(
@@ -258,7 +285,7 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
     }
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: appBarTitle,
@@ -270,6 +297,7 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
                 const TabBar(tabs: [
                   Tab(text: "Overview"),
                   Tab(text: "Timeline"),
+                  Tab(text: "Validation"),
                 ]),
                 if (loading) const LinearProgressIndicator(),
               ],
@@ -300,6 +328,7 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
           children: [
             overviewTab(reportAnalysis!),
             timelineTab(timeline!, context),
+            ReportValidation(reportUuid: widget.uuid, onReviewed: fetchData),
           ],
         ),
       ),
@@ -307,8 +336,20 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
   }
 
   Widget overviewTab(SingleScoutReportAnalysis reportAnalysis) {
+    final flags = (validation?['flags'] as List?) ?? [];
+    final excluded = validation?['analysisExcluded'] == true ||
+        flags.any((flag) => flag['status'] == 'ACTIVE');
+    final needsReview = flags.any((flag) => flag['status'] == 'REVIEW');
     return ScrollablePageBody(
       children: [
+        if (excluded || needsReview)
+          Card(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(excluded
+                      ? 'Some data is excluded from analysis. Open Validation to review the evidence or undo a strike. Original events are preserved.'
+                      : 'Scoreboard validation needs a lead’s review. Open Validation to inspect the evidence.'))),
         if (reportAnalysis.robotBrokeDescription != null)
           robotBrokeBox(reportAnalysis.robotBrokeDescription!),
         const SectionTitle("Score"),

@@ -1,6 +1,7 @@
 import 'package:chips_input/chips_input.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/reusable/match_analysis_badges.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/raw_scout_report.dart';
@@ -741,32 +742,6 @@ extension AllianceExtension on Alliance {
   }
 }
 
-class ScoutedFlag extends StatelessWidget {
-  const ScoutedFlag({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(4),
-          )),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(6, 3, 6, 3),
-        child: Text(
-          "Scouted",
-          style: Theme.of(context).textTheme.labelMedium!.merge(
-                TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-              ),
-        ),
-      ),
-    );
-  }
-}
-
 class Matches extends StatefulWidget {
   const Matches({
     super.key,
@@ -824,18 +799,40 @@ class _MatchesState extends State<Matches> {
                         children: [
                           Row(
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 13, 10, 13),
-                                child: Text(
-                                  match.identity.getLocalizedDescription(
-                                      includeTournament: false),
-                                  style:
-                                      Theme.of(context).textTheme.labelMedium,
-                                ),
-                              ),
-                              if (match.isScouted) const ScoutedFlag(),
-                              const Spacer(),
+                              Expanded(
+                                  child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                      child: Wrap(
+                                          spacing: 10,
+                                          runSpacing: 4,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            Text(
+                                                match.identity
+                                                    .getLocalizedDescription(
+                                                        includeTournament:
+                                                            false),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelMedium),
+                                            MatchAnalysisBadges(
+                                                scouted: match.isScouted,
+                                                ocrAnalyzed: match.ocrAnalyzed,
+                                                fullyScouted:
+                                                    match.fullyScouted,
+                                                onOcrPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pushNamed(Uri(
+                                                            path: '/ocr_match',
+                                                            queryParameters: {
+                                                          'matchKey': match
+                                                                  .matchKey ??
+                                                              match.identity
+                                                                  .toMediumKey()
+                                                        }).toString())),
+                                          ]))),
                               IconButton(
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(

@@ -37,7 +37,8 @@ export const addRegisteredTeam = async (
         feature: "fullRegistration",
       },
     });
-    if (!toggleFeatureRow.enabled) {
+    // Missing configuration must not automatically approve a new team.
+    if (toggleFeatureRow?.enabled === false) {
       await prismaClient.registeredTeam.create({
         data: {
           email: params.data.email,

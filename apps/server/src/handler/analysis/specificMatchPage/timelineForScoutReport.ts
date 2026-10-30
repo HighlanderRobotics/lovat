@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { FlippedActionMap, FlippedPositionMap } from "../analysisConstants.js";
@@ -13,13 +14,15 @@ export const timelineForScoutReport = createAnalysisHandler({
   usesDataSource: false,
   shouldCache: false,
   calculateAnalysis: async ({ params }, ctx) => {
-    const events = await prismaClient.event.findMany({
-      where: {
-        scoutReportUuid: params.uuid,
-        scoutReport: scoutReportSourceFilter(ctx.user),
-      },
-      orderBy: { time: "asc" },
-    });
+    const events = await prismaClient.event.findMany(
+      analysisReadArgs("event", {
+        where: {
+          scoutReportUuid: params.uuid,
+          scoutReport: scoutReportSourceFilter(ctx.user),
+        },
+        orderBy: { time: "asc" },
+      }),
+    );
     const timelineArray = [];
     for (const element of events) {
       if (element.points !== 0) {

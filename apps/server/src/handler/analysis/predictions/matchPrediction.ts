@@ -1,9 +1,11 @@
+import type { RequestHandler } from "express";
+import { estimatedMatchPrediction } from "./estimatedMatchPrediction.js";
 import z from "zod";
 import { alliancePage } from "./alliancePage.js";
 import { matchPredictionLogic } from "./matchPredictionLogic.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
 
-export const matchPrediction = createAnalysisHandler({
+const reportPrediction = createAnalysisHandler({
   params: {
     query: z.object({
       red1: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
@@ -84,3 +86,46 @@ export const matchPrediction = createAnalysisHandler({
     }
   },
 });
+
+const combinedPrediction = createAnalysisHandler({
+  params: {
+    query: z.object({
+      red1: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+      red2: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+      red3: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+      blue1: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+      blue2: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+      blue3: z.preprocess((x) => (x ? x : undefined), z.coerce.number().int()),
+    }),
+  },
+  usesDataSource: true,
+  shouldCache: false,
+  calculateAnalysis: async ({ query }, ctx) => {
+    try {
+      return await estimatedMatchPrediction(ctx.user, [
+        query.red1,
+        query.red2,
+        query.red3,
+        query.blue1,
+        query.blue2,
+        query.blue3,
+      ]);
+    } catch (error) {
+      if (error === "not enough data") return { error: "not enough data" };
+      throw error;
+    }
+  },
+});
+
+export const matchPrediction: RequestHandler = (req, res, next) => {
+  if (req.query.scoreSource === "combined")
+    return combinedPrediction(req, res, next);
+  if (
+    req.query.scoreSource !== undefined &&
+    req.query.scoreSource !== "reports"
+  ) {
+    res.status(400).send("Invalid score source");
+    return;
+  }
+  return reportPrediction(req, res, next);
+};

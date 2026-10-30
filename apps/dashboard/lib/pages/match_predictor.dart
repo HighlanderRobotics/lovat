@@ -1,3 +1,6 @@
+import 'package:scouting_dashboard_app/reusable/ocr_mode_button.dart';
+import 'package:scouting_dashboard_app/pages/match_predictor_opener.dart';
+import 'package:scouting_dashboard_app/reusable/estimate_prediction_view.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -17,7 +20,9 @@ import 'package:scouting_dashboard_app/reusable/value_tile.dart';
 import 'package:skeletons_forked/skeletons_forked.dart';
 
 class MatchPredictorPage extends StatefulWidget {
-  const MatchPredictorPage({super.key});
+  const MatchPredictorPage({super.key, this.api});
+
+  final LovatAPI? api;
 
   @override
   State<MatchPredictorPage> createState() => _MatchPredictorPageState();
@@ -25,24 +30,30 @@ class MatchPredictorPage extends StatefulWidget {
 
 class _MatchPredictorPageState extends State<MatchPredictorPage> {
   late List<int> _teams;
+  bool _estimatesOnly = false;
+
+  List<Widget> get _scoreSourceActions => [
+        OcrModeButton(
+          selected: _estimatesOnly,
+          onPressed: () => setState(() => _estimatesOnly = !_estimatesOnly),
+        ),
+      ];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)!.settings.arguments! as Map<String, dynamic>;
-    _teams = [
-      int.parse(args['red1']),
-      int.parse(args['red2']),
-      int.parse(args['red3']),
-      int.parse(args['blue1']),
-      int.parse(args['blue2']),
-      int.parse(args['blue3']),
-    ];
+    final args = ModalRoute.of(context)!.settings.arguments;
+    _teams = args is Map
+        ? ['red1', 'red2', 'red3', 'blue1', 'blue2', 'blue3']
+            .map((key) => int.tryParse('${args[key]}') ?? 0)
+            .toList()
+        : [];
+    if (_teams.any((team) => team <= 0)) _teams = [];
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_teams.length != 6) return const MatchPredictorOpenerPage();
     final hasDrawer = ModalRoute.of(context)!.settings.arguments == null
         ? const GlobalNavigationDrawer()
         : null;
@@ -50,10 +61,14 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
     return DefaultTabController(
       length: 2,
       child: StaleRefreshBuilder(
-        query: lovatAPI.matchPredictionQuery(
-            _teams[0], _teams[1], _teams[2], _teams[3], _teams[4], _teams[5]),
+        key: ValueKey(_estimatesOnly),
+        query: (widget.api ?? lovatAPI).matchPredictionQuery(
+            _teams[0], _teams[1], _teams[2], _teams[3], _teams[4], _teams[5],
+            estimatesOnly: _estimatesOnly),
         builder: (context, result) {
           final prediction = result.data;
+          final needsTeamSetup = result.error == predictorTeamRequiredMessage ||
+              result.error == predictorTeamVerificationMessage;
           final notEnoughData =
               result.error?.contains("Not enough data") == true &&
                   prediction == null;
@@ -61,7 +76,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           if (notEnoughData) {
             return Scaffold(
               appBar: AppBar(
-                title: const Text("Match Predictor"),
+                title: Text(_estimatesOnly
+                    ? "Match Predictor · Estimates"
+                    : "Match Predictor"),
+                actions: _scoreSourceActions,
                 bottom: StaleRefreshIndicator.result(result),
               ),
               body: notEnoughDataMessage(),
@@ -73,10 +91,34 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             if (result.error != null) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: StaleRefreshIndicator.result(result),
                 ),
-                body: FriendlyErrorView.result(result),
+                body: needsTeamSetup
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(result.error!, textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              FilledButton(
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed('/loading')
+                                    .then((_) {
+                                  if (mounted) result.refetch();
+                                }),
+                                child: const Text('Set up team'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : FriendlyErrorView.result(result),
                 drawer: hasDrawer,
               );
             }
@@ -85,7 +127,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
               if (constraints.maxHeight > constraints.maxWidth) {
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Match Predictor"),
+                    title: Text(_estimatesOnly
+                        ? "Match Predictor · Estimates"
+                        : "Match Predictor"),
+                    actions: _scoreSourceActions,
                     bottom: PreferredSize(
                       preferredSize: const Size.fromHeight(89),
                       child: Column(
@@ -126,7 +171,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
               } else {
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Match Predictor"),
+                    title: Text(_estimatesOnly
+                        ? "Match Predictor · Estimates"
+                        : "Match Predictor"),
+                    actions: _scoreSourceActions,
                     bottom: StaleRefreshIndicator.result(result),
                   ),
                   body: SafeArea(
@@ -160,11 +208,25 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             });
           }
 
+          if (_estimatesOnly) {
+            return Scaffold(
+              appBar: AppBar(
+                  title: const Text('Match Predictor'),
+                  actions: _scoreSourceActions,
+                  bottom: StaleRefreshIndicator.result(result)),
+              body: EstimatePredictionView(prediction: prediction),
+              drawer: hasDrawer,
+            );
+          }
+
           return LayoutBuilder(builder: (context, constraints) {
             if (constraints.maxHeight > constraints.maxWidth) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: PreferredSize(
                     preferredSize: const Size.fromHeight(89),
                     child: Column(
@@ -208,7 +270,10 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
             } else {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text("Match Predictor"),
+                  title: Text(_estimatesOnly
+                      ? "Match Predictor · Estimates"
+                      : "Match Predictor"),
+                  actions: _scoreSourceActions,
                   bottom: StaleRefreshIndicator.result(result),
                 ),
                 body: SafeArea(
@@ -266,7 +331,9 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 Text(
-                  "There must be 2 or more matches recorded for each team to make a prediction.",
+                  _estimatesOnly
+                      ? "Each team needs at least two matches with OCR + report estimates in your selected data sources. Report scores are not used in this mode."
+                      : "There must be 2 or more matches recorded for each team to make a prediction.",
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -282,6 +349,16 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
 
   Widget allianceTab(int alliance, AllianceAnalysis allianceData) {
     return Column(children: [
+      if (_estimatesOnly) ...[
+        const Text('OCR + report estimates only', textAlign: TextAlign.center),
+        const SizedBox(height: 6),
+        Text(
+          'Auto and teleop include tower points. Alliance fouls are excluded. Unresolved fuel attribution can affect estimates.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 15),
+      ],
       allianceData.teams.isEmpty
           ? const Text("Not enough data")
           : Row(
@@ -342,7 +419,13 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
                                   numToStringRounded(e.averagePoints),
                                   style:
                                       Theme.of(context).textTheme.titleMedium,
-                                )
+                                ),
+                                if (_estimatesOnly)
+                                  Text(
+                                      '${e.estimateSamples ?? 0} estimated matches${e.archivedSamples > 0 ? ' (${e.archivedSamples} archived)' : ''}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall),
                               ],
                             ),
                           ),
@@ -368,7 +451,7 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Teleop points"),
+              Text(_estimatesOnly ? "Total estimated points" : "Teleop points"),
               Text(
                 allianceData.totalPoints == null
                     ? "--"
@@ -380,42 +463,58 @@ class _MatchPredictorPageState extends State<MatchPredictorPage> {
           ),
         ),
       ),
-      const SizedBox(height: 15),
-      reefStack(
-        context,
-        allianceData,
-        backgroundColor: [
-          Theme.of(context).colorScheme.onRedAlliance,
-          Theme.of(context).colorScheme.onBlueAlliance
-        ][alliance],
-        foregroundColor: [
-          Theme.of(context).colorScheme.redAlliance,
-          Theme.of(context).colorScheme.blueAlliance
-        ][alliance],
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 15),
-        child: Row(
-          children: [
-            Flexible(
-              fit: FlexFit.tight,
-              child: ValueTile(
-                value:
-                    Text(numToStringRounded(allianceData.totalBallThroughput)),
-                label: const Text('Total output'),
-              ),
-            ),
-            Flexible(
-              fit: FlexFit.tight,
-              child: ValueTile(
-                value:
-                    Text(numToStringRounded(allianceData.totalFuelOutputted)),
-                label: const Text('Hub shots'),
-              ),
-            ),
-          ].withSpaceBetween(width: 10),
+      if (_estimatesOnly) ...[
+        const SizedBox(height: 15),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.autoPoints)),
+            label: const Text('Auto points')),
+        const SizedBox(height: 10),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.teleopPoints)),
+            label: const Text('Teleop points')),
+        const SizedBox(height: 10),
+        ValueTile(
+            value: Text(numToStringRounded(allianceData.totalFuelOutputted)),
+            label: const Text('Estimated fuel')),
+      ],
+      if (!_estimatesOnly) ...[
+        const SizedBox(height: 15),
+        reefStack(
+          context,
+          allianceData,
+          backgroundColor: [
+            Theme.of(context).colorScheme.onRedAlliance,
+            Theme.of(context).colorScheme.onBlueAlliance
+          ][alliance],
+          foregroundColor: [
+            Theme.of(context).colorScheme.redAlliance,
+            Theme.of(context).colorScheme.blueAlliance
+          ][alliance],
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: Row(
+            children: [
+              Flexible(
+                fit: FlexFit.tight,
+                child: ValueTile(
+                  value: Text(
+                      numToStringRounded(allianceData.totalBallThroughput)),
+                  label: const Text('Total output'),
+                ),
+              ),
+              Flexible(
+                fit: FlexFit.tight,
+                child: ValueTile(
+                  value:
+                      Text(numToStringRounded(allianceData.totalFuelOutputted)),
+                  label: const Text('Hub shots'),
+                ),
+              ),
+            ].withSpaceBetween(width: 10),
+          ),
+        ),
+      ],
     ]);
   }
 }
@@ -528,7 +627,7 @@ class WinningPrediction extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(7)),
+        borderRadius: const BorderRadius.all(Radius.circular(100)),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       clipBehavior: Clip.antiAlias,

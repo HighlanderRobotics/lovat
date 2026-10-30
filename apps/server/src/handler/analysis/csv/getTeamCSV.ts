@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import { Response } from "express";
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
@@ -136,50 +137,52 @@ export const getTeamCSV = async (
       req.user?.teamSourceRule,
     );
     // TMD instances will be sorted by team number and then looped through and aggregated
-    const datapoints = await prismaClient.teamMatchData.findMany({
-      where: {
-        tournamentKey: params.data.tournamentKey,
-        matchType: { not: "PRACTICE" },
-      },
-      select: {
-        teamNumber: true,
-        scoutReports: {
-          where: (() => {
-            const filter = dataSourceRuleToPrismaFilter(sourceRule);
-            return filter ? { scouter: { sourceTeamNumber: filter } } : {};
-          })(),
-          select: {
-            uuid: true,
-            robotRoles: true,
-            accuracy: true,
-            endgameClimb: true,
-            autoClimb: true,
-            fieldTraversal: true,
-            driverAbility: true,
-            defenseEffectiveness: true,
-            beached: true,
-            climbSide: true,
-            climbPosition: true,
-            scoresWhileMoving: true,
-            disrupts: true,
-            feederTypes: true,
-            intakeType: true,
-            events: {
-              where: eventTimeFilter,
-              select: {
-                time: true,
-                action: true,
-                position: true,
-                points: true,
+    const datapoints = await prismaClient.teamMatchData.findMany(
+      analysisReadArgs("teamMatchData", {
+        where: {
+          tournamentKey: params.data.tournamentKey,
+          matchType: { not: "PRACTICE" },
+        },
+        select: {
+          teamNumber: true,
+          scoutReports: {
+            where: (() => {
+              const filter = dataSourceRuleToPrismaFilter(sourceRule);
+              return filter ? { scouter: { sourceTeamNumber: filter } } : {};
+            })(),
+            select: {
+              uuid: true,
+              robotRoles: true,
+              accuracy: true,
+              endgameClimb: true,
+              autoClimb: true,
+              fieldTraversal: true,
+              driverAbility: true,
+              defenseEffectiveness: true,
+              beached: true,
+              climbSide: true,
+              climbPosition: true,
+              scoresWhileMoving: true,
+              disrupts: true,
+              feederTypes: true,
+              intakeType: true,
+              events: {
+                where: eventTimeFilter,
+                select: {
+                  time: true,
+                  action: true,
+                  position: true,
+                  points: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        teamNumber: "asc",
-      },
-    });
+        orderBy: {
+          teamNumber: "asc",
+        },
+      }),
+    );
 
     if (datapoints.length === 0) {
       // No TeamMatchData found - try to fetch teams from TBA and get their reports from all tournaments
@@ -207,51 +210,53 @@ export const getTeamCSV = async (
           const tournamentFilter = dataSourceRuleToPrismaFilter(tournamentRule);
 
           // Fetch all scout reports for these teams from filtered tournaments
-          const allReports = await prismaClient.scoutReport.findMany({
-            where: {
-              teamMatchData: {
-                teamNumber: { in: teams },
-                ...(tournamentFilter
-                  ? { tournamentKey: tournamentFilter }
+          const allReports = await prismaClient.scoutReport.findMany(
+            analysisReadArgs("scoutReport", {
+              where: {
+                teamMatchData: {
+                  teamNumber: { in: teams },
+                  ...(tournamentFilter
+                    ? { tournamentKey: tournamentFilter }
+                    : {}),
+                  matchType: { not: "PRACTICE" },
+                },
+                ...(teamFilter
+                  ? { scouter: { sourceTeamNumber: teamFilter } }
                   : {}),
-                matchType: { not: "PRACTICE" },
               },
-              ...(teamFilter
-                ? { scouter: { sourceTeamNumber: teamFilter } }
-                : {}),
-            },
-            select: {
-              uuid: true,
-              robotRoles: true,
-              accuracy: true,
-              endgameClimb: true,
-              autoClimb: true,
-              fieldTraversal: true,
-              driverAbility: true,
-              defenseEffectiveness: true,
-              beached: true,
-              climbSide: true,
-              climbPosition: true,
-              scoresWhileMoving: true,
-              disrupts: true,
-              feederTypes: true,
-              intakeType: true,
-              teamMatchData: {
-                select: {
-                  teamNumber: true,
+              select: {
+                uuid: true,
+                robotRoles: true,
+                accuracy: true,
+                endgameClimb: true,
+                autoClimb: true,
+                fieldTraversal: true,
+                driverAbility: true,
+                defenseEffectiveness: true,
+                beached: true,
+                climbSide: true,
+                climbPosition: true,
+                scoresWhileMoving: true,
+                disrupts: true,
+                feederTypes: true,
+                intakeType: true,
+                teamMatchData: {
+                  select: {
+                    teamNumber: true,
+                  },
+                },
+                events: {
+                  where: eventTimeFilter,
+                  select: {
+                    time: true,
+                    action: true,
+                    position: true,
+                    points: true,
+                  },
                 },
               },
-              events: {
-                where: eventTimeFilter,
-                select: {
-                  time: true,
-                  action: true,
-                  position: true,
-                  points: true,
-                },
-              },
-            },
-          });
+            }),
+          );
 
           if (allReports.length === 0) {
             res
@@ -284,9 +289,12 @@ export const getTeamCSV = async (
               teamNumber: { in: teams },
               ...(tournamentFilter ? { tournamentKey: tournamentFilter } : {}),
               scoutReports: {
-                some: teamFilter
-                  ? { scouter: { sourceTeamNumber: teamFilter } }
-                  : {},
+                some: {
+                  analysisExcluded: false,
+                  ...(teamFilter
+                    ? { scouter: { sourceTeamNumber: teamFilter } }
+                    : {}),
+                },
               },
               matchType: { not: "PRACTICE" },
             },

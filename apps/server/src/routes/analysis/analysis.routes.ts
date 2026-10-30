@@ -30,7 +30,11 @@ const AlliancePath = z.object({
 });
 const AllianceTeam = z.object({
   team: z.number(),
-  role: z.number(),
+  role: z.number().nullable(),
+  estimateSamples: z.number().int().optional(),
+  archivedSamples: z.number().int().optional(),
+  scoutAverage: z.number().nullable().optional(),
+  ocrAdjustment: z.number().nullable().optional(),
   averagePoints: z.number(),
   paths: z.array(AlliancePath),
 });
@@ -41,7 +45,11 @@ const AllianceResponseSchema = z.object({
   l2StartTime: z.array(z.number().nullable()).length(3),
   l3StartTime: z.array(z.number().nullable()).length(3),
   totalFuelOutputted: z.number(),
-  totalBallThroughput: z.number(),
+  totalBallThroughput: z.number().nullable(),
+  autoPoints: z.number().optional(),
+  teleopPoints: z.number().optional(),
+  robotPoints: z.number().optional(),
+  foulPoints: z.number().nullable().optional(),
 });
 
 registry.registerPath({
@@ -101,6 +109,7 @@ const MatchPredictionResponseSchema = z.union([
     redWinning: z.number(),
     blueWinning: z.number(),
     winningAlliance: z.number(),
+    scoreSource: z.literal("combined").optional(),
     redAlliance: AllianceResponseSchema,
     blueAlliance: AllianceResponseSchema,
   }),
@@ -114,6 +123,7 @@ registry.registerPath({
   summary: "Predict match outcome for two alliances",
   request: {
     query: z.object({
+      scoreSource: z.enum(["reports", "combined"]).optional(),
       red1: z.coerce.number().int(),
       red2: z.coerce.number().int(),
       red3: z.coerce.number().int(),

@@ -1,0 +1,6 @@
+[
+  { "matchKey": "2026cacg_qm1", "videoKey": "-aRhT5qf2CE", "expectedTeams": [100,9997,2643,1700,115,5940], "expectedMatchLabel": "Qualification 1" },
+  { "matchKey": "2026cacg_qm3", "videoKey": "C3Cn3asisYo", "expectedTeams": [846,852,1967,8,4990,4159], "expectedMatchLabel": "Qualification 3" },
+  { "matchKey": "2026cacg_qm35", "videoKey": "A8Im3RofpjU", "expectedTeams": [9999,3045,6619,852,6036,2643], "expectedMatchLabel": "Qualification 35" },
+  { "matchKey": "2026cacg_qm37", "videoKey": "1wJAslGoarM", "expectedTeams": [4159,9998,846,5940,8033,2473], "expectedMatchLabel": "Qualification 37" }
+]

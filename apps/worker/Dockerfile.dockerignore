@@ -13,3 +13,4 @@
 **/.env.*
 **/*.log
 **/.DS_Store
+**/ocr-service/target

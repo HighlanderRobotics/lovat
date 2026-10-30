@@ -1,0 +1,152 @@
+# OCR optimization work plan
+
+Goal: work through the runtime and accuracy steps using measured results. Work continues on `codex/scoreboard-ocr` / PR #95. Completion is not established by a green unit suite or by official alliance-budget conservation.
+
+| Step                         | Current state                                                                                        | Evidence required before calling it finished                                                                                                                                                                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Field preprocessing       | In progress: completed crop grid and five-video points candidate evaluation; no default change yet. | Profile representative videos; evaluate crop scale, borders, thresholding and segmentation against independently reviewed crops on a split held out by match. Record speed, accepted errors, missing reads, and confidence. Promote only supported settings.                    |
+| 2. Model identity and choice | Audit, pin and local comparison complete; retain the verified fast model on Railway. | Immutable source/model hashes; local and Railway runtime identities; measured fast/strong model tradeoff on the same labeled crops and videos. No assumption that package names imply identical bytes.                                                                          |
+| 3. Decoder / batch resources | In progress: 24 exploratory decoder runs preserve identical pixels at 1/2/4 threads. Default remains one. | Compare decoder thread counts and one/two-request batch throughput under a fixed CPU budget; retain sample timestamps/pixels and report CPU, RSS, p95, and matches/minute. Verify the selected configuration on Railway.                                                        |
+| 4. Human-player separation   | In progress: prepared a blinded four-match review pack; independent counts are pending. QM3's current estimate overcredits red robots by at least seven fuel. | Independent robot-only and HP validation labels; deterministic video/evidence separation prototype; accuracy measured on held-out matches. Ambiguous overlapping fuel must remain unknown. Manual labels are validation data, never production allocation overrides.            |
+| 5. Report timing             | In progress: isolated-burst prototype evaluated all 37 matches; no nonzero offsets qualified. | Evidence-supported report-specific alignment using isolated scoring bursts, bounded offsets and minimum identifiability; evaluate on held-out bursts/matches. Preserve official phase budgets and unknown allocation.                                                           |
+| 6. Digit recognizer          | Local prototype evaluated in Python and safe Rust, with calibrated rejection and real Tesseract fallback; not production-enabled. | Small limited-alphabet prototype, a frozen match-level train/calibration/test split, confidence calibration and Tesseract fallback; compare field accuracy, rejection rate, speed and native-deployment feasibility. No promotion from synthetic-only or self-labeled accuracy. |
+
+Cross-cutting requirements: preserve tenant/source-team scope; keep private reports, reference labels, clips and generated artifacts outside Git; retain immutable numeric inputs and provenance; preserve existing video coverage and conservative rejection behavior. QM3 has informed development and is a calibration case, not an independent held-out accuracy test. Additional robot-only/HP reference counts are still required before a positive-scorer accuracy claim.
+
+Completed before this plan: deterministic 37-match contribution export; source-balanced phase consensus; native service and bounded concurrency; independent alliance channels; exact field grammar; compact reusable RGB buffers. The latest balanced local four-video benchmark preserved full numeric evidence and cut observed peak RSS from 99.1 to 54.8 MiB, with effectively unchanged latency. These prior results do not complete the steps above.
+
+## Measurement foundation (2026-10-27)
+
+Native responses identify the actual Tesseract library version and SHA-256 of the loaded English model. An optional expected hash rejects mismatched weights before serving requests. The local model matches the pinned official `tessdata_fast` bytes. PR #95's native deployment at `aa573831` successfully logs the same model hash on Railway (Tesseract 5.3.0, versus 5.5.1 locally). The Docker build now installs these exact weights from the immutable official revision, checks their hash, retains the verified license, and enforces the expected hash at runtime. The pinned image at `ef52843d` was successfully verified after deployment.
+
+A one-pass comparison of pinned fast and best models on QM1/QM3/QM35/QM37 is saved locally with full evidence and runtime identities. Best adds accepted samples in three matches but loses samples overall on QM3 (red 154→150; blue 153→145). All but one common-timestamp fuel value agree across the four matches. Common timestamps do not necessarily refer to the same video frame, so even that disagreement needs pixel/clock review. Timing was not a balanced ABBA experiment and is not claimed as a speed result. Extra accepted samples do not establish accuracy. No stronger-model switch has been promoted.
+
+One profiling pass on QM1, QM3, QM35 and QM37 preserved all four numeric evidence hashes. Actual recognition time by field was text 9.01s, fuel 12.81s, points 22.83s and clocks 20.35s. Points and clocks together account for about 66% of recognition time. These are inclusive recognition measurements, not end-to-end speed comparisons or accuracy labels. `confidentSyntax` only measures grammar plus confidence, not correctness. The 28 native tests and 140 Worker tests pass; the Worker suite used the verified disposable local database.
+
+The user has no additional independent robot-only references and requested a blinded review set. The local pack freezes QM5/QM16 for calibration and QM7/QM22 for held-out robot/HP review. It omits predictions, source reports, official totals and split labels from the reviewer form; the operator manifest records the split. Aggregate OCR diagnostics for some matches were previously inspected, so these are not claimed as wholly unseen videos. Labels remain blank until an independent review. The review generator rejects extra input fields, uses only public identities/rosters, preserves null unknown counts and adds separate HP rows. Reviewed labels must not become production allocation overrides.
+
+## Decoder and timing experiments
+
+The pinned image at `ef52843d` successfully deployed in PR #95 and logged the expected fast-model hash and Tesseract 5.3.0. Native decoder thread count is now an operator setting bounded to 1/2/4, recorded in each profile and defaulting to one. All four cached videos retain the previous complete numeric evidence hashes with the default setting and the field benchmark code present.
+
+The decoder-only Python tool records full sampled RGB hashes, frame counts, child CPU time and peak child RSS. In 24 local runs (four videos, three settings, two opposite-order rounds), all hashes/frame counts agreed. Median wall seconds were 24.103/19.023/15.938 for 1/2/4 threads, with median decoder CPU seconds 23.628/28.288/35.407 and peak child RSS 38.97/44.64/52.77 MiB. These timings are exploratory: macOS has no enforced CPU quota here and compilation overlapped part of the run. They do not justify a deployed setting. The script can require an actual Linux cgroup quota and refuses a mismatched/unavailable quota. Railway's current native limit is two CPUs and 1GB; fixed-budget end-to-end concurrency verification remains outstanding.
+
+The offline report-alignment prototype validates official match inputs, retains source/exclusion filters, excludes competing shooting windows, phase boundaries, sparse/corrected OCR and truncated bursts, and fits a bounded net lag on alternating bursts while validating on the others. Net lag includes reporting, flight, sensor and overlay delay; scout isolation cannot exclude HP or unreported robot fuel. Across 37 frozen inputs and 742 usable reports, 741 lack four qualifying isolated bursts and one is already aligned. No nonzero candidate qualified and no production policy changed. More permissive fitting is not supported by this evidence. Independent burst labels/video separation are still required.
+
+The local field grid uses 20 video frames at fixed seconds 16/40/80/120/160 from QM1 (train), QM3 (calibration), QM35/QM37 (test). The agent visually read scoreboard values from contact sheets before running the grid; these labels are independent of OCR outputs but not double-reviewed by another person. They are scoreboard labels, not robot/HP contribution truth. The grid compares 2/3/4x scaling, PSM7/8/13, white borders and grayscale/binary normalization in opposite-order repeats. Parameter ranking uses only train/calibration labels, counts false accepted values before coverage/speed, checks frame hashes and match-level splits, and evaluates test labels after selection. Repeats count once per field. Full-video validation remains required before changing production preprocessing.
+
+The complete grid contains 10,800 measurements over 120 crop examples. Fuel retains the current primary profile. Points select 2x/PSM7/no border: fitting coverage improves 18/20→20/20 and reserved test coverage improves 16/20→20/20, with zero incorrect accepted values in either subset. Measured test pipeline cost is 16.862→9.165ms per field, excluding caching/video gates. Clocks select 2x/PSM7/no border but have mixed cost/coverage and need more investigation. Selection hash is `c2d0a716ebe9ddf942d3b2ffb421c93c16d8073d1b24f0f7728cef4a908bfaa6`. No preprocessing change has been promoted. The points candidate is next for full-video tests. All 31 native tests, native Clippy with warnings denied, Worker typecheck and all 146 Worker tests pass. The complete Worker suite used the verified disposable local database.
+
+## Full-video points candidate
+
+An isolated source copy changes only primary points scaling from 4x to 2x, retaining current recovery, fuel, clock and attribution policies. The candidate passes all 31 native tests. A fresh uninterrupted ABBA experiment (QM1/QM3/QM35/QM37, eight requests per setting) reproduces both variants' numeric evidence across repeats. Full independent fuel channels agree exactly, and point values agree wherever both versions accept them. Paired point observations increase 960→1152 (20%). Points recognition time decreases 43.781→24.075 seconds across eight requests, but mean end-to-end time is 25.105→25.515 seconds and median is 24.895→26.558 seconds. There is no demonstrated end-to-end speedup. Mean decoder read wait increases as recognition becomes faster; fixed-budget decoding/concurrency is the next runtime target.
+
+The newly posted QM38 video, absent from the original tuning set, passes automated match/roster identity using TBA's public offseason remap. Its accepted paired points increase 91→122, with identical full fuel channels. This additional one-pass check is not a speed benchmark. The current repository and deployed defaults remain 4x points; isolated candidate source/binary hashes and the patch are saved with the local experiment. The repository release binary was forcibly rebuilt and its SHA verified equal to the frozen baseline after an experiment build reused the Cargo target directory.
+
+## Expanded qualification scope
+
+The user requested continuing across all newly posted CalGames qualification videos. The refreshed official schedule contains 59 qualifications, with 57 YouTube links. The uploader playlist also contains 57 entries. QM58/QM59 have no links in either source at this snapshot. QM49/QM50 have playlist entries without titles; direct public download checks identify both as still processing on YouTube. Keep these availability states distinct from OCR failure and completed coverage. The frozen scoped report snapshot still covers only QM1–37.
+
+The inventory tool retains every scheduled qualifier in its denominator, handles unavailable playlist titles, and treats exact uploader titles as candidates requiring native identity checks. Benchmark case limits now allow the full qualification inventory. The Worker recognizes a processing video as pending availability and uses the existing two-minute `NO_VIDEO` retry instead of caching a six-hour OCR rejection. Alternate-video failures cannot attach another video's observations to the pending video. All 149 Worker tests and Worker typecheck pass; the suite used the verified disposable local database.
+
+Two explicit approvals are pending after automatic review rejections: (1) replacing the completed private Railway helper with the tested one-shot transfer task, temporarily granting bucket access and recording one-hour PUT capabilities for QM38–57 in private project logs; (2) extending the read-only production numeric report export to QM38–59, restricted to source teams 1967/8033. The transfer source replacement was rejected before deployment. Temporary bucket credential references were immediately cleared again, the previous helper source was verified unchanged, and it has no public domain. Production database navigation was rejected before opening its data view. Do not try another route to either denied action without approval. The prepared read-only query selects numeric robot/action data only and makes no production changes. Local optimization and public-video checks can continue independently.
+
+## Digit prototype and labeled model comparison
+
+The Python prototype trains 76 distinct 384-bit glyph templates from QM1's fuel/points crops only, calibrates distance/margin rejection on QM3, and evaluates QM35/QM37 afterward. Four added training-only frames were visually labeled; frame 69 was proposed by an existing train-only scoreboard read to find the missing digit 8 and then checked on the original pixels. All ten digits have at least two distinct templates. This is supervised pixel recognition, not a manual team-contribution override. No synthetic-only or OCR-generated labels are used. Agent-reviewed labels are not an independent second human review, and prior aggregate diagnostics on these videos have been seen.
+
+The frozen model is 16,954 bytes, SHA-256 `db5c53c5add17be99ae58bea6d5c2322a54d278cc43964ebb35539d9f85ea8cf`; re-running training/calibration reproduces its bytes exactly. Calibrated maximum distance is 0.08 and minimum class margin is 0.03. The safe Rust port uses six u64 XOR/popcounts per template and agrees with every Python prediction across 192 repeated crop measurements. It is exposed only through a local operator CLI; the HTTP pipeline never loads the model. Uncertain predictions call the real existing Tesseract path, with separate exact caches in the paired benchmark.
+
+On 40 reserved test fields, current Tesseract accepts 35 correct values and misses five; the hybrid accepts 39 correct values and misses one. Neither has an observed false accept, which is not a statistical guarantee. Across two repeats, actual Tesseract calls fall 104→23. Median classifier-only cost is 38.5 microseconds; mean crop-pipeline cost is 11.759→2.182ms and p95 is 28.712→8.831ms. These exclude decoding, frame I/O and whole-video clock/identity/cache behavior. No end-to-end or robot/HP attribution accuracy claim follows. Calibration remains 20/20 accepted correct with fallback. Audit tooling checks training-pixel provenance, calibration-only thresholds, model/pixel hashes, repeated coverage and fallback invariants. Corrupted hybrid results and retuned thresholds fail negative controls. All 33 native tests, native Clippy with warnings denied, three Python tests and Worker typecheck pass. The prior unchanged Worker suite has 149 passing tests.
+
+The stronger pinned Tesseract model is now also measured on the identical labeled pixels and native fallback path. On calibration, fast accepts 20/20 correct while best accepts 19/20, with mean crop cost 11.824 versus 24.421ms. This favors retaining fast before consulting test scores. On reserved test fields, best accepts 36/40 versus fast 35/40, with no observed false accepts; best's mean crop cost is 19.480ms versus 11.759ms. Combined with the earlier four-video comparison and verified runtime hashes, this does not support a stronger-model switch. Wider video/failure-case validation remains necessary before promoting the new digit prototype.
+
+The PR #95 Worker deployment at `9951d545` successfully passed its runtime healthcheck. All denied transfer/export actions remain pending approval. Next independent runtime work can use the four already-staged public benchmark videos and the Worker's existing private access, without generating upload capabilities or reading production reports.
+
+## Fixed-budget resource benchmark preparation
+
+The native service now has authenticated numeric-only resource counters and restart identification. A tested private Worker task fixes the four known public videos, requires PR #95 and a private native hostname, and uses only pre-existing native/media access. Its preflight reads counters without opening the bucket. The full experiment requires an actual two-CPU cgroup quota, native capacity two and the expected decoder setting, then measures caller concurrency 1/2 in opposite-order ABBA phases. It records container CPU deltas, sampled process/container memory, labeled lifetime peaks, per-request latency and matches/minute; it fails on restarts, configuration drift, evidence changes or incomplete/draining work. New upload capabilities and production reports are not part of this task.
+
+The original Worker/native configurations are saved outside Git before any temporary mutation. The Worker's normal start command is `bun index.ts`; its normal restart policy is ON_FAILURE with ten retries. The native decoder variable is initially absent (effective one); native concurrency is present and its effective value must be read from `resource_initial` before changing it. Do not guess its old value from a default. Resource checks have 35 passing native tests, Clippy with warnings denied, Worker typecheck and 153 passing Worker tests using the verified disposable local database. The live preflight and fixed-budget results are still pending; preparation does not prove runtime improvement.
+
+## Additional QM38 validation and Railway launch
+
+The unchanged frozen digit model is additionally checked on five fixed QM38 frames (seconds 16/40/80/120/160). Original pixels were agent-labeled before inference, without a second independent human review. This match uses the standard v7 layout; an initial probe accidentally reused QM1's small-layout rectangles and is retained as an invalid geometry probe, not classifier accuracy evidence. Corrected rectangles come from the existing production template already selected by the automatic full-video identity check; labels, model and thresholds were unchanged.
+
+With correct geometry, baseline Tesseract accepts 15/20 correct fields and misses five; the hybrid accepts 19/20 and misses one, with no observed false accepts. Actual Tesseract calls across two repeats fall 56→9, and mean local crop cost falls 10.136→0.936ms. The combined provenance audit re-verifies the original training pixels and calibration-only threshold selection, and all Rust/Python predictions agree. This remains crop-only scoreboard evaluation; it establishes neither whole-video throughput nor robot/HP attribution accuracy. The portable validation archive is saved outside Git.
+
+The native numeric resource endpoint successfully deployed at `32c1a89c` after Railway's build daemon failed twice before compilation. Worker preflight launches initially selected Railpack despite the saved Dockerfile config. The documented `RAILWAY_DOCKERFILE_PATH` override is now set explicitly; a fresh GitHub deployment entered the Docker build path but hit the same closed BuildKit connection before compilation. No numeric preflight has run, native concurrency has not been changed, and no benchmark result is claimed. The connector rejects selecting a new legacy Config as Code file, so the attempted extra descriptor has been removed; do not migrate the whole project to IaC to run this experiment. The normal Worker start/restart configuration must be restored after the measurement attempt.
+
+A second public page/playlist refresh still shows 59 scheduled qualifications, 57 video links, absent QM58/QM59 links and missing uploader titles for QM49/QM50. The two previously denied transfer/report-export actions remain pending explicit approval; this benchmark does not perform either action.
+
+## Reuse identical recovery pixels
+
+Binary recovery now thresholds the already normalized grayscale crop instead of repeating source scaling and the histogram pass. A deterministic fixture covers both foreground polarities, varied gray values, white borders, aligned row tails and SIMD guards, proving identical binary pixels byte for byte. All 36 native tests and strict Clippy pass. The original 192 repeated digit benchmark rows preserve Python/native predictions, baseline/hybrid values, exact source hashes and Tesseract call counts. The additional QM38 rows preserve their values/predictions too. Running all frames as a combined sequence changes cache boundaries relative to stitching two old runs, so stitched per-row call counts are not compared as if the execution order were identical.
+
+Full-video checks on QM1/QM3/QM35/QM37 preserve each frozen media hash, complete numeric evidence hash and runtime identity. This removes duplicate recovery preprocessing without changing accepted output. The check is not an ABBA latency benchmark and no end-to-end speedup is claimed. The frozen digit classifier remains operator-only and is not enabled in the HTTP path.
+
+The Railway preflight finally succeeded on the existing native image, confirming an actual two-CPU cgroup quota, decoder threads one, native capacity two and both slots idle. A subsequent full Worker launch again selected Railpack and failed before starting; no timed phase or new upload/report export ran. The native startup-diagnostic deployment also failed before application startup; its previous healthy image remains live. The Worker's normal start and restart policy have been restored before the next GitHub build. Benchmark variables are cleared/inactive; the documented explicit Dockerfile-path variable is retained to fix fresh GitHub build detection. No native tuning values were changed. Fixed-budget throughput comparisons remain incomplete, rather than being inferred from local timings.
+
+
+## Persisted estimates and Dashboard source toggle (2026-10-28)
+
+The user's additional request adds a source-scoped `EstimatedScore` table and a Material eye-tracking toggle in the Dashboard match predictor. The alternate API reads persisted combined estimates only, counts each team/match once, requires two usable estimated matches per team, and filters every contributing source and tournament. There is no raw-report fallback. The producer retains auto/teleop points and fuel, including TBA station tower points and excluding alliance foul credits. Report/event/exclusion, source-team, roster, official-result and OCR mutations invalidate affected rows and queue review; advisory locks protect refreshes. Independent OCR channels now survive batch persistence and completed-batch resumes. Existing source/recovery limitations still apply.
+
+The migration replays successfully from an empty local database. The real PostgreSQL integration tests verify source/tournament exclusion and one-row-per-match selection. Worker integration tests verify deterministic persistence, exclusions, source movement, invalid official evidence, idempotent batch resume and channel retention. The Dashboard tests cover switching from loading/missing-data states and rejecting ordinary-report payloads from older APIs or cache. Preview deployment and initial data availability are being verified; this feature does not authorize either of the previously denied new-video capability exports or expanded production report reads.
+
+
+The preview API successfully applied the estimate-table migration, and both API
+and Worker deployed healthily. A scoped backfill found 11 stored OCR matches and
+zero derived rows; the preview database editor confirms zero CalGames reports
+from 1967/8033. A frozen-input archive exporter recomputes all 37 original matches
+under the current non-experimental policy and produces 666 source-scoped rows
+(222 team/match estimates, across combined and single-source scopes). Its
+read-only preview guard verified all 37 matches, 222 slots, 74 official alliance
+breakdowns and zero current scoped reports. After explicit user approval, the
+exact guarded SQL was uploaded to the PR #95 Postgres console, verified by
+SHA-256 and executed successfully. Read-only checks confirm 666 ARCHIVE rows,
+37 matches, 222 team/match estimates and 222 rows per source scope. The exporter
+copies no raw report rows or notes and does
+not perform either previously denied production/export action. Local tests prove
+atomic guards, live-row preservation, archive idempotency and invalidation when
+new live inputs arrive. Unchanged provider upserts now preserve valid estimates.
+
+The Dashboard preview deployed commit `1c4b3a9` and serves successfully. Live
+predictor verification exposed a separate prerequisite: the preview has one
+analyst account without a team, and neither source team is registered there.
+The existing team-verification middleware correctly rejects predictions with
+401 `No team`. Dashboard now turns that response (and the team-verification
+403) into a team-setup action instead of a generic retry. Six regression tests
+pass, including both score modes, unrelated authentication errors and setup
+navigation. After explicit user approval, the guarded preview-only setup created
+verified team 8033 and linked the single Jack account as an analyst, limited to
+sources 1967/8033 and tournament 2026cacg. Read-only SQL confirms those limits.
+Live Dashboard verification now succeeds for both QM3 alliances in estimate
+mode, showing per-team sample counts, archived provenance, auto/teleop points
+and winning probabilities. Ordinary report mode correctly shows insufficient
+data because the preview has no raw reports. Authentication and source
+permissions remain enforced; production was not changed.
+
+## Estimate comparison layout and schedule markers (2026-10-28)
+
+The estimate predictor now adapts Figma node `2123:187` into a compact alliance
+gradient, probability bar, phase totals and per-team comparison table. Stored
+report-score averages use the same estimated matches and source scope as the
+combined scores; the signed adjustment is their difference. Foul credit remains
+an alliance-only value, deduplicated by historical match/alliance, and contributes
+its mean and variance to the win prediction. Missing baselines stay unknown.
+
+An explicitly approved, read-only production query recovered numeric baselines
+for QM1–37 from sources 1967/8033. All 812 reports and their saved timing/count
+inputs matched the archive exactly. A metadata-only import fills 647 report-backed
+rows across the 666 stored scope rows; it verifies the original identities,
+official evidence and score fingerprints and changes only `scoutPoints`.
+Local PostgreSQL checks prove idempotency, unchanged original scores and rejection
+of changed inputs. The production database was not modified.
+
+Match headers independently show the eye-tracking icon for analyzed OCR and a
+Material fact-check icon only when all six teams have a nonexcluded report in
+the selected source scope. Archived estimates can establish OCR analysis, but
+do not substitute for actual report rows in the full-scout coverage check.
+Validation: 1,079 Server unit tests, 166 Worker tests, 11 Dashboard tests and four
+database integration tests pass; responsive checks cover 320, 417 and 1280 pixels.

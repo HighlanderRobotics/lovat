@@ -1,3 +1,4 @@
+import { analysisReadArgs } from "../analysisReadArgs.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentage,
@@ -446,35 +447,37 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       }
 
       // Main query
-      const tmd = await prismaClient.teamMatchData.findMany({
-        where: tmdFilter,
-        select: {
-          tournamentKey: true,
-          // There's gotta be some way to not have to send the tournamnet name through every time
-          tournament: {
-            select: {
-              name: true,
-            },
-          },
-          key: true,
-          teamNumber: true,
-          scoutReports: {
-            where: srFilter,
-            select: srSelect,
-          },
-        },
-        orderBy: [
-          // Ordered by oldest first
-          {
+      const tmd = await prismaClient.teamMatchData.findMany(
+        analysisReadArgs("teamMatchData", {
+          where: tmdFilter,
+          select: {
+            tournamentKey: true,
+            // There's gotta be some way to not have to send the tournamnet name through every time
             tournament: {
-              date: "asc",
+              select: {
+                name: true,
+              },
+            },
+            key: true,
+            teamNumber: true,
+            scoutReports: {
+              where: srFilter,
+              select: srSelect,
             },
           },
-          { teamNumber: "asc" },
-          { matchType: "asc" },
-          { matchNumber: "asc" },
-        ],
-      });
+          orderBy: [
+            // Ordered by oldest first
+            {
+              tournament: {
+                date: "asc",
+              },
+            },
+            { teamNumber: "asc" },
+            { matchType: "asc" },
+            { matchNumber: "asc" },
+          ],
+        }),
+      );
 
       // Build per-team timelines and accumulate per-tournament values
       const perTeamTournamentValues: Record<
