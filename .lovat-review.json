@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "reviewDrafts": false,
-  "model": "anthropic/claude-sonnet-5.5",
+  "model": "z-ai/glm-5.3-flash",
   "maxDiffCharacters": 80000,
   "maxFindings": 20,
   "minimumConfidence": 0.75,
