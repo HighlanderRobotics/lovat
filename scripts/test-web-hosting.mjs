@@ -70,13 +70,15 @@ if (app === 'learn') {
       assert(!/href=["']https:\/\/(?:learn|dashboard)\.lovat\.app/.test(page), 'Website links must not escape to production');
     }
   }
-  // The contact form's existing bot trap validates POST/redirect behavior without sending a message.
+  // This container has no private keys: contact submissions must fail closed before delivery.
   const form = (origin) => get('/contact', {
     method: 'POST', redirect: 'manual',
     headers: { origin, accept: 'text/html', 'content-type': 'application/x-www-form-urlencoded' },
     body: 'name=Hosting+test&email=test%40example.invalid&team=8033&message=Test',
   });
-  assert.equal((await form(new URL(base).origin)).status, 303);
+  const unverified = await form(new URL(base).origin);
+  assert.equal(unverified.status, 503);
+  assert.match(await unverified.text(), /Contact verification is unavailable/);
   assert.equal((await form('https://untrusted.invalid')).status, 403);
   const slack = await get('/api/slack/interaction', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
