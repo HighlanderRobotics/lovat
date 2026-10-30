@@ -196,6 +196,50 @@ describe("OpenRouterClient", () => {
     expect(calls).toHaveLength(2);
   });
 
+  it("logs empty-response metadata without logging response content", async () => {
+    const { sleep } = noSleep();
+    const logs: string[] = [];
+    const logger = {
+      info: (message: string) => logs.push(`info:${message}`),
+      warn: (message: string) => logs.push(`warn:${message}`),
+      error: (message: string) => logs.push(`error:${message}`),
+    };
+    const { fetchImpl } = scriptedFetch([
+      jsonResponse({
+        choices: [
+          {
+            finish_reason: "length",
+            native_finish_reason: "max_tokens",
+            message: { content: "", reasoning: "internal reasoning" },
+          },
+        ],
+        usage: {
+          prompt_tokens: 100,
+          completion_tokens: 4_096,
+          total_tokens: 4_196,
+          completion_tokens_details: { reasoning_tokens: 4_096 },
+        },
+      }),
+      completion(modelResponse([])),
+    ]);
+
+    await client(fetchImpl, { maxRetries: 1, sleep, logger }).review({
+      systemPrompt: "s",
+      userPrompt: "u",
+      batchIndex: 0,
+      batchCount: 1,
+    });
+
+    const output = logs.join("\n");
+    expect(output).toContain("finish_reason=length");
+    expect(output).toContain("native_finish_reason=max_tokens");
+    expect(output).toContain("content_chars=0");
+    expect(output).toContain("reasoning_chars=18");
+    expect(output).toContain("reasoning_tokens=4096");
+    expect(output).toContain("OpenRouter retrying in");
+    expect(output).not.toContain("internal reasoning");
+  });
+
   it("rejects output-limit truncation without retrying", async () => {
     const { fetchImpl, calls } = scriptedFetch([
       completion(modelResponse([]), { finishReason: "length" }),
