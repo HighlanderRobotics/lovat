@@ -88,7 +88,17 @@ function buildRunUrl(env: NodeJS.ProcessEnv): string | undefined {
   const runId = env.GITHUB_RUN_ID;
 
   if (!server || !repository || !runId) return undefined;
-  return `${server.replace(/\/+$/, "")}/${repository}/actions/runs/${runId}`;
+  return `${trimTrailingSlashes(server)}/${repository}/actions/runs/${runId}`;
+}
+
+export function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+
+  while (end > 0 && value.charAt(end - 1) === "/") {
+    end -= 1;
+  }
+
+  return value.slice(0, end);
 }
 
 const entryPoint = process.argv[1];
