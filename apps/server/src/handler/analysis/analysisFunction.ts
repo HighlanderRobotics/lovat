@@ -6,7 +6,7 @@ import { AnalysisContext } from "./analysisConstants.js";
 import { User } from "@lovat/db";
 
 // Bump when formulas change so existing Redis entries cannot return old results.
-export const analysisCacheVersion = "v2";
+export const analysisCacheVersion = "v3";
 
 export type CreateKeyResult = {
   key: string[];

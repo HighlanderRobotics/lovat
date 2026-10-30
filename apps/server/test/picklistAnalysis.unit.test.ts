@@ -214,6 +214,7 @@ it.each([true, false])(
       by: ["endgameClimb"],
       _count: { _all: true },
       where: {
+        reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: 254,
           ...(filtered ? { tournamentKey: { in: ["2026test"] } } : {}),

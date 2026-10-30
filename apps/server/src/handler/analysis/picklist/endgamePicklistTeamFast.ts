@@ -1,6 +1,7 @@
 import { EndgameClimb, Prisma } from "@lovat/db";
 import prismaClient from "../../../prismaClient.js";
 import { defaultEndgamePoints, endgameToPoints } from "../analysisConstants.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Number of endgame possibilities that result in points earned (essentially, successes)
 const numPointResults: number = Object.keys(EndgameClimb).reduce((acc, cur) => {
@@ -32,6 +33,7 @@ export const endgamePicklistTeamFast = async (
         _all: true,
       },
       where: {
+        ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: team,
           matchType: { not: "PRACTICE" },

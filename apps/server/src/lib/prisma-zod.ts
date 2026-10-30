@@ -122,6 +122,7 @@ export const ScoutReportSchema = z.object({
   driverAbility: z.number().int(),
   scouterUuid: z.string().uuid(),
   robotBrokeDescription: z.string().optional().nullable(),
+  reliability: z.enum(["UNVERIFIED", "VERIFIED", "FLAGGED", "BAD_REPORT"]),
   // year-specific fields
   accuracy: z.number().int(),
   beached: BeachedSchema,
