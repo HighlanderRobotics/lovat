@@ -159,30 +159,57 @@ describe("OpenRouterClient", () => {
     expect(body.response_format).toBeUndefined();
   });
 
-  it("rejects empty responses and output-limit truncation", async () => {
-    const empty = scriptedFetch([
-      jsonResponse({ choices: [{ message: { content: "" } }] }),
+  it("retries empty responses before succeeding", async () => {
+    const { sleep, delays } = noSleep();
+    const { fetchImpl, calls } = scriptedFetch([
+      completion(""),
+      completion(modelResponse([])),
     ]);
+
+    const result = await client(fetchImpl, { maxRetries: 1, sleep }).review({
+      systemPrompt: "s",
+      userPrompt: "u",
+      batchIndex: 0,
+      batchCount: 1,
+    });
+
+    expect(result.content).toContain('"findings":[]');
+    expect(calls).toHaveLength(2);
+    expect(delays).toHaveLength(1);
+  });
+
+  it("rejects empty responses after retries are exhausted", async () => {
+    const { sleep } = noSleep();
+    const { fetchImpl, calls } = scriptedFetch([
+      completion(""),
+      completion(""),
+    ]);
+
     await expect(
-      client(empty.fetchImpl).review({
+      client(fetchImpl, { maxRetries: 1, sleep }).review({
         systemPrompt: "s",
         userPrompt: "u",
         batchIndex: 0,
         batchCount: 1,
       }),
-    ).rejects.toMatchObject({ code: "empty_response" });
+    ).rejects.toMatchObject({ code: "empty_response", retryable: true });
+    expect(calls).toHaveLength(2);
+  });
 
-    const truncated = scriptedFetch([
+  it("rejects output-limit truncation without retrying", async () => {
+    const { fetchImpl, calls } = scriptedFetch([
       completion(modelResponse([]), { finishReason: "length" }),
     ]);
+
     await expect(
-      client(truncated.fetchImpl).review({
+      client(fetchImpl).review({
         systemPrompt: "s",
         userPrompt: "u",
         batchIndex: 0,
         batchCount: 1,
       }),
     ).rejects.toMatchObject({ code: "output_limit" });
+    expect(calls).toHaveLength(1);
   });
 
   it("handles error payloads returned with HTTP 200", async () => {

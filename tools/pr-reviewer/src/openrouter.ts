@@ -184,9 +184,17 @@ export class OpenRouterClient implements ReviewerModel {
       const content = extractContent(choice?.message?.content);
 
       if (content === null || content.trim().length === 0) {
-        throw new OpenRouterError("OpenRouter returned an empty response.", {
+        const error = new OpenRouterError("OpenRouter returned an empty response.", {
+          retryable: true,
           code: "empty_response",
         });
+
+        if (attempts <= this.options.maxRetries) {
+          await this.waitBeforeRetry(attempts - 1);
+          continue;
+        }
+
+        throw error;
       }
 
       if (choice?.finish_reason === "length") {

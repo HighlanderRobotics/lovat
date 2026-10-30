@@ -1,4 +1,9 @@
-export const REVIEW_ACTIONS = new Set(["opened", "synchronize", "reopened"]);
+export const REVIEW_ACTIONS = new Set([
+  "opened",
+  "synchronize",
+  "reopened",
+  "ready_for_review",
+]);
 
 export interface PullRequestEventContext {
   action: string;
