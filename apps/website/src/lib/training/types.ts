@@ -9,6 +9,7 @@ export type Video = {
 	teamNumber: number;
 	startOffsetSeconds: number;
 	durationSeconds: number;
+	postMatchSeconds?: number;
 	alliance: string;
 };
 export type Participant = {

@@ -52,6 +52,7 @@ export type ReportState = {
   restartMatch: () => void;
   initializeMatchTimestamp: (startTime?: number) => void;
   endMatch: () => void;
+  endMatchAt: (endTime: number) => void;
 
   setStartPosition: (value: StartingPosition) => void;
   setGamePhase: (value: GamePhase) => void;

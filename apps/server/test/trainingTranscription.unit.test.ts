@@ -5,6 +5,8 @@ import report from "./fixtures/training/118-johnson-qual-19.report.json";
 import { reportSchema } from "../src/handler/collection/reportSchema.js";
 import { EventActionMap } from "../src/handler/manager/managerConstants.js";
 
+import builtInReport from "../src/handler/training/johnson118.report.json";
+
 describe("118 Johnson qualification 19 transcription", () => {
   it("encodes observed post-match fields using the real report contract", () => {
     expect(reportSchema.parse(report)).toEqual(report);
@@ -101,4 +103,8 @@ describe("118 Johnson qualification 19 transcription", () => {
     });
     expect(report.events.some((event) => event[2] === 7)).toBe(false);
   });
+});
+
+it("ships exactly the reviewed Johnson answer key in Server source", () => {
+  expect(builtInReport).toEqual(report);
 });

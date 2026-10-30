@@ -21,6 +21,10 @@
 	let session: Session | null = null;
 	let stopConnection: (() => void) | undefined;
 	let connectionError = '';
+	let pendingInterrupt: number | null = null,
+		lastPlaybackSeconds = 0,
+		interruptInFlight = false,
+		restoring = false;
 	let disposed = false;
 	$: canQueue =
 		!!session?.participants.length && session.participants.every((person) => person.connected);
@@ -59,7 +63,10 @@
 			body: body === undefined ? undefined : JSON.stringify(body)
 		});
 		const data = response.status === 204 ? null : await response.json();
-		if (!response.ok) throw new Error(data?.displayError ?? 'Could not update training.');
+		if (!response.ok)
+			throw Object.assign(new Error(data?.displayError ?? 'Could not update training.'), {
+				status: response.status
+			});
 		return data;
 	}
 	async function perform(action: () => Promise<void>) {
@@ -76,7 +83,10 @@
 	}
 	function save() {
 		if (credentials)
-			sessionStorage.setItem('lovat-training', JSON.stringify({ credentials, step }));
+			sessionStorage.setItem(
+				'lovat-training',
+				JSON.stringify({ credentials, step, pendingInterrupt, lastPlaybackSeconds })
+			);
 	}
 	function closeSocket() {
 		stopConnection?.();
@@ -92,7 +102,20 @@
 			credentials: active,
 			api,
 			onSnapshot: (snapshot) => {
-				if (!disposed && credentials?.uuid === active.uuid) session = snapshot;
+				if (!disposed && credentials?.uuid === active.uuid) {
+					if (restoring && snapshot.status === 'PLAYING' && pendingInterrupt === null) {
+						pendingInterrupt = lastPlaybackSeconds;
+						save();
+					}
+					restoring = false;
+					session = snapshot;
+					if (pendingInterrupt !== null) {
+						if (snapshot.status === 'INTERRUPTED' || snapshot.status === 'ENDED') {
+							pendingInterrupt = null;
+							save();
+						} else void flushInterrupt().catch(() => {});
+					}
+				}
 			},
 			onConnected: (value) => {
 				if (!disposed && credentials?.uuid === active.uuid) connected = value;
@@ -102,10 +125,44 @@
 			}
 		});
 	}
-	async function control(action: string) {
+	async function flushInterrupt() {
+		if (pendingInterrupt === null || interruptInFlight || !credentials) return;
+		const uuid = credentials.uuid,
+			playbackSeconds = pendingInterrupt;
+		interruptInFlight = true;
+		try {
+			const updated = await api(`sessions/${uuid}/control`, 'POST', {
+				action: 'interrupt',
+				playbackSeconds
+			});
+			if (credentials?.uuid === uuid) {
+				session = updated;
+				pendingInterrupt = null;
+				save();
+			}
+		} catch (e) {
+			error = 'Reconnecting to save the playback interruption.';
+			throw e;
+		} finally {
+			interruptInFlight = false;
+		}
+	}
+	function playbackProgress(seconds: number) {
+		if (Math.floor(seconds) > Math.floor(lastPlaybackSeconds)) {
+			lastPlaybackSeconds = seconds;
+			save();
+		}
+	}
+	async function control(action: string, playbackSeconds?: number) {
+		if (action === 'interrupt') {
+			pendingInterrupt = playbackSeconds ?? lastPlaybackSeconds;
+			save();
+			await flushInterrupt();
+			return;
+		}
 		if (!credentials) throw new Error('Start a training session first.');
 		const uuid = credentials.uuid;
-		const updated = await api(`sessions/${uuid}/control`, 'POST', { action });
+		const updated = await api(`sessions/${uuid}/control`, 'POST', { action, playbackSeconds });
 		if (credentials?.uuid === uuid) {
 			session = updated;
 			error = '';
@@ -114,6 +171,9 @@
 	async function createSession() {
 		const created = await api('sessions', 'POST', { videoUuid: selected });
 		credentials = created;
+		pendingInterrupt = null;
+		lastPlaybackSeconds = 0;
+		restoring = false;
 		try {
 			session = await api(`sessions/${created.uuid}`);
 			qr = await QRCode.toDataURL(
@@ -148,6 +208,9 @@
 		credentials = null;
 		session = null;
 		qr = '';
+		pendingInterrupt = null;
+		lastPlaybackSeconds = 0;
+		restoring = false;
 		error = '';
 		step = 'select';
 		sessionStorage.removeItem('lovat-training');
@@ -163,7 +226,10 @@
 	onMount(() => {
 		disposed = false;
 		void perform(async () => {
-			videos = await api('videos');
+			videos = await api('videos').catch((e) => {
+				if (!sessionStorage.getItem('lovat-training')) throw e;
+				return [];
+			});
 			selected = videos[0]?.uuid ?? '';
 			const stored = sessionStorage.getItem('lovat-training');
 			if (stored) {
@@ -172,18 +238,33 @@
 					if (!saved.credentials?.uuid || !saved.credentials?.browserToken)
 						throw new Error('Invalid saved session.');
 					credentials = saved.credentials;
+					pendingInterrupt =
+						typeof saved.pendingInterrupt === 'number' ? saved.pendingInterrupt : null;
+					lastPlaybackSeconds =
+						typeof saved.lastPlaybackSeconds === 'number' ? saved.lastPlaybackSeconds : 0;
+					restoring = true;
 					session = await api(`sessions/${credentials!.uuid}`);
 					step = saved.step === 'summary' ? 'summary' : 'session';
 					if (session!.status === 'PLAYING') {
-						await control('interrupt');
-						error = 'Reloading interrupted playback. Start a new session.';
+						await control('interrupt', pendingInterrupt ?? lastPlaybackSeconds);
+						error =
+							(session as Session | null)?.status === 'INTERRUPTED'
+								? 'Reloading interrupted playback. Start a new session.'
+								: '';
 					}
 					qr = await QRCode.toDataURL(
 						`lovat-collection://training/join?session=${credentials!.uuid}&token=${credentials!.pairingToken}`,
 						{ width: 280, margin: 2 }
 					);
 					connect();
-				} catch {
+				} catch (failure) {
+					const status = (failure as { status?: number }).status;
+					if (credentials && ![401, 403, 404, 410].includes(status ?? 0)) {
+						step = 'session';
+						error = 'Reconnecting to the saved session.';
+						connect();
+						return;
+					}
 					credentials = null;
 					session = null;
 					sessionStorage.removeItem('lovat-training');
@@ -254,6 +335,14 @@
 						><Button disabled={busy} on:click={() => perform(newSession)}>New session</Button>
 					</div>
 				</section>
+			{:else if pendingInterrupt !== null}
+				<section class="interrupted">
+					<h1>Saving playback interruption</h1>
+					<p>Reconnect to finish saving this session.</p>
+					<Button disabled={interruptInFlight} on:click={() => perform(flushInterrupt)}
+						>Retry</Button
+					>
+				</section>
 			{:else if session.status === 'LOBBY'}
 				<section class="lobby">
 					<div class="scouts">
@@ -286,11 +375,13 @@
 							url={session.video.videoLink}
 							offset={session.video.startOffsetSeconds}
 							duration={session.video.durationSeconds}
+							postMatchSeconds={session.video.postMatchSeconds ?? 15}
+							onProgress={playbackProgress}
 							playEnabled={canStart && connected}
 							showPlay={session.status === 'ARMED'}
 							onPlaying={() => control('play')}
 							onEnded={() => control('end')}
-							onInterrupted={() => control('interrupt')}
+							onInterrupted={(playbackSeconds) => control('interrupt', playbackSeconds)}
 							onError={(message) => (error = message)}
 						/>
 					</div>

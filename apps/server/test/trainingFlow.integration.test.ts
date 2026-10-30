@@ -29,6 +29,8 @@ const { attachTrainingSockets } =
   await import("../src/handler/training/trainingSockets.js");
 const { reportEvents } = await import("../src/handler/training/gradeReport.js");
 const app = express();
+// Each fixture represents a separate browser; retain the real rate limiter.
+app.set("trust proxy", "loopback");
 app.use(express.json());
 app.use("/collection", routes);
 const server = app.listen(0, "127.0.0.1");
@@ -52,14 +54,20 @@ const call = (path: string, body: object, scout = scouts[0], teamCode = code) =>
     .set("X-Scouter-UUID", scout)
     .set("X-Device-Id", `test-${scout}`)
     .send(body);
-const host = (uuid: string, token: string, action: string) =>
+const host = (
+  uuid: string,
+  token: string,
+  action: string,
+  playbackSeconds?: number,
+) =>
   request(app)
     .post(`/collection/training/sessions/${uuid}/control`)
     .set("Authorization", `Bearer ${token}`)
-    .send({ action });
+    .send({ action, playbackSeconds });
 async function create() {
   const result = await request(app)
     .post("/collection/training/sessions")
+    .set("X-Forwarded-For", `192.0.2.${sessions.length + 1}`)
     .send({ videoUuid });
   expect(result.status).toBe(201);
   sessions.push(result.body.uuid);
@@ -269,9 +277,9 @@ describe("paired training flow", () => {
         )
       ).status,
     ).toBe(403);
-    expect((await host(session.uuid, session.browserToken, "arm")).status).toBe(
-      409,
-    );
+    expect(
+      (await host(session.uuid, session.browserToken, "play")).status,
+    ).toBe(409);
   });
   it("loads the same robot for two scouts and grades a delayed upload exactly once", async () => {
     const session = await create();
@@ -295,7 +303,7 @@ describe("paired training flow", () => {
         })
       ).status,
     ).toBe(409);
-    const startTime = Date.now() - 170_000;
+    const startTime = Date.now() - 190_000;
     await db.trainingSession.update({
       where: { uuid: session.uuid },
       data: { startedAt: new Date(startTime) },
@@ -371,6 +379,176 @@ describe("paired training flow", () => {
       expect(snapshot).not.toHaveProperty("browserTokenHash");
       ws.close();
       await once(ws, "close");
+    },
+  );
+});
+
+describe("training preview, timing, and reconnect regression", () => {
+  const deviceSnapshot = (
+    session: Awaited<ReturnType<typeof create>>,
+    attempt: Awaited<ReturnType<typeof join>>,
+    token = attempt.attemptToken,
+  ) =>
+    request(app)
+      .get(
+        `/collection/training/sessions/${session.uuid}?attempt=${attempt.attemptUuid}`,
+      )
+      .set("Authorization", `Bearer ${token}`);
+  it("shows the preview before selecting a pose, but rejects Play until ready and connected", async () => {
+    const s = await create(),
+      a = await join(s);
+    expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(200);
+    expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(200);
+    expect((await host(s.uuid, s.browserToken, "play")).status).toBe(409);
+    await load(s, a, randomUUID()); // Ready is allowed after the host opens the preview.
+    await db.trainingAttempt.update({
+      where: { uuid: a.attemptUuid },
+      data: { lastSeenAt: new Date(Date.now() - 30_000) },
+    });
+    expect((await host(s.uuid, s.browserToken, "play")).status).toBe(409);
+    const refreshed = await deviceSnapshot(s, a);
+    expect(refreshed.status).toBe(200);
+    expect(refreshed.body.participants[0].connected).toBe(true);
+    expect(refreshed.body.video.postMatchSeconds).toBe(15);
+    expect(refreshed.body.video.durationSeconds).toBe(163);
+    const played = await host(s.uuid, s.browserToken, "play");
+    expect(played.status).toBe(200);
+    expect((await host(s.uuid, s.browserToken, "play")).body.startedAt).toBe(
+      played.body.startedAt,
+    );
+  });
+  it("cannot refresh another attempt's heartbeat with the host token or a foreign token", async () => {
+    const s = await create(),
+      a = await join(s);
+    const old = new Date(Date.now() - 30_000);
+    await db.trainingAttempt.update({
+      where: { uuid: a.attemptUuid },
+      data: { lastSeenAt: old },
+    });
+    expect((await deviceSnapshot(s, a, s.browserToken)).status).toBe(404);
+    expect((await deviceSnapshot(s, a, "wrong")).status).toBe(404);
+    expect(
+      (
+        await db.trainingAttempt.findUniqueOrThrow({
+          where: { uuid: a.attemptUuid },
+        })
+      ).lastSeenAt,
+    ).toEqual(old);
+    await db.trainingSession.update({
+      where: { uuid: s.uuid },
+      data: { expiresAt: new Date(Date.now() - 1) },
+    });
+    expect((await deviceSnapshot(s, a)).status).toBe(410);
+  });
+  it("keeps scoring duration separate from the fifteen-second video tail", async () => {
+    const s = await create(),
+      a = await join(s);
+    await load(s, a, randomUUID());
+    await host(s.uuid, s.browserToken, "arm");
+    await host(s.uuid, s.browserToken, "play");
+    const start = Date.now() - 164_000;
+    await db.trainingSession.update({
+      where: { uuid: s.uuid },
+      data: { startedAt: new Date(start) },
+    });
+    expect((await host(s.uuid, s.browserToken, "end")).status).toBe(409);
+    await db.trainingSession.update({
+      where: { uuid: s.uuid },
+      data: { startedAt: new Date(start - 20_000) },
+    });
+    const ended = await host(s.uuid, s.browserToken, "end");
+    expect(ended.status).toBe(200);
+    expect(ended.body.endedAt).toBe(start - 20_000 + 163_000);
+    expect((await host(s.uuid, s.browserToken, "end")).body.endedAt).toBe(
+      ended.body.endedAt,
+    );
+    expect((await host(s.uuid, s.browserToken, "play")).status).toBe(409);
+  });
+  it.each([
+    [100, "INTERRUPTED"],
+    [165, "ENDED"],
+  ] as const)(
+    "replays an interruption observed at %s seconds as %s, without using delivery time",
+    async (seconds, status) => {
+      const s = await create(),
+        a = await join(s);
+      await load(s, a, randomUUID());
+      await host(s.uuid, s.browserToken, "arm");
+      await host(s.uuid, s.browserToken, "play");
+      const start = Date.now() - 190_000;
+      await db.trainingSession.update({
+        where: { uuid: s.uuid },
+        data: { startedAt: new Date(start) },
+      });
+      const result = await host(s.uuid, s.browserToken, "interrupt", seconds);
+      expect(result.status).toBe(200);
+      expect(result.body.status).toBe(status);
+      const retry = await host(
+        s.uuid,
+        s.browserToken,
+        "interrupt",
+        status === "INTERRUPTED" ? 165 : 100,
+      );
+      expect(retry.body.status).toBe(status);
+      if (status === "ENDED") expect(result.body.endedAt).toBe(start + 163_000);
+    },
+  );
+  it.each(["LOBBY", "ARMED", "PLAYING", "ENDED", "INTERRUPTED"] as const)(
+    "reauthenticates the same attempt over HTTP and WebSocket in %s",
+    async (status) => {
+      const s = await create(),
+        a = await join(s),
+        b = await join(s, scouts[1]);
+      const startedAt = ["PLAYING", "ENDED"].includes(status)
+        ? new Date(Date.now() - 170_000)
+        : null;
+      await db.trainingSession.update({
+        where: { uuid: s.uuid },
+        data: {
+          status,
+          startedAt,
+          endedAt:
+            status === "ENDED"
+              ? new Date(startedAt!.getTime() + 163_000)
+              : null,
+        },
+      });
+      for (let reconnect = 0; reconnect < 2; reconnect++) {
+        await db.trainingAttempt.update({
+          where: { uuid: a.attemptUuid },
+          data: { lastSeenAt: new Date(Date.now() - 30_000) },
+        });
+        const http = await deviceSnapshot(s, a);
+        expect(http.status).toBe(200);
+        expect(http.body.status).toBe(status);
+        expect(http.body.participants).toHaveLength(1);
+        expect(http.body.participants[0].uuid).toBe(a.attemptUuid);
+        const address = server.address();
+        if (!address || typeof address === "string")
+          throw new Error("No server");
+        const ws = new WebSocket(
+          `ws://127.0.0.1:${address.port}/collection/training/socket`,
+        );
+        await once(ws, "open");
+        const message = once(ws, "message");
+        ws.send(
+          JSON.stringify({
+            sessionUuid: s.uuid,
+            attemptUuid: a.attemptUuid,
+            token: a.attemptToken,
+          }),
+        );
+        const [raw] = await message;
+        const value = JSON.parse(raw.toString());
+        expect(value.status).toBe(status);
+        expect(value.startedAt).toBe(startedAt?.getTime() ?? null);
+        expect(JSON.stringify(value)).not.toContain(b.attemptUuid);
+        ws.terminate();
+        await once(ws, "close");
+      }
+      expect(
+        await db.trainingAttempt.count({ where: { sessionUuid: s.uuid } }),
+      ).toBe(2);
     },
   );
 });

@@ -6,7 +6,7 @@ import {
 } from "../src/handler/training/gradeReport.js";
 
 const answer = { ...fixture, events: reportEvents(fixture.events) };
-describe("training-v2 grading", () => {
+describe("training-v3 grading", () => {
   it("gives the transcribed 118 report a perfect score against itself", () => {
     const result = compareTrainingReports(answer, answer);
     expect(result.overallScore).toBe(100);
@@ -48,9 +48,9 @@ describe("training-v2 grading", () => {
   it("penalizes wrong per-run quantities even when the total is correct", () => {
     const events = answer.events.map((event) =>
       event.time === 8
-        ? { ...event, quantity: 10 }
+        ? { ...event, quantity: 1 }
         : event.time === 17
-          ? { ...event, quantity: 54 }
+          ? { ...event, quantity: 63 }
           : event,
     );
     const result = compareTrainingReports({ ...answer, events }, answer);
@@ -113,12 +113,12 @@ it("allows small fuel-count estimates and explains count and timing differences"
   };
   const result = compareTrainingReports(actual, answer);
   expect(result.overallScore).toBe(100);
-  expect(result.breakdown.rubricVersion).toBe("training-v2");
+  expect(result.breakdown.rubricVersion).toBe("training-v3");
   expect(result.breakdown.quantities[0].differences[0]).toMatchObject({
     time: 8,
     expected: 36,
     actual: 39,
-    allowance: 6,
+    allowance: 30,
   });
   expect(result.breakdown.timeline.differences[0]).toMatchObject({
     expectedTime: 8,
@@ -156,3 +156,61 @@ it("records missing and extra events separately and never grants free unexpected
     },
   ]);
 });
+
+// The same action-specific allowance applies to totals and matched runs.
+it.each([
+  ["STOP_SCORING", 30],
+  ["STOP_FEEDING", 10],
+] as const)(
+  "allows exactly ±%s / %s fuel, then penalizes one beyond either boundary",
+  (action, allowance) => {
+    const expected = {
+      events: [{ action, position: "NONE", time: 10, quantity: 100 }],
+    };
+    for (const difference of [-allowance, allowance]) {
+      const result = compareTrainingReports(
+        { events: [{ ...expected.events[0], quantity: 100 + difference }] },
+        expected,
+      );
+      const item = result.breakdown.quantities.find(
+        (q) => q.action === action,
+      )!;
+      expect(item.score).toBe(1);
+      expect(item.allowance).toBe(allowance);
+      expect(item.differences[0].allowance).toBe(allowance);
+    }
+    for (const difference of [-allowance - 1, allowance + 1]) {
+      const result = compareTrainingReports(
+        { events: [{ ...expected.events[0], quantity: 100 + difference }] },
+        expected,
+      );
+      expect(
+        result.breakdown.quantities.find((q) => q.action === action)!.score,
+      ).toBeLessThan(1);
+    }
+  },
+);
+it.each(["STOP_SCORING", "STOP_FEEDING"])(
+  "still penalizes missing %s runs and fuel invented for a zero-count run",
+  (action) => {
+    const event = { action, position: "NONE", time: 10, quantity: 1 };
+    expect(
+      compareTrainingReports(
+        { events: [] },
+        { events: [event] },
+      ).breakdown.quantities.find((q) => q.action === action)!.score,
+    ).toBe(0);
+    expect(
+      compareTrainingReports(
+        { events: [{ ...event, quantity: 0 }] },
+        { events: [event] },
+      ).breakdown.quantities.find((q) => q.action === action)!.score,
+    ).toBe(0);
+    expect(
+      compareTrainingReports(
+        { events: [event] },
+        { events: [{ ...event, quantity: 0 }] },
+      ).breakdown.quantities.find((q) => q.action === action)!.score,
+    ).toBe(0);
+  },
+);

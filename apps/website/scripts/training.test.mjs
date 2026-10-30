@@ -21,12 +21,14 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 function hostFixture() {
 	const credentials = {
 		uuid: 'session',
+		status: 'LOBBY',
 		browserToken: 'browser-secret',
 		pairingToken: 'pairing-secret'
 	};
 	let time = 1000;
 	let response = {
 		uuid: 'session',
+		status: 'LOBBY',
 		serverTime: 1000,
 		video: { teamNumber: 118 },
 		participants: [{ ready: true, connected: true }]
@@ -140,7 +142,13 @@ test('healthy socket snapshots suppress redundant polls but silence enables fall
 	try {
 		await settle();
 		host.sockets[0].onmessage({
-			data: JSON.stringify({ uuid: 'session', serverTime: 2000, video: {}, participants: [] })
+			data: JSON.stringify({
+				uuid: 'session',
+				status: 'LOBBY',
+				serverTime: 2000,
+				video: {},
+				participants: []
+			})
 		});
 		const before = host.calls.length;
 		host.setTime(2000);
@@ -148,7 +156,13 @@ test('healthy socket snapshots suppress redundant polls but silence enables fall
 		await settle();
 		assert.equal(host.calls.length, before);
 		host.setTime(5001);
-		host.setResponse({ uuid: 'session', serverTime: 5001, video: {}, participants: [] });
+		host.setResponse({
+			uuid: 'session',
+			status: 'LOBBY',
+			serverTime: 5001,
+			video: {},
+			participants: []
+		});
 		host.repeats[0].callback();
 		await settle();
 		assert.equal(host.calls.length, before + 1);
@@ -174,13 +188,21 @@ test('late polls cannot roll back newer playback state', async () => {
 		host.sockets[0].onmessage({
 			data: JSON.stringify({
 				uuid: 'session',
+				status: 'LOBBY',
 				serverTime: 3000,
 				video: {},
 				participants: [],
 				status: 'PLAYING'
 			})
 		});
-		finish({ uuid: 'session', serverTime: 2000, video: {}, participants: [], status: 'LOBBY' });
+		finish({
+			uuid: 'session',
+			status: 'LOBBY',
+			serverTime: 2000,
+			video: {},
+			participants: [],
+			status: 'LOBBY'
+		});
 		await settle();
 		assert.equal(host.snapshots.at(-1).status, 'PLAYING');
 	} finally {
@@ -202,7 +224,7 @@ test('closing the host cancels timers and ignores pending responses', async () =
 	await settle();
 	const before = host.snapshots.length;
 	host.stop();
-	finish({ uuid: 'session', serverTime: 4000, video: {}, participants: [] });
+	finish({ uuid: 'session', status: 'LOBBY', serverTime: 4000, video: {}, participants: [] });
 	await settle();
 	assert.equal(host.snapshots.length, before);
 	assert.equal(host.repeats[0].stopped, true);
@@ -354,15 +376,15 @@ test('grade details explain tolerances, counts, post-match answers and missed ev
 			score: {
 				overallScore: 87,
 				breakdown: {
-					rubricVersion: 'training-v2',
+					rubricVersion: 'training-v3',
 					quantities: [
 						{
 							action: 'STOP_SCORING',
 							expected: 36,
 							actual: 39,
-							allowance: 6,
+							allowance: 30,
 							score: 1,
-							differences: [{ time: 8, expected: 36, actual: 39, allowance: 6 }]
+							differences: [{ time: 8, expected: 36, actual: 39, allowance: 30 }]
 						}
 					],
 					timeline: {
@@ -402,7 +424,7 @@ test('grade details explain tolerances, counts, post-match answers and missed ev
 	});
 	for (const text of [
 		'87%',
-		'training-v2',
+		'training-v3',
 		'±5s',
 		'allowance ±6',
 		'Missing event',
@@ -426,3 +448,53 @@ test('legacy score details remain readable without new feedback metadata', () =>
 	assert(body.includes('training-v1'));
 	assert(body.includes('newly graded reports'));
 });
+
+for (const phase of ['LOBBY', 'ARMED', 'PLAYING', 'ENDED', 'INTERRUPTED'])
+	test(`host reconnect in ${phase} preserves lifecycle and rejects backward snapshots`, async () => {
+		const h = hostFixture();
+		try {
+			await settle();
+			const current = {
+				uuid: 'session',
+				status: phase,
+				serverTime: 5000,
+				video: {},
+				participants: []
+			};
+			h.setResponse(current);
+			h.sockets[0].onmessage({ data: JSON.stringify(current) });
+			h.sockets[0].onclose({ code: 1006 });
+			await settle();
+			h.retries.at(-1).callback();
+			await settle();
+			h.sockets[1].onmessage({ data: JSON.stringify({ ...current, serverTime: 6000 }) });
+			h.sockets[1].onmessage({
+				data: JSON.stringify({ ...current, status: 'LOBBY', serverTime: 7000 })
+			});
+			assert.equal(h.snapshots.at(-1).status, phase);
+			assert.equal(h.connected.at(-1), true);
+		} finally {
+			h.stop();
+		}
+	});
+for (const status of [401, 403, 404, 410])
+	test(`host stops reconnect attempts on HTTP ${status}`, async () => {
+		const h = hostFixture();
+		try {
+			await settle();
+			h.setTime(7000);
+			h.setRead(async () => {
+				throw Object.assign(new Error('denied'), { status });
+			});
+			h.repeats[0].callback();
+			await settle();
+			assert.equal(h.connected.at(-1), false);
+			const count = h.calls.length;
+			h.repeats[0].callback();
+			h.retries.forEach((t) => t.callback());
+			await settle();
+			assert.equal(h.calls.length, count);
+		} finally {
+			h.stop();
+		}
+	});

@@ -35,6 +35,8 @@ export function connectTrainingHost(options: Options): Cancel {
 		socketHealthy = false;
 	let lastSnapshot: number | null = null;
 	let lastServerTime = -Infinity;
+	let lastStatus = '';
+	const phases = ['LOBBY', 'ARMED', 'PLAYING', 'ENDED', 'INTERRUPTED'];
 	let socket: WebSocket | undefined;
 	let cancelRetry: Cancel | undefined;
 
@@ -48,12 +50,20 @@ export function connectTrainingHost(options: Options): Cancel {
 			session.uuid !== credentials.uuid ||
 			!Array.isArray(session.participants) ||
 			!session.video ||
+			!phases.includes(session.status ?? '') ||
 			typeof session.serverTime !== 'number' ||
 			!Number.isFinite(session.serverTime)
 		)
 			throw new Error('Could not read the training session.');
 		// A slow HTTP response must not roll playback back after a newer socket frame.
-		if (session.serverTime < lastServerTime) return;
+		if (
+			session.serverTime < lastServerTime ||
+			(typeof session.status === 'string' &&
+				phases.indexOf(session.status) < phases.indexOf(lastStatus)) ||
+			(['ENDED', 'INTERRUPTED'].includes(lastStatus) && session.status !== lastStatus)
+		)
+			return;
+		if (typeof session.status === 'string') lastStatus = session.status;
 		lastServerTime = session.serverTime;
 		lastSnapshot = now();
 		onSnapshot(session as Session);
@@ -69,8 +79,17 @@ export function connectTrainingHost(options: Options): Cancel {
 			const session = await api(`sessions/${credentials.uuid}`);
 			if (!stopped && !terminal) accept(session);
 		} catch (error) {
-			if (!stopped && !terminal && !fresh())
-				onError(error instanceof Error ? error.message : 'Could not refresh training.');
+			if (!stopped && !terminal) {
+				const status = (error as { status?: number }).status;
+				if ([401, 403, 404, 410].includes(status ?? 0)) {
+					terminal = true;
+					cancelRetry?.();
+					detach();
+					onConnected(false);
+					onError('Session expired or unavailable. Start a new session.');
+				} else if (!fresh())
+					onError(error instanceof Error ? error.message : 'Could not refresh training.');
+			}
 		} finally {
 			polling = false;
 		}
@@ -112,6 +131,7 @@ export function connectTrainingHost(options: Options): Cancel {
 				} catch {
 					socketHealthy = false;
 					void poll();
+					retry();
 				}
 			};
 			active.onclose = ({ code }) => {
@@ -130,6 +150,7 @@ export function connectTrainingHost(options: Options): Cancel {
 				if (!stopped && socket === active) {
 					socketHealthy = false;
 					void poll();
+					retry();
 				}
 			};
 		} catch {

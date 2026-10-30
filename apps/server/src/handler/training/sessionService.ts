@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import db from "../../prismaClient.js";
+import { TRAINING_POST_ROLL_SECONDS } from "./trainingTiming.js";
 import { Prisma } from "@lovat/db";
 
 export const token = (): string => randomBytes(32).toString("base64url");
@@ -55,6 +56,7 @@ export type TrainingVideoDetails = {
   alliance: string;
   startOffsetSeconds: number;
   durationSeconds: number;
+  postMatchSeconds: number;
 };
 export type TrainingSnapshot = {
   uuid: string;
@@ -129,6 +131,7 @@ export function videoDetails(
     alliance: video.alliance,
     startOffsetSeconds: video.startOffsetSeconds,
     durationSeconds: video.durationSeconds,
+    postMatchSeconds: TRAINING_POST_ROLL_SECONDS,
   };
 }
 

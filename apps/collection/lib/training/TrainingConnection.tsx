@@ -2,18 +2,19 @@ import { useEffect } from "react";
 import { router } from "expo-router";
 import { useUrlPrefix } from "../lovatAPI/lovatAPI";
 import { useReportStateStore } from "../collection/reportStateStore";
-import { useTrainingSessionStore, TrainingSnapshot } from "./trainingStore";
+import { useTrainingSessionStore } from "./trainingStore";
+import {
+  connectTrainingDevice,
+  trainingTimelinePlan,
+} from "./deviceConnection";
 
 export function TrainingConnection() {
   const credentials = useTrainingSessionStore((state) => state.credentials);
   useEffect(() => {
     if (!credentials) return;
-    let disposed = false;
-    let socket: WebSocket;
-    let reconnect: ReturnType<typeof setTimeout>;
-    let endTimer: ReturnType<typeof setTimeout>;
+    let endTimer: ReturnType<typeof setTimeout> | undefined;
     const set = useTrainingSessionStore.getState().set;
-    const finish = () => {
+    const finish = (endTime: number) => {
       const report = useReportStateStore.getState();
       if (
         report.uuid !== credentials.reportUuid ||
@@ -21,81 +22,79 @@ export function TrainingConnection() {
         report.meta?.collection?.endTime !== undefined
       )
         return;
-      report.endMatch();
+      report.endMatchAt(endTime);
       router.replace("/game/post-match");
     };
-    const connect = () => {
-      if (disposed) return;
-      const url = new URL(useUrlPrefix.getState().getUrlPrefix());
-      url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-      url.pathname = "/collection/training/socket";
-      socket = new WebSocket(url.toString());
-      socket.onopen = () =>
-        socket.send(
-          JSON.stringify({
-            sessionUuid: credentials.sessionUuid,
-            attemptUuid: credentials.attemptUuid,
-            token: credentials.token,
-          }),
-        );
-      socket.onmessage = ({ data }) => {
-        const snapshot = JSON.parse(data) as TrainingSnapshot;
-        set({ snapshot, connected: true, error: null });
+    const base = useUrlPrefix.getState().getUrlPrefix();
+    const socketUrl = new URL(base);
+    socketUrl.protocol = socketUrl.protocol === "https:" ? "wss:" : "ws:";
+    socketUrl.pathname = "/collection/training/socket";
+    socketUrl.search = "";
+    const stop = connectTrainingDevice({
+      credentials,
+      socketUrl: socketUrl.toString(),
+      fetchSnapshot: async () => {
+        const controller = new AbortController(),
+          timeout = setTimeout(() => controller.abort(), 10000);
+        try {
+          const response = await fetch(
+            `${base}/collection/training/sessions/${credentials.sessionUuid}?attempt=${credentials.attemptUuid}`,
+            {
+              headers: { Authorization: `Bearer ${credentials.token}` },
+              signal: controller.signal,
+            },
+          );
+          if (!response.ok)
+            throw Object.assign(new Error("Training snapshot unavailable"), {
+              status: response.status,
+            });
+          return await response.json();
+        } finally {
+          clearTimeout(timeout);
+        }
+      },
+      onConnected: (connected) => set({ connected }),
+      onError: (error) => set({ error }),
+      onSnapshot: (snapshot) => {
+        set({ snapshot });
         const report = useReportStateStore.getState();
         if (report.uuid !== credentials.reportUuid) return;
-        if (snapshot.status === "INTERRUPTED") {
+        const plan = trainingTimelinePlan(
+          snapshot,
+          report.startTimestamp?.getTime(),
+          report.meta?.collection?.endTime !== undefined,
+          Date.now(),
+        );
+        if (plan.startTime !== undefined)
+          report.initializeMatchTimestamp(plan.startTime);
+        if (plan.interrupted) {
           clearTimeout(endTimer);
-          finish();
+          if (plan.endTime !== undefined) finish(plan.endTime);
           set({
             error:
               "Video playback was interrupted. This attempt cannot be submitted. Join a new session.",
           });
           return;
         }
-        if (
-          (snapshot.status === "PLAYING" || snapshot.status === "ENDED") &&
-          snapshot.startedAt !== null &&
-          !report.startTimestamp
-        ) {
-          report.initializeMatchTimestamp(
-            Date.now() - (snapshot.serverTime - snapshot.startedAt),
-          );
-        }
-        const current = useReportStateStore.getState();
-        if (snapshot.status === "ENDED") finish();
-        else if (
-          snapshot.status === "PLAYING" &&
-          current.startTimestamp &&
-          !current.meta?.collection?.endTime
-        ) {
+        if (plan.endTime !== undefined) {
           clearTimeout(endTimer);
-          endTimer = setTimeout(
-            finish,
-            Math.max(
-              0,
-              snapshot.video.durationSeconds * 1000 -
-                (Date.now() - current.startTimestamp.getTime()),
-            ),
-          );
+          finish(plan.endTime);
+        } else if (plan.remainingMs !== undefined) {
+          clearTimeout(endTimer);
+          const start = useReportStateStore
+            .getState()
+            .startTimestamp?.getTime();
+          if (start !== undefined)
+            endTimer = setTimeout(
+              () => finish(start + snapshot.video.durationSeconds * 1000),
+              plan.remainingMs,
+            );
         }
-      };
-      socket.onclose = ({ code }) => {
-        if (disposed) return;
-        set({ connected: false });
-        if (!disposed && code !== 1008) reconnect = setTimeout(connect, 2000);
-        else if (!disposed)
-          set({
-            error: "Training session is unavailable. Join a new session.",
-          });
-      };
-      socket.onerror = () => set({ connected: false });
-    };
-    connect();
+      },
+    });
     return () => {
-      disposed = true;
-      clearTimeout(reconnect);
       clearTimeout(endTimer);
-      socket?.close();
+      stop();
     };
   }, [credentials]);
   return null;

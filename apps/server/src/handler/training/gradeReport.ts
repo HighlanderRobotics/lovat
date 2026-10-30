@@ -17,11 +17,11 @@ const sum = (report: GradingReport, action: string) =>
     .filter((e) => e.action === action)
     .reduce((n, e) => n + (e.quantity ?? 0), 0);
 
-export const TRAINING_RUBRIC = "training-v2";
+export const TRAINING_RUBRIC = "training-v3";
 export const TIMING_TOLERANCE_SECONDS = 5;
-const quantityAllowance = (expected: number) =>
-  expected === 0 ? 0 : Math.max(3, Math.ceil(expected * 0.15));
-const quantityScore = (expected: number, actual: number) =>
+const quantityAllowance = (expected: number, action: string) =>
+  expected === 0 ? 0 : action === "STOP_SCORING" ? 30 : 10;
+const quantityScore = (expected: number, actual: number, action: string) =>
   expected > 0 && actual === 0
     ? 0
     : Math.max(
@@ -29,9 +29,9 @@ const quantityScore = (expected: number, actual: number) =>
         1 -
           Math.max(
             0,
-            Math.abs(expected - actual) - quantityAllowance(expected),
+            Math.abs(expected - actual) - quantityAllowance(expected, action),
           ) /
-            Math.max(expected - quantityAllowance(expected), 1),
+            Math.max(expected - quantityAllowance(expected, action), 1),
       );
 type RunDifference = {
   time: number;
@@ -89,8 +89,8 @@ export function compareTrainingReports(
       differences: [] as RunDifference[],
       expected: target,
       actual: observed,
-      score: quantityScore(target, observed),
-      allowance: quantityAllowance(target),
+      score: quantityScore(target, observed, action),
+      allowance: quantityAllowance(target, action),
     };
   });
   // One-to-one matching penalizes both missed and extra events. Wall-clock report
@@ -137,7 +137,11 @@ export function compareTrainingReports(
             return (
               total +
               (observed
-                ? quantityScore(event.quantity ?? 0, observed.quantity ?? 0)
+                ? quantityScore(
+                    event.quantity ?? 0,
+                    observed.quantity ?? 0,
+                    quantity.action,
+                  )
                 : 0)
             );
           }, 0) / runs.length;
@@ -150,7 +154,7 @@ export function compareTrainingReports(
         time: event.time,
         expected: event.quantity ?? 0,
         actual: pairs.get(event)?.quantity ?? null,
-        allowance: quantityAllowance(event.quantity ?? 0),
+        allowance: quantityAllowance(event.quantity ?? 0, quantity.action),
       }));
     quantity.score = (quantity.score + runScore) / 2;
   }

@@ -107,7 +107,9 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
     syncLifecycle(get());
   },
 
-  endMatch: () => {
+  endMatch: () => get().endMatchAt(Date.now()),
+
+  endMatchAt: (endTime) => {
     const state = get();
     const traversal = state.getAutoTraversalTypes();
     if (state.fieldTraversal === FieldTraversal.None) {
@@ -138,7 +140,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
       set({
         meta: {
           ...meta,
-          collection: { ...meta.collection, endTime: Date.now() },
+          collection: { ...meta.collection, endTime },
         },
       });
       syncLifecycle(get());

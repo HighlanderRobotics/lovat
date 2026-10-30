@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
+  exercise: vi.fn(),
   schedule: vi.fn(),
   clear: vi.fn(),
   listen: vi.fn(),
@@ -7,6 +8,9 @@ const mocks = vi.hoisted(() => ({
   disconnect: vi.fn(),
   sockets: vi.fn(),
   server: { on: vi.fn() },
+}));
+vi.mock("../src/handler/training/builtInExercise.js", () => ({
+  ensureBuiltInTrainingExercise: mocks.exercise,
 }));
 vi.mock("../src/handler/training/trainingSockets.js", () => ({
   attachTrainingSockets: mocks.sockets,
@@ -40,6 +44,10 @@ it.each([undefined, "4321"])(
     vi.stubEnv("PORT", port);
     await import("../src/server.js");
     expect(mocks.sockets).toHaveBeenCalledWith(mocks.server);
+    expect(mocks.exercise).toHaveBeenCalledOnce();
+    expect(mocks.exercise.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.schedule.mock.invocationCallOrder[0],
+    );
     expect(mocks.schedule).toHaveBeenCalledOnce();
     expect(mocks.clear).toHaveBeenCalledOnce();
     expect(mocks.listen).toHaveBeenCalledWith(
@@ -90,3 +98,11 @@ it.each([
     );
   },
 );
+
+it("does not listen or schedule work if the built-in exercise conflicts", async () => {
+  mocks.exercise.mockRejectedValue(new Error("exercise conflict"));
+  await expect(import("../src/server.js")).rejects.toThrow("exercise conflict");
+  expect(mocks.schedule).not.toHaveBeenCalled();
+  expect(mocks.clear).not.toHaveBeenCalled();
+  expect(mocks.listen).not.toHaveBeenCalled();
+});

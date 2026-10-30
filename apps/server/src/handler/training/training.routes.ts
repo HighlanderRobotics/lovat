@@ -15,6 +15,7 @@ import {
 } from "./sessionService.js";
 import { gradeTrainingReport } from "./gradeReport.js";
 import { submitReport } from "../collection/submitReport.js";
+import { trainingPlaybackEnd } from "./trainingTiming.js";
 import { trainingValidationError } from "./validationError.js";
 
 export const trainingRoutes = Router();
@@ -162,19 +163,26 @@ trainingRoutes.post("/train/:session", async (req, res) => {
 });
 
 trainingRoutes.get("/training/sessions/:session", async (req, res) => {
-  res.json(
-    await snapshot(
-      id(req),
-      access(req),
-      typeof req.query.attempt === "string" ? req.query.attempt : undefined,
-    ),
-  );
+  const attempt =
+    typeof req.query.attempt === "string" ? req.query.attempt : undefined;
+  if (attempt) {
+    await readSession(id(req), access(req), attempt);
+    await db.trainingAttempt.updateMany({
+      where: {
+        uuid: attempt,
+        sessionUuid: id(req),
+        lastSeenAt: { lt: new Date(Date.now() - 5000) },
+      },
+      data: { lastSeenAt: new Date() },
+    });
+  }
+  res.json(await snapshot(id(req), access(req), attempt));
 });
 
 trainingRoutes.post("/training/sessions/:session/ready", async (req, res) => {
   const { attemptUuid } = z.object({ attemptUuid: z.uuid() }).parse(req.body);
   const session = await readSession(id(req), access(req), attemptUuid);
-  if (session.status !== "LOBBY") {
+  if (!["LOBBY", "ARMED"].includes(session.status)) {
     throw new TrainingError(409, "Session already started.");
   }
   const draft = await db.scoutReportInProgress.findUnique({
@@ -198,8 +206,11 @@ trainingRoutes.post("/training/sessions/:session/ready", async (req, res) => {
 });
 
 trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
-  const { action } = z
-    .object({ action: z.enum(["arm", "play", "end", "interrupt"]) })
+  const { action, playbackSeconds } = z
+    .object({
+      action: z.enum(["arm", "play", "end", "interrupt"]),
+      playbackSeconds: z.number().finite().min(0).max(600).optional(),
+    })
     .parse(req.body);
   await readSession(id(req), access(req));
   await db.$transaction(async (tx) => {
@@ -218,12 +229,12 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
         session.status !== "LOBBY" ||
         session.attempts.length === 0 ||
         session.attempts.some(
-          (a) => !a.ready || Date.now() - a.lastSeenAt.getTime() > 20_000,
+          (a) => Date.now() - a.lastSeenAt.getTime() > 20_000,
         )
       ) {
         throw new TrainingError(
           409,
-          "Every scout must be connected and ready.",
+          "Every scout must be connected before showing the video.",
         );
       }
       await tx.trainingSession.update({
@@ -236,6 +247,17 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
       }
       if (session.status !== "ARMED") {
         throw new TrainingError(409, "Start the session before playing.");
+      }
+      if (
+        session.attempts.length === 0 ||
+        session.attempts.some(
+          (a) => !a.ready || Date.now() - a.lastSeenAt.getTime() > 20_000,
+        )
+      ) {
+        throw new TrainingError(
+          409,
+          "Every scout must be connected and ready before playing.",
+        );
       }
       await tx.trainingSession.update({
         where: { uuid: session.uuid },
@@ -256,7 +278,13 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
         session.startedAt.getTime() +
           session.trainingVideo.durationSeconds * 1000,
       );
-      if (Date.now() + 2000 < endedAt.getTime()) {
+      if (
+        Date.now() + 2000 <
+        trainingPlaybackEnd(
+          session.startedAt,
+          session.trainingVideo.durationSeconds,
+        )
+      ) {
         throw new TrainingError(409, "Wait for the match video to finish.");
       }
       await tx.trainingSession.update({
@@ -264,12 +292,26 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
         data: { status: "ENDED", endedAt },
       });
     } else {
-      if (session.status === "ENDED") {
-        throw new TrainingError(409, "Session is already complete.");
+      if (["ENDED", "INTERRUPTED"].includes(session.status)) {
+        return;
       }
+      const matchEnd =
+        session.startedAt && session.trainingVideo
+          ? new Date(
+              session.startedAt.getTime() +
+                session.trainingVideo.durationSeconds * 1000,
+            )
+          : null;
+      const completed =
+        matchEnd !== null &&
+        Date.now() >= matchEnd.getTime() &&
+        playbackSeconds !== undefined &&
+        playbackSeconds >= session.trainingVideo!.durationSeconds;
       await tx.trainingSession.update({
         where: { uuid: session.uuid },
-        data: { status: "INTERRUPTED" },
+        data: completed
+          ? { status: "ENDED", endedAt: matchEnd }
+          : { status: "INTERRUPTED" },
       });
     }
   });
