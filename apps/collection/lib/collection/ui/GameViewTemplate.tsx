@@ -1,3 +1,4 @@
+import { TrainingReadyButton } from "../../training/TrainingReadyButton";
 import { Pressable, View, TouchableOpacity } from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -111,50 +112,56 @@ export const GameViewTemplate = (props: {
             </LabelSmall>
           </View>
 
-          {!reportState?.startTimestamp && (
-            <IconButton
-              label="Start match"
-              icon="play_arrow"
-              color={colors.onBackground.default}
-              size={30}
-              disabled={!startEnabled}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          {!reportState?.startTimestamp &&
+            (reportState.meta?.collection?.trainingAttemptUuid ? (
+              <TrainingReadyButton />
+            ) : (
+              <IconButton
+                label="Start match"
+                icon="play_arrow"
+                color={colors.onBackground.default}
+                size={30}
+                disabled={!startEnabled}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-                reportState.initializeMatchTimestamp();
-              }}
-            />
-          )}
+                  reportState.initializeMatchTimestamp();
+                }}
+              />
+            ))}
 
-          {reportState?.startTimestamp && (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger>
-                <IconButton
-                  label="End match"
-                  icon="stop"
-                  color={colors.onBackground.default}
-                  size={30}
-                />
-              </DropdownMenu.Trigger>
+          {reportState?.startTimestamp &&
+            !reportState.meta?.collection?.trainingAttemptUuid && (
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <IconButton
+                    label="End match"
+                    icon="stop"
+                    color={colors.onBackground.default}
+                    size={30}
+                  />
+                </DropdownMenu.Trigger>
 
-              <DropdownMenu.Content
-                loop={false}
-                side="bottom"
-                align="end"
-                alignOffset={0}
-                avoidCollisions={true}
-                collisionPadding={0}
-                sideOffset={0}
-              >
-                <DropdownMenu.Item key="end" onSelect={props.onEnd}>
-                  <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
-                  <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
-          )}
+                <DropdownMenu.Content
+                  loop={false}
+                  side="bottom"
+                  align="end"
+                  alignOffset={0}
+                  avoidCollisions={true}
+                  collisionPadding={0}
+                  sideOffset={0}
+                >
+                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
+                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
+                    <DropdownMenu.ItemTitle>
+                      Restart match
+                    </DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            )}
         </SafeAreaView>
       </View>
       <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>

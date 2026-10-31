@@ -2,7 +2,7 @@
   "expo": {
     "name": "Collection",
     "slug": "lovat-collection",
-    "version": "26.0.5",
+    "version": "26.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -18,7 +18,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "1"
+      "buildNumber": "6"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +27,7 @@
         "monochromeImage": "./assets/monochrome-icon.png"
       },
       "package": "com.frc8033.lovatcollection",
-      "versionCode": 18
+      "versionCode": 23
     },
     "androidNavigationBar": {
       "backgroundColor": "#1f1f1f"
@@ -59,7 +59,9 @@
             "targetSdkVersion": 35
           }
         }
-      ]
+      ],
+      "./plugins/with-ios-menu-availability.cjs",
+      "./plugins/with-ios-resource-targets.cjs"
     ],
     "scheme": "lovat-collection"
   }

@@ -32,13 +32,19 @@ import { CommonActions } from "@react-navigation/native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { useTrainingModeStore } from "../../lib/storage/userStores";
 import React from "react";
+import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 import { Checkbox } from "../../lib/components/Checkbox";
 import { RobotRole } from "../../lib/collection/RobotRole";
 import { MatchEventType } from "../../lib/collection/MatchEventType";
 
 export default function PostMatch() {
   const reportState = useReportStateStore();
-  const trainingModeEnabled = useTrainingModeStore((state) => state.value);
+  const localPractice = useTrainingModeStore((state) => state.value);
+  const training = useTrainingSessionStore();
+  const pairedTraining = !!reportState.meta?.collection?.trainingAttemptUuid;
+  const trainingModeEnabled = localPractice && !pairedTraining;
+  const interrupted =
+    pairedTraining && training.snapshot?.status === "INTERRUPTED";
 
   const navigation = useNavigation();
 
@@ -342,6 +348,7 @@ export default function PostMatch() {
           <View style={{ gap: 10 }}>
             <Button
               disabled={
+                interrupted ||
                 trainingModeEnabled ||
                 endgameClimbIsMismatched ||
                 (reportState.hasEventOfType(MatchEventType.StartScoring) &&
@@ -352,7 +359,7 @@ export default function PostMatch() {
                 router.replace("/game/submit");
               }}
             >
-              Submit
+              {pairedTraining ? "Submit training report" : "Submit"}
             </Button>
             <Button
               variant="secondary"
@@ -368,6 +375,7 @@ export default function PostMatch() {
                       text: "Discard",
                       style: "destructive",
                       onPress: () => {
+                        useTrainingSessionStore.getState().clear();
                         reportState.reset();
                         navigation.dispatch(
                           CommonActions.reset({
@@ -383,6 +391,11 @@ export default function PostMatch() {
               Discard match
             </Button>
 
+            {interrupted && (
+              <BodyMedium>
+                Playback was interrupted. Join a new session to try again.
+              </BodyMedium>
+            )}
             {trainingModeEnabled && (
               <BodyMedium>
                 Disable training mode in settings to submit data.

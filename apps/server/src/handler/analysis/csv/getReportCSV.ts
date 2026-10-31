@@ -137,6 +137,7 @@ export const getReportCSV = async (
     // Select scout reports from the given tournament and team sources
     // These instances will be looped through and remade into rows of the csv
     const where: any = {
+      training: false,
       teamMatchData: {
         tournamentKey: params.data.tournamentKey,
       },

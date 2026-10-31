@@ -22,6 +22,23 @@ import { EndgameClimb } from "./EndgameClimb";
 import { MatchEventType } from "./MatchEventType";
 import Constants from "expo-constants";
 
+import { syncReportLifecycle } from "../lovatAPI/reportLifecycle";
+import { useTeamStore, useTrainingModeStore } from "../storage/userStores";
+
+// A failed live request never blocks scouting. Submission replays these steps
+// using the same UUID and timestamps, including when the device was offline.
+const syncLifecycle = (state: ReportState) => {
+  if (!state.uuid || !state.meta?.collection) {
+    return;
+  }
+
+  void syncReportLifecycle(
+    state.uuid,
+    state.meta,
+    state.startTimestamp?.getTime(),
+  ).catch((error) => console.warn("Report sync pending", error.message));
+};
+
 const initialState = {
   events: [],
   gamePhase: GamePhase.Auto,
@@ -44,20 +61,90 @@ const initialState = {
 export const useReportStateStore = create<ReportState>((set, get) => ({
   ...initialState,
 
-  scoutMatch: (meta) =>
-    set(() => ({
+  scoutMatch: (meta) => {
+    const sourceTeamNumber = useTeamStore.getState().number;
+    const practice = useTrainingModeStore.getState().value;
+
+    set({
       ...initialState,
-      meta: meta!,
+      meta: {
+        ...meta,
+        collection:
+          (!practice || !!meta.collection?.trainingAttemptUuid) &&
+          sourceTeamNumber !== null
+            ? { ...meta.collection, sourceTeamNumber, endTime: undefined }
+            : undefined,
+      },
+      startTimestamp: undefined,
       startPosition: undefined,
       uuid: v4(),
-    })),
-  restartMatch: () =>
-    set(() => ({
+    });
+
+    syncLifecycle(get());
+  },
+
+  restartMatch: () => {
+    const meta = get().meta;
+
+    set({
       ...initialState,
+      uuid: v4(),
       startTimestamp: undefined,
-    })),
-  initializeMatchTimestamp: () => {
-    set(() => ({ startTimestamp: new Date() }));
+      meta: meta && {
+        ...meta,
+        collection: meta.collection && {
+          ...meta.collection,
+          endTime: undefined,
+        },
+      },
+    });
+
+    syncLifecycle(get());
+  },
+
+  initializeMatchTimestamp: (startTime) => {
+    set({ startTimestamp: new Date(startTime ?? Date.now()) });
+    syncLifecycle(get());
+  },
+
+  endMatch: () => get().endMatchAt(Date.now()),
+
+  endMatchAt: (endTime) => {
+    const state = get();
+    const traversal = state.getAutoTraversalTypes();
+    if (state.fieldTraversal === FieldTraversal.None) {
+      set({
+        fieldTraversal:
+          traversal.trench && traversal.bump
+            ? FieldTraversal.Both
+            : traversal.trench
+              ? FieldTraversal.Trench
+              : traversal.bump
+                ? FieldTraversal.Bump
+                : FieldTraversal.None,
+      });
+    }
+    if (state.hasOutpostIntakeEvent()) {
+      set({
+        intakeType:
+          state.intakeType === IntakeType.Ground
+            ? IntakeType.Both
+            : state.intakeType === IntakeType.Neither
+              ? IntakeType.Outpost
+              : state.intakeType,
+      });
+    }
+    const meta = get().meta;
+
+    if (meta?.collection && meta.collection.endTime === undefined) {
+      set({
+        meta: {
+          ...meta,
+          collection: { ...meta.collection, endTime },
+        },
+      });
+      syncLifecycle(get());
+    }
   },
 
   setStartPosition: (value) => set({ startPosition: value }),

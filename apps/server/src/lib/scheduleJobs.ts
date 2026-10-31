@@ -2,6 +2,7 @@ import fetchTournaments from "./fetchTournaments.js";
 import fetchTeams from "./fetchTeams.js";
 import fetchMatches from "./fetchMatches.js";
 import prisma from "../prismaClient.js";
+import expireReportsInProgress from "./expireReportsInProgress.js";
 import deleteOldRequests from "./deleteOldRequests.js";
 
 export default async function scheduleJobs(): Promise<void> {
@@ -59,6 +60,11 @@ export default async function scheduleJobs(): Promise<void> {
   setInterval(
     async () => {
       await deleteOldRequests();
+      try {
+        await expireReportsInProgress();
+      } catch (error) {
+        console.error("Report draft cleanup failed", error);
+      }
       console.log("Done deleting old requests.");
     },
     1000 * 60 * 60 * 12,
