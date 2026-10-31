@@ -137,15 +137,28 @@ export async function ensureBuiltInTrainingExercise(): Promise<void> {
         "Built-in exercise answer key conflicts with an existing report",
       );
     }
+    // The clip starts at 0:07 and the field clock reaches zero at 2:53.
+    // Its broadcast transition is longer than the generic 163-second timer.
+    const previousVideo = await tx.trainingVideo.findUnique({
+      where: { uuid: BUILT_IN_TRAINING_VIDEO },
+    });
+    if (previousVideo && ![163, 166].includes(previousVideo.durationSeconds)) {
+      throw new Error(
+        "Built-in training video conflicts with the reviewed exercise",
+      );
+    }
     const video = await tx.trainingVideo.upsert({
       where: { uuid: BUILT_IN_TRAINING_VIDEO },
-      update: { answerKeyReports: { connect: { uuid: report.uuid } } },
+      update: {
+        durationSeconds: 166,
+        answerKeyReports: { connect: { uuid: report.uuid } },
+      },
       create: {
         uuid: BUILT_IN_TRAINING_VIDEO,
         matchKey: "2026joh_qm19",
         videoLink: "https://www.youtube.com/watch?v=gmdPS6_RVJw",
         startOffsetSeconds: 7,
-        durationSeconds: 163,
+        durationSeconds: 166,
         alliance: "RED",
         excludedFields: ["feederTypes", "disrupts", "defenseEffectiveness"],
         answerKeyReports: { connect: { uuid: report.uuid } },
@@ -156,7 +169,7 @@ export async function ensureBuiltInTrainingExercise(): Promise<void> {
       video.matchKey !== "2026joh_qm19" ||
       video.videoLink !== "https://www.youtube.com/watch?v=gmdPS6_RVJw" ||
       video.startOffsetSeconds !== 7 ||
-      video.durationSeconds !== 163 ||
+      video.durationSeconds !== 166 ||
       video.answerKeyReports.length !== 1 ||
       video.answerKeyReports[0].uuid !== report.uuid
     ) {

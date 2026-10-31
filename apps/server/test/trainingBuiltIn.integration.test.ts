@@ -36,7 +36,7 @@ describe("built-in Johnson training exercise", () => {
     expect(before).toMatchObject({
       matchKey: "2026joh_qm19",
       startOffsetSeconds: 7,
-      durationSeconds: 163,
+      durationSeconds: 166,
       videoLink: "https://www.youtube.com/watch?v=gmdPS6_RVJw",
     });
     expect(before.answerKeyReports).toHaveLength(1);
@@ -76,6 +76,24 @@ describe("built-in Johnson training exercise", () => {
         where: { uuid: fixture.uuid, training: false },
       }),
     ).toBe(0);
+  });
+  it("corrects the legacy early cutoff without replacing the answer key", async () => {
+    const before = await db.trainingVideo.findUniqueOrThrow({
+      where: { uuid: BUILT_IN_TRAINING_VIDEO },
+      include: { answerKeyReports: { select: { uuid: true } } },
+    });
+    await db.trainingVideo.update({
+      where: { uuid: before.uuid },
+      data: { durationSeconds: 163 },
+    });
+    await ensureBuiltInTrainingExercise();
+    const after = await db.trainingVideo.findUniqueOrThrow({
+      where: { uuid: before.uuid },
+      include: { answerKeyReports: { select: { uuid: true } } },
+    });
+    expect(after.durationSeconds).toBe(166);
+    expect(after.startOffsetSeconds).toBe(7);
+    expect(after.answerKeyReports).toEqual(before.answerKeyReports);
   });
   it("rejects conflicting reviewed video settings instead of silently replacing live session data", async () => {
     const video = await db.trainingVideo.findUniqueOrThrow({
