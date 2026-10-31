@@ -141,7 +141,10 @@ describe("Practice match listing", () => {
     expect(options?.select?._count).toEqual({
       select: {
         scoutReports: {
-          where: { training: false, scouter: { sourceTeamNumber: { in: [9143, 8033] } } },
+          where: {
+            training: false,
+            scouter: { sourceTeamNumber: { in: [9143, 8033] } },
+          },
         },
       },
     });
