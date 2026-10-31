@@ -30,6 +30,8 @@ const { startMatch } = await import("../src/handler/collection/startMatch.js");
 const { endMatch } = await import("../src/handler/collection/endMatch.js");
 const { submitReport } =
   await import("../src/handler/collection/submitReport.js");
+const { addScoutReport } =
+  await import("../src/handler/collection/addScoutReport.js");
 const app = express();
 app.use(express.json());
 app.post("/load", preMatch);
@@ -37,6 +39,7 @@ app.post("/load/:match/:team", preMatch);
 app.post("/start", startMatch);
 app.post("/end", endMatch);
 app.post("/submit", submitReport);
+app.post("/v1/manager/scoutreports", addScoutReport);
 const id = randomUUID();
 const sourceTeam = -Math.floor(Math.random() * 1_000_000_000) - 1;
 const robot = 1_000_000_000 + Math.floor(Math.random() * 500_000_000);
@@ -153,6 +156,26 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe("Collection match lifecycle transactions", () => {
+  it.each([undefined, "26.0.3", "26.0.4", "26.0.5", "26.0.6", "26.1.0"])(
+    "preserves legacy uploads from app version %s without lifecycle metadata",
+    async (appVersion) => {
+      const uuid = randomUUID();
+      const response = await request(app)
+        .post("/v1/manager/scoutreports")
+        .send({ ...report(uuid), ...(appVersion ? { appVersion } : {}) });
+      expect(response.status).toBe(200);
+      const saved = await db.scoutReport.findUniqueOrThrow({
+        where: { uuid },
+        include: { events: true },
+      });
+      expect(saved.training).toBe(false);
+      expect(saved.events).toHaveLength(3);
+      expect(
+        await db.scoutReportInProgress.findUnique({ where: { uuid } }),
+      ).toBeNull();
+    },
+  );
+
   it("completes the flow with client UUIDs and idempotent retries", async () => {
     const uuid = randomUUID();
     expect((await call(`/load/${matchKey}/${robot}`, { uuid })).status).toBe(
