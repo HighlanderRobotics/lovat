@@ -9,6 +9,7 @@
     "start": "cross-env NODE_ENV=production node dist/src/server.js",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:practice-live": "npm run build && node --env-file=.env test/practiceImport.live.mjs",
     "test:coverage": "vitest run --config vitest.coverage.config.ts --coverage",
     "posttest:coverage": "node tools/prepare-test-report.mjs",
     "test:report:prepare": "node --test tools/prepare-test-report.test.mjs",
