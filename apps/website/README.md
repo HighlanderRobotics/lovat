@@ -11,6 +11,7 @@ npm ci
 npm run dev
 npm run check
 npm run test:changelog
+npm run test:contact
 npm run lint
 npm run build
 npm run preview
@@ -21,6 +22,24 @@ Magnolia is pinned to a GitHub archive of the commit recorded in the lockfile. T
 Production server routes require provider-managed values such as `SLACK_SIGNING_SECRET`, `SLACK_WEBHOOK`, `RESEND_KEY`, and `LOVAT_SIGNING_KEY`. Never expose them to browser code or commit them.
 
 The migration baseline records existing Svelte check and formatting failures. Railway builds do not require private environment configuration; provide it at runtime. Netlify must use `apps/website` as the repository base directory.
+
+## Contact form reCAPTCHA
+
+The contact form requires a Google reCAPTCHA **v2 “I'm not a robot” checkbox** key pair.
+Register the production hostname (and localhost for development) in the
+[Google reCAPTCHA admin console](https://www.google.com/recaptcha/admin/create).
+Set these variables in the hosting provider's runtime environment, or in an untracked
+`.env.local` for development:
+
+- `RECAPTCHA_SITE_KEY`: the public site key, returned only to the contact page.
+- `RECAPTCHA_SECRET_KEY`: the private verification key; used only by the server.
+
+The server verifies every submission with Google's
+[verification endpoint](https://developers.google.com/recaptcha/docs/verify) before
+forwarding it to Slack. Missing configuration, invalid or expired tokens, and verification
+outages block submission. Keep domain validation enabled in the reCAPTCHA console.
+Test successful submission, expired challenges, and retry after a failed request before
+publishing. No keys are required to build the site.
 
 ## Railway hosting
 

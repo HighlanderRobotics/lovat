@@ -8,6 +8,7 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test:contact": "npm run build && node --test scripts/contact.test.mjs",
 		"test:changelog": "node --test scripts/changelog.test.mjs",
 		"lint": "eslint .",
 		"format": "prettier --write .",
