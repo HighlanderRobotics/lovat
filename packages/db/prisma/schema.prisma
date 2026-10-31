@@ -236,11 +236,13 @@ enum TournamentGapTimingSource {
 }
 
 model TeamMatchData {
-  key           String    @id
-  tournamentKey String
-  matchNumber   Int       @db.SmallInt
-  teamNumber    Int
-  matchType     MatchType
+  key               String    @id
+  tournamentKey     String
+  matchNumber       Int       @db.SmallInt
+  teamNumber        Int
+  matchType         MatchType
+  /// True only when a public provider schedule includes this practice team.
+  practiceScheduled Boolean   @default(false)
 
   matchKey String?
   alliance AllianceColor?

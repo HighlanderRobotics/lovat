@@ -76,9 +76,10 @@ const getCommonHeaders = async () => {
   return headers;
 };
 
-export const get = async (url: string) => {
+export const get = async (url: string, options?: { signal?: AbortSignal }) => {
   return await fetch(useUrlPrefix.getState().getUrlPrefix() + url, {
     headers: await getCommonHeaders(),
+    signal: options?.signal,
   });
 };
 

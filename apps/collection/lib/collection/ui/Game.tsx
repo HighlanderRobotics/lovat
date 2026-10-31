@@ -5,7 +5,7 @@ import { PreMatchActions } from "./actions/PreMatchActions";
 import { GameViewTemplate } from "./GameViewTemplate";
 import { GamePhase } from "../ReportState";
 import * as Haptics from "expo-haptics";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { colors } from "../../colors";
 import { IconButton } from "../../components/IconButton";
 import {
@@ -137,6 +137,19 @@ export function Game() {
   const gameStates = {
     preMatch: {
       gamePhaseMessage: "Pre-Match",
+      topLeftReplacement: (
+        <View style={{ flex: 1 }}>
+          <IconButton
+            icon="close"
+            label="Exit scout report"
+            color={colors.onBackground.default}
+            onPress={() => {
+              // Clearing the report returns to Home through the guard above.
+              reportState.reset();
+            }}
+          />
+        </View>
+      ),
       field: (
         <>
           <PreMatchActions />

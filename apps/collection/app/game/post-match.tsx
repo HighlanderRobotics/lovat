@@ -85,18 +85,19 @@ export default function PostMatch() {
       />
       <NavBar title="Post match" />
       <KeyboardAwareScrollView
-        style={{ flex: 1, paddingVertical: 16, paddingHorizontal: 26, gap: 28 }}
+        style={{ flex: 1 }}
         contentContainerStyle={{
-          flexDirection: "row",
-          justifyContent: "center",
+          // Keep the keyboard spacer below the form so it adds scrollable height.
+          alignItems: "center",
+          paddingVertical: 16,
+          paddingHorizontal: 26,
         }}
         bottomOffset={48}
         keyboardDismissMode="interactive"
-        disableScrollOnKeyboardHide={true}
       >
         <SafeAreaView
           edges={["bottom", "left", "right"]}
-          style={{ flex: 1, gap: 14, paddingBottom: 200, maxWidth: 550 }}
+          style={{ width: "100%", gap: 14, maxWidth: 550 }}
         >
           <PostMatchSelector
             title="Robot roles"
@@ -321,7 +322,6 @@ export default function PostMatch() {
                   value={reportState.robotBrokeDescription}
                   onChangeText={reportState.setRobotBrokeDescription}
                   multiline={true}
-                  returnKeyType="done"
                   placeholder="How did it break?"
                 />
               </View>
@@ -334,7 +334,6 @@ export default function PostMatch() {
               value={reportState!.notes}
               onChangeText={reportState.setNotes}
               multiline={true}
-              returnKeyType="done"
             />
             <View
               style={{
