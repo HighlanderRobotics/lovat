@@ -14,6 +14,7 @@ export function TrainingReadyButton() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const ready = training.snapshot?.participants[0]?.ready;
+  const choosingPose = training.snapshot?.status === "ARMED";
   const credentials = training.credentials;
   return (
     <View style={{ maxWidth: 300, gap: 5 }}>
@@ -23,7 +24,7 @@ export function TrainingReadyButton() {
           busy ||
           ready ||
           !training.connected ||
-          report.startPosition === undefined ||
+          (choosingPose && report.startPosition === undefined) ||
           !!training.error
         }
         onPress={async () => {
@@ -40,7 +41,10 @@ export function TrainingReadyButton() {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${credentials.token}`,
                 },
-                body: JSON.stringify({ attemptUuid: credentials.attemptUuid }),
+                body: JSON.stringify({
+                  attemptUuid: credentials.attemptUuid,
+                  stage: training.snapshot?.status,
+                }),
               },
             );
             if (!response.ok) {
@@ -57,9 +61,13 @@ export function TrainingReadyButton() {
         {!training.connected
           ? "Reconnecting…"
           : ready
-            ? "Ready · waiting for video"
-            : report.startPosition === undefined
-              ? "Choose a starting pose"
+            ? choosingPose
+              ? "Starting pose set · waiting for Play"
+              : "Ready · waiting for starting positions"
+            : choosingPose
+              ? report.startPosition === undefined
+                ? "Choose a starting pose"
+                : "Confirm starting pose"
               : "Ready"}
       </Button>
       {(error || training.error) && (

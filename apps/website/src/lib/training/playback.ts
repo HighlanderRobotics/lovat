@@ -1,4 +1,6 @@
 export type TrainingPlayer = {
+	mute(): void;
+	unMute(): void;
 	playVideo(): void;
 	pauseVideo(): void;
 	seekTo(seconds: number, allowSeekAhead: boolean): void;
@@ -44,6 +46,7 @@ export function createTrainingPlayback(o: Options) {
 		interruptedSeconds = 0,
 		startInterrupted = false;
 	const now = o.now ?? Date.now;
+	const previewOffset = Math.max(0, o.offset - 3);
 	const emit = () => {
 		if (!disposed) o.onState({ ...state });
 	};
@@ -102,14 +105,18 @@ export function createTrainingPlayback(o: Options) {
 		ready(p: TrainingPlayer) {
 			if (disposed) return;
 			player = p;
-			state.ready = true;
-			player.pauseVideo();
-			player.seekTo(o.offset, true);
+			// Prime a real video frame rather than showing YouTube's thumbnail.
+			// This muted preview never starts the shared report timeline.
+			player.mute();
+			player.seekTo(previewOffset, true);
+			player.playVideo();
 			emit();
 		},
 		play(enabled: boolean) {
 			if (disposed || !enabled || !player || !state.ready || state.busy || state.ending) return;
 			playRequested = true;
+			player.seekTo(o.offset, true);
+			player.unMute();
 			player.playVideo();
 		},
 		async changed(data: number) {
@@ -118,6 +125,9 @@ export function createTrainingPlayback(o: Options) {
 			if (data === 1 && !state.started && !state.ending && !state.busy) {
 				if (!playRequested) {
 					player.pauseVideo();
+					player.seekTo(previewOffset, true);
+					state.ready = true;
+					emit();
 					return;
 				}
 				state.busy = true;

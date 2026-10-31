@@ -27,7 +27,8 @@
 		restoring = false;
 	let disposed = false;
 	$: canQueue =
-		!!session?.participants.length && session.participants.every((person) => person.connected);
+		!!session?.participants.length &&
+		session.participants.every((person) => person.ready && person.connected);
 	$: canStart =
 		!!session?.participants.length &&
 		session.participants.every((person) => person.ready && person.connected);
@@ -385,9 +386,15 @@
 							onError={(message) => (error = message)}
 						/>
 					</div>
+					{#if session.status === 'ARMED'}
+						<div class="pose-readiness">
+							<p>Choose and confirm your starting pose in Collection, then press Play.</p>
+							<TrainingRoster participants={session.participants} />
+						</div>
+					{/if}
 					{#if session.status === 'ARMED'}<div class="robot">
 							<span class:blue={session.video.alliance === 'BLUE'}>{session.video.teamNumber}</span>
-							<p>Pre-match</p>
+							<p>Starting positions</p>
 						</div>{/if}
 				</section>
 			{:else if session.status === 'ENDED'}
@@ -621,6 +628,9 @@
 	.video-frame :global(.player) {
 		height: 100%;
 		aspect-ratio: auto;
+	}
+	.pose-readiness {
+		margin-top: 12px;
 	}
 	.robot {
 		position: absolute;

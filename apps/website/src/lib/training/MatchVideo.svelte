@@ -58,7 +58,7 @@
 					controls: 0,
 					disablekb: 1,
 					playsinline: 1,
-					start: offset,
+					start: Math.max(0, offset - 3),
 					origin: window.location.origin,
 					rel: 0
 				},
@@ -104,7 +104,8 @@
 {#if showPlay && !state.started && !state.ending}<div class="play-action">
 		<Button
 			disabled={!state.ready || state.busy || !playEnabled}
-			on:click={() => playback?.play(playEnabled)}>{!state.ready ? 'Loading…' : 'Play'}</Button
+			on:click={() => playback?.play(playEnabled)}
+			>{!state.ready ? 'Loading starting positions…' : 'Play'}</Button
 		>
 	</div>{/if}
 {#if state.finishFailed}<div class="play-action">

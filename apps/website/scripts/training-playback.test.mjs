@@ -18,6 +18,12 @@ function fixture() {
 		states = [],
 		errors = [];
 	const player = {
+		mute() {
+			calls.push('mute');
+		},
+		unMute() {
+			calls.push('unMute');
+		},
 		playVideo() {
 			calls.push('playVideo');
 		},
@@ -25,6 +31,7 @@ function fixture() {
 			calls.push('pauseVideo');
 		},
 		seekTo(n) {
+			calls.push(['seekTo', n]);
 			current = n;
 		},
 		getCurrentTime: () => current
@@ -50,7 +57,13 @@ function fixture() {
 		onState: (s) => states.push(s)
 	});
 	controller.ready(player);
+	const beforePreview = states.at(-1);
+	void controller.changed(1);
+	const previewCalls = [...calls];
+	calls.length = 0;
 	return {
+		beforePreview,
+		previewCalls,
 		controller,
 		calls,
 		states,
@@ -74,13 +87,23 @@ function fixture() {
 		}
 	};
 }
-test('paused preview is visible before readiness without starting a report', async () => {
+test('paused preview is before match start and never starts a report', async () => {
 	const f = fixture();
 	await f.controller.changed(1);
 	f.controller.play(false);
 	assert(!f.calls.includes('start'));
 	assert(!f.calls.includes('playVideo'));
 	assert.equal(f.states.at(-1).ready, true);
+	assert.equal(f.beforePreview.ready, false);
+	assert.deepEqual(f.previewCalls, [
+		'mute',
+		['seekTo', 4],
+		'playVideo',
+		'pauseVideo',
+		['seekTo', 4]
+	]);
+	await f.start();
+	assert.deepEqual(f.calls.slice(-4), [['seekTo', 7], 'unMute', 'playVideo', 'start']);
 	f.controller.stop();
 });
 test('video continues fifteen seconds after report boundary and finishes once', async () => {
@@ -118,9 +141,15 @@ for (const kind of [
 			f.controller.tick();
 		} else f.controller.tick();
 		await settle();
-		assert.equal(f.calls.filter(Array.isArray).length, 1);
+		assert.equal(
+			f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length,
+			1
+		);
 		await f.controller.changed(2);
-		assert.equal(f.calls.filter(Array.isArray).length, 1);
+		assert.equal(
+			f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length,
+			1
+		);
 		f.controller.stop();
 	});
 test('post-match interruption retains original elapsed time across failed save/reconnect', async () => {
@@ -135,10 +164,13 @@ test('post-match interruption retains original elapsed time across failed save/r
 	f.setCurrent(300);
 	f.setInterrupt(async () => {});
 	await f.controller.retryInterrupt();
-	assert.deepEqual(f.calls.filter(Array.isArray), [
-		['interrupt', 165],
-		['interrupt', 165]
-	]);
+	assert.deepEqual(
+		f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt'),
+		[
+			['interrupt', 165],
+			['interrupt', 165]
+		]
+	);
 	assert.match(f.errors.at(-1), /completed match is preserved/);
 	f.controller.stop();
 });
@@ -149,7 +181,7 @@ test('lost play acknowledgement invalidates rather than starting a fresh clock',
 	});
 	await f.start();
 	assert.equal(f.calls.filter((c) => c === 'start').length, 1);
-	assert.equal(f.calls.filter(Array.isArray).length, 1);
+	assert.equal(f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length, 1);
 	f.controller.play(true);
 	assert.equal(f.calls.filter((c) => c === 'playVideo').length, 1);
 	f.controller.stop();
@@ -166,7 +198,7 @@ test('failed completion can retry without starting or interrupting the match aga
 	await f.controller.retryFinish();
 	assert.equal(f.states.at(-1).finishFailed, false);
 	assert.equal(f.calls.filter((c) => c === 'start').length, 1);
-	assert.equal(f.calls.filter(Array.isArray).length, 0);
+	assert.equal(f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length, 0);
 	f.controller.stop();
 });
 test('cleanup ignores pending start acknowledgement and all later player events', async () => {
@@ -183,7 +215,10 @@ test('cleanup ignores pending start acknowledgement and all later player events'
 	f.controller.fail();
 	await f.controller.changed(0);
 	assert.equal(f.states.length, n);
-	assert.equal(f.calls.filter((c) => c === 'end' || Array.isArray(c)).length, 0);
+	assert.equal(
+		f.calls.filter((c) => c === 'end' || (Array.isArray(c) && c[0] === 'interrupt')).length,
+		0
+	);
 });
 
 test('pausing while the Play acknowledgement is in flight invalidates the attempt', async () => {
@@ -195,7 +230,7 @@ test('pausing while the Play acknowledgement is in flight invalidates the attemp
 	await f.controller.changed(2);
 	resolve();
 	await pending;
-	assert.equal(f.calls.filter(Array.isArray).length, 1);
+	assert.equal(f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length, 1);
 	f.controller.stop();
 });
 test('a late Play acknowledgement cannot silently shift the scouting timeline', async () => {
@@ -207,6 +242,6 @@ test('a late Play acknowledgement cannot silently shift the scouting timeline', 
 	f.setCurrent(20);
 	resolve();
 	await pending;
-	assert.equal(f.calls.filter(Array.isArray).length, 1);
+	assert.equal(f.calls.filter((call) => Array.isArray(call) && call[0] === 'interrupt').length, 1);
 	f.controller.stop();
 });

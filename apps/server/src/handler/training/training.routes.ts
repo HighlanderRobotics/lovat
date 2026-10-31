@@ -180,27 +180,46 @@ trainingRoutes.get("/training/sessions/:session", async (req, res) => {
 });
 
 trainingRoutes.post("/training/sessions/:session/ready", async (req, res) => {
-  const { attemptUuid } = z.object({ attemptUuid: z.uuid() }).parse(req.body);
-  const session = await readSession(id(req), access(req), attemptUuid);
-  if (!["LOBBY", "ARMED"].includes(session.status)) {
-    throw new TrainingError(409, "Session already started.");
-  }
-  const draft = await db.scoutReportInProgress.findUnique({
-    where: { trainingAttemptUuid: attemptUuid },
-  });
-  if (
-    !draft ||
-    draft.status !== "LOADED" ||
-    draft.teamNumber !== session.targetTeamNumber
-  ) {
-    throw new TrainingError(
-      409,
-      "Load the training robot before marking ready.",
+  const { attemptUuid, stage } = z
+    .object({
+      attemptUuid: z.uuid(),
+      stage: z.enum(["LOBBY", "ARMED"]).optional(),
+    })
+    .parse(req.body);
+  await readSession(id(req), access(req), attemptUuid);
+  await db.$transaction(async (tx) => {
+    await tx.$queryRaw(
+      Prisma.sql`SELECT uuid FROM "TrainingSession" WHERE uuid = ${id(req)} FOR UPDATE`,
     );
-  }
-  await db.trainingAttempt.update({
-    where: { uuid: attemptUuid },
-    data: { ready: true, lastSeenAt: new Date() },
+    const session = await tx.trainingSession.findUniqueOrThrow({
+      where: { uuid: id(req) },
+    });
+    if (!["LOBBY", "ARMED"].includes(session.status)) {
+      throw new TrainingError(409, "Session already started.");
+    }
+    if (stage !== undefined && stage !== session.status) {
+      throw new TrainingError(
+        409,
+        "Training moved to the next step. Try again.",
+      );
+    }
+    const draft = await tx.scoutReportInProgress.findUnique({
+      where: { trainingAttemptUuid: attemptUuid },
+    });
+    if (
+      !draft ||
+      draft.status !== "LOADED" ||
+      draft.teamNumber !== session.targetTeamNumber
+    ) {
+      throw new TrainingError(
+        409,
+        "Load the training robot before marking ready.",
+      );
+    }
+    await tx.trainingAttempt.update({
+      where: { uuid: attemptUuid },
+      data: { ready: true, lastSeenAt: new Date() },
+    });
   });
   res.json({ ready: true });
 });
@@ -229,17 +248,22 @@ trainingRoutes.post("/training/sessions/:session/control", async (req, res) => {
         session.status !== "LOBBY" ||
         session.attempts.length === 0 ||
         session.attempts.some(
-          (a) => Date.now() - a.lastSeenAt.getTime() > 20_000,
+          (a) => !a.ready || Date.now() - a.lastSeenAt.getTime() > 20_000,
         )
       ) {
         throw new TrainingError(
           409,
-          "Every scout must be connected before showing the video.",
+          "Every scout must be connected and ready before showing starting positions.",
         );
       }
       await tx.trainingSession.update({
         where: { uuid: session.uuid },
         data: { status: "ARMED" },
+      });
+      // Readiness now confirms the starting pose, independently of lobby readiness.
+      await tx.trainingAttempt.updateMany({
+        where: { sessionUuid: session.uuid },
+        data: { ready: false },
       });
     } else if (action === "play") {
       if (session.status === "PLAYING") {

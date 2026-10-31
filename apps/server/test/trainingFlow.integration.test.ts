@@ -89,6 +89,16 @@ async function join(
   expect(result.status).toBe(200);
   return result.body as { attemptUuid: string; attemptToken: string };
 }
+async function ready(
+  session: Awaited<ReturnType<typeof create>>,
+  attempt: Awaited<ReturnType<typeof join>>,
+  stage: "LOBBY" | "ARMED",
+) {
+  return request(app)
+    .post(`/collection/training/sessions/${session.uuid}/ready`)
+    .set("Authorization", `Bearer ${attempt.attemptToken}`)
+    .send({ attemptUuid: attempt.attemptUuid, stage });
+}
 async function load(
   session: Awaited<ReturnType<typeof create>>,
   attempt: Awaited<ReturnType<typeof join>>,
@@ -110,14 +120,7 @@ async function load(
     scout,
   );
   expect(result.status).toBe(201);
-  expect(
-    (
-      await request(app)
-        .post(`/collection/training/sessions/${session.uuid}/ready`)
-        .set("Authorization", `Bearer ${attempt.attemptToken}`)
-        .send({ attemptUuid: attempt.attemptUuid })
-    ).status,
-  ).toBe(200);
+  expect((await ready(session, attempt, "LOBBY")).status).toBe(200);
 }
 beforeAll(async () => {
   if (!server.listening) {
@@ -292,6 +295,8 @@ describe("paired training flow", () => {
     expect((await host(session.uuid, session.browserToken, "arm")).status).toBe(
       200,
     );
+    expect((await ready(session, a, "ARMED")).status).toBe(200);
+    expect((await ready(session, b, "ARMED")).status).toBe(200);
     expect(
       (await host(session.uuid, session.browserToken, "play")).status,
     ).toBe(200);
@@ -394,13 +399,19 @@ describe("training preview, timing, and reconnect regression", () => {
         `/collection/training/sessions/${session.uuid}?attempt=${attempt.attemptUuid}`,
       )
       .set("Authorization", `Bearer ${token}`);
-  it("shows the preview before selecting a pose, but rejects Play until ready and connected", async () => {
+  it("requires lobby readiness, then fresh pose confirmation before Play", async () => {
     const s = await create(),
       a = await join(s);
+    expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(409);
+    await load(s, a, randomUUID());
     expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(200);
     expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(200);
+    expect((await deviceSnapshot(s, a)).body.participants[0].ready).toBe(false);
+    expect((await ready(s, a, "LOBBY")).status).toBe(409);
     expect((await host(s.uuid, s.browserToken, "play")).status).toBe(409);
-    await load(s, a, randomUUID()); // Ready is allowed after the host opens the preview.
+    expect((await ready(s, a, "ARMED")).status).toBe(200);
+    // Retrying the host's arm request must not clear pose confirmation again.
+    expect((await host(s.uuid, s.browserToken, "arm")).status).toBe(200);
     await db.trainingAttempt.update({
       where: { uuid: a.attemptUuid },
       data: { lastSeenAt: new Date(Date.now() - 30_000) },
@@ -416,6 +427,22 @@ describe("training preview, timing, and reconnect regression", () => {
     expect((await host(s.uuid, s.browserToken, "play")).body.startedAt).toBe(
       played.body.startedAt,
     );
+  });
+  it("accepts readiness requests from older Collection builds without a stage field", async () => {
+    const session = await create();
+    const attempt = await join(session);
+    await load(session, attempt, randomUUID());
+    expect((await host(session.uuid, session.browserToken, "arm")).status).toBe(
+      200,
+    );
+    const legacyReady = await request(app)
+      .post(`/collection/training/sessions/${session.uuid}/ready`)
+      .set("Authorization", `Bearer ${attempt.attemptToken}`)
+      .send({ attemptUuid: attempt.attemptUuid });
+    expect(legacyReady.status).toBe(200);
+    expect(
+      (await host(session.uuid, session.browserToken, "play")).status,
+    ).toBe(200);
   });
   it("cannot refresh another attempt's heartbeat with the host token or a foreign token", async () => {
     const s = await create(),
@@ -445,6 +472,7 @@ describe("training preview, timing, and reconnect regression", () => {
       a = await join(s);
     await load(s, a, randomUUID());
     await host(s.uuid, s.browserToken, "arm");
+    expect((await ready(s, a, "ARMED")).status).toBe(200);
     await host(s.uuid, s.browserToken, "play");
     const start = Date.now() - 164_000;
     await db.trainingSession.update({
@@ -474,6 +502,7 @@ describe("training preview, timing, and reconnect regression", () => {
         a = await join(s);
       await load(s, a, randomUUID());
       await host(s.uuid, s.browserToken, "arm");
+      expect((await ready(s, a, "ARMED")).status).toBe(200);
       await host(s.uuid, s.browserToken, "play");
       const start = Date.now() - 190_000;
       await db.trainingSession.update({

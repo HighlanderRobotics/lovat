@@ -23,7 +23,16 @@ export default function JoinTraining() {
   const params = useLocalSearchParams<{ session?: string; token?: string }>();
   const scout = useScouterStore((state) => state.value);
   const team = useTeamStore((state) => state.number);
-  const [deviceName, setDeviceName] = useState(`${Platform.OS} device`);
+  const [customDeviceName, setDeviceName] = useState<string | null>(null);
+  const firstName = scout?.name?.trim().split(/\s+/)[0] || "Scout";
+  const platformName =
+    Platform.OS === "ios"
+      ? "iOS"
+      : Platform.OS === "android"
+        ? "Android"
+        : "Web";
+  const deviceName =
+    customDeviceName ?? `${firstName}'s ${platformName} Device`;
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const valid = z
@@ -38,8 +47,7 @@ export default function JoinTraining() {
       <ScrollView contentContainerStyle={{ padding: 26, gap: 20 }}>
         <Heading1Small>Join training</Heading1Small>
         <BodyMedium>
-          Everyone scouts the same robot. Your training report is kept separate
-          from competition data.
+          Your training report is kept separate from competition data.
         </BodyMedium>
         {!valid.success ? (
           <BodyMedium>
