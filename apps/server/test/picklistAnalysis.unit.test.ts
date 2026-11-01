@@ -215,6 +215,7 @@ it.each([true, false])(
       _count: { _all: true },
       where: {
         training: false,
+        reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: 254,
           ...(filtered ? { tournamentKey: { in: ["2026test"] } } : {}),

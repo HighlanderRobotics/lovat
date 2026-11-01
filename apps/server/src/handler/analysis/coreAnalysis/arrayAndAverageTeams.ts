@@ -14,6 +14,7 @@ import {
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 import { avg, calculateTimeMetric } from "./averageManyFast.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Accurately aggregate an analog metric on multiple teams at once (weighs matches equally regardless of extra scout reports).
 // Provides a timeline of metric value per match.
@@ -438,7 +439,11 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         // Assign helper output directly; it's Prisma-compatible
         tmdFilter.tournamentKey = sourceTnmtFilter;
       }
-      const srFilter: Prisma.ScoutReportWhereInput = { training: false };
+      const srFilter: Prisma.ScoutReportWhereInput = {
+        training: false,
+        ...reportReliabilityFilter,
+      };
+
       if (sourceTeamFilter) {
         srFilter.scouter = {
           sourceTeamNumber: sourceTeamFilter,

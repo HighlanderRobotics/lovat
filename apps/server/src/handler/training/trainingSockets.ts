@@ -25,7 +25,8 @@ export function attachTrainingSockets(server: Server): void {
     }
     counts.set(ip, (counts.get(ip) ?? 0) + 1);
     socket.once("close", () => {
-      const count = (counts.get(ip) ?? 1) - 1;
+      // Each accepted connection increments this entry and releases it once.
+      const count = counts.get(ip)! - 1;
       if (count) {
         counts.set(ip, count);
       } else {

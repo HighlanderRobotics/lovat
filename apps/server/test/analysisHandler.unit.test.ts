@@ -75,7 +75,7 @@ it("validates all input locations and passes source context", async () => {
   );
   expect(result.headers["X-Lovat-Cache"]).toBe("miss");
   const key =
-    "analysis:v3:handler:test-user:metric:{INCLUDE:[8033]}:{EXCLUDE:[]}";
+    "analysis:v4:handler:test-user:metric:{INCLUDE:[8033]}:{EXCLUDE:[]}";
   expect(mocks.get).toHaveBeenCalledWith(key);
   expect(mocks.set).toHaveBeenCalledWith(key, '{"score":12}');
   expect(mocks.create).toHaveBeenCalledWith({
@@ -98,7 +98,7 @@ it("handles handlers without schemas or source-dependent keys", async () => {
   expect(result.statusCode).toBe(200);
   expect(mocks.create).toHaveBeenCalledWith({
     data: {
-      key: "analysis:v3:handler:test-user:plain",
+      key: "analysis:v4:handler:test-user:plain",
       teamDependencies: [],
       tournamentDependencies: [],
     },

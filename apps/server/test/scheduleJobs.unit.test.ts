@@ -50,6 +50,21 @@ describe("background jobs at startup", () => {
     expect(expireReportsInProgress).toHaveBeenCalledTimes(2);
   });
 
+  it("logs draft cleanup failures without stopping the scheduled job", async () => {
+    const error = new Error("database unavailable");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.mocked(expireReportsInProgress).mockRejectedValueOnce(error);
+    await scheduleJobs();
+    await vi.advanceTimersByTimeAsync(12 * 60 * 60 * 1000);
+    expect(console.error).toHaveBeenCalledWith(
+      "Report draft cleanup failed",
+      error,
+    );
+    expect(deleteOldRequests).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(12 * 60 * 60 * 1000);
+    expect(expireReportsInProgress).toHaveBeenCalledTimes(2);
+  });
+
   it("imports and refreshes TBA data when development has a key", async () => {
     vi.stubEnv("TBA_KEY", "synthetic-test-key");
     await scheduleJobs();

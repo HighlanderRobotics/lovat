@@ -17,6 +17,7 @@ import {
 } from "../dataSourceRule.js";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 import { User } from "@lovat/db";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 export interface ArrayFilter<T> {
   notIn?: T[];
@@ -73,9 +74,11 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
       matchType: { not: "PRACTICE" },
     };
 
-    const srWhere: Prisma.ScoutReportWhereInput = teamFilter
-      ? { training: false, scouter: { sourceTeamNumber: teamFilter } }
-      : { training: false };
+    const srWhere: Prisma.ScoutReportWhereInput = {
+      training: false,
+      ...reportReliabilityFilter,
+      ...(teamFilter ? { scouter: { sourceTeamNumber: teamFilter } } : {}),
+    };
 
     const tmd = await prismaClient.teamMatchData.findMany({
       where: tmdWhere,

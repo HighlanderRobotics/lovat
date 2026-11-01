@@ -439,6 +439,8 @@ model ScoutReport {
   events                Event[]
   scouter               Scouter                @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
   teamMatchData         TeamMatchData          @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
+  reliability           ReportReliability      @default(UNVERIFIED)
+  flaggedBy             User[]                 @relation("ReportFlags")
 
   // year specific fields
   accuracy             Int?
@@ -583,6 +585,7 @@ model User {
   mutablePicklists     MutablePicklist[]
   sharedPicklists      SharedPicklist[]
   team                 RegisteredTeam?   @relation(fields: [teamNumber], references: [number], onDelete: Cascade)
+  flaggedReports       ScoutReport[]     @relation("ReportFlags")
 }
 
 model ApiKey {
@@ -703,4 +706,11 @@ enum MatchType {
   QUALIFICATION
   ELIMINATION
   PRACTICE
+}
+
+enum ReportReliability {
+  UNVERIFIED
+  VERIFIED
+  FLAGGED
+  BAD_REPORT
 }
