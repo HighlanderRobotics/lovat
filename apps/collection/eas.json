@@ -53,9 +53,24 @@
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.0"
       }
+    },
+    "training-testflight": {
+      "extends": "production",
+      "node": "24.6.0",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      },
+      "env": {
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_API_URL": "https://api.lovat.app"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6467335014"
+      }
+    }
   }
 }

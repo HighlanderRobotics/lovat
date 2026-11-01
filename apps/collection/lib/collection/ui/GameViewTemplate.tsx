@@ -16,6 +16,7 @@ import {
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
+import { MatchScoreWidget } from "./MatchScoreWidget";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
@@ -66,6 +67,8 @@ export const GameViewTemplate = (props: {
               style={{
                 flex: 1,
                 flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
               }}
             >
               <IconButton
@@ -78,6 +81,7 @@ export const GameViewTemplate = (props: {
                   reportState.undoEvent();
                 }}
               />
+              <MatchScoreWidget />
             </View>
           )}
 

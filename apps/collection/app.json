@@ -18,7 +18,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "6"
+      "buildNumber": "13"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +27,7 @@
         "monochromeImage": "./assets/monochrome-icon.png"
       },
       "package": "com.frc8033.lovatcollection",
-      "versionCode": 23
+      "versionCode": 27
     },
     "androidNavigationBar": {
       "backgroundColor": "#1f1f1f"
@@ -56,7 +56,7 @@
         "expo-build-properties",
         {
           "android": {
-            "targetSdkVersion": 35
+            "targetSdkVersion": 36
           }
         }
       ],
