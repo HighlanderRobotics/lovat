@@ -386,28 +386,33 @@ describe("Collection submission", () => {
     });
     expect((await invoke(submitReport, request(report))).statusCode).toBe(409);
   });
-  it.each([
-    [[0, 99, 8]],
-    [[0, 2, 99]],
+  it.each(
     [
-      [10, 0, 2],
-      [20, 1, 2],
-    ],
-    [[10, 0, 2]],
-    [
-      [20, 0, 2],
-      [10, 1, 2, 3],
-    ],
-    [
-      [10, 0, 2],
-      [151, 1, 2, 3],
-    ],
-  ])("rejects malformed or out-of-order timelines", async (events) => {
-    expect(
-      (await invoke(submitReport, request({ ...report, events }))).statusCode,
-    ).toBe(400);
-    expect(db.$transaction).not.toHaveBeenCalled();
-  });
+      [[0, 99, 8]],
+      [[0, 2, 99]],
+      [
+        [10, 0, 2],
+        [20, 1, 2],
+      ],
+      [[10, 0, 2]],
+      [
+        [20, 0, 2],
+        [10, 1, 2, 3],
+      ],
+      [
+        [10, 0, 2],
+        [151, 1, 2, 3],
+      ],
+    ].map((events) => ({ events })),
+  )(
+    "rejects malformed or out-of-order timelines ($events)",
+    async ({ events }) => {
+      expect(
+        (await invoke(submitReport, request({ ...report, events }))).statusCode,
+      ).toBe(400);
+      expect(db.$transaction).not.toHaveBeenCalled();
+    },
+  );
   it("rejects missing matches without writing a report", async () => {
     db.teamMatchData.findFirst.mockResolvedValue(null);
     expect((await invoke(submitReport, request(report))).statusCode).toBe(404);
@@ -445,6 +450,71 @@ describe("Collection submission", () => {
       254,
       "2026test",
       uuid,
+    );
+  });
+});
+
+describe("Collection lifecycle recovery", () => {
+  it.each([
+    { handler: startMatch, body: { uuid, startTime } },
+    { handler: endMatch, body: { uuid, endTime } },
+  ])(
+    "stops $handler.name when the draft is not accessible",
+    async ({ handler, body }) => {
+      db.scoutReportInProgress.findFirst.mockResolvedValue(null);
+      expect((await invoke(handler, request(body))).statusCode).toBe(404);
+      expect(db.scoutReportInProgress.updateMany).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not start a draft after losing its state transition race", async () => {
+    db.scoutReportInProgress.findFirst.mockResolvedValue({
+      ...draft(),
+      startedAt: null,
+      status: "LOADED",
+    });
+    db.scoutReportInProgress.updateMany.mockResolvedValue({ count: 0 });
+    expect(
+      (await invoke(startMatch, request({ uuid, startTime }))).statusCode,
+    ).toBe(409);
+  });
+
+  it.each([
+    { handler: startMatch, body: { uuid, startTime } },
+    { handler: endMatch, body: { uuid, endTime } },
+  ])(
+    "returns a controlled $handler.name error when persistence fails",
+    async ({ handler, body }) => {
+      db.scoutReportInProgress.findFirst.mockResolvedValue({
+        ...draft(),
+        startedAt: handler === startMatch ? null : new Date(startTime),
+        endedAt: null,
+      });
+      db.scoutReportInProgress.updateMany.mockRejectedValue(
+        new Error("database unavailable"),
+      );
+      const response = await invoke(handler, request(body));
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toHaveProperty("displayError");
+    },
+  );
+
+  it("still acknowledges a committed report when notification delivery fails", async () => {
+    const error = new Error("notification unavailable");
+    effects.invalidate.mockRejectedValue(error);
+    effects.warning.mockRejectedValue(error);
+    const response = await invoke(
+      submitReport,
+      request({ ...report, robotBrokeDescription: "Broken wheel" }),
+    );
+    expect(response.statusCode).toBe(200);
+    expect(console.error).toHaveBeenCalledWith(
+      "Failed to invalidate report cache",
+      error,
+    );
+    expect(console.error).toHaveBeenCalledWith(
+      "Failed to send robot break warning",
+      error,
     );
   });
 });
