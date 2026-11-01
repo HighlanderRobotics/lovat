@@ -62,6 +62,7 @@ import {
 } from "../lib/storage/userStores";
 import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
 import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
+import { scheduledTeamsForAlliance } from "../lib/collection/scheduledTeams";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -481,8 +482,32 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         )
       : undefined;
 
+  /**
+   * Teams the match schedule lists for the selected alliance. The schedule is
+   * persisted on the device, so this keeps working offline; when there is no
+   * cached schedule or alliance data the team field falls back to text entry.
+   */
+  const scheduledAllianceTeams = useMemo(() => {
+    const scheduledAlliance =
+      allianceColor === AllianceColor.Red ? "red" : "blue";
+
+    return scheduledTeamsForAlliance(
+      scheduledMatch?.teams,
+      scheduledAlliance,
+    ).map((teamNumber) => teamNumber.toString());
+  }, [scheduledMatch, allianceColor]);
+
+  // Only keep a team number that belongs to the selected alliance. Clearing
+  // instead of defaulting to the first team makes the scout confirm the robot,
+  // which matters offline where the server cannot reject a mismatched team.
+  const selectedTeamNumber =
+    scheduledAllianceTeams.length > 0 &&
+    !scheduledAllianceTeams.includes(teamNumber)
+      ? ""
+      : teamNumber;
+
   useEffect(() => {
-    const parsedTeamNumber = Number(teamNumber);
+    const parsedTeamNumber = Number(selectedTeamNumber);
     const parsedMatchNumber = Number(matchNumber);
 
     if (!Number.isSafeInteger(parsedTeamNumber) || parsedTeamNumber <= 0) {
@@ -515,7 +540,14 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         tournamentKey: tournament.key,
       },
     });
-  }, [matchType, matchNumber, teamNumber, allianceColor, tournament, scouter]);
+  }, [
+    matchType,
+    matchNumber,
+    selectedTeamNumber,
+    allianceColor,
+    tournament,
+    scouter,
+  ]);
 
   return (
     <ScrollView style={{ flex: 1, paddingTop: 14 }}>
@@ -547,26 +579,8 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
       />
 
       <View style={{ height: 14 }} />
-      <LabelSmall>Team number</LabelSmall>
-      {scheduledMatch && (
-        <BodyMedium>
-          Scheduled teams:{" "}
-          {scheduledMatch.teams
-            .map(
-              (team) =>
-                `${team.number}${team.alliance ? ` (${team.alliance})` : ""}`,
-            )
-            .join(", ")}
-        </BodyMedium>
-      )}
+      <LabelSmall>Alliance</LabelSmall>
       <View style={{ height: 7 }} />
-      <TextField
-        placeholder="8033"
-        value={teamNumber}
-        onChangeText={(text) => setTeamNumber(text)}
-        keyboardType="number-pad"
-      />
-      <View style={{ height: 14 }} />
       <Picker
         options={allianceColors.map((color) => ({
           label: color.localizedDescription,
@@ -575,6 +589,39 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         selected={allianceColor}
         onChange={(val) => setAllianceColor(val)}
       />
+
+      <View style={{ height: 14 }} />
+      <LabelSmall>Team number</LabelSmall>
+      <View style={{ height: 7 }} />
+      {scheduledAllianceTeams.length > 0 ? (
+        <Picker
+          options={scheduledAllianceTeams.map((number) => ({
+            label: number,
+            value: number,
+          }))}
+          selected={selectedTeamNumber}
+          onChange={(val) => setTeamNumber(val)}
+        />
+      ) : (
+        <TextField
+          placeholder="8033"
+          value={teamNumber}
+          onChangeText={(text) => setTeamNumber(text)}
+          keyboardType="number-pad"
+        />
+      )}
+      {scheduledMatch && scheduledAllianceTeams.length === 0 && (
+        <BodyMedium style={{ marginTop: 7 }}>
+          Match teams:{" "}
+          {scheduledMatch.teams
+            .map((team) =>
+              team.alliance
+                ? `${team.number} (${team.alliance})`
+                : team.number.toString(),
+            )
+            .join(", ")}
+        </BodyMedium>
+      )}
     </ScrollView>
   );
 };
