@@ -145,7 +145,10 @@ it.each([
           _count: {
             select: {
               scoutReports: {
-                where: { scouter: { sourceTeamNumber: filter } },
+                where: {
+                  training: false,
+                  scouter: { sourceTeamNumber: filter },
+                },
               },
             },
           },
@@ -327,6 +330,7 @@ it("applies report visibility rules to match-result reads", async () => {
     include: {
       scoutReports: {
         where: {
+          training: false,
           scouter: { sourceTeamNumber: { in: [8033] } },
           teamMatchData: { tournamentKey: undefined },
         },

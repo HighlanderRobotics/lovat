@@ -440,6 +440,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         tmdFilter.tournamentKey = sourceTnmtFilter;
       }
       const srFilter: Prisma.ScoutReportWhereInput = {
+        training: false,
         ...reportReliabilityFilter,
       };
 

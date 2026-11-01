@@ -31,10 +31,64 @@ const { app } = await import("../src/app.js");
 const { default: requireLovatSignature } =
   await import("../src/lib/middleware/requireLovatSignature.js");
 const { checkForInvalidEvents, removeOrphanedStartEvents } =
-  await import("../src/handler/manager/scoutreports/addScoutReport.js");
+  await import("../src/handler/collection/addScoutReport.js");
 const { kv } = await import("../src/redisClient.js");
 
 describe("Server HTTP routes", () => {
+  it("mounts the v2 scout list alongside its v1 route", async () => {
+    const v1 = await request(app).get("/v1/manager/scouters");
+    const v2 = await request(app).get("/v2/collection/scouter");
+    expect(v1.status).toBe(400);
+    expect(v2.status).toBe(v1.status);
+    expect(v2.body).toEqual(v1.body);
+  });
+
+  it("registers pre-match loading and validates requests before database access", async () => {
+    const response = await request(app)
+      .post("/v2/collection/load/2026test_qm1/254")
+      .send({});
+    expect(response.status).toBe(400);
+    expect(response.body.displayError).toBe(
+      "Invalid input. Make sure you are using the correct input.",
+    );
+    expect(response.headers.ratelimit).toBeDefined();
+  });
+
+  it.each(["start", "end", "submit"])(
+    "registers the Collection %s endpoint",
+    async (path) => {
+      const response = await request(app)
+        .post(`/v2/collection/${path}`)
+        .send({});
+      expect(response.status).toBe(400);
+      expect(response.headers.ratelimit).toBeDefined();
+    },
+  );
+
+  it.each([
+    ["/collection/checkcode", "/v1/manager/scouter/checkcode"],
+    ["/collection/scouter", "/v1/manager/scouters"],
+    ["/collection/tournament", "/v1/manager/scouters/test/tournaments"],
+    ["/collection/schedules/test", "/v1/manager/scouterschedules/test"],
+  ])("keeps %s compatible with %s", async (current, legacy) => {
+    const before = await request(app).get(legacy);
+    const after = await request(app).get(current);
+    expect(after.status).toBe(before.status);
+    expect(after.body).toEqual(before.body);
+    expect(after.headers.ratelimit).toBeDefined();
+  });
+
+  it.each(["load", "start", "end", "submit", "scoutreports"])(
+    "mounts /collection/%s alongside the v2 alias",
+    async (path) => {
+      const current = await request(app).post(`/collection/${path}`).send({});
+      const alias = await request(app).post(`/v2/collection/${path}`).send({});
+      expect(current.status).toBe(400);
+      expect(alias.status).toBe(current.status);
+      expect(alias.body).toEqual(current.body);
+    },
+  );
+
   it("reports a healthy process without starting the background scheduler", async () => {
     const response = await request(app).get("/status");
     expect(response.status).toBe(200);

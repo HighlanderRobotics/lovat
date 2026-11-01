@@ -84,6 +84,7 @@ const config = {
 
     const autoData = await prismaClient.scoutReport.findMany({
       where: {
+        training: false,
         ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: teamNumber,

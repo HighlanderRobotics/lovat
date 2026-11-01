@@ -178,10 +178,11 @@ model Match {
 
   tournament Tournament @relation(fields: [tournamentKey], references: [key], onDelete: Cascade)
 
-  alliances  MatchAlliance[]
-  teamSlots  TeamMatchData[]
-  gapsAfter  TournamentGap[] @relation("GapAfterMatch")
-  gapsBefore TournamentGap[] @relation("GapBeforeMatch")
+  trainingVideos TrainingVideo[]
+  alliances      MatchAlliance[]
+  teamSlots      TeamMatchData[]
+  gapsAfter      TournamentGap[] @relation("GapAfterMatch")
+  gapsBefore     TournamentGap[] @relation("GapBeforeMatch")
 
   @@unique([tournamentKey, competitionLevel, setNumber, matchNumber])
   @@unique([key, tournamentKey]) // Composite foreign keys keep gap boundaries in this event.
@@ -293,8 +294,141 @@ model MutablePicklist {
   tournament    Tournament? @relation(fields: [tournamentKey], references: [key])
 }
 
+enum CollectionReportMode {
+  COMPETITION
+  TRAINING
+}
+
+enum CollectionReportStatus {
+  LOADED
+  STARTED
+  ENDED
+  SUBMITTED
+  ABANDONED
+}
+
+model TrainingVideo {
+  startOffsetSeconds Float             @default(0)
+  durationSeconds    Int               @default(163)
+  alliance           AllianceColor     @default(RED)
+  excludedFields     Json              @default("[]")
+  uuid               String            @id @default(uuid())
+  matchKey           String
+  videoLink          String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  match              Match             @relation(fields: [matchKey], references: [key], onDelete: Cascade)
+  answerKeyReports   ScoutReport[]     @relation("TrainingVideoAnswerKeys")
+  sessions           TrainingSession[]
+
+  @@index([matchKey])
+}
+
+model TrainingSession {
+  browserTokenHash  String?
+  targetTeamNumber  Int?
+  status            String                  @default("LOBBY")
+  startedAt         DateTime?
+  endedAt           DateTime?
+  trainingVideoUuid String?
+  trainingVideo     TrainingVideo?          @relation(fields: [trainingVideoUuid], references: [uuid], onDelete: SetNull)
+  completedReports  ScoutReport[]
+  uuid              String                  @id @default(uuid())
+  sourceTeamNumber  Int?
+  pairingTokenHash  String                  @unique
+  expiresAt         DateTime
+  createdAt         DateTime                @default(now())
+  sourceTeam        RegisteredTeam?         @relation(fields: [sourceTeamNumber], references: [number], onDelete: Cascade)
+  attempts          TrainingAttempt[]
+  reportsInProgress ScoutReportInProgress[]
+
+  @@index([trainingVideoUuid])
+}
+
+model TrainingAttempt {
+  deviceId        String                 @default("")
+  deviceName      String                 @default("Collection device")
+  accessTokenHash String?
+  ready           Boolean                @default(false)
+  lastSeenAt      DateTime               @default(now())
+  uuid            String                 @id @default(uuid())
+  sessionUuid     String
+  scouterUuid     String
+  createdAt       DateTime               @default(now())
+  submittedAt     DateTime?
+  payload         Json?
+  session         TrainingSession        @relation(fields: [sessionUuid], references: [uuid], onDelete: Cascade)
+  scouter         Scouter                @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
+  report          ScoutReportInProgress?
+
+  @@unique([uuid, sessionUuid, scouterUuid])
+  @@index([sessionUuid, scouterUuid])
+}
+
+model ScoutReportInProgress {
+  uuid                String                 @id
+  sourceTeamNumber    Int
+  scouterUuid         String
+  deviceId            String
+  seasonYear          Int
+  schemaVersion       Int
+  mode                CollectionReportMode
+  status              CollectionReportStatus @default(LOADED)
+  tournamentKey       String
+  matchType           MatchType
+  matchNumber         Int
+  teamNumber          Int
+  trainingSessionUuid String?
+  trainingAttemptUuid String?                @unique
+  payload             Json
+  revision            Int                    @default(0)
+  loadedAt            DateTime               @default(now())
+  startedAt           DateTime?
+  endedAt             DateTime?
+  submittedAt         DateTime?
+  updatedAt           DateTime               @updatedAt
+  expiresAt           DateTime
+  finalizedReportUuid String?                @unique
+  // Reserved for future lifecycle audit entries.
+  transitionReceipts  Json                   @default("{}")
+  sourceTeam          RegisteredTeam         @relation(fields: [sourceTeamNumber], references: [number], onDelete: Cascade)
+  scouter             Scouter                @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
+  finalizedReport     ScoutReport?           @relation(fields: [finalizedReportUuid], references: [uuid], onDelete: SetNull)
+  trainingSession     TrainingSession?       @relation(fields: [trainingSessionUuid], references: [uuid], onDelete: Cascade)
+  trainingAttempt     TrainingAttempt?       @relation(fields: [trainingAttemptUuid, trainingSessionUuid, scouterUuid], references: [uuid, sessionUuid, scouterUuid], onDelete: Cascade, map: "ScoutReportInProgress_attempt_identity_fkey")
+
+  @@unique([trainingAttemptUuid, trainingSessionUuid, scouterUuid], map: "ScoutReportInProgress_attempt_binding_key")
+  @@index([sourceTeamNumber, scouterUuid, status, updatedAt])
+  @@index([sourceTeamNumber, tournamentKey, matchType, matchNumber])
+  @@index([status, expiresAt])
+}
+
+model TrainingScore {
+  uuid                    String       @id @default(uuid())
+  reportUuid              String
+  answerKeyReportUuid     String?
+  rubricVersion           String
+  overallScore            Decimal      @db.Decimal(5, 2)
+  breakdown               Json
+  answerKeySnapshot       Json
+  submittedReportSnapshot Json
+  gradedAt                DateTime     @default(now())
+  report                  ScoutReport  @relation("TrainingScoreSubmission", fields: [reportUuid], references: [uuid], onDelete: Cascade)
+  answerKeyReport         ScoutReport? @relation("TrainingScoreAnswerKey", fields: [answerKeyReportUuid], references: [uuid], onDelete: SetNull)
+
+  @@index([reportUuid, gradedAt])
+  @@index([answerKeyReportUuid])
+}
+
 model ScoutReport {
-  uuid                  String        @id @default(uuid())
+  trainingScores        TrainingScore[]        @relation("TrainingScoreSubmission")
+  answerKeyScores       TrainingScore[]        @relation("TrainingScoreAnswerKey")
+  training              Boolean                @default(false)
+  trainingSessionUuid   String?
+  trainingSession       TrainingSession?       @relation(fields: [trainingSessionUuid], references: [uuid], onDelete: SetNull)
+  answerKeyForVideos    TrainingVideo[]        @relation("TrainingVideoAnswerKeys")
+  inProgress            ScoutReportInProgress?
+  uuid                  String                 @id @default(uuid())
   teamMatchKey          String
   startTime             DateTime
   notes                 String
@@ -303,10 +437,10 @@ model ScoutReport {
   scouterUuid           String
   robotBrokeDescription String?
   events                Event[]
-  scouter               Scouter       @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
-  teamMatchData         TeamMatchData @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
-  reliability           ReportReliability @default(UNVERIFIED)
-  flaggedBy             User[] @relation("ReportFlags")
+  scouter               Scouter                @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
+  teamMatchData         TeamMatchData          @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
+  reliability           ReportReliability      @default(UNVERIFIED)
+  flaggedBy             User[]                 @relation("ReportFlags")
 
   // year specific fields
   accuracy             Int?
@@ -321,6 +455,8 @@ model ScoutReport {
   disrupts             Boolean
   endgameClimb         EndgameClimb
   autoClimb            AutoClimb
+
+  @@index([trainingSessionUuid])
 }
 
 model ScouterScheduleShift {
@@ -340,20 +476,22 @@ model ScouterScheduleShift {
 }
 
 model Scouter {
-  uuid               String                 @id @default(uuid())
+  reportsInProgress  ScoutReportInProgress[]
+  trainingAttempts   TrainingAttempt[]
+  uuid               String                  @id @default(uuid())
   name               String?
   sourceTeamNumber   Int
-  strikes            Int                    @default(0)
-  scouterReliability Int                    @default(0)
-  archived           Boolean                @default(false)
+  strikes            Int                     @default(0)
+  scouterReliability Int                     @default(0)
+  archived           Boolean                 @default(false)
   scoutReports       ScoutReport[]
-  sourceTeam         RegisteredTeam         @relation(fields: [sourceTeamNumber], references: [number], onDelete: Cascade)
-  team1Shifts        ScouterScheduleShift[] @relation("Team1")
-  team2Shifts        ScouterScheduleShift[] @relation("Team2")
-  team3Shifts        ScouterScheduleShift[] @relation("Team3")
-  team4Shifts        ScouterScheduleShift[] @relation("Team4")
-  team5Shifts        ScouterScheduleShift[] @relation("Team5")
-  team6Shifts        ScouterScheduleShift[] @relation("Team6")
+  sourceTeam         RegisteredTeam          @relation(fields: [sourceTeamNumber], references: [number], onDelete: Cascade)
+  team1Shifts        ScouterScheduleShift[]  @relation("Team1")
+  team2Shifts        ScouterScheduleShift[]  @relation("Team2")
+  team3Shifts        ScouterScheduleShift[]  @relation("Team3")
+  team4Shifts        ScouterScheduleShift[]  @relation("Team4")
+  team5Shifts        ScouterScheduleShift[]  @relation("Team5")
+  team6Shifts        ScouterScheduleShift[]  @relation("Team6")
 
   @@index([sourceTeamNumber])
 }
@@ -382,14 +520,16 @@ model SharedPicklist {
 }
 
 model RegisteredTeam {
-  number                Int                    @id
-  code                  String                 @unique
+  reportsInProgress     ScoutReportInProgress[]
+  trainingSessions      TrainingSession[]
+  number                Int                     @id
+  code                  String                  @unique
   email                 String
-  emailVerified         Boolean                @default(false)
-  timeCreated           DateTime               @default(now()) // not accurate for teams registered before this field was added
-  teamApproved          Boolean                @default(false)
+  emailVerified         Boolean                 @default(false)
+  timeCreated           DateTime                @default(now()) // not accurate for teams registered before this field was added
+  teamApproved          Boolean                 @default(false)
   website               String?
-  team                  Team                   @relation(fields: [number], references: [number], onDelete: Cascade)
+  team                  Team                    @relation(fields: [number], references: [number], onDelete: Cascade)
   scouters              Scouter[]
   scouterScheduleShifts ScouterScheduleShift[]
   slackChannels         SlackWorkspace[]
@@ -445,7 +585,7 @@ model User {
   mutablePicklists     MutablePicklist[]
   sharedPicklists      SharedPicklist[]
   team                 RegisteredTeam?   @relation(fields: [teamNumber], references: [number], onDelete: Cascade)
-  flaggedReports       ScoutReport[] @relation("ReportFlags")
+  flaggedReports       ScoutReport[]     @relation("ReportFlags")
 }
 
 model ApiKey {

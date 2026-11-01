@@ -117,6 +117,7 @@ for (const handler of [getReportCSV, getTeamCSV]) {
         expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
           expect.objectContaining({
             where: {
+              training: false,
               reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
               teamMatchData: { tournamentKey: "2026test" },
               scouter: { sourceTeamNumber: { in: [8033] } },
@@ -132,6 +133,7 @@ for (const handler of [getReportCSV, getTeamCSV]) {
             select: expect.objectContaining({
               scoutReports: expect.objectContaining({
                 where: {
+                  training: false,
                   reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
                   scouter: { sourceTeamNumber: { in: [8033] } },
                 },
@@ -280,6 +282,7 @@ it("exports visible history for TBA teams without current event match data", asy
   expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        training: false,
         reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: { in: [254] },
@@ -371,6 +374,7 @@ it("exports historical reports without restricting either source dimension", asy
   expect(mocks.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        training: false,
         reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: { in: [254] },

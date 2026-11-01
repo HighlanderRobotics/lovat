@@ -12,14 +12,18 @@ application's dependencies.
 
 The workflow is [`.github/workflows/ai-review.yml`](../../.github/workflows/ai-review.yml).
 
-- It triggers on `pull_request` `opened`, `synchronize`, and `reopened`. Editing
-  only a title or description does not start a review.
+- It triggers on `pull_request` `opened`, `synchronize`, `reopened`, and
+  `ready_for_review`. Editing only a title or description does not start a
+  review.
 - It checks out and runs the reviewer from the pull request's **base** revision,
   so a pull request cannot change the reviewer that inspects it.
 - `.lovat-review.json` and `CODE_REVIEW.md` are also read at the base revision
   for the same reason.
 - Only file patches returned by GitHub are reviewed. Pull request code is never
   checked out, built, installed, or executed.
+- Workflow logs report progress, batch sizes, token usage, retry delays, and
+  response metadata such as finish reasons and content lengths. They do not
+  include prompts, diffs, findings, or credentials.
 - Fork pull requests are skipped. Repository secrets are not available to fork
   workflows, and reviewing a fork from a privileged context would expose the
   OpenRouter key.
@@ -35,7 +39,7 @@ The workflow needs two repository settings:
 | `OPENROUTER_MODEL` | Actions variable | Overrides the model in `.lovat-review.json`. Optional. |
 
 Set them under **Settings → Secrets and variables → Actions**. The model value
-must be an OpenRouter model identifier such as `anthropic/claude-sonnet-5.5`.
+must be an OpenRouter model identifier such as `z-ai/glm-5.3-flash`.
 The checked-in configuration supplies a default, so the variable can be left
 unset.
 
@@ -53,7 +57,7 @@ being ignored. All fields are optional because the tool applies defaults.
 |---|---|---|
 | `enabled` | `true` | Set to `false` to skip reviews without removing the workflow. |
 | `reviewDrafts` | `false` | Review draft pull requests. |
-| `model` | required | OpenRouter model identifier. `OPENROUTER_MODEL` wins when set. |
+| `model` | required | OpenRouter model identifier. The repository default is `z-ai/glm-5.3-flash`; `OPENROUTER_MODEL` wins when set. |
 | `maxDiffCharacters` | `80000` | Approximate diff budget per model request. Larger diffs are split into batches. |
 | `maxFindings` | `20` | Maximum findings kept across the whole review. |
 | `minimumConfidence` | `0.75` | Findings below this confidence are discarded. |
@@ -134,9 +138,10 @@ A review failure is visible:
 3. The workflow exits non-zero, so the failed job is visible in Actions.
 
 Failures include missing configuration, invalid `.lovat-review.json`, OpenRouter
-authentication or model errors, exhausted retries, output token limits, and
-GitHub API errors. A missing `OPENROUTER_API_KEY` fails before any review is
-published; configure the secret and re-run the workflow.
+authentication or model errors, empty responses after retries, exhausted
+retries, output token limits, and GitHub API errors. A missing
+`OPENROUTER_API_KEY` fails before any review is published; configure the secret
+and re-run the workflow.
 
 ## Local checks
 
@@ -162,7 +167,7 @@ To exercise the reviewer locally, provide a GitHub event payload and tokens:
 GITHUB_EVENT_PATH=/path/to/pr-event.json \
 GITHUB_TOKEN=... \
 OPENROUTER_API_KEY=... \
-OPENROUTER_MODEL=anthropic/claude-sonnet-5.5 \
+OPENROUTER_MODEL=z-ai/glm-5.3-flash \
 node dist/index.js
 ```
 
@@ -176,7 +181,8 @@ Use a disposable pull request. The command creates a real GitHub review.
 | `No OpenRouter model is configured` | Set the `OPENROUTER_MODEL` variable or `model` in `.lovat-review.json`. |
 | `OpenRouter returned 401` or `403` | The API key is invalid, expired, or lacks access to the model. |
 | `OpenRouter returned 404` | The model identifier is wrong or unavailable on OpenRouter. |
+| `OpenRouter returned an empty response` | Empty responses are retried. If retries are exhausted, re-run later or switch models. |
 | `output_limit` | Increase `maxOutputTokens` or lower `maxDiffCharacters`. |
 | Review skipped as a fork | Expected. Fork pull requests do not receive secrets. |
-| Review skipped as a draft | Enable `reviewDrafts`, then push a commit or reopen the pull request. A ready-for-review event alone does not start a review. |
+| Review skipped as a draft | Enable `reviewDrafts`, push a commit, reopen the pull request, or mark it ready for review. |
 | `422` from GitHub on a review | Inline positions were rejected; the reviewer retries with findings in the summary. |

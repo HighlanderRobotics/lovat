@@ -23,6 +23,31 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 it.each([
+  { params: {}, query: { flag: "true" } },
+  { params: { report: "report" }, query: {} },
+  { params: { report: "report" }, query: { flag: "invalid" } },
+])(
+  "rejects malformed flag requests before reading or writing reports (%j)",
+  async (request) => {
+    const response = await invoke(setScoutReportFlag, request);
+    expect(response.statusCode).toBe(400);
+    expect(db.scoutReport.findFirst).not.toHaveBeenCalled();
+    expect(db.$transaction).not.toHaveBeenCalled();
+  },
+);
+
+it("does not flag missing or inaccessible reports", async () => {
+  db.scoutReport.findFirst.mockResolvedValue(null);
+  const response = await invoke(setScoutReportFlag, {
+    params: { report: "report" },
+    query: { flag: "true" },
+  });
+  expect(response.statusCode).toBe(404);
+  expect(db.$transaction).not.toHaveBeenCalled();
+  expect(db.invalidate).not.toHaveBeenCalled();
+});
+
+it.each([
   ["UNVERIFIED", 2, "true", undefined],
   ["UNVERIFIED", 3, "true", "FLAGGED"],
   ["FLAGGED", 2, "false", "UNVERIFIED"],

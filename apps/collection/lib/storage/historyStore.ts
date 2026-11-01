@@ -1,13 +1,14 @@
 import { ScoutReport, scoutReportSchema } from "../collection/ScoutReport";
-import { storage } from "./zustandStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import {
   ScoutReportMeta,
   scoutReportMetaSchema,
 } from "../models/ScoutReportMeta";
 import { z } from "zod";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { migrateScoutReport } from "./scoutReportMigrations";
+import { seasonHistoryStorage } from "./seasonHistoryStorage";
 
 export const historyEntrySchema = z.object({
   scoutReport: scoutReportSchema,
@@ -68,8 +69,13 @@ export const useHistoryStore = create(
         })),
     }),
     {
-      name: "historyStore",
-      storage: storage,
+      name: "historyStore2026",
+      storage: createJSONStorage(() =>
+        seasonHistoryStorage(
+          AsyncStorage,
+          (entry) => historyEntrySchema.safeParse(entry).success,
+        ),
+      ),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         const migrated = state.history.map((entry) => ({

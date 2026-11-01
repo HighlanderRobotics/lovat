@@ -214,6 +214,7 @@ it.each([true, false])(
       by: ["endgameClimb"],
       _count: { _all: true },
       where: {
+        training: false,
         reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: 254,

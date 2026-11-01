@@ -75,9 +75,11 @@ it("returns no ranking prediction when no eligible scouted match exists", async 
       matchType: "QUALIFICATION",
       scoutReports: {
         some: {
+          training: false,
           AND: [
             { reliability: { notIn: ["FLAGGED", "BAD_REPORT"] } },
             {
+              training: false,
               scouter: { sourceTeamNumber: { in: [8033] } },
               teamMatchData: { tournamentKey: undefined },
             },

@@ -89,6 +89,7 @@ const config = {
         matchType: "QUALIFICATION",
         scoutReports: {
           some: {
+            training: false,
             AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
           },
         },

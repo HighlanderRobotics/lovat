@@ -75,6 +75,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
     };
 
     const srWhere: Prisma.ScoutReportWhereInput = {
+      training: false,
       ...reportReliabilityFilter,
       ...(teamFilter ? { scouter: { sourceTeamNumber: teamFilter } } : {}),
     };

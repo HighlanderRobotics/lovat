@@ -1,20 +1,18 @@
 import { Request, Response } from "express";
-import prismaClient from "../../../prismaClient.js";
+import prismaClient from "../../prismaClient.js";
 import z from "zod";
 
-export const addNewScouter = async (
+export const checkCodeScouter = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
     const params = z
       .object({
-        team: z.number(),
-        name: z.string(),
+        code: z.string(),
       })
       .safeParse({
-        team: req.body.teamNumber,
-        name: req.body.name,
+        code: req.query.code,
       });
     if (!params.success) {
       res.status(400).send({
@@ -24,13 +22,18 @@ export const addNewScouter = async (
       });
       return;
     }
-    const user = await prismaClient.scouter.create({
-      data: {
-        name: params.data.name,
-        sourceTeamNumber: params.data.team,
+
+    const teamWithCode = await prismaClient.registeredTeam.findUnique({
+      where: {
+        code: params.data.code,
       },
     });
-    res.status(200).send(user);
+    if (teamWithCode === null) {
+      //not a valid code
+      res.status(200).send(false);
+    } else {
+      res.status(200).send(teamWithCode);
+    }
   } catch (error) {
     console.error(error);
     res

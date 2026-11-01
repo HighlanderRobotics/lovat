@@ -163,7 +163,10 @@ it("supports unrestricted source rules for many-team analysis", async () => {
       where: { teamNumber: { in: [254] }, matchType: { not: "PRACTICE" } },
       select: expect.objectContaining({
         scoutReports: expect.objectContaining({
-          where: { reliability: { notIn: ["FLAGGED", "BAD_REPORT"] } },
+          where: {
+            training: false,
+            reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+          },
         }),
       }),
     }),
@@ -447,6 +450,7 @@ it("permits unrestricted timeline tournament selection", async () => {
       select: expect.objectContaining({
         scoutReports: expect.objectContaining({
           where: {
+            training: false,
             reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
             scouter: { sourceTeamNumber: { in: [8033] } },
           },

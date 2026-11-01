@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import prismaClient from "../../../prismaClient.js";
+import prismaClient from "../../prismaClient.js";
 import z from "zod";
 
 export const getScouterTournaments = async (
@@ -7,10 +7,21 @@ export const getScouterTournaments = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const currentYear = new Date().getFullYear();
+    const seasonStart = new Date(currentYear, 0, 1);
+    const seasonEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+    const seasonWhere = {
+      startDate: {
+        gte: seasonStart,
+        lte: seasonEnd,
+      },
+    };
+
     let rows = await prismaClient.tournament.findMany({
       orderBy: {
         date: "asc",
       },
+      where: seasonWhere,
     });
     if (req.query.filter != undefined) {
       if (req.query.skip != undefined) {
@@ -34,6 +45,7 @@ export const getScouterTournaments = async (
             take: params.data.take,
             skip: params.data.skip,
             where: {
+              ...seasonWhere,
               OR: [
                 { key: { contains: params.data.filter } },
                 { name: { contains: params.data.filter } },
@@ -60,6 +72,7 @@ export const getScouterTournaments = async (
           rows = await prismaClient.tournament.findMany({
             skip: params.data.skip,
             where: {
+              ...seasonWhere,
               OR: [
                 { key: { contains: params.data.filter } },
                 { name: { contains: params.data.filter } },
@@ -88,6 +101,7 @@ export const getScouterTournaments = async (
           rows = await prismaClient.tournament.findMany({
             take: params.data.take,
             where: {
+              ...seasonWhere,
               OR: [
                 { key: { contains: params.data.filter } },
                 { name: { contains: params.data.filter } },
@@ -111,6 +125,7 @@ export const getScouterTournaments = async (
           }
           rows = await prismaClient.tournament.findMany({
             where: {
+              ...seasonWhere,
               OR: [
                 { key: { contains: params.data.filter } },
                 { name: { contains: params.data.filter } },
@@ -141,6 +156,7 @@ export const getScouterTournaments = async (
           rows = await prismaClient.tournament.findMany({
             take: params.data.take,
             skip: params.data.skip,
+            where: seasonWhere,
             orderBy: {
               date: "asc",
             },
@@ -160,6 +176,7 @@ export const getScouterTournaments = async (
 
           rows = await prismaClient.tournament.findMany({
             take: params.data.take,
+            where: seasonWhere,
             orderBy: {
               date: "asc",
             },
@@ -180,6 +197,7 @@ export const getScouterTournaments = async (
           }
           rows = await prismaClient.tournament.findMany({
             skip: params.data.skip,
+            where: seasonWhere,
             orderBy: {
               date: "asc",
             },
@@ -191,6 +209,7 @@ export const getScouterTournaments = async (
     if (req.query.filter != undefined) {
       const tempRows = await prismaClient.tournament.findMany({
         where: {
+          ...seasonWhere,
           OR: [
             { key: { contains: req.query.filter as string } },
             { name: { contains: req.query.filter as string } },
@@ -202,7 +221,8 @@ export const getScouterTournaments = async (
       });
       count = tempRows.length;
     } else {
-      count = (await prismaClient.tournament.findMany({})).length;
+      count = (await prismaClient.tournament.findMany({ where: seasonWhere }))
+        .length;
     }
 
     const params = z

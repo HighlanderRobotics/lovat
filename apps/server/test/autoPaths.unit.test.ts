@@ -97,6 +97,7 @@ it("groups compatible prefixes, retains the longest path and deduplicates match 
   expect(db.scoutReport.findMany).toHaveBeenCalledWith(
     expect.objectContaining({
       where: {
+        training: false,
         reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
         teamMatchData: {
           teamNumber: 254,

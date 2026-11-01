@@ -8,12 +8,15 @@ import {
 import { Scouter } from "./models/scouter";
 import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
+import { getMatchSchedule, MatchSchedule } from "./lovatAPI/getMatchSchedule";
+import { useTournamentStore } from "./storage/userStores";
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
     useScouterScheduleStore.getInitialState().fetchData;
   const fetchTeamScouters = useTeamScoutersStore.getInitialState().fetchData;
   const fetchTournaments = useTournamentsStore.getInitialState().fetchData;
+  const fetchMatchSchedule = useMatchScheduleStore.getInitialState().fetchData;
   const setServicesLoading = useServicesLoadingStore.getInitialState().setValue;
   const setServiceError = useServiceErrorStore.getInitialState().setValue;
 
@@ -21,9 +24,15 @@ export function getServiceLoader() {
     let error: string | null = null;
     try {
       setServicesLoading(true);
-      await fetchTournaments();
-      await fetchTeamScouters();
-      await fetchScouterSchedule();
+      // A missing scouter schedule must not stop the official schedule refresh.
+      const results = await Promise.allSettled([
+        fetchTournaments(),
+        fetchTeamScouters(),
+        fetchScouterSchedule(),
+        fetchMatchSchedule(),
+      ]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
     } catch (e) {
       console.error(e);
       error = JSON.stringify(e);
@@ -92,3 +101,10 @@ export const useTournamentsStore = createGenericServiceStore<Tournament[]>(
   getTournaments,
   "tournamentsListStore",
 );
+
+export const useMatchScheduleStore = createGenericServiceStore<
+  MatchSchedule | undefined
+>(async () => {
+  const tournament = useTournamentStore.getState().value;
+  return tournament ? getMatchSchedule(tournament.key) : undefined;
+}, "matchScheduleStore");

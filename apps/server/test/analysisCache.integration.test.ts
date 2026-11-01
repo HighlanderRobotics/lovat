@@ -158,7 +158,7 @@ describe.sequential(
           const row = await db.cachedAnalysis.findFirst({
             where: {
               key: {
-                contains: `analysis:v3:handler:${viewerId}:${fixtureId}:handler`,
+                contains: `analysis:v4:handler:${viewerId}:${fixtureId}:handler`,
               },
             },
             select: { key: true },

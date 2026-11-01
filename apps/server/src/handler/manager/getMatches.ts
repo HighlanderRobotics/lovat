@@ -59,7 +59,7 @@ export const getMatches = async (
         tournamentKey: params.data.tournamentKey,
         matchType: MatchType.QUALIFICATION,
         scoutReports: {
-          some: {},
+          some: { training: false },
         },
       },
       orderBy: [{ matchNumber: "desc" }],
@@ -99,6 +99,7 @@ export const getMatches = async (
 
       includeTeamReports = {
         where: {
+          training: false,
           scouter: {
             sourceTeamNumber: user.teamNumber,
           },
@@ -125,6 +126,7 @@ export const getMatches = async (
           select: {
             scoutReports: {
               where: {
+                training: false,
                 scouter: {
                   sourceTeamNumber:
                     dataSourceRuleToPrismaFilter(teamSourceRule),

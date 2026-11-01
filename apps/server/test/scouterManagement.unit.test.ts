@@ -16,7 +16,7 @@ const invalidate = vi.hoisted(() => vi.fn());
 vi.mock("../src/prismaClient.js", () => ({ default: db }));
 vi.mock("../src/lib/clearCache.js", () => ({ invalidateCache: invalidate }));
 const { addNewScouter } =
-  await import("../src/handler/manager/scouters/addNewScouter.js");
+  await import("../src/handler/collection/addNewScouter.js");
 const { addScouterDashboard } =
   await import("../src/handler/manager/scouters/addScouterDashboard.js");
 const { archiveScouter } =
@@ -30,11 +30,11 @@ const { updateScouterName } =
 const { deleteScouter } =
   await import("../src/handler/manager/scouters/deleteScouter.js");
 const { checkCodeScouter } =
-  await import("../src/handler/manager/scouters/checkCodeScouter.js");
+  await import("../src/handler/collection/checkCodeScouter.js");
 const { getScouters } =
   await import("../src/handler/manager/scouters/getScouters.js");
 const { getScoutersOnTeam } =
-  await import("../src/handler/manager/scouters/getScoutersOnTeam.js");
+  await import("../src/handler/collection/getScoutersOnTeam.js");
 const scouter = {
   uuid: "scouter-1",
   name: "New scouter",

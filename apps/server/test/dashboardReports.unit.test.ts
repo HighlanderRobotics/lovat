@@ -27,7 +27,7 @@ vi.mock("../src/handler/slack/sendWarningNotification.js", () => ({
 import {
   addScoutReport,
   checkForInvalidEvents,
-} from "../src/handler/manager/scoutreports/addScoutReport.js";
+} from "../src/handler/collection/addScoutReport.js";
 import { addScoutReportDashboard } from "../src/handler/manager/scoutreports/addScoutReportDashboard.js";
 const body = () => ({
   uuid: "report",

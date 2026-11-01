@@ -33,6 +33,7 @@ export const breakdownMetrics = createAnalysisHandler({
 
     const reportCount = await prismaClient.scoutReport.count({
       where: {
+        training: false,
         AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
         teamMatchData: {
           teamNumber: params.team,
