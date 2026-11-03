@@ -9,7 +9,7 @@ type IconButtonProps = {
   size?: number;
   disabled?: boolean;
   onPress?: () => void;
-  ref?: React.Ref<View>;
+  ref?: React.Ref<React.ComponentRef<typeof Pressable>>;
 };
 
 export const IconButton: React.FC<IconButtonProps> = ({

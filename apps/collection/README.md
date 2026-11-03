@@ -4,6 +4,10 @@ Collection is the Expo and React Native client used by scouters to record match 
 
 Return to the [monorepo README](../../README.md).
 
+## Platforms
+
+Collection supports iOS and Android only. Web is not a supported target, and there is no web build.
+
 ## Prerequisites
 
 - Node.js 24.6.0
@@ -25,7 +29,7 @@ npm run ts:check
 
 Copy `.env.example` to an appropriate local environment file and set `EXPO_PUBLIC_API_URL` to the desired Server authority. `EXPO_PUBLIC_*` values are included in client builds and must never contain secrets.
 
-Android and web have known pre-existing issues tracked as LVT-217 and LVT-220. Offline report migrations and QR-code fallback are compatibility-sensitive.
+Android has known pre-existing issues tracked as LVT-217. Offline report migrations and QR-code fallback are compatibility-sensitive.
 
 ## Versioning
 
@@ -40,19 +44,17 @@ Only change `YEAR.MAJOR.MINOR` when cutting a release. Individual features and f
 
 ## iOS release builds
 
-Build release iOS candidates with **Xcode 26**. Apps compiled with Xcode 27's
-iOS 27 SDK are terminated by UIKit at launch on iOS 27
-(`_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`) because Expo
-SDK 54 still starts React Native from the legacy app-delegate window instead of
-the UIKit scene lifecycle. Xcode 26 builds continue to launch on iOS 27.
+Build release iOS candidates with **Xcode 27**. Expo SDK 58 builds for the iOS
+27 SDK and generates the UIScene lifecycle (`SceneDelegate.swift` and a
+`UIApplicationSceneManifest` entry), so it can launch on iOS 27. The earlier
+Xcode 27 crash (`_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`)
+came from Expo SDK 54 starting React Native from the legacy app-delegate window;
+verify the first build after this upgrade still launches on an iOS 27 device.
 
 - Cloud builds use the `training-testflight` profile, which pins `ios.image` to
-  `macos-sequoia-15.6-xcode-26.0`. Keep the pin when creating store builds.
-  Moving to Xcode 27 requires a UIScene config plugin or Expo SDK 58, which
-  adopts the scene lifecycle by default.
+  `macos-tahoe-26.6-xcode-27.0`. Keep the pin when creating store builds.
 - `eas build --local` ignores `ios.image` and compiles with the Mac's selected
-  Xcode. Check `xcodebuild -version` first; on a Mac with only Xcode 27, use a
-  cloud build.
+  Xcode. Check `xcodebuild -version` first; use Xcode 27 or a cloud build.
 - The build number in the uploaded binary can differ from `ios.buildNumber` in
   `app.json`; confirm it in the built app's `Info.plist` or the EAS build details.
 - If EAS Submit reports that an App Store Connect API key is required, upload a

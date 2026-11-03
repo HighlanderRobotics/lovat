@@ -2,14 +2,10 @@
   "expo": {
     "name": "Collection",
     "slug": "lovat-collection",
+    "platforms": ["ios", "android"],
     "version": "26.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1f1f1f"
-    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "icon": "./assets/icon.png",
@@ -28,12 +24,6 @@
       },
       "package": "com.frc8033.lovatcollection",
       "versionCode": 27
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#1f1f1f"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
@@ -61,7 +51,15 @@
         }
       ],
       "./plugins/with-ios-menu-availability.cjs",
-      "./plugins/with-ios-resource-targets.cjs"
+      "./plugins/with-ios-resource-targets.cjs",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#1f1f1f"
+        }
+      ]
     ],
     "scheme": "lovat-collection"
   }

@@ -1,8 +1,7 @@
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { View } from "react-native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CommonActions } from "@react-navigation/native";
 import { Suspense, useMemo, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import Heading1Small from "../../lib/components/text/Heading1Small";
@@ -105,7 +104,6 @@ const TournamentItem = ({ tournament }: { tournament: Tournament }) => {
   const setOnboardingComplete = useOnboardingCompleteStore(
     (state) => state.setValue,
   );
-  const navigation = useNavigation();
 
   return (
     <TouchableOpacity
@@ -113,11 +111,7 @@ const TournamentItem = ({ tournament }: { tournament: Tournament }) => {
       onPress={async () => {
         selectTournament(tournament);
         setOnboardingComplete(true);
-        navigation.dispatch(
-          CommonActions.reset({
-            routes: [{ key: "index", name: "index" }],
-          }),
-        );
+        router.dismissTo("/");
       }}
       style={{
         paddingVertical: 10,

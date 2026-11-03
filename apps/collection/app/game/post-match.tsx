@@ -1,6 +1,6 @@
 import { Alert, View } from "react-native";
 import { NavBar } from "../../lib/components/NavBar";
-import { Stack, router, useNavigation } from "expo-router";
+import { Redirect, Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../lib/components/Button";
 import LabelSmall from "../../lib/components/text/LabelSmall";
@@ -28,7 +28,6 @@ import {
 } from "../../lib/collection/EndgameClimb";
 import TextField from "../../lib/components/TextField";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { CommonActions } from "@react-navigation/native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { useTrainingModeStore } from "../../lib/storage/userStores";
 import React from "react";
@@ -46,15 +45,8 @@ export default function PostMatch() {
   const interrupted =
     pairedTraining && training.snapshot?.status === "INTERRUPTED";
 
-  const navigation = useNavigation();
-
   if (!reportState) {
-    navigation.dispatch(
-      CommonActions.reset({
-        routes: [{ key: "index", name: "index" }],
-      }),
-    );
-    return null;
+    return <Redirect href="/" />;
   }
 
   const shouldShowDefenseEffectiveness =
@@ -377,11 +369,7 @@ export default function PostMatch() {
                       onPress: () => {
                         useTrainingSessionStore.getState().clear();
                         reportState.reset();
-                        navigation.dispatch(
-                          CommonActions.reset({
-                            routes: [{ key: "index", name: "index" }],
-                          }),
-                        );
+                        router.dismissTo("/");
                       },
                     },
                   ],

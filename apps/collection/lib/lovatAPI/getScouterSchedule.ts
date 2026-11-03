@@ -11,6 +11,7 @@ const scouterScheduleResponseSchema = z.object({
       matchType: z.number(),
       matchNumber: z.number(),
       scouters: z.record(
+        z.string(),
         z.object({
           team: z.number(),
           alliance: z.union([z.literal("red"), z.literal("blue")]),
