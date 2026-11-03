@@ -32,6 +32,7 @@ import {
   useMatchScheduleStore,
 } from "../lib/services";
 import {
+  startupStores,
   useOnboardingCompleteStore,
   useScouterStore,
   useTeamStore,
@@ -65,7 +66,10 @@ import {
   MatchSelectionMode,
   useMatchSelectionModeStore,
 } from "../lib/storage/userStores";
-import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
+import {
+  createGenericPersistantStore,
+  waitForStoreHydration,
+} from "../lib/storage/zustandStorage";
 import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
 import { scheduledTeamsForAlliance } from "../lib/collection/scheduledTeams";
 import { resolveStartupRoute } from "../lib/collection/startup";
@@ -81,6 +85,7 @@ export default function Home() {
     );
   const [meta, setMeta] = useState<ScoutReportMeta | null>(null);
   const [checkingMatch, setCheckingMatch] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const checkingMatchRef = useRef(false);
   const selectionVersion = useRef(0);
   const onMetaChanged = useCallback((value: ScoutReportMeta | null) => {
@@ -94,6 +99,24 @@ export default function Home() {
   const tournament = useTournamentStore((state) => state.value);
 
   useEffect(() => {
+    let cancelled = false;
+
+    Promise.all(startupStores.map(waitForStoreHydration)).then(() => {
+      if (!cancelled) {
+        setHydrated(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     if (onboardingComplete && scouter && tournament) {
       return;
     }
@@ -106,7 +129,7 @@ export default function Home() {
         tournament,
       }),
     );
-  }, [onboardingComplete, teamCode, scouter, tournament]);
+  }, [hydrated, onboardingComplete, teamCode, scouter, tournament]);
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
   const loadServices = getServiceLoader();

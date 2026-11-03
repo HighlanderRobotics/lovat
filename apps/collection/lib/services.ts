@@ -14,19 +14,12 @@ import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
 import { getMatchSchedule, MatchSchedule } from "./lovatAPI/getMatchSchedule";
 import {
+  startupStores,
   useOnboardingCompleteStore,
   useScouterStore,
-  useTeamStore,
   useTournamentStore,
 } from "./storage/userStores";
 import { loadScouterServices } from "./collection/startup";
-
-const persistedStores = [
-  useOnboardingCompleteStore,
-  useScouterStore,
-  useTeamStore,
-  useTournamentStore,
-];
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
@@ -42,7 +35,7 @@ export function getServiceLoader() {
 
     try {
       setServicesLoading(true);
-      await Promise.all(persistedStores.map(waitForStoreHydration));
+      await Promise.all(startupStores.map(waitForStoreHydration));
 
       const scouter = useScouterStore.getState().value;
       const result = await loadScouterServices(scouter, {

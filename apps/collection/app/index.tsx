@@ -3,19 +3,13 @@ import React, { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { resolveStartupRoute } from "../lib/collection/startup";
 import {
+  startupStores,
   useOnboardingCompleteStore,
   useScouterStore,
   useTeamStore,
   useTournamentStore,
 } from "../lib/storage/userStores";
 import { waitForStoreHydration } from "../lib/storage/zustandStorage";
-
-const startupStores = [
-  useOnboardingCompleteStore,
-  useScouterStore,
-  useTeamStore,
-  useTournamentStore,
-];
 
 export default function Index() {
   const onboardingComplete = useOnboardingCompleteStore((state) => state.value);
