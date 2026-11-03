@@ -31,7 +31,12 @@ import {
   useTeamScoutersStore,
   useMatchScheduleStore,
 } from "../lib/services";
-import { useScouterStore, useTournamentStore } from "../lib/storage/userStores";
+import {
+  useOnboardingCompleteStore,
+  useScouterStore,
+  useTeamStore,
+  useTournamentStore,
+} from "../lib/storage/userStores";
 import { Picker } from "../lib/components/Picker";
 import {
   MatchIdentity,
@@ -63,6 +68,7 @@ import {
 import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
 import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
 import { scheduledTeamsForAlliance } from "../lib/collection/scheduledTeams";
+import { resolveStartupRoute } from "../lib/collection/startup";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -82,6 +88,25 @@ export default function Home() {
     setMeta(value);
   }, []);
   const reportState = useReportStateStore();
+  const onboardingComplete = useOnboardingCompleteStore((state) => state.value);
+  const teamCode = useTeamStore((state) => state.code);
+  const scouter = useScouterStore((state) => state.value);
+  const tournament = useTournamentStore((state) => state.value);
+
+  useEffect(() => {
+    if (onboardingComplete && scouter && tournament) {
+      return;
+    }
+
+    router.replace(
+      resolveStartupRoute({
+        onboardingComplete,
+        teamCode,
+        scouter,
+        tournament,
+      }),
+    );
+  }, [onboardingComplete, teamCode, scouter, tournament]);
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
   const loadServices = getServiceLoader();
@@ -364,18 +389,22 @@ const AutomaticMatchSelection = ({
   }, [selectedMatch, tournaments]);
 
   useEffect(() => {
-    if (!selectedMatch) {
+    const selectedScouterMatch = scouter
+      ? selectedMatch?.scouters[scouter.uuid]
+      : undefined;
+
+    if (!selectedMatch || !scouter || !selectedScouterMatch) {
       onChanged(null);
       return;
     }
 
     onChanged({
-      scouterUUID: scouter!.uuid,
-      allianceColor: selectedMatch.scouters[scouter!.uuid].allianceColor,
-      teamNumber: selectedMatch.scouters[scouter!.uuid].teamNumber,
+      scouterUUID: scouter.uuid,
+      allianceColor: selectedScouterMatch.allianceColor,
+      teamNumber: selectedScouterMatch.teamNumber,
       matchIdentity: selectedMatch.matchIdentity,
     });
-  }, [selectedMatch]);
+  }, [selectedMatch, scouter]);
 
   useEffect(() => {
     if (matchesWithScouter.length === 0) {
@@ -384,6 +413,8 @@ const AutomaticMatchSelection = ({
   }, [matchesWithScouter]);
 
   if (!scouter || !tournaments) return null;
+
+  const selectedScouterMatch = selectedMatch?.scouters[scouter.uuid];
 
   return (
     <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
@@ -396,10 +427,8 @@ const AutomaticMatchSelection = ({
         </Heading1Small>
       )}
 
-      {selectedMatch && (
-        <TitleMedium>
-          Scouting {selectedMatch.scouters[scouter.uuid].teamNumber}
-        </TitleMedium>
+      {selectedMatch && selectedScouterMatch && (
+        <TitleMedium>Scouting {selectedScouterMatch.teamNumber}</TitleMedium>
       )}
 
       <View

@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { View } from "react-native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import Heading1Small from "../../lib/components/text/Heading1Small";
 
@@ -15,6 +15,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { Tournament } from "../../lib/lovatAPI/getTournaments";
 import {
   useOnboardingCompleteStore,
+  useScouterStore,
   useTournamentStore,
 } from "../../lib/storage/userStores";
 import React from "react";
@@ -23,9 +24,13 @@ import { useTournamentsStore } from "../../lib/services";
 export default function OnboardingTournaments() {
   const [filter, setFilter] = useState("");
   const fetchTournaments = useTournamentsStore((state) => state.fetchData);
-  useMemo(() => {
-    fetchTournaments();
-  }, []);
+  const scouter = useScouterStore((state) => state.value);
+
+  useEffect(() => {
+    if (scouter) {
+      fetchTournaments();
+    }
+  }, [fetchTournaments, scouter]);
   return (
     <>
       <NavBar
