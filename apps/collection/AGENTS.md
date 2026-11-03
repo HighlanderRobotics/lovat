@@ -8,5 +8,5 @@
 - Report events, offline migrations, QR-code fallback, deep links, and upload payloads are compatibility-sensitive.
 - Preserve EAS project ownership, identifiers, profiles, and signing configuration.
 - Follow the `YEAR.MAJOR.MINOR (BUILD)` versioning convention: the year or season, a major feature, a minor feature or fix, then the build number in parentheses. Change `YEAR.MAJOR.MINOR` only when cutting a release, not for every feature or fix. Increment `ios.buildNumber` for every TestFlight upload and `android.versionCode` for every Play upload.
-- Give each TestFlight build and version bump its own commit, separate from unrelated work, and indicate the build in the message (for example a `TestFlight-Build: 13` trailer).
+- Give each TestFlight build and version bump its own commit, separate from unrelated work, and indicate the build in the message (for example a `TestFlight-Build: 14` trailer).
 - Collection supports iOS and Android only; web is not a supported target. Android has documented pre-existing issues; do not conceal them by weakening checks.

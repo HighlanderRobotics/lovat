@@ -33,7 +33,7 @@ Android has known pre-existing issues tracked as LVT-217. Offline report migrati
 
 ## Versioning
 
-Versions are written as `YEAR.MAJOR.MINOR (BUILD)`, for example `26.1.0 (13)`.
+Versions are written as `YEAR.MAJOR.MINOR (BUILD)`, for example `26.1.0 (14)`.
 
 - `YEAR` is the competition season the app is built for, so `26` is the 2026 season.
 - `MAJOR` increases for a major feature, such as a new scouting flow.
