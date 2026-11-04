@@ -4,12 +4,21 @@ import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 
 extension GetCSVExport on LovatAPI {
-  Future<String> getCSVExport(Tournament tournament, CSVExportFormat mode,
-      CSVExportFilter filter) async {
+  Future<String> getCSVExport(
+    Tournament tournament,
+    CSVExportFormat mode,
+    CSVExportFilter filter, {
+    bool fixedPoints = false,
+    bool winstreak = false,
+    bool trend = false,
+  }) async {
     final response = await lovatAPI.get(
       '/v1/analysis/${mode.slug}',
       query: {
         'tournamentKey': tournament.key,
+        if (fixedPoints) 'fixedPoints': 'true',
+        if (winstreak) 'winstreak': 'true',
+        if (trend) 'trend': 'true',
         if (filter != CSVExportFilter.none) filter.slug: ''
       },
     );
@@ -31,11 +40,14 @@ extension GetCSVExport on LovatAPI {
 enum CSVExportFormat {
   byTeam,
   byScoutReport,
+  byOcr,
 }
 
 extension CSVExportFormatExtension on CSVExportFormat {
   String get slug {
     switch (this) {
+      case CSVExportFormat.byOcr:
+        return 'ocrcsv';
       case CSVExportFormat.byTeam:
         return 'csvplain';
       case CSVExportFormat.byScoutReport:
@@ -45,6 +57,8 @@ extension CSVExportFormatExtension on CSVExportFormat {
 
   String get localizedDescription {
     switch (this) {
+      case CSVExportFormat.byOcr:
+        return 'OCR by match';
       case CSVExportFormat.byTeam:
         return 'By team';
       case CSVExportFormat.byScoutReport:
@@ -54,6 +68,8 @@ extension CSVExportFormatExtension on CSVExportFormat {
 
   String get longLocalizedDescription {
     switch (this) {
+      case CSVExportFormat.byOcr:
+        return 'Teams are rows, matches are columns. Cells contain OCR + report estimates; missing estimates are blank.';
       case CSVExportFormat.byTeam:
         return 'Each row contains a team\'s aggregated statistics throughout the tournament.';
       case CSVExportFormat.byScoutReport:

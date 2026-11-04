@@ -1,3 +1,9 @@
+import {
+  addResultColumns,
+  canExportTournament,
+  enabled,
+  exportQuery,
+} from "./tournamentResults.js";
 import { analysisReadArgs } from "../analysisReadArgs.js";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
@@ -112,6 +118,21 @@ export const getReportCSV = async (
       return;
     }
 
+    if (!exportQuery.safeParse(req.query).success) {
+      res.status(400).send({ displayError: "Invalid export parameters." });
+      return;
+    }
+    if (
+      [req.query.fixedPoints, req.query.winstreak, req.query.trend].some(
+        enabled,
+      ) &&
+      !canExportTournament(req.user, params.data.tournamentKey)
+    ) {
+      res
+        .status(403)
+        .send({ displayError: "Tournament outside your data sources." });
+      return;
+    }
     // Note: passing neither value should act the same as passing both
     const auto = req.query.auto !== undefined;
     const teleop = req.query.teleop !== undefined;
@@ -186,6 +207,7 @@ export const getReportCSV = async (
           },
           teamMatchData: {
             select: {
+              matchKey: true,
               teamNumber: true,
               matchNumber: true,
               matchType: true,
@@ -238,10 +260,18 @@ export const getReportCSV = async (
     );
 
     // Create and send the csv string through express
-    const csvString = stringify(condensed, {
+    const exportRows = await addResultColumns(
+      condensed,
+      req.user,
+      req.query,
+      includeAuto,
+      includeTeleop,
+      datapoints.map((r) => r.teamMatchData.matchKey),
+    );
+    const csvString = stringify(exportRows, {
       header: true,
       // Creates column headers from data properties
-      columns: Object.keys(condensed[0]),
+      columns: Object.keys(exportRows[0]),
       // Required for excel viewing
       bom: true,
       // Rename boolean values to TRUE and FALSE

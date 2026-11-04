@@ -1,3 +1,9 @@
+import {
+  addResultColumns,
+  canExportTournament,
+  enabled,
+  exportQuery,
+} from "./tournamentResults.js";
 import { analysisReadArgs } from "../analysisReadArgs.js";
 import { Response } from "express";
 import axios from "axios";
@@ -110,6 +116,21 @@ export const getTeamCSV = async (
       return;
     }
 
+    if (!exportQuery.safeParse(req.query).success) {
+      res.status(400).send({ displayError: "Invalid export parameters." });
+      return;
+    }
+    if (
+      [req.query.fixedPoints, req.query.winstreak, req.query.trend].some(
+        enabled,
+      ) &&
+      !canExportTournament(req.user, params.data.tournamentKey)
+    ) {
+      res
+        .status(403)
+        .send({ displayError: "Tournament outside your data sources." });
+      return;
+    }
     // Note: passing neither value should act the same as passing both
     const auto = req.query.auto !== undefined;
     const teleop = req.query.teleop !== undefined;
@@ -367,9 +388,16 @@ export const getTeamCSV = async (
             }),
           );
 
-          const csvString = stringify(aggregatedData, {
+          const exportRows = await addResultColumns(
+            aggregatedData,
+            req.user,
+            req.query,
+            includeAuto,
+            includeTeleop,
+          );
+          const csvString = stringify(exportRows, {
             header: true,
-            columns: Object.keys(aggregatedData[0]),
+            columns: Object.keys(exportRows[0]),
             bom: true,
             quote: false,
           });
@@ -456,10 +484,17 @@ export const getTeamCSV = async (
         );
       }),
     );
-    const csvString = stringify(aggregatedData, {
+    const exportRows = await addResultColumns(
+      aggregatedData,
+      req.user,
+      req.query,
+      includeAuto,
+      includeTeleop,
+    );
+    const csvString = stringify(exportRows, {
       header: true,
       // Creates column headers from data properties
-      columns: Object.keys(aggregatedData[0]),
+      columns: Object.keys(exportRows[0]),
       // Required for excel viewing
       bom: true,
       // Turn off quotation marks

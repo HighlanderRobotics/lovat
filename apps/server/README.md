@@ -147,3 +147,36 @@ imports so a fresh local database can start without an external API key.
 PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
 for real team, tournament, and match imports. Routes that call Blue Alliance
 directly still require the key. Production keeps its existing import behavior.
+
+## Tournament CSV exports
+
+`GET /v1/analysis/ocrcsv?tournamentKey=2026casnf` exports teams as rows and
+canonical matches as columns, in schedule order. Cells are the combined OCR +
+scout estimate of the team's points. Missing estimates and nonparticipants are
+blank; an estimated zero stays `0`. Source-team and tournament visibility rules
+are the same as the estimate views. Existing `auto` and `teleop` query flags
+select a phase; neither or both selects the full match.
+
+Normal `/csvplain` and `/reportcsv` exports accept these optional columns. Pass
+`true` or `1` to include a column, or `false` or `0` to omit it:
+
+- `fixedPoints`: combined estimate for that report's match, or the mean of
+  available estimates for a team's tournament. Blank when no estimate exists.
+- `winstreak`: consecutive official wins ending at that match (report export)
+  or the latest completed match (team export). A loss or tie breaks the streak;
+  an unknown latest result is blank.
+- `trend`: latest three match means minus the preceding three, using the
+  existing accuracy-adjusted scout scoring formula and selected phase. All six
+  completed matches need visible reports. Multiple reports of one match are
+  averaged first. Report exports stop at the report's match, excluding future
+  results. Positive values indicate improvement, in points per match.
+
+For a server-side download using an existing verified user's visibility rules:
+
+```sh
+node dist/src/tools/exportTournamentCsv.js 2026casnf USER_ID /tmp/csv-exports
+```
+
+This writes `2026casnf-ocr.csv` and `2026casnf-teams.csv`; the latter includes all
+three optional columns. It uses the same export handlers as Dashboard and needs
+Postgres and Redis. It does not start or resume OCR jobs.

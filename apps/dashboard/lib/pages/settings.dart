@@ -702,7 +702,15 @@ class _TournamentSourceSelectorSettingsPageState
 }
 
 class DataExportDrawer extends StatefulWidget {
-  const DataExportDrawer(this.exportMode, this.exportFilter, {super.key});
+  const DataExportDrawer(this.exportMode, this.exportFilter,
+      {super.key,
+      this.fixedPoints = false,
+      this.winstreak = false,
+      this.trend = false});
+
+  final bool fixedPoints;
+  final bool winstreak;
+  final bool trend;
 
   final CSVExportFormat exportMode;
   final CSVExportFilter exportFilter;
@@ -724,7 +732,10 @@ class _DataExportDrawerState extends State<DataExportDrawer> {
         return;
       }
       final csv = await lovatAPI.getCSVExport(
-          tournament, widget.exportMode, widget.exportFilter);
+          tournament, widget.exportMode, widget.exportFilter,
+          fixedPoints: widget.fixedPoints,
+          winstreak: widget.winstreak,
+          trend: widget.trend);
 
       final csvFile = XFile.fromData(
         utf8.encode(csv),
@@ -1453,6 +1464,9 @@ class _DataExportPageState extends State<DataExportPage> {
   Tournament? tournament;
   String? errorText;
 
+  bool fixedPoints = false;
+  bool winstreak = false;
+  bool trend = false;
   CSVExportFormat? exportFormat;
   CSVExportFilter? exportFilter;
 
@@ -1500,6 +1514,25 @@ class _DataExportPageState extends State<DataExportPage> {
                   selectedItem: exportFormat,
                   onChanged: (value) => setState(() => exportFormat = value),
                 ),
+                if (exportFormat != CSVExportFormat.byOcr) ...[
+                  SwitchListTile(
+                    title: const Text('fixedPoints'),
+                    subtitle: const Text('OCR + report estimate'),
+                    value: fixedPoints,
+                    onChanged: (value) => setState(() => fixedPoints = value),
+                  ),
+                  SwitchListTile(
+                    title: const Text('Win streak'),
+                    value: winstreak,
+                    onChanged: (value) => setState(() => winstreak = value),
+                  ),
+                  SwitchListTile(
+                    title: const Text('Trend'),
+                    subtitle: const Text('Latest 3 vs previous 3 matches'),
+                    value: trend,
+                    onChanged: (value) => setState(() => trend = value),
+                  ),
+                ],
                 InsetPicker(
                   CSVExportFilter.values,
                   titleBuilder: (mode) => mode.localizedDescription,
@@ -1522,7 +1555,10 @@ class _DataExportPageState extends State<DataExportPage> {
                       showModalBottomSheet(
                         context: context,
                         builder: (context) =>
-                            DataExportDrawer(exportFormat!, exportFilter!),
+                            DataExportDrawer(exportFormat!, exportFilter!,
+                                fixedPoints: fixedPoints,
+                                winstreak: winstreak,
+                                trend: trend),
                       );
                     },
               icon: const Icon(Icons.download),
