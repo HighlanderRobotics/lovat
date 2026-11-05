@@ -20,7 +20,8 @@
     "build-android": "eas build --platform android --local --output ./build/app-release.aab",
     "build-android-dev": "eas build --platform android --local --output ./build/app-development.apk --profile development",
     "build-android-staging": "eas build --platform android --local --output ./build/app-development.aab --profile staging",
-    "build-android-preview": "eas build --platform android --local --output ./build/app-release.apk --profile preview"
+    "build-android-preview": "eas build --platform android --local --output ./build/app-release.apk --profile preview",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -76,6 +77,7 @@
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
+    "patch-package": "^8.0.1",
     "prettier": "^3.9.10",
     "typescript-eslint": "^8.72.1"
   },
