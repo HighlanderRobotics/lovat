@@ -54,8 +54,6 @@
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~3.3.0",
     "react-native-get-random-values": "^2.1.0",
-    "react-native-ios-context-menu": "^3.2.1",
-    "react-native-ios-utilities": "^5.2.0",
     "react-native-keyboard-controller": "1.22.7",
     "react-native-reanimated": "4.7.1",
     "react-native-safe-area-context": "~5.11.1",
@@ -65,7 +63,6 @@
     "svg-path-bounds": "^1.0.2",
     "typescript": "~6.0.3",
     "uuid": "^14.0.3",
-    "zeego": "^3.0.6",
     "zod": "^4.6.7",
     "zustand": "^5.0.16"
   },
