@@ -1,3 +1,4 @@
+import { analysisReportsSql } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import { User } from "@lovat/db";
 import {
@@ -64,7 +65,7 @@ const config = {
         ? `
           SELECT value AS breakdown,
                  COUNT(*)::float / SUM(COUNT(*)) OVER () AS percentage
-          FROM "ScoutReport" s
+          FROM ${analysisReportsSql} s
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
           CROSS JOIN UNNEST(s."${args.metric}") AS value
@@ -78,7 +79,7 @@ const config = {
         : `
           SELECT s."${args.metric}" AS breakdown,
                  COUNT(s."scouterUuid")::float / SUM(COUNT(s."scouterUuid")) OVER () AS percentage
-          FROM "ScoutReport" s
+          FROM ${analysisReportsSql} s
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
           WHERE s."training" = false AND tmd."teamNumber" = $3

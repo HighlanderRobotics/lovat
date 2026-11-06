@@ -21,6 +21,8 @@ import {
 import { sendWarningToSlack } from "../slack/sendWarningNotification.js";
 import { invalidateCache } from "../../lib/clearCache.js";
 
+import { classifyReportReliability } from "../manager/scoutreports/reportReliability.js";
+
 const { PrismaClientKnownRequestError } = Prisma;
 
 const malformedTimelineVersions = new Set(["26.0.3", "26.0.4"]);
@@ -270,6 +272,10 @@ export const addScoutReport = async (
       prismaClient.scoutReport.create({
         data: {
           uuid: paramsScoutReport.uuid,
+          reliability: classifyReportReliability({
+            ...paramsScoutReport,
+            events: eventDataArray,
+          }),
           startTime: new Date(paramsScoutReport.startTime),
           teamMatchData: { connect: { key: matchKey } },
           scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },

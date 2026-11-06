@@ -118,7 +118,7 @@ for (const handler of [getReportCSV, getTeamCSV]) {
           expect.objectContaining({
             where: {
               training: false,
-              reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+              reliability: { in: ["VERIFIED", "UNVERIFIED"] },
               teamMatchData: { tournamentKey: "2026test" },
               scouter: { sourceTeamNumber: { in: [8033] } },
             },
@@ -134,7 +134,7 @@ for (const handler of [getReportCSV, getTeamCSV]) {
               scoutReports: expect.objectContaining({
                 where: {
                   training: false,
-                  reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+                  reliability: { in: ["VERIFIED", "UNVERIFIED"] },
                   scouter: { sourceTeamNumber: { in: [8033] } },
                 },
                 select: expect.objectContaining({
@@ -283,7 +283,7 @@ it("exports visible history for TBA teams without current event match data", asy
     expect.objectContaining({
       where: {
         training: false,
-        reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         teamMatchData: {
           teamNumber: { in: [254] },
           tournamentKey: { in: ["2025history"] },
@@ -375,7 +375,7 @@ it("exports historical reports without restricting either source dimension", asy
     expect.objectContaining({
       where: {
         training: false,
-        reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         teamMatchData: {
           teamNumber: { in: [254] },
           matchType: { not: "PRACTICE" },

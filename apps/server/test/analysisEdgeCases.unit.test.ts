@@ -165,7 +165,7 @@ it("supports unrestricted source rules for many-team analysis", async () => {
         scoutReports: expect.objectContaining({
           where: {
             training: false,
-            reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+            reliability: { in: ["VERIFIED", "UNVERIFIED"] },
           },
         }),
       }),
@@ -451,7 +451,7 @@ it("permits unrestricted timeline tournament selection", async () => {
         scoutReports: expect.objectContaining({
           where: {
             training: false,
-            reliability: { notIn: ["FLAGGED", "BAD_REPORT"] },
+            reliability: { in: ["VERIFIED", "UNVERIFIED"] },
             scouter: { sourceTeamNumber: { in: [8033] } },
           },
         }),

@@ -605,6 +605,8 @@ model CachedAnalysis {
   tournamentDependencies String[] @default([])
 }
 
+
+
 enum Position {
   LEFT_TRENCH
   LEFT_BUMP
@@ -712,5 +714,7 @@ enum ReportReliability {
   UNVERIFIED
   VERIFIED
   FLAGGED
+  FLAGGED_USER
+  FLAGGED_SYSTEM
   BAD_REPORT
 }

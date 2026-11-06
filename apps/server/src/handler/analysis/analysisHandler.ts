@@ -121,7 +121,12 @@ export const createAnalysisHandler: <
       ].join(":");
 
       // Check to see if there's already an output in the cache
-      const cacheRow = await kv.get(key);
+      const cachedValue = await kv.get(key);
+      const cacheRow =
+        cachedValue &&
+        (await prismaClient.cachedAnalysis.findUnique({ where: { key } }))
+          ? cachedValue
+          : null;
 
       // If not, calculate, respond, then store in cache
 

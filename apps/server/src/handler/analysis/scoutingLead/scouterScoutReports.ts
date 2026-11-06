@@ -30,6 +30,7 @@ export const scouterScoutReports = createAnalysisHandler({
       const allScoutReports = await prismaClient.scoutReport.findMany({
         where: { training: false, scouterUuid: query.scouterUuid },
         select: {
+          reliability: true,
           scouter: { select: { name: true } },
           teamMatchData: {
             select: {
@@ -58,6 +59,7 @@ export const scouterScoutReports = createAnalysisHandler({
         teamMatchData: { tournamentKey: query.tournamentKey },
       },
       select: {
+        reliability: true,
         scouter: { select: { name: true } },
         teamMatchData: {
           select: {

@@ -12,6 +12,7 @@ import {
 } from "@lovat/db";
 import prismaClient from "../../prismaClient.js";
 import { DataSourceRule } from "./dataSourceRule.js";
+import { endgameToPoints } from "./reportPoints.js";
 //add cooperation
 
 // Tunable constants
@@ -89,15 +90,6 @@ const autoEnd = 23;
 const minActionDuration = 0.5;
 
 const specificMatchPageMetrics = [];
-
-// Easy point calculation
-const endgameToPoints: Record<EndgameClimb, number> = {
-  [EndgameClimb.NOT_ATTEMPTED]: 0,
-  [EndgameClimb.FAILED]: 0,
-  [EndgameClimb.L1]: 10,
-  [EndgameClimb.L2]: 20,
-  [EndgameClimb.L3]: 30,
-};
 
 // Metrics that are analyzed by event count
 const metricToEvent: Partial<Record<Metric, EventAction>> = {

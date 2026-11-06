@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
@@ -151,7 +152,7 @@ export const getReportCSV = async (
     if (filter) where.scouter = { sourceTeamNumber: filter };
 
     const datapoints = await prismaClient.scoutReport.findMany({
-      where,
+      where: { ...where, ...analysisReportFilter },
       select: {
         uuid: true,
         notes: true,
