@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/pages/tournament_teams.dart';
 import 'package:scouting_dashboard_app/color_schemes.g.dart';
 import 'package:scouting_dashboard_app/pages/alliance.dart';
 import 'package:scouting_dashboard_app/pages/auto_path_selector.dart';
@@ -30,6 +33,7 @@ import 'package:scouting_dashboard_app/pages/settings.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/edit_team_lookup_flag.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/team_lookup.dart';
 import 'package:scouting_dashboard_app/pages/team_lookup/team_lookup_details.dart';
+import 'package:scouting_dashboard_app/pages/home.dart';
 
 void main() async {
   runApp(MaterialApp(
@@ -37,6 +41,7 @@ void main() async {
     onGenerateTitle: (context) => 'Lovat Dashboard',
     initialRoute: "/loading",
     routes: {
+      '/home': (context) => const HomePage(),
       '/loading': (context) => const InitialLoaderPage(),
       '/preview_over': (context) => const PreviewOverPage(),
       '/match_schedule': (context) => const MatchSchedulePage(),
@@ -54,6 +59,14 @@ void main() async {
             canModify: (ModalRoute.of(context)!.settings.arguments
                 as Map<String, dynamic>)['canModify'],
           ),
+      '/tournament_teams': (context) {
+        final arguments =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        return TournamentTeamsPage(
+          tournament: arguments?['tournament'] as Tournament?,
+          api: arguments?['api'] as LovatAPI?,
+        );
+      },
       '/team_lookup': (context) => const TeamLookupPage(),
       '/edit_team_lookup_flag': (context) => const EditTeamLookupFlagPage(),
       '/team_lookup_details': (context) => const TeamLookupDetailsPage(),
