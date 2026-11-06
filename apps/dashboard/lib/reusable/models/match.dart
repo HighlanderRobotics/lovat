@@ -19,6 +19,38 @@ class GameMatchIdentity {
   String getShortLocalizedDescription() =>
       "${type.shortName.toUpperCase()}$number";
 
+  String getSpecificName() {
+    if (type == MatchType.qualifier) {
+      return "Qualifier $number";
+    }
+    String bracket = "";
+    String round = "";
+
+    if ([1, 2, 3, 4, 7, 8, 11, 12].contains(number)) {
+      bracket = "Upper Bracket - ";
+    } else if (number < 14) {
+      bracket = "Lower Bracket - ";
+    }
+
+    if (number < 5) {
+      round = "Round 1";
+    } else if (number <= 8) {
+      round = "Round 2";
+    } else if (number <= 10) {
+      round = "Round 3";
+    } else if (number <= 12) {
+      round = "Round 4";
+    } else if (number == 13) {
+      round = "Round 5";
+    } else {
+      round = "Finals";
+    }
+
+    return round != "Finals"
+        ? "Match $number - $bracket$round"
+        : "Match $number - $round ${number - 13}";
+  }
+
   /// Create a user-readable description of the match
   String getLocalizedDescription({
     bool includeType = true,
@@ -26,9 +58,8 @@ class GameMatchIdentity {
     bool includeTournament = true,
     bool abbreviateName = false,
   }) {
-    final typedMatchName = abbreviateName
-        ? getShortLocalizedDescription()
-        : "${type.localizedDescriptionSingular} $number";
+    final typedMatchName =
+        abbreviateName ? getShortLocalizedDescription() : getSpecificName();
 
     if (includeType && !includeNumber && !includeTournament) {
       return "${type.localizedDescriptionPlural} match";
