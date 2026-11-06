@@ -5,14 +5,16 @@ import z from "zod";
 const tbaTeamStatusSchema = z.object({
   qual: z
     .object({
-      ranking: z.object({
-        rank: z.number().nullable(),
-        ranking_points: z.number().nullish(),
-        matches_played: z.number(),
-        sort_orders: z.array(z.number()),
-      }),
+      ranking: z
+        .object({
+          rank: z.number().nullish(),
+          ranking_points: z.number().nullish(),
+          matches_played: z.number().nullish(),
+          sort_orders: z.array(z.number()).nullish(),
+        })
+        .nullish(),
     })
-    .optional(),
+    .nullish(),
 });
 
 type TbaTeamStatus = z.infer<typeof tbaTeamStatusSchema>;
@@ -33,9 +35,15 @@ const fetchTbaTeamStatuses = async (
       return {};
     }
 
-    return z
-      .record(z.string(), tbaTeamStatusSchema)
+    const statuses = z
+      .record(z.string(), z.unknown())
       .parse(await tbaResponse.json());
+    const valid: Record<string, TbaTeamStatus> = {};
+    for (const [key, value] of Object.entries(statuses)) {
+      const parsed = tbaTeamStatusSchema.safeParse(value);
+      if (parsed.success) valid[key] = parsed.data;
+    }
+    return valid;
   } catch (error) {
     console.error(error);
     return {};
@@ -117,11 +125,11 @@ export const getTeamRankings = async (
         continue;
       }
 
-      team.rank = ranking.rank;
-      team.matchesPlayed = ranking.matches_played;
+      team.rank = ranking.rank ?? null;
+      team.matchesPlayed = ranking.matches_played ?? null;
       team.rankingPoints =
         ranking.ranking_points ??
-        (ranking.sort_orders.length > 0
+        (ranking.sort_orders?.length && ranking.matches_played != null
           ? Math.round(ranking.sort_orders[0] * ranking.matches_played)
           : null);
     }

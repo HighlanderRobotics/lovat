@@ -304,6 +304,59 @@ describe("getTeamRankings", () => {
     ]);
   });
 
+  it.each([
+    null,
+    { qual: null },
+    { qual: { ranking: null } },
+    { qual: { ranking: { rank: "invalid" } } },
+  ])(
+    "preserves valid rankings when another team's status is missing or invalid",
+    async (badStatus) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ frc254: tbaStatus(3, 12), frc1: badStatus }),
+        }),
+      );
+      const { response } = await request();
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([
+        expect.objectContaining({ number: 254, rank: 3, matchesPlayed: 12 }),
+        expect.objectContaining({ number: 1, rank: null }),
+      ]);
+    },
+  );
+
+  it("leaves incomplete ranking fields null without estimating RP", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          frc254: { qual: { ranking: { sort_orders: [1.5] } } },
+          frc1: { qual: { ranking: { matches_played: 2 } } },
+        }),
+      }),
+    );
+    const { response } = await request();
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        number: 254,
+        rank: null,
+        matchesPlayed: null,
+        rankingPoints: null,
+      }),
+      expect.objectContaining({
+        number: 1,
+        rank: null,
+        matchesPlayed: 2,
+        rankingPoints: null,
+      }),
+    ]);
+  });
+
   it("returns 404 when the tournament has no match data", async () => {
     vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue(
       [] as never,
