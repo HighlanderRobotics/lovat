@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import "./loadEnv.js";
 
 import { setupExpressErrorHandler } from "posthog-node";
+import { cairn } from "./lib/cairn.js";
 import { posthog } from "./posthogClient.js";
 import posthogReporter from "./lib/middleware/posthogMiddleware.js";
 
@@ -17,6 +18,7 @@ import { getVersion } from "./handler/manager/version.js";
 export const app = express();
 
 setupExpressErrorHandler(posthog, app);
+app.use(cairn.middleware);
 app.set("trust proxy", 1);
 
 // Compress responses for clients that advertise support (Accept-Encoding: gzip)

@@ -5,6 +5,9 @@ import { clearCache } from "./lib/clearCache.js";
 
 import { attachTrainingSockets } from "./handler/training/trainingSockets.js";
 
+import { cairn } from "./lib/cairn.js";
+import { installCairnShutdown } from "./lib/cairnShutdown.js";
+
 const port = process.env.PORT || 3000;
 
 await ensureBuiltInTrainingExercise();
@@ -16,3 +19,5 @@ const server = app.listen(port, () => {
 });
 
 attachTrainingSockets(server);
+
+installCairnShutdown(server, cairn);

@@ -3,6 +3,10 @@
 To install dependencies:
 
 ```bash
+npm --prefix ../../packages/cairn-telemetry ci --include=dev
+npm --prefix ../../packages/cairn-telemetry run build
+npm --prefix ../../packages/db ci --include=dev
+npm --prefix ../../packages/db run build
 bun install
 ```
 
@@ -285,3 +289,22 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 ### Historical seasons
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
+
+## Optional Cairn reporting
+
+The worker can report its health HTTP route and metadata-only import attempts to Cairn. It is off unless `CAIRN_ENABLED=true`, `CAIRN_URL` is a valid HTTPS origin (loopback HTTP is permitted in development), and `CAIRN_INGESTION_TOKEN` is set. Use a dedicated token scoped to `lovat-worker` and `CAIRN_ENVIRONMENT`; never reuse the API service's token.
+
+Events contain internal job ID, import kind, queue `imports`, attempt count, outcome, timestamps/duration, and deployment ID. They exclude target keys, lease tokens, provider response/error bodies, SQL, scouting reports, and credentials. A running attempt is observed after claim; success/failure is emitted only after the lease-fenced scheduling write succeeds. An attempt whose completion cannot be confirmed is reported as cancelled rather than successful. Observer exceptions cannot alter execution or retry/lease semantics. Existing scheduler retry counts reset after a successful recurring job; values outside the SDK's 1–100 attempt contract are rejected and counted as dropped by the SDK.
+
+The worker drains SDK queues with a one-second budget during its existing shutdown after consumers finish. Export queues are in-memory and best-effort. No additional database queries, stateful synthetic probes, or application-data capture are added.
+
+The SDK is a pinned source package, not a published npm release. Before a clean local `bun install`, run from the monorepo root:
+
+```sh
+npm --prefix packages/cairn-telemetry ci --include=dev
+npm --prefix packages/cairn-telemetry run build
+npm --prefix packages/db ci --include=dev
+npm --prefix packages/db run build
+```
+
+CI and Docker perform these builds before Bun copies local dependencies. Hono is aligned to SDK-compatible patch 4.13.16. No production destination or token is configured in this change.

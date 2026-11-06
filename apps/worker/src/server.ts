@@ -1,13 +1,18 @@
-import { Hono } from "hono";
+import { Hono, type MiddlewareHandler } from "hono";
 
 export function createHealthApp({
   isReady,
   checkDatabase,
+  middleware,
 }: {
+  middleware?: MiddlewareHandler;
   isReady: () => boolean;
   checkDatabase: () => Promise<void>;
 }) {
   const app = new Hono();
+  if (middleware) {
+    app.use("*", middleware);
+  }
 
   app.get("/health", async (c) => {
     if (!isReady()) return c.json({ status: "unavailable" }, 503);

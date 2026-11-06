@@ -62,3 +62,11 @@ The aggregate script assumes app dependencies are already installed and intentio
 - Collection Android and web have tracked pre-existing issues.
 - Dashboard analysis has one baseline informational failure and little test coverage.
 - Website check and formatting commands fail at the migration baseline; production build needs private environment configuration.
+
+## Cairn integration
+
+The user authorized a separate PR to add the merged Cairn server SDK to Lovat. Scope is Server, Worker, and their shared source package/build contracts. CAIRN_ENABLED defaults false; do not configure live credentials, mutate Railway, or merge this PR without a further instruction. The earlier no-Lovat-changes restriction is superseded only for this reviewed integration PR. Preserve unrelated dirty training checkouts; this task uses an isolated checkout from current main.
+
+packages/cairn-telemetry contains an exact source snapshot from Cairn commit fd029d1c90b100fd31313e902b065effeaac8712. UPSTREAM.json records provenance/checksums. It follows the existing independent app/local file dependency model, without a root workspace. SDK/build changes must trigger Server and Worker CI, and both Dockerfiles must copy/build this package. No credentials, databases, scouting payloads, tarballs, or generated output may be tracked.
+
+Integration verification: Server build, application/test typechecks, and 1,377 unit tests pass under Node 22.20.0; per-file unit coverage remains 100% for lines/statements/functions/branches. Lint has zero errors and 80 existing warnings. Worker typecheck and 40 behavior tests pass; 21 database integration tests are skipped locally because no disposable Lovat services were enabled. CI retains its guarded PostgreSQL/Redis integration and Docker checks. Source checksums verify the seven upstream SDK files. New telemetry and shutdown behavior are explicitly tested; no production exporter is enabled. Accurate recurring worker summaries require the linked Cairn follow-up PR #2.

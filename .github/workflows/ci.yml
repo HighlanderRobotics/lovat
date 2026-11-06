@@ -30,10 +30,12 @@ jobs:
             worker:
               - 'apps/worker/**'
               - 'packages/db/**'
+              - 'packages/cairn-telemetry/**'
               - '.github/workflows/ci.yml'
             server:
               - 'apps/server/**'
               - 'packages/db/**'
+              - 'packages/cairn-telemetry/**'
               - '.github/workflows/ci.yml'
             dashboard:
               - 'apps/dashboard/**'
@@ -211,6 +213,8 @@ jobs:
           bun-version: 1.3.14
       - run: npm --prefix ../../packages/db ci --include=dev
       - run: npm --prefix ../../packages/db run build
+      - run: npm --prefix ../../packages/cairn-telemetry ci --include=dev
+      - run: npm --prefix ../../packages/cairn-telemetry run build
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run typecheck
       - name: Test worker against disposable PostgreSQL
