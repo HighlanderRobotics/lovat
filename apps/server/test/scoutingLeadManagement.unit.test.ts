@@ -196,7 +196,11 @@ it("caps assignments at completed matches and counts distinct scouted matches", 
   ]);
   expect(db.scoutReport.groupBy).toHaveBeenCalledWith({
     by: ["teamMatchKey"],
-    where: { scouterUuid: "s", teamMatchData: { tournamentKey: "2026test" } },
+    where: {
+      training: false,
+      scouterUuid: "s",
+      teamMatchData: { tournamentKey: "2026test" },
+    },
   });
 });
 it("reports failed progress queries", async () => {

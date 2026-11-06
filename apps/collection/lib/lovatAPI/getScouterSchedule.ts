@@ -42,7 +42,7 @@ export async function getScouterSchedule(): Promise<
   ScouterSchedule | undefined
 > {
   const tournamentKey = useTournamentStore.getState().value!.key;
-  const response = await get("/v1/manager/scouterschedules/" + tournamentKey);
+  const response = await get("/collection/schedules/" + tournamentKey);
 
   if (!response.ok) {
     const json = await response.json();

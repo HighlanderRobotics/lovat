@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("axios", () => ({ default: { get: mocks.http } }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
-    teamMatchData: { findFirstOrThrow: mocks.last },
+    teamMatchData: { findFirst: mocks.last },
     cachedAnalysis: { create: mocks.create },
   },
 }));
@@ -62,6 +62,37 @@ beforeEach(() => {
   }));
 });
 afterEach(() => vi.restoreAllMocks());
+it("returns no ranking prediction when no eligible scouted match exists", async () => {
+  mocks.last.mockResolvedValue(null);
+
+  await expect(
+    qualRankingPredictionLogic(testUser, { tournamentKey: "2026test" }),
+  ).resolves.toEqual([]);
+
+  expect(mocks.last).toHaveBeenCalledWith({
+    where: {
+      tournamentKey: "2026test",
+      matchType: "QUALIFICATION",
+      scoutReports: {
+        some: {
+          training: false,
+          AND: [
+            { reliability: { notIn: ["FLAGGED", "BAD_REPORT"] } },
+            {
+              training: false,
+              scouter: { sourceTeamNumber: { in: [8033] } },
+              teamMatchData: { tournamentKey: undefined },
+            },
+          ],
+        },
+      },
+    },
+    orderBy: { matchNumber: "desc" },
+  });
+  expect(mocks.prediction).not.toHaveBeenCalled();
+  expect(mocks.alliance).not.toHaveBeenCalled();
+});
+
 it("uses played results and skips elimination matches while retaining idle teams", async () => {
   matches = [
     match(3, ""),

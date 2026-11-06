@@ -3,6 +3,12 @@
     "version": ">= 16.19.3"
   },
   "build": {
+    "training-pr-93": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-lovat-pr-93.up.railway.app"
+      }
+    },
     "development-simulator": {
       "developmentClient": true,
       "distribution": "internal",
@@ -23,11 +29,16 @@
     },
     "preview": {
       "distribution": "internal",
+      "node": "24.6.0",
+      "env": {
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_API_URL": "https://api.lovat.app"
+      },
       "android": {
         "buildType": "apk"
       },
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.0"
+        "image": "macos-sequoia-15.6-xcode-16.4"
       }
     },
     "staging": {

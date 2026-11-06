@@ -1,23 +1,19 @@
-import { ScoutReport } from "../collection/ScoutReport";
+import type { ScoutReport } from "../collection/ScoutReport";
+import type { ScoutReportMeta } from "../models/ScoutReportMeta";
 import { post } from "./lovatAPI";
+import { sendReport } from "./collectionRequests";
+import { queueReportRequest, reportPost } from "./reportLifecycle";
 
-export const uploadReport = async (report: ScoutReport) => {
-  console.log("Uploading report", report);
+export const uploadReport = async (
+  report: ScoutReport,
+  meta?: ScoutReportMeta,
+) => {
+  const request = meta
+    ? reportPost(meta)
+    : (path: string, body: unknown) =>
+        post(path, body, { "X-Scouter-UUID": report.scouterUuid });
 
-  const response = await post("/v1/manager/scoutreports", report);
-
-  console.log("Response", response);
-
-  if (!response.ok) {
-    let error;
-
-    try {
-      const json = await response.json();
-      error = new Error(json.displayError ?? "Error uploading report");
-    } catch {
-      error = new Error("Error uploading report");
-    }
-
-    throw error;
-  }
+  await queueReportRequest(report.uuid, () =>
+    sendReport(request, report, meta),
+  );
 };

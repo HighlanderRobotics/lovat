@@ -13,6 +13,7 @@ export const scoutReportSourceFilter = (user: User) => {
     user.tournamentSourceRule,
   );
   return {
+    training: false,
     scouter: {
       sourceTeamNumber: dataSourceRuleToPrismaFilter(sourceTeamRule),
     },

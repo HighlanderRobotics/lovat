@@ -37,6 +37,7 @@ const practiceRow = (teamNumber: number) => ({
   matchNumber: 1,
   matchType: "PRACTICE" as const,
   teamNumber,
+  practiceScheduled: false,
   _count: { scoutReports: 2 },
   scoutReports: [{ scouter: { name: "Own scouter", uuid: "own" } }],
 });
@@ -182,13 +183,16 @@ describe("Practice match listing", () => {
     const options = vi.mocked(prismaClient.teamMatchData.findMany).mock
       .calls[0][0];
     expect(options?.select?.scoutReports).toEqual({
-      where: { scouter: { sourceTeamNumber: 8033 } },
+      where: { training: false, scouter: { sourceTeamNumber: 8033 } },
       select: { scouter: { select: { name: true, uuid: true } } },
     });
     expect(options?.select?._count).toEqual({
       select: {
         scoutReports: {
-          where: { scouter: { sourceTeamNumber: { in: [9143, 8033] } } },
+          where: {
+            training: false,
+            scouter: { sourceTeamNumber: { in: [9143, 8033] } },
+          },
         },
       },
     });
@@ -219,6 +223,55 @@ describe("Practice match listing", () => {
     expect(
       response.body[0].teams.map((team: { number: number }) => team.number),
     ).toEqual([8033]);
+  });
+
+  it("lists public practice schedules before scouting while hiding private report-only teams", async () => {
+    vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue([
+      ...[8033, 254].map((teamNumber) => ({
+        ...practiceRow(teamNumber),
+        practiceScheduled: true,
+        _count: { scoutReports: 0 },
+        scoutReports: [],
+      })),
+      // This team's only membership evidence comes from an inaccessible report.
+      { ...practiceRow(9999), _count: { scoutReports: 0 }, scoutReports: [] },
+    ] as never);
+
+    const response = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .query({ includePractice: "true" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        matchNumber: 1,
+        matchType: 2,
+        scouted: false,
+        finished: false,
+        teams: [254, 8033].map((number) => ({
+          number,
+          scouters: [],
+          externalReports: 0,
+        })),
+      },
+    ]);
+    expect(prismaClient.teamMatchData.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({ practiceScheduled: true }),
+      }),
+    );
+
+    const filtered = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .query({ includePractice: "true", teams: JSON.stringify([8033, 254]) });
+    expect(filtered.status).toBe(200);
+    expect(filtered.body).toEqual(response.body);
+
+    const hidden = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .query({ includePractice: "true", teams: JSON.stringify([9999]) });
+    expect(hidden.status).toBe(200);
+    expect(hidden.body).toEqual([]);
   });
 
   it("includes practice for viewers without a team without exposing named scouters", async () => {

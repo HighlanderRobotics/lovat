@@ -69,13 +69,13 @@ export function ScoreFuelInHubAction() {
   }, [baseOnStart, hubOpacity]);
 
   const onEnd = useCallback(
-    (dx: number, dy: number, totalDistance: number) => {
+    (dx: number, dy: number, totalDistance: number, timestamp?: number) => {
       Animated.timing(hubOpacity, {
         toValue: 1,
         duration: 150,
         useNativeDriver: true,
       }).start();
-      baseOnEnd(dx, dy, totalDistance);
+      baseOnEnd(dx, dy, totalDistance, timestamp);
       setShowCheckmark(true);
       setTimeout(() => setShowCheckmark(false), CHECKMARK_DURATION_MS);
     },
@@ -321,8 +321,8 @@ function useDragFunctionsFromScoringMode(
   const initialAngleRef = useRef<number | null>(null);
   const isDecrementingRef = useRef(false);
   const [isCounting, setIsCounting] = useState(false);
-  const isCountingRef = useRef(isCounting);
-  isCountingRef.current = isCounting;
+  const isCountingRef = useRef(false);
+  const finishRef = useRef<(timestamp: number) => void>(() => {});
   const [shouldClearDisplay, setShouldClearDisplay] = useState(false);
 
   // Clear display when isCounting changes to false and shouldClearDisplay is set
@@ -369,9 +369,30 @@ function useDragFunctionsFromScoringMode(
 
   const forceStop = useCallback(() => {
     stopIncrementing();
+    isCountingRef.current = false;
     setIsCounting(false);
     setShouldClearDisplay(true);
   }, [stopIncrementing]);
+
+  // Zustand subscriptions run synchronously, before training navigates away.
+  // Finish the held action at the authoritative match end, rather than waiting
+  // for a native press-out event that may never arrive after navigation.
+  useEffect(
+    () =>
+      useReportStateStore.subscribe((state, previous) => {
+        const endTime = state.meta?.collection?.endTime;
+        if (
+          state.uuid === previous.uuid &&
+          endTime !== undefined &&
+          previous.meta?.collection?.endTime === undefined
+        ) {
+          finishRef.current(endTime);
+        }
+      }),
+    [],
+  );
+
+  useEffect(() => () => stopIncrementing(), [stopIncrementing]);
 
   // for count mode - exponential falloff
   const SCALE_FACTOR = 80;
@@ -381,9 +402,15 @@ function useDragFunctionsFromScoringMode(
   };
 
   if (scoringMode === ScoringMode.Count) {
-    return {
+    const handlers = {
       onStart: () => {
-        if (isCountingRef.current) return;
+        if (
+          isCountingRef.current ||
+          useReportStateStore.getState().meta?.collection?.endTime !== undefined
+        )
+          return;
+
+        isCountingRef.current = true;
 
         setIsCounting(true);
         reportState.addEvent({
@@ -394,7 +421,7 @@ function useDragFunctionsFromScoringMode(
         currentCount.current = 1;
         updateDisplay("1");
       },
-      onMove: (dx, dy, totalDistance) => {
+      onMove: (dx: number, dy: number, totalDistance: number) => {
         if (!isCountingRef.current) return;
 
         const count = pixelsToItems(totalDistance);
@@ -408,7 +435,14 @@ function useDragFunctionsFromScoringMode(
           updateDisplay(count.toString());
         }
       },
-      onEnd: (dx, dy, totalDistance, timestamp) => {
+      onEnd: (
+        dx: number,
+        dy: number,
+        totalDistance: number,
+        timestamp?: number,
+      ) => {
+        if (!isCountingRef.current) return;
+        isCountingRef.current = false;
         setIsCounting(false);
         const finalCount = pixelsToItems(totalDistance);
         // Use currentCount which starts at 1, so taps record quantity 1
@@ -424,10 +458,18 @@ function useDragFunctionsFromScoringMode(
       isCounting: isCounting,
       forceStop,
     };
+    finishRef.current = (timestamp) => handlers.onEnd(0, 0, 0, timestamp);
+    return handlers;
   } else {
-    return {
+    const handlers = {
       onStart: () => {
-        if (isCountingRef.current) return;
+        if (
+          isCountingRef.current ||
+          useReportStateStore.getState().meta?.collection?.endTime !== undefined
+        )
+          return;
+
+        isCountingRef.current = true;
 
         initialAngleRef.current = null;
         isDecrementingRef.current = false;
@@ -442,7 +484,7 @@ function useDragFunctionsFromScoringMode(
         });
         startIncrementing();
       },
-      onMove: (dx, dy, totalDistance) => {
+      onMove: (dx: number, dy: number, totalDistance: number) => {
         if (!isCountingRef.current) return;
 
         if (initialAngleRef.current === null) {
@@ -470,7 +512,14 @@ function useDragFunctionsFromScoringMode(
             speedMultiplier * (BASE_INTERVAL_MS - MIN_INTERVAL_MS),
         );
       },
-      onEnd: (dx, dy, totalDistance, timestamp) => {
+      onEnd: (
+        dx: number,
+        dy: number,
+        totalDistance: number,
+        timestamp?: number,
+      ) => {
+        if (!isCountingRef.current) return;
+        isCountingRef.current = false;
         stopIncrementing();
         const quantity = Math.max(currentCount.current, 1);
         // Haptic feedback for taps (when no haptic fired during hold)
@@ -491,5 +540,8 @@ function useDragFunctionsFromScoringMode(
       isCounting: isCounting,
       forceStop,
     };
+
+    finishRef.current = (timestamp) => handlers.onEnd(0, 0, 0, timestamp);
+    return handlers;
   }
 }

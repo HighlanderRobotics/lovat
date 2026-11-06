@@ -36,7 +36,7 @@ export const scoutingLeadProgressPage = async (
         where: {
           tournamentKey: params.data.tournamentKey,
           scoutReports: {
-            some: {},
+            some: { training: false },
           },
         },
       });
@@ -47,7 +47,7 @@ export const scoutingLeadProgressPage = async (
           archived: params.data.archived,
         },
         include: {
-          scoutReports: true,
+          scoutReports: { where: { training: false } },
           team1Shifts: {
             where: {
               tournamentKey: params.data.tournamentKey,
@@ -129,6 +129,7 @@ export const scoutingLeadProgressPage = async (
           await prismaClient.scoutReport.groupBy({
             by: ["teamMatchKey"],
             where: {
+              training: false,
               scouterUuid: scouter.uuid,
               teamMatchData: {
                 tournamentKey: params.data.tournamentKey,
@@ -155,7 +156,7 @@ export const scoutingLeadProgressPage = async (
           archived: params.data.archived,
         },
         include: {
-          scoutReports: true,
+          scoutReports: { where: { training: false } },
         },
         orderBy: {
           name: "asc",

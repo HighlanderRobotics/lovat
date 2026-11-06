@@ -13,7 +13,8 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"start": "node build"
+		"start": "node build",
+		"test:training": "node --test scripts/training.test.mjs scripts/training-playback.test.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-netlify": "^4.0.0",

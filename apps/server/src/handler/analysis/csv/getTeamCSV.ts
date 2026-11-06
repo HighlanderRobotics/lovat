@@ -22,6 +22,7 @@ import {
   dataSourceRuleSchema,
 } from "../dataSourceRule.js";
 import { averageManyFast } from "../coreAnalysis/averageManyFast.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 interface AggregatedTeamData {
   teamNumber: number;
@@ -146,7 +147,11 @@ export const getTeamCSV = async (
         scoutReports: {
           where: (() => {
             const filter = dataSourceRuleToPrismaFilter(sourceRule);
-            return filter ? { scouter: { sourceTeamNumber: filter } } : {};
+            return {
+              training: false,
+              ...reportReliabilityFilter,
+              ...(filter ? { scouter: { sourceTeamNumber: filter } } : {}),
+            };
           })(),
           select: {
             uuid: true,
@@ -209,6 +214,8 @@ export const getTeamCSV = async (
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
             where: {
+              training: false,
+              ...reportReliabilityFilter,
               teamMatchData: {
                 teamNumber: { in: teams },
                 ...(tournamentFilter
@@ -284,9 +291,13 @@ export const getTeamCSV = async (
               teamNumber: { in: teams },
               ...(tournamentFilter ? { tournamentKey: tournamentFilter } : {}),
               scoutReports: {
-                some: teamFilter
-                  ? { scouter: { sourceTeamNumber: teamFilter } }
-                  : {},
+                some: {
+                  training: false,
+                  ...reportReliabilityFilter,
+                  ...(teamFilter
+                    ? { scouter: { sourceTeamNumber: teamFilter } }
+                    : {}),
+                },
               },
               matchType: { not: "PRACTICE" },
             },

@@ -76,20 +76,25 @@ const getCommonHeaders = async () => {
   return headers;
 };
 
-export const get = async (url: string) => {
+export const get = async (url: string, options?: { signal?: AbortSignal }) => {
   return await fetch(useUrlPrefix.getState().getUrlPrefix() + url, {
     headers: await getCommonHeaders(),
+    signal: options?.signal,
   });
 };
 
-export const post = async (url: string, body: unknown) => {
+export const post = async (
+  url: string,
+  body: unknown,
+  headerOverrides: Record<string, string> = {},
+) => {
   const headers = await getCommonHeaders();
   headers["Content-Type"] = "application/json";
 
   return await fetch(useUrlPrefix.getState().getUrlPrefix() + url, {
     method: "POST",
     body: JSON.stringify(body),
-    headers,
+    headers: { ...headers, ...headerOverrides },
   });
 };
 

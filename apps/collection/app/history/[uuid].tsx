@@ -1,3 +1,4 @@
+import BodyMedium from "../../lib/components/text/BodyMedium";
 import { router, useLocalSearchParams } from "expo-router";
 import { colors } from "../../lib/colors";
 import { IconButton } from "../../lib/components/IconButton";
@@ -66,7 +67,16 @@ const Details = () => {
         }}
       >
         <View style={{ flex: 1, paddingVertical: 16, maxWidth: 450 }}>
-          <ScoutReportCode scoutReport={match!.scoutReport} />
+          {match!.meta.collection?.trainingAttemptUuid ? (
+            <View style={{ padding: 26 }}>
+              <BodyMedium>
+                Training report. Retry the upload below to send it to its
+                original training session.
+              </BodyMedium>
+            </View>
+          ) : (
+            <ScoutReportCode scoutReport={match!.scoutReport} />
+          )}
           <View
             style={{
               paddingHorizontal: 26,
@@ -78,7 +88,7 @@ const Details = () => {
               <Button
                 onPress={async () => {
                   try {
-                    await uploadReport(match!.scoutReport);
+                    await uploadReport(match!.scoutReport, match!.meta);
                     setMatchUploaded(match!.scoutReport.uuid);
                   } catch (error) {
                     try {

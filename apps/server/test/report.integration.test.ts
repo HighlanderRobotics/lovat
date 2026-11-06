@@ -399,6 +399,119 @@ describe.sequential("authenticated report access", () => {
     expect(ownUpload.status).toBe(200);
   });
 
+  it("counts concurrent flags once per user and updates cached analysis across the threshold", async () => {
+    const flaggerId = randomUUID();
+    const flaggedReportId = randomUUID();
+    const flaggedMatchKey = `flagging-${fixtureId}`;
+    const flaggedTeamNumber = teamNumber - 4;
+    try {
+      await db.team.create({
+        data: { number: flaggedTeamNumber, name: "Flagging integration robot" },
+      });
+      await db.user.create({
+        data: {
+          id: flaggerId,
+          email: `${flaggerId}@example.invalid`,
+          teamNumber,
+          teamSourceRule: { mode: "INCLUDE", items: [teamNumber] },
+          tournamentSourceRule: { mode: "INCLUDE", items: [tournamentKey] },
+        },
+      });
+      await db.teamMatchData.create({
+        data: {
+          key: flaggedMatchKey,
+          tournamentKey,
+          teamNumber: flaggedTeamNumber,
+          matchNumber: 2,
+          matchType: "QUALIFICATION",
+        },
+      });
+      const original = await db.scoutReport.findUniqueOrThrow({
+        where: { uuid: reportUuid },
+      });
+      await db.scoutReport.create({
+        data: {
+          ...original,
+          uuid: flaggedReportId,
+          teamMatchKey: flaggedMatchKey,
+          driverAbility: 5,
+        },
+      });
+      const users = [userId, leadUserId, flaggerId];
+      const tokens = await Promise.all(
+        users.map((id) => authFixture.signToken!(id)),
+      );
+      const setFlag = (index: number, flag: boolean) =>
+        request(app)
+          .post(`/v1/manager/scoutreports/setflag/${flaggedReportId}`)
+          .query({ flag: String(flag) })
+          .set("Authorization", `Bearer ${tokens[index]}`);
+      const storedUser = await db.user.findUniqueOrThrow({
+        where: { id: userId },
+      });
+      const ability = async () => {
+        const result = await averageManyFast(storedUser, {
+          teams: [flaggedTeamNumber],
+          metrics: [Metric.driverAbility],
+        });
+        return result[String(Metric.driverAbility)][String(flaggedTeamNumber)];
+      };
+      const stored = () =>
+        db.scoutReport.findUniqueOrThrow({
+          where: { uuid: flaggedReportId },
+          include: { _count: { select: { flaggedBy: true } } },
+        });
+
+      expect(await ability()).toBe(5);
+      const firstFlags = await Promise.all([
+        setFlag(0, true),
+        setFlag(0, true),
+        setFlag(1, true),
+      ]);
+      expect(firstFlags.map((response) => response.status)).toEqual([
+        200, 200, 200,
+      ]);
+      expect(await stored()).toMatchObject({
+        reliability: "UNVERIFIED",
+        _count: { flaggedBy: 2 },
+      });
+      expect(await ability()).toBe(5);
+      expect((await setFlag(2, true)).status).toBe(200);
+      expect(await stored()).toMatchObject({
+        reliability: "FLAGGED",
+        _count: { flaggedBy: 3 },
+      });
+      expect(await ability()).toBe(-1);
+      expect((await setFlag(2, false)).status).toBe(200);
+      expect((await setFlag(2, false)).status).toBe(200);
+      expect(await stored()).toMatchObject({
+        reliability: "UNVERIFIED",
+        _count: { flaggedBy: 2 },
+      });
+      expect(await ability()).toBe(5);
+
+      for (const reliability of ["VERIFIED", "BAD_REPORT"] as const) {
+        await db.scoutReport.update({
+          where: { uuid: flaggedReportId },
+          data: { reliability },
+        });
+        expect((await setFlag(2, true)).status).toBe(200);
+        expect((await stored()).reliability).toBe(reliability);
+        expect(await ability()).toBe(reliability === "VERIFIED" ? 5 : -1);
+      }
+      const forbiddenToken = await authFixture.signToken!(otherUserId);
+      const hidden = await request(app)
+        .post(`/v1/manager/scoutreports/setflag/${flaggedReportId}?flag=true`)
+        .set("Authorization", `Bearer ${forbiddenToken}`);
+      expect(hidden.status).toBe(404);
+      expect((await stored())._count.flaggedBy).toBe(3);
+    } finally {
+      await db.teamMatchData.deleteMany({ where: { key: flaggedMatchKey } });
+      await db.team.deleteMany({ where: { number: flaggedTeamNumber } });
+      await db.user.deleteMany({ where: { id: flaggerId } });
+    }
+  });
+
   it("rejects absent, invalid, expired, wrong-issuer, and wrong-audience JWTs", async () => {
     const path = `/v1/manager/scoutreports/${reportUuid}`;
     expect((await request(app).get(path)).status).toBe(401);

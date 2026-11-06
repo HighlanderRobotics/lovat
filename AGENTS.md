@@ -12,6 +12,7 @@ This repository contains independently buildable applications under `apps/`. Roo
 - `apps/website`: SvelteKit public site and operational routes.
 - `apps/learn`: Astro/Starlight user guides for Dashboard and Collection.
 - `packages/db`: shared Prisma schema, migrations, generated types, and PostgreSQL client; consumed by Server and intended for the separate Support backend.
+- `tools/pr-reviewer`: standalone OpenRouter review workflow for pull requests; it keeps its own package, lockfile, and checks.
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.
 

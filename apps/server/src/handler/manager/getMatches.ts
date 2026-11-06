@@ -59,7 +59,7 @@ export const getMatches = async (
         tournamentKey: params.data.tournamentKey,
         matchType: MatchType.QUALIFICATION,
         scoutReports: {
-          some: {},
+          some: { training: false },
         },
       },
       orderBy: [{ matchNumber: "desc" }],
@@ -99,6 +99,7 @@ export const getMatches = async (
 
       includeTeamReports = {
         where: {
+          training: false,
           scouter: {
             sourceTeamNumber: user.teamNumber,
           },
@@ -120,11 +121,13 @@ export const getMatches = async (
         teamNumber: true,
         key: true,
         match: { select: { status: true } },
+        practiceScheduled: true,
         _count: {
           // Represents the total number of valid scout reports for this row
           select: {
             scoutReports: {
               where: {
+                training: false,
                 scouter: {
                   sourceTeamNumber:
                     dataSourceRuleToPrismaFilter(teamSourceRule),
@@ -242,7 +245,7 @@ export const getMatches = async (
       for (const row of rawData) {
         if (
           row.matchType !== MatchType.PRACTICE ||
-          row._count.scoutReports === 0
+          (!row.practiceScheduled && row._count.scoutReports === 0)
         ) {
           continue;
         }

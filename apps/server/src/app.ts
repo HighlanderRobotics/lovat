@@ -10,6 +10,7 @@ import { posthog } from "./posthogClient.js";
 import posthogReporter from "./lib/middleware/posthogMiddleware.js";
 
 import routes from "./routes/index.js";
+import collectionRoutes from "./routes/collection/collection.routes.js";
 import path from "path";
 import { getVersion } from "./handler/manager/version.js";
 
@@ -56,6 +57,17 @@ app.use(
     legacyHeaders: false,
   }),
   routes,
+);
+
+app.use(
+  ["/collection", "/v2/collection"],
+  rateLimit({
+    windowMs: 60 * 1000,
+    limit: 600,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+  }),
+  collectionRoutes,
 );
 
 app.get("/status", (req, res) => {

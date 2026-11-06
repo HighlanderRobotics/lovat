@@ -1,7 +1,7 @@
 version: 2
 updates:
   # Discover manifests throughout the monorepo, including nested packages.
-  # Zero disables routine version PRs; security update PRs remain enabled.
+  # Zero disables routine version PRs; security update PRs remain enabled. Might disable PRs and just have alerts in the future.
   - package-ecosystem: npm
     directories:
       - "/**"

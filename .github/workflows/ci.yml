@@ -20,6 +20,7 @@ jobs:
       collection: ${{ steps.filter.outputs.collection }}
       website: ${{ steps.filter.outputs.website }}
       learn: ${{ steps.filter.outputs.learn }}
+      reviewer: ${{ steps.filter.outputs.reviewer }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -47,6 +48,10 @@ jobs:
               - 'apps/website/**'
               - 'CHANGELOG.md'
               - '.github/workflows/ci.yml'
+            reviewer:
+              - 'tools/pr-reviewer/**'
+              - '.github/workflows/ai-review.yml'
+              - '.github/workflows/ci.yml'
 
   structure:
     name: Structure
@@ -54,6 +59,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/check-structure.sh
+
+  reviewer:
+    name: PR reviewer
+    needs: changes
+    if: ${{ needs.changes.outputs.reviewer == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/pr-reviewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: tools/pr-reviewer/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run typecheck:test
+      - run: npm test
+      - run: npm run build
 
   server:
     name: Server
@@ -115,6 +141,7 @@ jobs:
           npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
           node --test test/migrations.test.mjs
           npm run test:integration
+          npm run test:practice-migration
       - name: Enforce unit-only Server coverage
         env:
           DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
@@ -292,6 +319,7 @@ jobs:
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
       - run: npm run test:changelog
+      - run: npm run test:training
       - run: npm run format:check
       - run: npm run lint
       - run: npm run check
@@ -324,6 +352,7 @@ jobs:
       [
         changes,
         structure,
+        reviewer,
         server,
         worker,
         collection,
@@ -336,6 +365,7 @@ jobs:
     env:
       CHANGES_RESULT: ${{ needs.changes.result }}
       STRUCTURE_RESULT: ${{ needs.structure.result }}
+      REVIEWER_RESULT: ${{ needs.reviewer.result }}
       SERVER_RESULT: ${{ needs.server.result }}
       WORKER_RESULT: ${{ needs.worker.result }}
       COLLECTION_RESULT: ${{ needs.collection.result }}
@@ -349,6 +379,7 @@ jobs:
           for result in \
             "$CHANGES_RESULT" \
             "$STRUCTURE_RESULT" \
+            "$REVIEWER_RESULT" \
             "$SERVER_RESULT" \
             "$WORKER_RESULT" \
             "$COLLECTION_RESULT" \

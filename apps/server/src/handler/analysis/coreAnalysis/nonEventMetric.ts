@@ -68,10 +68,11 @@ const config = {
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
           CROSS JOIN UNNEST(s."${args.metric}") AS value
-          WHERE tmd."teamNumber" = $3
+          WHERE s."training" = false AND tmd."teamNumber" = $3
             AND tmd."matchType" <> 'PRACTICE'
             AND ${tournamentCondition}
             AND ${teamCondition}
+            AND s."reliability" NOT IN ('FLAGGED','BAD_REPORT')
           GROUP BY value
         `
         : `
@@ -80,8 +81,9 @@ const config = {
           FROM "ScoutReport" s
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
-          WHERE tmd."teamNumber" = $3
+          WHERE s."training" = false AND tmd."teamNumber" = $3
             AND tmd."matchType" <> 'PRACTICE'
+            AND s."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
             AND ${tournamentCondition}
             AND ${teamCondition}
           GROUP BY s."${args.metric}"

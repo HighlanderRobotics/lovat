@@ -2,7 +2,7 @@ import { Scouter } from "../models/scouter";
 import { post } from "./lovatAPI";
 
 export const addScouter = async (name: string, teamNumber: number) => {
-  const response = await post(`/v1/manager/scouter`, {
+  const response = await post(`/collection/scouter`, {
     name,
     teamNumber,
   });

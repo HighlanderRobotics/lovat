@@ -98,7 +98,7 @@ export const pitDisplay = async (
       where: {
         tournamentKey: params.data.tournamentKey,
         scoutReports: {
-          some: {},
+          some: { training: false },
         },
       },
       //reverse order (get most recent)
@@ -131,7 +131,7 @@ export const pitDisplay = async (
           by: ["tournamentKey", "matchNumber", "matchType"],
           where: {
             scoutReports: {
-              some: {},
+              some: { training: false },
             },
           },
         });
@@ -181,7 +181,7 @@ export const pitDisplay = async (
             tournamentKey: params.data.tournamentKey,
             teamNumber: params.data.team,
             scoutReports: {
-              some: {},
+              some: { training: false },
             },
           },
           orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],

@@ -41,7 +41,9 @@ const fetchTbaTeamStatuses = async (
     const valid: Record<string, TbaTeamStatus> = {};
     for (const [key, value] of Object.entries(statuses)) {
       const parsed = tbaTeamStatusSchema.safeParse(value);
-      if (parsed.success) valid[key] = parsed.data;
+      if (parsed.success) {
+        valid[key] = parsed.data;
+      }
     }
     return valid;
   } catch (error) {

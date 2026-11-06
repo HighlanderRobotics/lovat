@@ -5,6 +5,8 @@ import {
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
+import { scoutReportSourceFilter } from "../scoutReportSourceFilter.js";
 
 export const getNotes = createAnalysisHandler({
   params: {
@@ -33,6 +35,8 @@ export const getNotes = createAnalysisHandler({
 
     const reportCount = await prismaClient.scoutReport.count({
       where: {
+        training: false,
+        AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
         teamMatchData: {
           teamNumber: params.team,
           matchType: { not: "PRACTICE" },
@@ -61,6 +65,8 @@ export const getNotes = createAnalysisHandler({
 
     const noteData = await prismaClient.scoutReport.findMany({
       where: {
+        training: false,
+        ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: params.team,
           tournamentKey: sourceTnmtFilter,

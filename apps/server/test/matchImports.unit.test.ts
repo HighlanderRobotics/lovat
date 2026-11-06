@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../src/prismaClient.js", () => ({ default: mocks }));
+vi.mock("../src/handler/manager/addPracticeMatches.js", () => ({
+  addPracticeMatches: vi.fn(),
+}));
 
 import { addTournamentMatches } from "../src/handler/manager/addTournamentMatches.js";
 

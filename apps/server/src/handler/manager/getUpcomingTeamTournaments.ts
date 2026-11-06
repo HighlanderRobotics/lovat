@@ -31,7 +31,9 @@ export const getUpcomingTeamTournaments = async (
         signal: AbortSignal.timeout(10000),
       },
     );
-    if (!response.ok) throw new Error("Team events unavailable");
+    if (!response.ok) {
+      throw new Error("Team events unavailable");
+    }
     const events = z.array(eventSchema).parse(await response.json());
     const upcoming = events
       .filter((event) => {
@@ -59,11 +61,9 @@ export const getUpcomingTeamTournaments = async (
       })),
     );
   } catch {
-    res
-      .status(502)
-      .json({
-        displayError:
-          "Could not load your team's upcoming tournaments from The Blue Alliance.",
-      });
+    res.status(502).json({
+      displayError:
+        "Could not load your team's upcoming tournaments from The Blue Alliance.",
+    });
   }
 };

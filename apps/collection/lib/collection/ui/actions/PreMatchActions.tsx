@@ -4,10 +4,17 @@ import { MatchEventPosition } from "../../MatchEventPosition";
 import { FieldElement } from "../FieldElement";
 import { StartingPosition } from "../../ReportState";
 import React from "react";
+import { useTrainingSessionStore } from "../../../training/trainingStore";
 import { figmaDimensionsToFieldInsets } from "../../util";
 
 export const PreMatchActions = () => {
   const reportState = useReportStateStore();
+  const training = useTrainingSessionStore();
+  const poseEnabled =
+    !reportState.meta?.collection?.trainingAttemptUuid ||
+    (training.connected &&
+      training.snapshot?.status === "ARMED" &&
+      !training.snapshot.participants[0]?.ready);
 
   const buttonPositions: Array<{
     position: StartingPosition;
@@ -65,6 +72,7 @@ export const PreMatchActions = () => {
       {buttonPositions.map(({ position, edgeInsets }) => (
         <FieldElement key={position} edgeInsets={edgeInsets}>
           <TouchableOpacity
+            disabled={!poseEnabled}
             style={{
               width: "100%",
               height: "100%",
@@ -74,7 +82,6 @@ export const PreMatchActions = () => {
             }}
             activeOpacity={0.2}
             onPress={() => {
-              console.log({ position });
               reportState.setStartPosition(position);
             }}
           />

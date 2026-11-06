@@ -1,3 +1,4 @@
+import { TrainingConnection } from "../lib/training/TrainingConnection";
 import { SplashScreen, Stack } from "expo-router";
 import { NativeModules } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -129,6 +130,7 @@ export default function Layout() {
 
   return (
     <KeyboardProvider>
+      <TrainingConnection />
       <GestureHandlerRootView
         style={{ backgroundColor: colors.background.default, flex: 1 }}
       >

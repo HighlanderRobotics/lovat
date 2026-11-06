@@ -136,6 +136,46 @@ beforeAll(async () => {
         events: { create: events },
       },
     });
+  // Verified observations remain eligible; rejected outliers must affect no metric.
+  await db.scoutReport.create({
+    data: {
+      ...reportData,
+      reliability: "VERIFIED",
+      scouterUuid: scouterId,
+      teamMatchKey: matchKey,
+      events: { create: events },
+    },
+  });
+  for (const reliability of ["FLAGGED", "BAD_REPORT"] as const) {
+    await db.scoutReport.create({
+      data: {
+        ...reportData,
+        reliability,
+        driverAbility: 999,
+        defenseEffectiveness: 999,
+        robotRoles: ["DEFENDING"],
+        scouterUuid: scouterId,
+        teamMatchKey: matchKey,
+        events: {
+          create: events.map((observation) => ({
+            ...observation,
+            points: 999,
+            quantity: 999,
+          })),
+        },
+      },
+    });
+  }
+  await db.scoutReport.create({
+    data: {
+      ...reportData,
+      training: true,
+      driverAbility: 100,
+      scouterUuid: scouterId,
+      teamMatchKey: matchKey,
+      events: { create: [event("STOP_SCORING", 20, 10000, 10000)] },
+    },
+  });
   await db.scoutReport.create({
     data: {
       ...reportData,
