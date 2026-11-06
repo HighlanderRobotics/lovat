@@ -77,7 +77,7 @@ it("returns no ranking prediction when no eligible scouted match exists", async 
         some: {
           training: false,
           AND: [
-            { reliability: { notIn: ["FLAGGED", "BAD_REPORT"] } },
+            { reliability: { in: ["VERIFIED", "UNVERIFIED"] } },
             {
               training: false,
               scouter: { sourceTeamNumber: { in: [8033] } },

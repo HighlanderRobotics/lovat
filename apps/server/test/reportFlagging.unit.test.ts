@@ -54,6 +54,8 @@ it.each([
   ["FLAGGED", 3, "false", undefined],
   ["VERIFIED", 3, "true", undefined],
   ["BAD_REPORT", 0, "false", undefined],
+  ["FLAGGED_SYSTEM", 0, "false", undefined],
+  ["FLAGGED_SYSTEM", 3, "true", undefined],
 ])(
   "preserves reliability rules for %s with %i remaining flags (flag=%s)",
   async (current, count, flag, next) => {

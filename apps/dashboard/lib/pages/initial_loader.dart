@@ -88,7 +88,7 @@ class _InitialLoaderPageState extends State<InitialLoaderPage> {
       navigator.pushReplacementNamed('/team_lookup');
       return;
     } else {
-      navigator.pushReplacementNamed('/match_schedule');
+      navigator.pushReplacementNamed('/home');
     }
   }
 

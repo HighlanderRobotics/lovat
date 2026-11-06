@@ -328,6 +328,7 @@ it("applies report visibility rules to match-result reads", async () => {
       scoutReports: {
         where: {
           training: false,
+          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
           scouter: { sourceTeamNumber: { in: [8033] } },
           teamMatchData: { tournamentKey: undefined },
         },

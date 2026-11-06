@@ -14,7 +14,8 @@ const getReportReliability = (
 ): ReportReliability => {
   if (
     current === ReportReliability.VERIFIED ||
-    current === ReportReliability.BAD_REPORT
+    current === ReportReliability.BAD_REPORT ||
+    current === ReportReliability.FLAGGED_SYSTEM
   ) {
     return current;
   }
