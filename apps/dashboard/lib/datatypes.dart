@@ -6,11 +6,14 @@ import 'package:scouting_dashboard_app/reusable/models/team.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Tournament {
-  Tournament(this.key, this._name, {this.date, this.isParticipant = false});
+  Tournament(this.key, this._name,
+      {this.date, this.endDate, this.location, this.isParticipant = false});
 
   String key;
   String _name;
   DateTime? date;
+  DateTime? endDate;
+  String? location;
   bool isParticipant;
 
   String get localized => date?.year == DateTime.now().year
@@ -19,15 +22,21 @@ class Tournament {
 
   static Tournament? _currentCache;
 
+  /// Notify open pages after the active tournament is saved or cleared.
+  static final ValueNotifier<Tournament?> currentChanges = ValueNotifier(null);
+
   @override
   String toString() => localized;
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
-    final date = DateTime.tryParse(json['date'] as String);
+    final date =
+        DateTime.tryParse((json['startDate'] ?? json['date']) as String? ?? '');
     return Tournament(
       json['key'],
       json['name'],
       date: date,
+      endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
+      location: json['location'] as String?,
       isParticipant: json['isParticipant'] as bool? ?? false,
     );
   }
@@ -37,6 +46,7 @@ class Tournament {
     await prefs.setString('tournament', key);
     await prefs.setString('tournament_localized', localized);
     _currentCache = this;
+    currentChanges.value = this;
   }
 
   static Tournament? get currentSync => _currentCache;
@@ -61,6 +71,7 @@ class Tournament {
     await prefs.remove('tournament');
     await prefs.remove('tournament_localized');
     _currentCache = null;
+    currentChanges.value = null;
   }
 
   Future<List<MatchScheduleMatch>> getMatches() async {

@@ -98,6 +98,7 @@ it("groups compatible prefixes, retains the longest path and deduplicates match 
     expect.objectContaining({
       where: {
         training: false,
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
         teamMatchData: {
           teamNumber: 254,
           tournamentKey: undefined,

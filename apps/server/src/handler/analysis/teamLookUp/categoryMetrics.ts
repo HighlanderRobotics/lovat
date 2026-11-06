@@ -3,6 +3,8 @@ import prismaClient from "../../../prismaClient.js";
 import { metricsCategory, metricToName } from "../analysisConstants.js";
 import { arrayAndAverageTeams } from "../coreAnalysis/arrayAndAverageTeams.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
+import { scoutReportSourceFilter } from "../scoutReportSourceFilter.js";
 
 export const categoryMetrics = createAnalysisHandler({
   params: {
@@ -33,6 +35,7 @@ export const categoryMetrics = createAnalysisHandler({
     const reportCount = await prismaClient.scoutReport.count({
       where: {
         training: false,
+        AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
         teamMatchData: {
           teamNumber: params.team,
           matchType: { not: "PRACTICE" },

@@ -22,6 +22,7 @@ export async function sendSignedRequest(path: string, method: string, body: stri
 		method,
 		headers: {
 			'Content-Type': 'application/json',
+			'X-Lovat-Error-Format': 'json-v1',
 			'X-Signature': signature,
 			'X-Timestamp': timestamp.toString()
 		},

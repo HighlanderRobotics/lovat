@@ -20,7 +20,7 @@ export const requireAuth = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  try {
+  {
     // Validate JWT
     const tokenString = req.headers.authorization?.split(" ")[1]; // It would be in the format "Bearer <token>" so we split on the space and take the second part
 
@@ -151,9 +151,5 @@ export const requireAuth = async (
 
       next();
     }
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).send("Internal server error");
   }
 };

@@ -6,7 +6,7 @@ export const addNewScouter = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         team: z.number(),
@@ -31,10 +31,5 @@ export const addNewScouter = async (
       },
     });
     res.status(200).send(user);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

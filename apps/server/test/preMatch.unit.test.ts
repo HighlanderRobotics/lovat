@@ -262,6 +262,19 @@ describe("prepare a Collection match report", () => {
 });
 
 describe("Collection match identity loading", () => {
+  it("rejects a training attempt for a different robot", async () => {
+    const attempt = await db.trainingAttempt.findFirst();
+    db.trainingAttempt.findFirst.mockResolvedValue({
+      ...attempt,
+      session: { ...attempt.session, targetTeamNumber: 971 },
+    });
+    const response = await invoke(preMatch, {
+      ...request,
+      body: { uuid, trainingAttemptUuid: attemptUuid },
+    });
+    expect(response.statusCode).toBe(409);
+    expect(db.scoutReportInProgress.create).not.toHaveBeenCalled();
+  });
   it("resolves manual match identity through the imported slot", async () => {
     db.teamMatchData.findFirst.mockResolvedValue({ matchKey: match.key });
     const result = await invoke(preMatch, {

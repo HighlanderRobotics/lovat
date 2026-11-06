@@ -62,7 +62,9 @@ describe("authentication dependencies and failures", () => {
   it.each([undefined, "Bearer"])(
     "rejects a missing token (%s)",
     async (header) => {
-      const req = request(app).get("/protected");
+      const req = request(app)
+        .get("/protected")
+        .set("X-Lovat-Error-Format", "json-v1");
       if (header) req.set("Authorization", header);
       expect((await req).status).toBe(401);
       expect(mocks.verify).not.toHaveBeenCalled();
@@ -73,8 +75,12 @@ describe("authentication dependencies and failures", () => {
   it("rejects failed JWT verification before user lookup", async () => {
     mocks.verify.mockRejectedValue(new Error("bad signature"));
     expect(
-      (await request(app).get("/protected").auth("invalid", { type: "bearer" }))
-        .status,
+      (
+        await request(app)
+          .get("/protected")
+          .set("X-Lovat-Error-Format", "json-v1")
+          .auth("invalid", { type: "bearer" })
+      ).status,
     ).toBe(401);
     expect(mocks.userInfo).not.toHaveBeenCalled();
     expect(mocks.findUnique).not.toHaveBeenCalled();
@@ -83,6 +89,7 @@ describe("authentication dependencies and failures", () => {
   it("checks issuer and audience and persists fresh Auth0 user info", async () => {
     const res = await request(app)
       .get("/protected")
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth("valid-jwt", { type: "bearer" });
     expect(res.body).toEqual({ id: user.id, tokenType: "jwt" });
     expect(mocks.verify).toHaveBeenCalledWith("valid-jwt", undefined, {
@@ -105,6 +112,7 @@ describe("authentication dependencies and failures", () => {
     mocks.userInfo.mockRejectedValue(new Error("offline"));
     const res = await request(app)
       .get("/protected")
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth("valid-jwt", { type: "bearer" });
     expect(res.body).toEqual({ id: user.id, tokenType: "jwt" });
     expect(mocks.findUnique).toHaveBeenCalledWith({ where: { id: user.id } });
@@ -117,6 +125,7 @@ describe("authentication dependencies and failures", () => {
       (
         await request(app)
           .get("/protected")
+          .set("X-Lovat-Error-Format", "json-v1")
           .auth("valid-jwt", { type: "bearer" })
       ).status,
     ).toBe(500);
@@ -125,6 +134,7 @@ describe("authentication dependencies and failures", () => {
   it("hashes API keys and increments their usage without checking a JWT", async () => {
     const res = await request(app)
       .get("/protected")
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth(apiKey, { type: "bearer" });
     expect(res.body).toEqual({ id: user.id, tokenType: "apiKey" });
     expect(mocks.incr).toHaveBeenCalledWith(`auth:apikey:${hash}:rate`);
@@ -141,6 +151,7 @@ describe("authentication dependencies and failures", () => {
     mocks.incr.mockResolvedValue(2);
     const res = await request(app)
       .get("/protected")
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth(apiKey, { type: "bearer" });
     expect(res.status).toBe(429);
     expect(res.body.retryAfterSeconds).toBe(3);
@@ -152,6 +163,7 @@ describe("authentication dependencies and failures", () => {
     mocks.update.mockRejectedValue(new Error("not found"));
     const res = await request(app)
       .get("/protected")
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth(apiKey, { type: "bearer" });
     expect(res.status).toBe(401);
     expect(res.text).toBe(
@@ -170,8 +182,12 @@ describe("authentication dependencies and failures", () => {
       }
       const token = dependency === "Redis" ? apiKey : "valid-jwt";
       expect(
-        (await request(app).get("/protected").auth(token, { type: "bearer" }))
-          .status,
+        (
+          await request(app)
+            .get("/protected")
+            .set("X-Lovat-Error-Format", "json-v1")
+            .auth(token, { type: "bearer" })
+        ).status,
       ).toBe(500);
     },
   );

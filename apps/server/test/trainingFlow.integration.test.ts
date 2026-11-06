@@ -50,6 +50,7 @@ afterEach(() => vi.unstubAllEnvs());
 const call = (path: string, body: object, scout = scouts[0], teamCode = code) =>
   request(app)
     .post(`/collection${path}`)
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("X-Team-Code", teamCode)
     .set("X-Scouter-UUID", scout)
     .set("X-Device-Id", `test-${scout}`)
@@ -62,11 +63,13 @@ const host = (
 ) =>
   request(app)
     .post(`/collection/training/sessions/${uuid}/control`)
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("Authorization", `Bearer ${token}`)
     .send({ action, playbackSeconds });
 async function create() {
   const result = await request(app)
     .post("/collection/training/sessions")
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("X-Forwarded-For", `192.0.2.${sessions.length + 1}`)
     .send({ videoUuid });
   expect(result.status).toBe(201);
@@ -96,6 +99,7 @@ async function ready(
 ) {
   return request(app)
     .post(`/collection/training/sessions/${session.uuid}/ready`)
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("Authorization", `Bearer ${attempt.attemptToken}`)
     .send({ attemptUuid: attempt.attemptUuid, stage });
 }
@@ -241,6 +245,7 @@ describe("paired training flow", () => {
     await join(session);
     const snapshot = await request(app)
       .get(`/collection/training/sessions/${session.uuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${session.browserToken}`);
     expect(snapshot.status).toBe(200);
     expect(snapshot.body.participants).toHaveLength(1);
@@ -248,15 +253,20 @@ describe("paired training flow", () => {
 
   it("keeps answer keys private and rejects missing browser credentials", async () => {
     const session = await create();
-    const catalog = await request(app).get("/collection/training/videos");
+    const catalog = await request(app)
+      .get("/collection/training/videos")
+      .set("X-Lovat-Error-Format", "json-v1");
     const video = catalog.body.find(
       (v: { uuid: string }) => v.uuid === videoUuid,
     );
     expect(video.teamNumber).toBe(robot);
     expect(video).not.toHaveProperty("answerKeyReports");
     expect(
-      (await request(app).get(`/collection/training/sessions/${session.uuid}`))
-        .status,
+      (
+        await request(app)
+          .get(`/collection/training/sessions/${session.uuid}`)
+          .set("X-Lovat-Error-Format", "json-v1")
+      ).status,
     ).toBe(404);
   });
   it("requires a valid QR and locks participants to the first source team", async () => {
@@ -335,6 +345,7 @@ describe("paired training flow", () => {
     await call(`/training/${session.uuid}/submit`, body);
     const graded = await request(app)
       .post(`/collection/training/sessions/${session.uuid}/grade`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${session.browserToken}`)
       .send({});
     expect(graded.status).toBe(200);
@@ -398,6 +409,7 @@ describe("training preview, timing, and reconnect regression", () => {
       .get(
         `/collection/training/sessions/${session.uuid}?attempt=${attempt.attemptUuid}`,
       )
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${token}`);
   it("requires lobby readiness, then fresh pose confirmation before Play", async () => {
     const s = await create(),
@@ -437,6 +449,7 @@ describe("training preview, timing, and reconnect regression", () => {
     );
     const legacyReady = await request(app)
       .post(`/collection/training/sessions/${session.uuid}/ready`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${attempt.attemptToken}`)
       .send({ attemptUuid: attempt.attemptUuid });
     expect(legacyReady.status).toBe(200);

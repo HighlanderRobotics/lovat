@@ -85,13 +85,11 @@ it("rejects malformed registration", async () => {
 });
 it("reports failed registration delivery", async () => {
   db.send.mockRejectedValue(new Error("offline"));
-  expect(
-    (
-      await invoke(addRegisteredTeam, {
-        body: { email: team.email, number: 8033 },
-      })
-    ).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(addRegisteredTeam, {
+      body: { email: team.email, number: 8033 },
+    }),
+  ).rejects.toThrow();
 });
 for (const handler of [
   approveRegisteredTeam,
@@ -110,9 +108,9 @@ for (const handler of [
     db.registeredTeam.update.mockRejectedValue(new Error("offline"));
     db.registeredTeam.delete.mockRejectedValue(new Error("offline"));
     db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-    expect(
-      (await invoke(handler, { params: { team: "8033" } })).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(handler, { params: { team: "8033" } }),
+    ).rejects.toThrow();
   });
 }
 it("approves the selected registration", async () => {

@@ -1,10 +1,38 @@
 import { describe, expect, it } from "vitest";
+import z from "zod";
+import { normalizeError } from "../src/lib/errors.js";
 import {
   dataSourceRuleToArray,
   dataSourceRuleToPrismaFilter,
+  parseStoredSourceRule,
 } from "../src/handler/analysis/dataSourceRule.js";
 
 describe("data-source rules", () => {
+  it.each([
+    null,
+    { mode: "unknown", items: [] },
+    { mode: "INCLUDE", items: ["wrong-type"] },
+  ])("reports corrupt stored visibility as a server error (%j)", (value) => {
+    let failure: unknown;
+    try {
+      parseStoredSourceRule(z.number(), value);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    expect(normalizeError(failure)).toMatchObject({
+      statusCode: 500,
+      code: "INTERNAL_SERVER_ERROR",
+    });
+  });
+  it("preserves valid stored visibility rules", () => {
+    expect(
+      parseStoredSourceRule(z.number(), { mode: "INCLUDE", items: [8033] }),
+    ).toEqual({ mode: "INCLUDE", items: [8033] });
+    expect(
+      parseStoredSourceRule(z.string(), { mode: "EXCLUDE", items: [] }),
+    ).toEqual({ mode: "EXCLUDE", items: [] });
+  });
   it("treats an empty INCLUDE rule as no authorized sources", () => {
     const rule = { mode: "INCLUDE" as const, items: [] as number[] };
     expect(dataSourceRuleToPrismaFilter(rule)).toEqual({ in: [] });

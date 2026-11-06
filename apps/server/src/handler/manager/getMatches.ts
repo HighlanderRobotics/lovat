@@ -4,9 +4,10 @@ import z from "zod";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { addTournamentMatches } from "./addTournamentMatches.js";
 import { ReverseMatchTypeMap } from "./managerConstants.js";
-import { MatchType, Prisma } from "@lovat/db";
+import { MatchType, MatchStatus, Prisma } from "@lovat/db";
+import { RequestValidationError } from "../../lib/errors.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../analysis/dataSourceRule.js";
 
@@ -21,11 +22,21 @@ export const getMatches = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     let teams = null;
     if (req.query.teams != undefined) {
-      teams = JSON.parse(req.query.teams as string);
+      if (typeof req.query.teams !== "string") {
+        throw new RequestValidationError("Invalid team filters");
+      }
+      try {
+        teams = JSON.parse(req.query.teams);
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          throw new RequestValidationError("Invalid team filters");
+        }
+        throw error;
+      }
     }
     const params = z
       .object({
@@ -78,7 +89,8 @@ export const getMatches = async (
       | { where: Prisma.ScoutReportWhereInput; select: typeof ownReportSelect }
       | undefined;
 
-    const teamSourceRule = dataSourceRuleSchema(z.number()).parse(
+    const teamSourceRule = parseStoredSourceRule(
+      z.number(),
       req.user.teamSourceRule,
     );
 
@@ -120,6 +132,7 @@ export const getMatches = async (
         matchType: true,
         teamNumber: true,
         key: true,
+        match: { select: { status: true } },
         practiceScheduled: true,
         _count: {
           // Represents the total number of valid scout reports for this row
@@ -159,6 +172,7 @@ export const getMatches = async (
       teamNumber: number;
       matchType: MatchType;
       key: string;
+      match: { status: MatchStatus } | null;
       _count: { scoutReports: number };
       scoutReports: { scouter: { name: string; uuid: string } }[] | undefined;
     }[][] = rawData.reduce((acc, curr) => {
@@ -290,9 +304,10 @@ export const getMatches = async (
           matchNumber: match[0].matchNumber,
           matchType: ReverseMatchTypeMap[match[0].matchType],
           scouted: match.some((team) => team._count.scoutReports >= 1),
-          finished:
-            match[0].matchType === MatchType.QUALIFICATION &&
-            match[0].matchNumber <= lastFinishedMatch,
+          finished: match[0].match
+            ? match[0].match.status === MatchStatus.COMPLETED
+            : match[0].matchType === MatchType.QUALIFICATION &&
+              match[0].matchNumber <= lastFinishedMatch,
           team1: {
             number: match[0].teamNumber,
             scouters: [],
@@ -402,16 +417,17 @@ export const getMatches = async (
       }
 
       // Scouted flag based on if any team in this match has at least 1 sourced scout report
-      // Finished flag is true if the match is a qualification before the last finished match
+      // Prefer imported match completion; preserve the report-based fallback for legacy rows.
       // Scouters array includes all scouters from user's team, and all incomplete reports from assigned scouting shifts
       // External reports are the number of non-team scout reports, so [other team reports - user team reports]
       const currData = {
         matchNumber: match[0].matchNumber,
         matchType: ReverseMatchTypeMap[match[0].matchType],
         scouted: match.some((team) => team._count.scoutReports >= 1),
-        finished:
-          match[0].matchType === MatchType.QUALIFICATION &&
-          match[0].matchNumber <= lastFinishedMatch,
+        finished: match[0].match
+          ? match[0].match.status === MatchStatus.COMPLETED
+          : match[0].matchType === MatchType.QUALIFICATION &&
+            match[0].matchNumber <= lastFinishedMatch,
         team1: {
           number: match[0].teamNumber,
           scouters: matchScouters[0],
@@ -470,8 +486,5 @@ export const getMatches = async (
     }
 
     res.status(200).send(withPracticeMatches(denseFormattedMatches));
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };

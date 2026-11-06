@@ -7,10 +7,11 @@ import {
   FlippedPositionMap,
 } from "../analysisConstants.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import { User } from "@lovat/db";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 interface AutoPosition {
   location: number;
@@ -75,15 +76,16 @@ const config = {
     const teamNumber = args.team;
 
     const sourceTnmtFilter = dataSourceRuleToPrismaFilter<string>(
-      dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+      parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
     );
     const sourceTeamFilter = dataSourceRuleToPrismaFilter<number>(
-      dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+      parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
     );
 
     const autoData = await prismaClient.scoutReport.findMany({
       where: {
         training: false,
+        ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: teamNumber,
           tournamentKey: sourceTnmtFilter,

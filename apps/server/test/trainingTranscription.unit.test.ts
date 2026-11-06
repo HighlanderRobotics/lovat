@@ -30,7 +30,7 @@ describe("118 Johnson qualification 19 transcription", () => {
       "utf8",
     );
     const timedLines = source
-      .split("\n")
+      .split(/\r?\n/)
       .filter((line) => /^\d+:\d{2} /.test(line));
 
     expect(

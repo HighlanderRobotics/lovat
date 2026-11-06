@@ -22,6 +22,7 @@ import {
 } from "@lovat/db";
 import { invalidateCache } from "../../../lib/clearCache.js";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
+import { classifyReportReliability } from "./reportReliability.js";
 import {
   checkForInvalidEvents,
   removeOrphanedStartEvents,
@@ -221,6 +222,10 @@ export const addScoutReportDashboard = async (
     await prismaClient.scoutReport.create({
       data: {
         uuid: paramsScoutReport.uuid,
+        reliability: classifyReportReliability({
+          ...paramsScoutReport,
+          events: eventDataArray,
+        }),
         startTime: new Date(paramsScoutReport.startTime),
         teamMatchData: { connect: { key: matchKey } },
         scouter: { connect: { uuid: paramsScoutReport.scouterUuid } },

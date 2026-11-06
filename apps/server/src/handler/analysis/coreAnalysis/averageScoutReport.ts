@@ -1,7 +1,7 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   autoEnd,
-  endgameToPoints,
   Metric,
   metricToEvent,
   minActionDuration,
@@ -15,6 +15,7 @@ import {
 } from "@lovat/db";
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
+import { calculateReportTotalPoints } from "../reportPoints.js";
 
 function firstEventTime(
   events: { action: string; time: number }[],
@@ -81,10 +82,7 @@ export function calculateScoutReportMetrics(
         result[metric] = report.driverAbility;
         break;
       case Metric.totalPoints:
-        result[metric] =
-          endgameToPoints[report.endgameClimb] +
-          (report.autoClimb === AutoClimb.SUCCEEDED ? 15 : 0) +
-          report.events.reduce((acc, cur) => acc + cur.points, 0);
+        result[metric] = calculateReportTotalPoints(report);
         break;
       case Metric.teleopPoints:
         result[metric] = report.events
@@ -226,7 +224,7 @@ export async function computeAverageScoutReport(
   metrics: Metric[],
 ): Promise<Partial<Record<Metric, number>>> {
   const report = await prismaClient.scoutReport.findUniqueOrThrow({
-    where: { uuid: scoutReportUuid },
+    where: { ...analysisReportFilter, uuid: scoutReportUuid },
     select: {
       endgameClimb: true,
       driverAbility: true,

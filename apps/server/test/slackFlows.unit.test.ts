@@ -77,7 +77,7 @@ it("rejects unknown team codes before creating OAuth states", async () => {
   expect(db.setEx).not.toHaveBeenCalled();
 });
 it("reports malformed OAuth onboarding", async () => {
-  expect((await invoke(onboardingRedirect)).statusCode).toBe(500);
+  await expect(invoke(onboardingRedirect)).rejects.toThrow();
 });
 it("consumes state before exchanging the code and upserts the team-owned workspace", async () => {
   const result = await invoke(addSlackWorkspace, {
@@ -133,15 +133,13 @@ it("rejects a team removed during OAuth", async () => {
   expect(db.slackWorkspace.upsert).not.toHaveBeenCalled();
 });
 it("reports malformed OAuth input and responses", async () => {
-  expect((await invoke(addSlackWorkspace)).statusCode).toBe(500);
+  await expect(invoke(addSlackWorkspace)).rejects.toThrow();
   db.fetch.mockResolvedValue({ json: async () => ({ ok: false }) });
-  expect(
-    (
-      await invoke(addSlackWorkspace, {
-        query: { code: "authorization-code", state },
-      })
-    ).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(addSlackWorkspace, {
+      query: { code: "authorization-code", state },
+    }),
+  ).rejects.toThrow();
 });
 const command = (text: string) =>
   invoke(processCommand, {
@@ -197,11 +195,11 @@ for (const action of ["subscribe", "unsubscribe"]) {
 }
 it("rejects unrecognized commands and invalid payloads", async () => {
   expect((await command("unknown")).statusCode).toBe(400);
-  expect((await invoke(processCommand)).statusCode).toBe(500);
+  await expect(invoke(processCommand)).rejects.toThrow();
 });
 it("reports workspace lookup failure", async () => {
   db.slackWorkspace.findFirstOrThrow.mockRejectedValue(new Error("offline"));
-  expect((await command("subscribe")).statusCode).toBe(500);
+  await expect(command("subscribe")).rejects.toThrow();
 });
 it.each(["app_uninstalled", "channel_deleted"])(
   "processes Slack lifecycle event %s",

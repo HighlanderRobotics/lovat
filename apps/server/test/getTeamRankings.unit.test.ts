@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import express from "express";
 
 vi.mock("../src/prismaClient.js", () => ({
@@ -60,6 +60,8 @@ const request = async (tournamentKey = "2024test") => {
   return { response, errors };
 };
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe("getTeamRankings", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -107,6 +109,156 @@ describe("getTeamRankings", () => {
     ]);
   });
 
+  it.each([
+    {
+      scenario: "prefers official RP over the calculated total",
+      rankingPoints: 25,
+      sortOrders: [1.5],
+      expected: 25,
+    },
+    {
+      scenario: "preserves an official RP total of zero",
+      rankingPoints: 0,
+      sortOrders: [1.5],
+      expected: 0,
+    },
+    {
+      scenario: "uses official RP even when sort orders are empty",
+      rankingPoints: 25,
+      sortOrders: [],
+      expected: 25,
+    },
+    {
+      scenario: "rounds the calculated total when official RP is missing",
+      rankingPoints: undefined,
+      sortOrders: [1.4167, 9],
+      expected: 17,
+    },
+    {
+      scenario: "calculates the total when official RP is null",
+      rankingPoints: null,
+      sortOrders: [1.4167, 9],
+      expected: 17,
+    },
+    {
+      scenario:
+        "returns null when official RP is missing and sort orders are empty",
+      rankingPoints: undefined,
+      sortOrders: [],
+      expected: null,
+    },
+    {
+      scenario:
+        "returns null when official RP is null and sort orders are empty",
+      rankingPoints: null,
+      sortOrders: [],
+      expected: null,
+    },
+  ])("$scenario", async ({ rankingPoints, sortOrders, expected }) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          frc254: {
+            qual: {
+              ranking: {
+                ...tbaStatus(3, 12).qual.ranking,
+                ...(rankingPoints === undefined
+                  ? {}
+                  : { ranking_points: rankingPoints }),
+                sort_orders: sortOrders,
+              },
+            },
+          },
+        }),
+      }),
+    );
+
+    const { response, errors } = await request();
+
+    expect(errors).toEqual([]);
+    expect(response.status).toBe(200);
+    expect(
+      response.body.find((team: { number: number }) => team.number === 254),
+    ).toMatchObject({
+      rank: 3,
+      matchesPlayed: 12,
+      rankingPoints: expected,
+    });
+  });
+
+  it("includes the season avatar, official RP and TBA authentication", async () => {
+    vi.stubEnv("TBA_KEY", "test-tba-key");
+    vi.mocked(prismaClient.team.findMany).mockResolvedValue([
+      {
+        ...tbaTeam(254),
+        seasons: [{ avatar: "data:image/png;base64,fixture" }],
+      },
+      { ...tbaTeam(1), seasons: [] },
+    ] as never);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        frc254: {
+          qual: {
+            ranking: { ...tbaStatus(1, 12).qual.ranking, ranking_points: 25 },
+          },
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { response } = await request("2026fixture");
+    expect(response.status).toBe(200);
+    expect(response.body[0]).toMatchObject({
+      number: 254,
+      rank: 1,
+      rankingPoints: 25,
+      avatar: "data:image/png;base64,fixture",
+    });
+    expect(response.body[1].avatar).toBeNull();
+    expect(response.body[0]).not.toHaveProperty("seasons");
+    expect(prismaClient.team.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: {
+          seasons: {
+            where: { seasonYear: 2026 },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
+      }),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://www.thebluealliance.com/api/v3/event/2026fixture/teams/statuses",
+      { headers: { "X-TBA-Auth-Key": "test-tba-key" } },
+    );
+  });
+
+  it("uses season zero when the tournament key has no numeric year", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
+
+    const { response, errors } = await request("offseason");
+
+    expect(errors).toEqual([]);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(prismaClient.team.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: {
+          seasons: {
+            where: { seasonYear: 0 },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
+      }),
+    );
+  });
+
   it("returns a single 200 response when TBA is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
@@ -149,6 +301,59 @@ describe("getTeamRankings", () => {
     expect(response.body).toEqual([
       expect.objectContaining({ number: 254, rank: null, matchesPlayed: 2 }),
       expect.objectContaining({ number: 1, rank: null, matchesPlayed: null }),
+    ]);
+  });
+
+  it.each([
+    null,
+    { qual: null },
+    { qual: { ranking: null } },
+    { qual: { ranking: { rank: "invalid" } } },
+  ])(
+    "preserves valid rankings when another team's status is missing or invalid",
+    async (badStatus) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ frc254: tbaStatus(3, 12), frc1: badStatus }),
+        }),
+      );
+      const { response } = await request();
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([
+        expect.objectContaining({ number: 254, rank: 3, matchesPlayed: 12 }),
+        expect.objectContaining({ number: 1, rank: null }),
+      ]);
+    },
+  );
+
+  it("leaves incomplete ranking fields null without estimating RP", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          frc254: { qual: { ranking: { sort_orders: [1.5] } } },
+          frc1: { qual: { ranking: { matches_played: 2 } } },
+        }),
+      }),
+    );
+    const { response } = await request();
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        number: 254,
+        rank: null,
+        matchesPlayed: null,
+        rankingPoints: null,
+      }),
+      expect.objectContaining({
+        number: 1,
+        rank: null,
+        matchesPlayed: 2,
+        rankingPoints: null,
+      }),
     ]);
   });
 

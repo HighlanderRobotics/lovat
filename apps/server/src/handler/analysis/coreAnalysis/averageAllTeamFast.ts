@@ -1,3 +1,4 @@
+import { analysisReportsSql } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentageInterpolated,
@@ -12,7 +13,7 @@ import {
 import z from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { runAnalysis } from "../analysisFunction.js";
 import { weightedTourAvgLeft } from "./arrayAndAverageTeams.js";
@@ -83,10 +84,12 @@ const config = {
   ) => {
     const metric = args.metric;
 
-    const sourceTnmtRule = dataSourceRuleSchema(z.string()).parse(
+    const sourceTnmtRule = parseStoredSourceRule(
+      z.string(),
       ctx.user.tournamentSourceRule,
     );
-    const sourceTeamRule = dataSourceRuleSchema(z.number()).parse(
+    const sourceTeamRule = parseStoredSourceRule(
+      z.number(),
       ctx.user.teamSourceRule,
     );
 
@@ -115,9 +118,9 @@ const config = {
       >(
         `SELECT tmd."tournamentKey", sr."driverAbility"
          FROM "TeamMatchData" tmd
-         JOIN "ScoutReport" sr ON sr."teamMatchKey" = tmd."key"
+         JOIN ${analysisReportsSql} sr ON sr."teamMatchKey" = tmd."key"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT') ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -146,9 +149,9 @@ const config = {
       >(
         `SELECT tmd."tournamentKey", sr."accuracy"
          FROM "TeamMatchData" tmd
-         JOIN "ScoutReport" sr ON sr."teamMatchKey" = tmd."key"
+         JOIN ${analysisReportsSql} sr ON sr."teamMatchKey" = tmd."key"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT') ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -178,10 +181,10 @@ const config = {
       >(
         `SELECT e."action", e."quantity", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -201,10 +204,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", e."action", e."quantity", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('START_SCORING'::"EventAction",'STOP_SCORING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -257,10 +260,10 @@ const config = {
       >(
         `SELECT tmd."tournamentKey", e."scoutReportUuid", e."action", e."quantity"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -310,10 +313,10 @@ const config = {
       >(
         `SELECT tmd."tournamentKey", e."scoutReportUuid", e."quantity"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('STOP_SCORING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -358,10 +361,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", COUNT(*) AS count
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" = 'INTAKE'::"EventAction" AND e."position" = 'OUTPOST'::"Position"
            ${t.clause} ${s.clause}
          GROUP BY e."scoutReportUuid"`,
@@ -386,12 +389,12 @@ const config = {
         }[]
       >(
         `SELECT sr."uuid" AS "scoutReportUuid", e."action", e."quantity", e."time"
-         FROM "ScoutReport" sr
+         FROM ${analysisReportsSql} sr
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct ON sct."uuid" = sr."scouterUuid"
          LEFT JOIN "Event" e ON e."scoutReportUuid" = sr."uuid"
            AND e."action" IN ('START_FEEDING'::"EventAction", 'STOP_FEEDING'::"EventAction")
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT') ${t.clause} ${s.clause}`,
         ...buildParams(t.param, s.param),
       );
       const byReport: Record<string, typeof rows> = {};
@@ -440,10 +443,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", e."action", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('START_FEEDING'::"EventAction",'STOP_FEEDING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -493,10 +496,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", e."action", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" IN ('START_DEFENDING'::"EventAction",'STOP_DEFENDING'::"EventAction",'START_CAMPING'::"EventAction",'STOP_CAMPING'::"EventAction")
            ${t.clause} ${s.clause}`,
         ...params,
@@ -552,10 +555,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" = 'CLIMB'::"EventAction"
            AND e."time" <= ${autoEnd}
            AND sr."autoClimb" = 'SUCCEEDED'::"AutoClimb"
@@ -604,10 +607,10 @@ const config = {
       >(
         `SELECT e."scoutReportUuid", e."time"
          FROM "Event" e
-         JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+         JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
            AND e."action" = 'CLIMB'::"EventAction"
            AND e."time" > ${autoEnd}
            AND e."time" <= 158
@@ -642,10 +645,10 @@ const config = {
 
       const raw = await prismaClient.$queryRawUnsafe<{ avg: number | null }[]>(
         `SELECT AVG(sr."defenseEffectiveness") AS avg
-         FROM "ScoutReport" sr
+         FROM ${analysisReportsSql} sr
          JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
          JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}`,
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT') ${t.clause} ${s.clause}`,
         ...params,
       );
 
@@ -692,12 +695,12 @@ const config = {
                : `NULL AS "endgameClimb"`
            }
          FROM "TeamMatchData" tmd
-         JOIN "ScoutReport" sr  ON sr."teamMatchKey" = tmd."key"
+         JOIN ${analysisReportsSql} sr  ON sr."teamMatchKey" = tmd."key"
          LEFT JOIN "Event" e    ON e."scoutReportUuid" = sr."uuid"
                                AND e."action" = 'STOP_SCORING'::"EventAction"
                                ${timeFilter}
          JOIN "Scouter" sct     ON sct."uuid" = sr."scouterUuid"
-         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' ${t.clause} ${s.clause}
+         WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT') ${t.clause} ${s.clause}
          GROUP BY tmd."tournamentKey", sr."uuid", sr."endgameClimb", sr."autoClimb", sr."accuracy"`,
         ...params,
       );
@@ -741,10 +744,10 @@ const config = {
     >(
       `SELECT e."scoutReportUuid", COUNT(*) AS count
        FROM "Event" e
-       JOIN "ScoutReport" sr  ON sr."uuid" = e."scoutReportUuid"
+       JOIN ${analysisReportsSql} sr  ON sr."uuid" = e."scoutReportUuid"
        JOIN "TeamMatchData" tmd ON tmd."key" = sr."teamMatchKey"
        JOIN "Scouter" sct    ON sct."uuid" = sr."scouterUuid"
-       WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE'
+       WHERE sr."training" = false AND tmd."matchType" <> 'PRACTICE' AND sr."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
          AND e."action" = $${actionIdx}::"EventAction"
          ${t.clause} ${s.clause}
        GROUP BY e."scoutReportUuid"`,

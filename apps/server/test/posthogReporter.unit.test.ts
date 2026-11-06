@@ -67,6 +67,20 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
+it("reports asynchronous analytics failures without rejecting the finish callback", async () => {
+  db.get.mockRejectedValueOnce(new Error("private redis connection details"));
+  await expect(
+    run({ headers: { "x-scouter-uuid": "s", "x-device-id": "d" } }),
+  ).resolves.toBeDefined();
+  expect(console.error).toHaveBeenCalledWith(
+    "Request analytics failed",
+    expect.objectContaining({ name: "Error" }),
+  );
+  expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain(
+    "private redis connection details",
+  );
+  expect(db.capture).not.toHaveBeenCalled();
+});
 it("captures authenticated responses with proxy IP, cache, and client headers", async () => {
   await run(
     {

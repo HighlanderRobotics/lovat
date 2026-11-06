@@ -6,7 +6,7 @@ export const checkCodeScouter = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         code: z.string(),
@@ -34,10 +34,5 @@ export const checkCodeScouter = async (
     } else {
       res.status(200).send(teamWithCode);
     }
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

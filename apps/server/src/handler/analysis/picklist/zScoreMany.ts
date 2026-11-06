@@ -32,7 +32,7 @@ export const zScoreMany = async (
     flags: { type: string; result: number }[];
   }[]
 > => {
-  try {
+  {
     const results: {
       team: number;
       result: number;
@@ -123,8 +123,5 @@ export const zScoreMany = async (
     }
 
     return results;
-  } catch (error) {
-    console.log(error);
-    throw error;
   }
 };

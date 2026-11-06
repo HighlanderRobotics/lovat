@@ -32,9 +32,9 @@ for (const handler of [getScoutReport, deleteScoutReport]) {
   it(`${handler.name} reports failed database lookups`, async () => {
     db.scoutReport.findFirst.mockRejectedValue(new Error("database"));
     db.scoutReport.findUnique.mockRejectedValue(new Error("database"));
-    expect(
-      (await invoke(handler, { params: { uuid: "report" } })).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(handler, { params: { uuid: "report" } }),
+    ).rejects.toThrow();
   });
   it(`${handler.name} returns not found for unavailable reports`, async () => {
     db.scoutReport.findFirst.mockResolvedValue(null);

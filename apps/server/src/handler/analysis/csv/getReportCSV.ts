@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
@@ -20,9 +21,10 @@ import { autoEnd, endgameToPoints, Metric } from "../analysisConstants.js";
 import { z } from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { averageScoutReport } from "../coreAnalysis/averageScoutReport.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Scouting report condensed into a single dimension that can be pushed to a row in the csv
 export interface CondensedReport {
@@ -94,7 +96,7 @@ export const getReportCSV = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     // Source data from queried tournament
     const params = z
       .object({
@@ -138,18 +140,20 @@ export const getReportCSV = async (
     // These instances will be looped through and remade into rows of the csv
     const where: any = {
       training: false,
+      ...reportReliabilityFilter,
       teamMatchData: {
         tournamentKey: params.data.tournamentKey,
       },
     };
-    const sourceRule = dataSourceRuleSchema(z.number()).parse(
+    const sourceRule = parseStoredSourceRule(
+      z.number(),
       req.user?.teamSourceRule,
     );
     const filter = dataSourceRuleToPrismaFilter(sourceRule);
     if (filter) where.scouter = { sourceTeamNumber: filter };
 
     const datapoints = await prismaClient.scoutReport.findMany({
-      where,
+      where: { ...where, ...analysisReportFilter },
       select: {
         uuid: true,
         notes: true,
@@ -254,9 +258,6 @@ export const getReportCSV = async (
     res.header("Content-Type", "text/csv");
     res.send(csvString);
     return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };
 

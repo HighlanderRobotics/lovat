@@ -8,7 +8,7 @@ export const checkMatchExists = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const parsed = z
       .object({
         tournamentKey: z.string(),
@@ -63,8 +63,5 @@ export const checkMatchExists = async (
       return;
     }
     res.status(404).send("MATCH_NOT_FOUND");
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };

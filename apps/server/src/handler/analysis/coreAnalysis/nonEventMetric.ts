@@ -1,3 +1,4 @@
+import { analysisReportsSql } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import { User } from "@lovat/db";
 import {
@@ -8,7 +9,7 @@ import {
 } from "../analysisConstants.js";
 
 import z from "zod";
-import { dataSourceRuleSchema } from "../dataSourceRule.js";
+import { parseStoredSourceRule } from "../dataSourceRule.js";
 import { runAnalysis } from "../analysisFunction.js";
 
 /**
@@ -32,11 +33,13 @@ const config = {
     args: z.infer<typeof config.argsSchema>,
     ctx: { user: User },
   ) => {
-    try {
-      const tnmRule = dataSourceRuleSchema(z.string()).parse(
+    {
+      const tnmRule = parseStoredSourceRule(
+        z.string(),
         ctx.user.tournamentSourceRule,
       );
-      const teamRule = dataSourceRuleSchema(z.number()).parse(
+      const teamRule = parseStoredSourceRule(
+        z.number(),
         ctx.user.teamSourceRule,
       );
 
@@ -64,7 +67,7 @@ const config = {
         ? `
           SELECT value AS breakdown,
                  COUNT(*)::float / SUM(COUNT(*)) OVER () AS percentage
-          FROM "ScoutReport" s
+          FROM ${analysisReportsSql} s
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
           CROSS JOIN UNNEST(s."${args.metric}") AS value
@@ -72,16 +75,18 @@ const config = {
             AND tmd."matchType" <> 'PRACTICE'
             AND ${tournamentCondition}
             AND ${teamCondition}
+            AND s."reliability" NOT IN ('FLAGGED','BAD_REPORT')
           GROUP BY value
         `
         : `
           SELECT s."${args.metric}" AS breakdown,
                  COUNT(s."scouterUuid")::float / SUM(COUNT(s."scouterUuid")) OVER () AS percentage
-          FROM "ScoutReport" s
+          FROM ${analysisReportsSql} s
           JOIN "TeamMatchData" tmd ON tmd."key" = s."teamMatchKey"
           JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
           WHERE s."training" = false AND tmd."teamNumber" = $3
             AND tmd."matchType" <> 'PRACTICE'
+            AND s."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
             AND ${tournamentCondition}
             AND ${teamCondition}
           GROUP BY s."${args.metric}"
@@ -110,9 +115,6 @@ const config = {
       }
 
       return result;
-    } catch (error) {
-      console.error("Error in nonEventMetric:", error);
-      throw error;
     }
   },
 } as const;

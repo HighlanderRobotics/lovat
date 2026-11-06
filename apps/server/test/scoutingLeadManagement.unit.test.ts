@@ -57,15 +57,15 @@ it("does not email unregistered teams", async () => {
 });
 it("reports database failures during team code lookup", async () => {
   db.registeredTeam.findUnique.mockRejectedValue(new Error("database"));
-  expect(
-    (await invoke(emailTeamCode, { query: { teamNumber: "8033" } })).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(emailTeamCode, { query: { teamNumber: "8033" } }),
+  ).rejects.toThrow();
 });
 it("reports email delivery failures without claiming success", async () => {
   db.send.mockRejectedValue(new Error("delivery"));
-  expect(
-    (await invoke(emailTeamCode, { query: { teamNumber: "8033" } })).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(emailTeamCode, { query: { teamNumber: "8033" } }),
+  ).rejects.toThrow();
 });
 it("promotes a teammate when requested by a lead", async () => {
   expect(
@@ -118,10 +118,9 @@ it("returns not found for a deleted target", async () => {
 });
 it("reports failed role persistence", async () => {
   db.user.update.mockRejectedValue(new Error("database"));
-  expect(
-    (await invoke(updateRoleToScoutingLead, { body: { user: "other" } }))
-      .statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(updateRoleToScoutingLead, { body: { user: "other" } }),
+  ).rejects.toThrow();
 });
 it.each([
   [{ query: { tournamentKey: [] } }, 400],
@@ -205,11 +204,11 @@ it("caps assignments at completed matches and counts distinct scouted matches", 
 });
 it("reports failed progress queries", async () => {
   db.scouter.findMany.mockRejectedValue(new Error("database"));
-  expect((await invoke(scoutingLeadProgressPage)).statusCode).toBe(500);
+  await expect(invoke(scoutingLeadProgressPage)).rejects.toThrow();
 });
 it("reports an email provider's structured rejection", async () => {
   db.send.mockResolvedValue({ data: null, error: { message: "rejected" } });
-  expect(
-    (await invoke(emailTeamCode, { query: { teamNumber: "8033" } })).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(emailTeamCode, { query: { teamNumber: "8033" } }),
+  ).rejects.toThrow();
 });

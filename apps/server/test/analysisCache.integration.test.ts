@@ -158,7 +158,7 @@ describe.sequential(
           const row = await db.cachedAnalysis.findFirst({
             where: {
               key: {
-                contains: `analysis:v3:handler:${viewerId}:${fixtureId}:handler`,
+                contains: `analysis:v5:handler:${viewerId}:${fixtureId}:handler`,
               },
             },
             select: { key: true },
@@ -169,7 +169,9 @@ describe.sequential(
         throw new Error(`Cache entry for ${viewerId} was not persisted`);
       };
 
-      const first = await request(testApp).get("/analysis");
+      const first = await request(testApp)
+        .get("/analysis")
+        .set("X-Lovat-Error-Format", "json-v1");
       expect(first.status).toBe(200);
       expect(first.headers["x-lovat-cache"]).toBe("miss");
       expect(first.body.viewer).toBe(users[0].id);
@@ -177,13 +179,16 @@ describe.sequential(
       // The HTTP response is sent before the handler finishes persisting its cache.
       await waitForStoredCache(users[0].id);
 
-      const repeat = await request(testApp).get("/analysis");
+      const repeat = await request(testApp)
+        .get("/analysis")
+        .set("X-Lovat-Error-Format", "json-v1");
       expect(repeat.headers["x-lovat-cache"]).toBe("hit");
       expect(repeat.body.viewer).toBe(users[0].id);
       expect(calculations).toBe(1);
 
       const second = await request(testApp)
         .get("/analysis")
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("x-test-viewer", "second");
       expect(second.headers["x-lovat-cache"]).toBe("miss");
       expect(second.body.viewer).toBe(users[1].id);

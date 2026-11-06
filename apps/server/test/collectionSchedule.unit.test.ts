@@ -115,9 +115,7 @@ it("returns a retryable server error when the schedule cannot be read", async ()
   db.teamMatchData.findMany.mockRejectedValue(
     new Error("Schedule unavailable"),
   );
-  const response = await invoke(getMatchSchedule, request);
-  expect(response.statusCode).toBe(500);
-  expect(response.body).toEqual({
-    displayError: "Unable to fetch the match schedule.",
-  });
+  await expect(invoke(getMatchSchedule, request)).rejects.toThrow(
+    "Schedule unavailable",
+  );
 });

@@ -6,7 +6,7 @@ export const deleteUser = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -34,8 +34,5 @@ export const deleteUser = async (
       });
       res.status(200).send("User deleted");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

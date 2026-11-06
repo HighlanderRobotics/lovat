@@ -87,13 +87,11 @@ describe("scouter creation", () => {
     });
     it(`${handler.name} returns a failure if the database write fails`, async () => {
       db.scouter.create.mockRejectedValue(new Error("offline"));
-      expect(
-        (
-          await invoke(handler, {
-            body: { name: "New scouter", teamNumber: 8033 },
-          })
-        ).statusCode,
-      ).toBe(500);
+      await expect(
+        invoke(handler, {
+          body: { name: "New scouter", teamNumber: 8033 },
+        }),
+      ).rejects.toThrow();
     });
   }
   it.each([{ role: "ANALYST" as const }, { teamNumber: null }])(
@@ -186,14 +184,12 @@ describe("renaming scouters", () => {
   });
   it("reports Collection database errors", async () => {
     db.scouter.update.mockRejectedValue(new Error("offline"));
-    expect(
-      (
-        await invoke(changeNameScouter, {
-          params: { uuid: scouter.uuid },
-          body: { name: "Changed" },
-        })
-      ).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(changeNameScouter, {
+        params: { uuid: scouter.uuid },
+        body: { name: "Changed" },
+      }),
+    ).rejects.toThrow();
   });
 });
 
@@ -240,7 +236,7 @@ for (const handler of [updateScouterName, deleteScouter]) {
     );
     it("reports failed database reads", async () => {
       db.scouter.findUnique.mockRejectedValue(new Error("offline"));
-      expect((await invoke(handler, { body })).statusCode).toBe(500);
+      await expect(invoke(handler, { body })).rejects.toThrow();
     });
     it("allows the owning scouting lead", async () => {
       expect((await invoke(handler, { body })).statusCode).toBe(200);
@@ -317,15 +313,14 @@ describe("scouter discovery", () => {
     expect(db.scouter.findMany).not.toHaveBeenCalled();
   });
   it("reports invalid archived queries", async () => {
-    expect(
-      (await invoke(getScouters, { query: { archived: ["true", "false"] } }))
-        .statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(getScouters, { query: { archived: ["true", "false"] } }),
+    ).rejects.toThrow();
     expect(db.scouter.findMany).not.toHaveBeenCalled();
   });
   it("reports discovery database failures", async () => {
     db.scouter.findMany.mockRejectedValue(new Error("offline"));
-    expect((await invoke(getScouters)).statusCode).toBe(500);
+    await expect(invoke(getScouters)).rejects.toThrow();
   });
   it("validates Collection team codes", async () => {
     expect(
@@ -363,14 +358,12 @@ describe("scouter discovery", () => {
     });
     it(`${handler.name} reports unavailable team-code lookup`, async () => {
       db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-      expect(
-        (
-          await invoke(handler, {
-            query: { code: "team-code" },
-            headers: { "x-team-code": "team-code" },
-          })
-        ).statusCode,
-      ).toBe(500);
+      await expect(
+        invoke(handler, {
+          query: { code: "team-code" },
+          headers: { "x-team-code": "team-code" },
+        }),
+      ).rejects.toThrow();
     });
   }
 });

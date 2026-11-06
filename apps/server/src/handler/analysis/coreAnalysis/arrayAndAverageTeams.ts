@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentage,
@@ -8,12 +9,13 @@ import {
 } from "../analysisConstants.js";
 import { Event, Prisma, ScoutReport } from "@lovat/db";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 import { avg, calculateTimeMetric } from "./averageManyFast.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Accurately aggregate an analog metric on multiple teams at once (weighs matches equally regardless of extra scout reports).
 // Provides a timeline of metric value per match.
@@ -62,12 +64,12 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
     ctx: { user: import("@lovat/db").User },
   ) => {
     const { teams, metric } = args;
-    try {
+    {
       const sourceTnmtFilter = dataSourceRuleToPrismaFilter<string>(
-        dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+        parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
       );
       const sourceTeamFilter = dataSourceRuleToPrismaFilter<number>(
-        dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+        parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
       );
 
       // Data and aggregation based on metric. Variables determine data requested and aggregation method
@@ -438,7 +440,11 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
         // Assign helper output directly; it's Prisma-compatible
         tmdFilter.tournamentKey = sourceTnmtFilter;
       }
-      const srFilter: Prisma.ScoutReportWhereInput = { training: false };
+      const srFilter: Prisma.ScoutReportWhereInput = {
+        training: false,
+        ...reportReliabilityFilter,
+      };
+
       if (sourceTeamFilter) {
         srFilter.scouter = {
           sourceTeamNumber: sourceTeamFilter,
@@ -459,7 +465,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           key: true,
           teamNumber: true,
           scoutReports: {
-            where: srFilter,
+            where: { ...srFilter, ...analysisReportFilter },
             select: srSelect,
           },
         },
@@ -544,9 +550,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       }
 
       return result;
-    } catch (error) {
-      console.error(error);
-      throw error;
     }
   },
 };

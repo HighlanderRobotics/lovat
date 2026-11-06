@@ -6,7 +6,7 @@ export const checkOnlyOneInstanceOfScouter = async (
   teamFive: string[],
   teamSix: string[],
 ): Promise<boolean> => {
-  try {
+  {
     const scouterSet = new Set<string>();
     const teamOneData = await checkTeam(teamOne, scouterSet);
     const teamTwoData = await checkTeam(teamTwo, scouterSet);
@@ -22,9 +22,6 @@ export const checkOnlyOneInstanceOfScouter = async (
       teamFiveData &&
       teamSixData
     );
-  } catch (error) {
-    console.error(error);
-    throw error;
   }
 };
 async function checkTeam(arrayOfScouters: string[], scouterSet: Set<string>) {
