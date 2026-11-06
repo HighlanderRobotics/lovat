@@ -6,7 +6,7 @@ export const getScouterTournaments = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const currentYear = new Date().getFullYear();
     const seasonStart = new Date(currentYear, 0, 1);
     const seasonEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
@@ -267,8 +267,5 @@ export const getScouterTournaments = async (
     rows = presentTeamTournaments.concat(rows);
 
     res.status(200).send({ tournaments: rows, count: count });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

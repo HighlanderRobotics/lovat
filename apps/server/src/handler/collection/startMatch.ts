@@ -19,7 +19,7 @@ export const startMatch = async (
     return;
   }
 
-  try {
+  {
     const report = await ownedReport(req, res, input.data.uuid);
 
     if (!report) {
@@ -59,9 +59,5 @@ export const startMatch = async (
     }
 
     res.json({ uuid: report.uuid });
-  } catch (error) {
-    console.error("Failed to start match report", error);
-
-    res.status(500).send({ displayError: "Could not start match report." });
   }
 };

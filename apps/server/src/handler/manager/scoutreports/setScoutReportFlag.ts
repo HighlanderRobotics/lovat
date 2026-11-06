@@ -29,7 +29,7 @@ export const setScoutReportFlag = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         report: z.string().min(1),
@@ -112,8 +112,5 @@ export const setScoutReportFlag = async (
       flagged: shouldFlag,
       flagCount: updatedReport._count.flaggedBy,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

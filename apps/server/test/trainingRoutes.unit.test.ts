@@ -103,6 +103,7 @@ let forwarded: unknown[];
 const post = (path: string, body: object = {}) =>
   request(app)
     .post(path)
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("Authorization", "Bearer " + secret)
     .send(body);
 const control = (action: string, fields: object = {}) =>
@@ -162,7 +163,9 @@ describe("training catalog and session creation", () => {
       { ...video(), answerKeyReports: [key, key] },
       { ...video(), answerKeyReports: [{ ...key, training: false }] },
     ]);
-    const response = await request(app).get("/training/videos");
+    const response = await request(app)
+      .get("/training/videos")
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0]).toMatchObject({ uuid: videoId, teamNumber: 118 });
@@ -220,7 +223,13 @@ describe("training catalog and session creation", () => {
   it("reports invalid bodies and unexpected storage failures", async () => {
     expect((await post("/training/sessions", {})).status).toBe(400);
     db.trainingVideo.findMany.mockRejectedValue(new Error("offline"));
-    expect((await request(app).get("/training/videos")).status).toBe(500);
+    expect(
+      (
+        await request(app)
+          .get("/training/videos")
+          .set("X-Lovat-Error-Format", "json-v1")
+      ).status,
+    ).toBe(500);
     expect(console.error).toHaveBeenCalled();
   });
 });
@@ -293,6 +302,7 @@ describe("snapshot and readiness", () => {
       (
         await request(app)
           .get(root)
+          .set("X-Lovat-Error-Format", "json-v1")
           .set("Authorization", "Bearer " + secret)
       ).status,
     ).toBe(200);
@@ -304,6 +314,7 @@ describe("snapshot and readiness", () => {
       (
         await request(app)
           .get(root)
+          .set("X-Lovat-Error-Format", "json-v1")
           .query({ attempt: attemptId })
           .set("Authorization", "Bearer " + secret)
       ).status,
@@ -321,7 +332,12 @@ describe("snapshot and readiness", () => {
   it("passes an absent token through authorization and does not change state", async () => {
     service.read.mockRejectedValue(new TrainingError(404, "Not found"));
     expect(
-      (await request(app).get(root).query({ attempt: attemptId })).status,
+      (
+        await request(app)
+          .get(root)
+          .set("X-Lovat-Error-Format", "json-v1")
+          .query({ attempt: attemptId })
+      ).status,
     ).toBe(404);
     expect(service.read).toHaveBeenCalledWith(sessionId, "", attemptId);
     expect(db.trainingAttempt.updateMany).not.toHaveBeenCalled();
@@ -566,6 +582,7 @@ describe("participant removal and training submissions", () => {
         (
           await request(app)
             .delete(root + "/participants/" + attemptId)
+            .set("X-Lovat-Error-Format", "json-v1")
             .set("Authorization", "Bearer " + secret)
         ).status,
       ).toBe(count ? 204 : 409);

@@ -54,6 +54,7 @@ const endTime = startTime + 150_000;
 function call(path: string, body: object, scoutUuid = scout) {
   return request(app)
     .post(path)
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("X-Team-Code", id)
     .set("X-Scouter-UUID", scoutUuid)
     .set("X-Device-Id", id)
@@ -162,6 +163,7 @@ describe("Collection match lifecycle transactions", () => {
       const uuid = randomUUID();
       const response = await request(app)
         .post("/v1/manager/scoutreports")
+        .set("X-Lovat-Error-Format", "json-v1")
         .send({ ...report(uuid), ...(appVersion ? { appVersion } : {}) });
       expect(response.status).toBe(200);
       const saved = await db.scoutReport.findUniqueOrThrow({

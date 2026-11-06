@@ -7,7 +7,7 @@ export const checkRegisteredTeam = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         number: z.number().min(0),
@@ -73,8 +73,5 @@ export const checkRegisteredTeam = async (
         res.status(200).send({ status: "PENDING" });
       }
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

@@ -7,7 +7,7 @@ export const addSlackWorkspace = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         code: z.string().min(1),
@@ -89,8 +89,5 @@ export const addSlackWorkspace = async (
     res.redirect(
       "https://lovat-learn.highlanderrobotics.com/guides/slack-notifcations",
     );
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

@@ -9,7 +9,7 @@ import {
 } from "../analysisConstants.js";
 
 import z from "zod";
-import { dataSourceRuleSchema } from "../dataSourceRule.js";
+import { parseStoredSourceRule } from "../dataSourceRule.js";
 import { runAnalysis } from "../analysisFunction.js";
 
 /**
@@ -33,11 +33,13 @@ const config = {
     args: z.infer<typeof config.argsSchema>,
     ctx: { user: User },
   ) => {
-    try {
-      const tnmRule = dataSourceRuleSchema(z.string()).parse(
+    {
+      const tnmRule = parseStoredSourceRule(
+        z.string(),
         ctx.user.tournamentSourceRule,
       );
-      const teamRule = dataSourceRuleSchema(z.number()).parse(
+      const teamRule = parseStoredSourceRule(
+        z.number(),
         ctx.user.teamSourceRule,
       );
 
@@ -113,9 +115,6 @@ const config = {
       }
 
       return result;
-    } catch (error) {
-      console.error("Error in nonEventMetric:", error);
-      throw error;
     }
   },
 } as const;

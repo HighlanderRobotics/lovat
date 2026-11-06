@@ -124,7 +124,9 @@ it("returns an empty picklist without a tournament", async () => {
   expect(db.averages).not.toHaveBeenCalled();
 });
 it("reports all-zero weights before loading matches", async () => {
-  expect((await run({ tournamentKey: "2026test" })).statusCode).toBe(500);
+  await expect(run({ tournamentKey: "2026test" })).rejects.toThrow(
+    "All weights are zero",
+  );
   expect(db.teamMatchData.findFirst).not.toHaveBeenCalled();
 });
 it.each([true, false])(
@@ -152,9 +154,9 @@ it.each([true, false])(
 );
 it("reports tournaments without teams", async () => {
   db.teamMatchData.groupBy.mockResolvedValue([]);
-  expect(
-    (await run({ tournamentKey: "2026test", totalPoints: "1" })).statusCode,
-  ).toBe(500);
+  await expect(
+    run({ tournamentKey: "2026test", totalPoints: "1" }),
+  ).rejects.toBe("Bad event, not enough teams");
   expect(db.averages).not.toHaveBeenCalled();
 });
 it.each(["invalid", "null", "[]"])(

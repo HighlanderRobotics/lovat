@@ -6,7 +6,7 @@ export const addNotOnTeam = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -24,10 +24,5 @@ export const addNotOnTeam = async (
       },
     });
     res.status(200).send(user);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

@@ -16,7 +16,7 @@ export const getScheduleForScouter = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         code: z.string(),
@@ -73,6 +73,7 @@ export const getScheduleForScouter = async (
     await addTournamentMatches(params.data.tournamentKey);
     if (maxQualifierRow === null) {
       res.status(400).send({
+        code: "MATCHES_NOT_AVAILABLE",
         error: "Matches are not available for this tournamnet",
         displayError: "Matches are not available for this tournament",
       });
@@ -138,11 +139,6 @@ export const getScheduleForScouter = async (
     }
 
     res.status(200).send({ hash: hashJsonObject(rows), data: finalArr });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: "Internal server error", displayError: "error" });
   }
 };
 function hashJsonObject(json: object): string {

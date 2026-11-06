@@ -2,8 +2,12 @@ import type { Server } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import z from "zod";
 import db from "../../prismaClient.js";
-import { snapshot } from "./sessionService.js";
+import { snapshot, TrainingError } from "./sessionService.js";
 import { trainingOriginAllowed } from "./allowedOrigin.js";
+import { reportError, runBackgroundTask } from "../../lib/errors.js";
+
+const isExpectedSessionError = (error: unknown): boolean =>
+  error instanceof TrainingError && error.status >= 400 && error.status < 500;
 
 export function attachTrainingSockets(server: Server): void {
   const wss = new WebSocketServer({ noServer: true, maxPayload: 2048 });
@@ -60,13 +64,13 @@ export function attachTrainingSockets(server: Server): void {
           if (busy || ws.readyState !== WebSocket.OPEN) {
             return;
           }
-          if (Date.now() - lastPong > 15_000) {
-            ws.terminate();
-            return;
-          }
-          ws.ping();
           busy = true;
           try {
+            if (Date.now() - lastPong > 15_000) {
+              ws.terminate();
+              return;
+            }
+            ws.ping();
             const state = await snapshot(
               input.sessionUuid,
               input.token,
@@ -83,7 +87,10 @@ export function attachTrainingSockets(server: Server): void {
               lastHeartbeat = Date.now();
             }
             ws.send(JSON.stringify(state));
-          } catch {
+          } catch (error) {
+            if (!isExpectedSessionError(error)) {
+              reportError(error, "Training socket update failed");
+            }
             ws.close(1008, "Session unavailable");
           } finally {
             busy = false;
@@ -93,10 +100,17 @@ export function attachTrainingSockets(server: Server): void {
         clearTimeout(timeout);
         if (ws.readyState === WebSocket.OPEN) {
           poll = setInterval(() => {
-            void send();
+            void runBackgroundTask(send, "Training socket polling failed");
           }, 1000);
         }
-      } catch {
+      } catch (error) {
+        if (
+          !(error instanceof SyntaxError) &&
+          !(error instanceof z.ZodError) &&
+          !isExpectedSessionError(error)
+        ) {
+          reportError(error, "Training socket authentication failed");
+        }
         ws.close(1008, "Invalid session credentials");
       }
     });
@@ -104,7 +118,10 @@ export function attachTrainingSockets(server: Server): void {
       clearTimeout(timeout);
       clearInterval(poll);
     });
-    ws.on("error", () => ws.close());
+    ws.on("error", (error) => {
+      reportError(error, "Training socket connection failed");
+      ws.close();
+    });
   });
   server.once("close", () => {
     for (const client of wss.clients) {

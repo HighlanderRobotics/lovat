@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/api_error.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/reusable/models/match.dart';
 
@@ -39,7 +40,7 @@ extension GetMatches on LovatAPI {
           'No matches found. This is likely because the match schedule has not been posted on The Blue Alliance yet. Please try again later.');
     }
 
-    if (response?.body ==
+    if (ApiError.fromBody(response?.body).message ==
         'tournament not found when trying to insert tournament matches') {
       throw const LovatAPIException('Tournament not found');
     }

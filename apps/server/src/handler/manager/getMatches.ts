@@ -5,8 +5,9 @@ import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { addTournamentMatches } from "./addTournamentMatches.js";
 import { ReverseMatchTypeMap } from "./managerConstants.js";
 import { MatchType, MatchStatus, Prisma } from "@lovat/db";
+import { RequestValidationError } from "../../lib/errors.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../analysis/dataSourceRule.js";
 
@@ -21,11 +22,21 @@ export const getMatches = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     let teams = null;
     if (req.query.teams != undefined) {
-      teams = JSON.parse(req.query.teams as string);
+      if (typeof req.query.teams !== "string") {
+        throw new RequestValidationError("Invalid team filters");
+      }
+      try {
+        teams = JSON.parse(req.query.teams);
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          throw new RequestValidationError("Invalid team filters");
+        }
+        throw error;
+      }
     }
     const params = z
       .object({
@@ -78,7 +89,8 @@ export const getMatches = async (
       | { where: Prisma.ScoutReportWhereInput; select: typeof ownReportSelect }
       | undefined;
 
-    const teamSourceRule = dataSourceRuleSchema(z.number()).parse(
+    const teamSourceRule = parseStoredSourceRule(
+      z.number(),
       req.user.teamSourceRule,
     );
 
@@ -474,8 +486,5 @@ export const getMatches = async (
     }
 
     res.status(200).send(withPracticeMatches(denseFormattedMatches));
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };

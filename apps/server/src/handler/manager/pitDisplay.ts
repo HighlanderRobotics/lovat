@@ -11,7 +11,7 @@ export const pitDisplay = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         team: z.number().min(0),
@@ -252,9 +252,6 @@ export const pitDisplay = async (
     }
 
     res.status(200).send(data);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };
 async function matchFormat(
@@ -262,7 +259,7 @@ async function matchFormat(
   matchNumber: number,
   matchType: MatchType,
 ) {
-  try {
+  {
     const fullLatestedScouted = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: tournamentKey,
@@ -333,7 +330,5 @@ async function matchFormat(
         throw error;
       }
     }
-  } catch (error) {
-    throw error;
   }
 }

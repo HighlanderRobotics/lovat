@@ -7,7 +7,7 @@ export const addPicklist = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -92,8 +92,5 @@ export const addPicklist = async (
       },
     });
     res.status(200).send("picklist added");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

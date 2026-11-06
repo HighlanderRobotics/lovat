@@ -105,10 +105,11 @@ it("does not invalidate cache or report success when saving reliability fails", 
       _count: { flaggedBy: 3 },
     })
     .mockRejectedValueOnce(new Error("database"));
-  const response = await invoke(setScoutReportFlag, {
-    params: { report: "report" },
-    query: { flag: "true" },
-  });
-  expect(response.statusCode).toBe(500);
+  await expect(
+    invoke(setScoutReportFlag, {
+      params: { report: "report" },
+      query: { flag: "true" },
+    }),
+  ).rejects.toThrow("database");
   expect(db.invalidate).not.toHaveBeenCalled();
 });

@@ -1,7 +1,7 @@
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
@@ -57,10 +57,10 @@ export const getNotes = createAnalysisHandler({
     }[];
 
     const sourceTnmtFilter = dataSourceRuleToPrismaFilter(
-      dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+      parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
     );
     const sourceTeamFilter = dataSourceRuleToPrismaFilter(
-      dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+      parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
     );
 
     const noteData = await prismaClient.scoutReport.findMany({

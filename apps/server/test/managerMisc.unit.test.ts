@@ -119,7 +119,7 @@ it("leaves a team and resets leadership", async () => {
 });
 it("reports failed team departure", async () => {
   db.user.update.mockRejectedValue(new Error("offline"));
-  expect((await invoke(addNotOnTeam)).statusCode).toBe(500);
+  await expect(invoke(addNotOnTeam)).rejects.toThrow();
 });
 it.each([undefined, "synthetic-commit"])(
   "returns server version and deployment commit (%s)",

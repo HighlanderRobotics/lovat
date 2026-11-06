@@ -7,7 +7,7 @@ export const getApiKeys = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
 
     const whereClause =
@@ -32,9 +32,5 @@ export const getApiKeys = async (
     });
 
     res.status(200).json({ apiKeys });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-    console.error(error);
-    return;
   }
 };

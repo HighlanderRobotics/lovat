@@ -7,7 +7,7 @@ export const scoutingLeadProgressPage = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         tournamentKey: z.string().optional(),
@@ -170,8 +170,5 @@ export const scoutingLeadProgressPage = async (
       }));
       res.status(200).send(formattedScouters);
     }
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };

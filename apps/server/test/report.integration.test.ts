@@ -237,6 +237,7 @@ describe.sequential("report upload against disposable services", () => {
   it("persists the report and scoring event", async () => {
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send(report(reportUuid));
     expect(response.status).toBe(200);
     const stored = await db.scoutReport.findUniqueOrThrow({
@@ -252,6 +253,7 @@ describe.sequential("report upload against disposable services", () => {
   it("rejects duplicate IDs without adding more events", async () => {
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send(report(reportUuid));
     expect(response.status).toBe(400);
     expect(
@@ -263,6 +265,7 @@ describe.sequential("report upload against disposable services", () => {
     const uuid = randomUUID();
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ ...report(uuid), events: [[0, 2, 99]] });
     expect(response.status).toBe(400);
     expect(await db.scoutReport.findUnique({ where: { uuid } })).toBeNull();
@@ -272,6 +275,7 @@ describe.sequential("report upload against disposable services", () => {
     const uuid = randomUUID();
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ ...report(uuid), scouterUuid: randomUUID() });
     expect(response.status).toBe(400);
     expect(await db.scoutReport.findUnique({ where: { uuid } })).toBeNull();
@@ -290,6 +294,7 @@ describe.sequential("report upload against disposable services", () => {
     await kv.set(cacheKey, "synthetic cached result");
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send(report(uuid));
     expect(response.status).toBe(200);
     expect(
@@ -321,6 +326,7 @@ describe.sequential("report upload against disposable services", () => {
 
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({
         ...report(randomUUID()),
         matchType: "PRACTICE",
@@ -337,6 +343,7 @@ describe.sequential("report upload against disposable services", () => {
 
     const practiceOnlyResponse = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({
         ...report(randomUUID()),
         teamNumber: practiceOnlyTeamNumber,
@@ -368,11 +375,13 @@ describe.sequential("report upload against disposable services", () => {
     try {
       const first = await request(app)
         .get("/v1/manager/profile")
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("Authorization", `Bearer ${token}`);
       expect(first.status).toBe(200);
       expect(first.body.id).toBe(userId);
       const second = await request(app)
         .get("/v1/manager/profile")
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("Authorization", `Bearer ${token}`);
       expect(second.status).toBe(429);
       expect(
@@ -391,10 +400,12 @@ describe.sequential("authenticated report access", () => {
   beforeAll(async () => {
     const otherUpload = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ ...report(otherReportUuid), scouterUuid: otherScouterUuid });
     expect(otherUpload.status).toBe(200);
     const ownUpload = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send(report(ownDeleteUuid));
     expect(ownUpload.status).toBe(200);
   });
@@ -444,6 +455,7 @@ describe.sequential("authenticated report access", () => {
       const setFlag = (index: number, flag: boolean) =>
         request(app)
           .post(`/v1/manager/scoutreports/setflag/${flaggedReportId}`)
+          .set("X-Lovat-Error-Format", "json-v1")
           .query({ flag: String(flag) })
           .set("Authorization", `Bearer ${tokens[index]}`);
       const storedUser = await db.user.findUniqueOrThrow({
@@ -502,6 +514,7 @@ describe.sequential("authenticated report access", () => {
       const forbiddenToken = await authFixture.signToken!(otherUserId);
       const hidden = await request(app)
         .post(`/v1/manager/scoutreports/setflag/${flaggedReportId}?flag=true`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("Authorization", `Bearer ${forbiddenToken}`);
       expect(hidden.status).toBe(404);
       expect((await stored())._count.flaggedBy).toBe(3);
@@ -514,10 +527,17 @@ describe.sequential("authenticated report access", () => {
 
   it("rejects absent, invalid, expired, wrong-issuer, and wrong-audience JWTs", async () => {
     const path = `/v1/manager/scoutreports/${reportUuid}`;
-    expect((await request(app).get(path)).status).toBe(401);
     expect(
-      (await request(app).get(path).set("Authorization", "Bearer not-a-jwt"))
+      (await request(app).get(path).set("X-Lovat-Error-Format", "json-v1"))
         .status,
+    ).toBe(401);
+    expect(
+      (
+        await request(app)
+          .get(path)
+          .set("X-Lovat-Error-Format", "json-v1")
+          .set("Authorization", "Bearer not-a-jwt")
+      ).status,
     ).toBe(401);
     for (const overrides of [
       { expires: "-1h" },
@@ -526,8 +546,12 @@ describe.sequential("authenticated report access", () => {
     ]) {
       const token = await authFixture.signToken!(userId, overrides);
       expect(
-        (await request(app).get(path).set("Authorization", `Bearer ${token}`))
-          .status,
+        (
+          await request(app)
+            .get(path)
+            .set("X-Lovat-Error-Format", "json-v1")
+            .set("Authorization", `Bearer ${token}`)
+        ).status,
       ).toBe(401);
     }
     expect(authFixture.jwksRequests).toBeGreaterThan(0);
@@ -537,6 +561,7 @@ describe.sequential("authenticated report access", () => {
     const analystToken = await authFixture.signToken!(userId);
     const own = await request(app)
       .get(`/v1/manager/scoutreports/${reportUuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${analystToken}`);
     expect(own.status).toBe(200);
     expect(own.body.scoutReport.notes).toBe("Synthetic integration report");
@@ -544,12 +569,14 @@ describe.sequential("authenticated report access", () => {
 
     const other = await request(app)
       .get(`/v1/manager/scoutreports/${otherReportUuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${analystToken}`);
     expect(other.status).toBe(404);
 
     const otherLeadToken = await authFixture.signToken!(otherUserId);
     const otherOwn = await request(app)
       .get(`/v1/manager/scoutreports/${otherReportUuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${otherLeadToken}`);
     expect(otherOwn.status).toBe(200);
     expect(otherOwn.body.canModify).toBe(true);
@@ -565,6 +592,7 @@ describe.sequential("authenticated report access", () => {
     for (const route of routes) {
       const response = await request(app)
         .get(route)
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("Authorization", `Bearer ${analystToken}`);
       expect(response.status).toBe(200);
       expect(response.body).toEqual(route.includes("timeline") ? [] : {});
@@ -573,6 +601,7 @@ describe.sequential("authenticated report access", () => {
     const otherLeadToken = await authFixture.signToken!(otherUserId);
     const visibleTimeline = await request(app)
       .get(routes[1])
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${otherLeadToken}`);
     expect(visibleTimeline.status).toBe(200);
     expect(visibleTimeline.body).toHaveLength(3);
@@ -587,8 +616,12 @@ describe.sequential("authenticated report access", () => {
         data: { teamSourceRule: { mode: "INCLUDE", items: [] } },
       });
       expect(
-        (await request(app).get(path).set("Authorization", `Bearer ${token}`))
-          .status,
+        (
+          await request(app)
+            .get(path)
+            .set("X-Lovat-Error-Format", "json-v1")
+            .set("Authorization", `Bearer ${token}`)
+        ).status,
       ).toBe(404);
 
       await db.user.update({
@@ -599,8 +632,12 @@ describe.sequential("authenticated report access", () => {
         },
       });
       expect(
-        (await request(app).get(path).set("Authorization", `Bearer ${token}`))
-          .status,
+        (
+          await request(app)
+            .get(path)
+            .set("X-Lovat-Error-Format", "json-v1")
+            .set("Authorization", `Bearer ${token}`)
+        ).status,
       ).toBe(404);
     } finally {
       await db.user.update({
@@ -617,6 +654,7 @@ describe.sequential("authenticated report access", () => {
     const otherLeadToken = await authFixture.signToken!(otherUserId);
     const crossTeam = await request(app)
       .delete(`/v1/manager/scoutreports/${reportUuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${otherLeadToken}`);
     expect(crossTeam.status).toBe(403);
 
@@ -630,6 +668,7 @@ describe.sequential("authenticated report access", () => {
     try {
       const apiDelete = await request(app)
         .delete(`/v1/manager/scoutreports/${reportUuid}`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .set("Authorization", `Bearer ${apiKey}`);
       expect(apiDelete.status).toBe(403);
       expect(
@@ -644,6 +683,7 @@ describe.sequential("authenticated report access", () => {
     const leadToken = await authFixture.signToken!(leadUserId);
     const response = await request(app)
       .delete(`/v1/manager/scoutreports/${ownDeleteUuid}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Authorization", `Bearer ${leadToken}`);
     expect(response.status).toBe(200);
     expect(
@@ -656,6 +696,7 @@ describe.sequential("authenticated report access", () => {
       (
         await request(app)
           .get(`/v1/manager/scoutreports/${ownDeleteUuid}`)
+          .set("X-Lovat-Error-Format", "json-v1")
           .set("Authorization", `Bearer ${leadToken}`)
       ).status,
     ).toBe(404);

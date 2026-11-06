@@ -7,7 +7,7 @@ export const addMutablePicklist = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -51,8 +51,5 @@ export const addMutablePicklist = async (
       },
     });
     res.status(200).send("mutable picklist added");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

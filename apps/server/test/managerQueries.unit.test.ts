@@ -136,9 +136,25 @@ for (const handler of [getTeams, getTournaments]) {
               ? { skip: "bad" }
               : { filter: ["a", "b"] }),
         };
-        expect((await invoke(handler, { query: invalid })).statusCode).toBe(
-          400,
-        );
+        if (handler === getTeams) {
+          await expect(
+            invoke(handler, { query: invalid }),
+          ).rejects.toMatchObject({
+            statusCode: 400,
+            code: "INVALID_QUERY_PARAMETERS",
+            message: "Invalid team query parameters",
+          });
+          expect(db.team.findMany).not.toHaveBeenCalled();
+          expect(db.$queryRaw).not.toHaveBeenCalled();
+        } else {
+          await expect(
+            invoke(handler, { query: invalid }),
+          ).rejects.toMatchObject({
+            statusCode: 400,
+            code: "INVALID_QUERY_PARAMETERS",
+            message: "Invalid tournament query parameters",
+          });
+        }
       },
     );
     it("retains natural ordering when the caller has no team", async () => {
@@ -169,7 +185,7 @@ for (const handler of [getTeams, getTournaments]) {
     it("reports database failures instead of publishing a partial page", async () => {
       db.team.findMany.mockRejectedValue(new Error("offline"));
       db.tournament.findMany.mockRejectedValue(new Error("offline"));
-      expect((await invoke(handler)).statusCode).toBe(500);
+      await expect(invoke(handler)).rejects.toThrow("offline");
     });
   });
 }
@@ -205,23 +221,30 @@ for (const handler of [getAnalysts, getUsers, getProfile]) {
     it("reports failed user lookup", async () => {
       db.user.findMany.mockRejectedValue(new Error("offline"));
       db.user.findUnique.mockRejectedValue(new Error("offline"));
-      expect((await invoke(handler)).statusCode).toBe(500);
+
+      await expect(invoke(handler)).rejects.toThrow("offline");
     });
   });
 }
 
 it("does not reveal analysts without scouting lead permissions", async () => {
-  expect(
-    (await invoke(getAnalysts, { user: { ...testUser, role: "ANALYST" } }))
-      .statusCode,
-  ).toBe(403);
+  await expect(
+    invoke(getAnalysts, { user: { ...testUser, role: "ANALYST" } }),
+  ).rejects.toMatchObject({
+    statusCode: 403,
+    code: "SCOUTING_LEAD_REQUIRED",
+    message: "Not a scouting lead",
+  });
   expect(db.user.findMany).not.toHaveBeenCalled();
 });
 it("does not look up users for teamless callers", async () => {
-  expect(
-    (await invoke(getAnalysts, { user: { ...testUser, teamNumber: null } }))
-      .statusCode,
-  ).toBe(404);
+  await expect(
+    invoke(getAnalysts, { user: { ...testUser, teamNumber: null } }),
+  ).rejects.toMatchObject({
+    statusCode: 404,
+    code: "TEAM_NOT_FOUND",
+    message: "Not affiliated with a team",
+  });
   expect(
     (await invoke(getUsers, { user: { ...testUser, teamNumber: null } })).body,
   ).toEqual([]);
@@ -236,22 +259,41 @@ describe("team code access", () => {
     });
   });
   it("denies analysts before lookup", async () => {
-    expect(
-      (await invoke(getTeamCode, { user: { ...testUser, role: "ANALYST" } }))
-        .statusCode,
-    ).toBe(403);
+    await expect(
+      invoke(getTeamCode, { user: { ...testUser, role: "ANALYST" } }),
+    ).rejects.toMatchObject({
+      statusCode: 403,
+      code: "SCOUTING_LEAD_REQUIRED",
+    });
     expect(db.registeredTeam.findUnique).not.toHaveBeenCalled();
+  });
+  it("rejects teamless leads before lookup", async () => {
+    await expect(
+      invoke(getTeamCode, { user: { ...testUser, teamNumber: null } }),
+    ).rejects.toMatchObject({ statusCode: 404, code: "TEAM_NOT_FOUND" });
+    expect(db.registeredTeam.findUnique).not.toHaveBeenCalled();
+  });
+  it("reports a missing registered team without accessing its code", async () => {
+    db.registeredTeam.findUnique.mockResolvedValue(null);
+    await expect(invoke(getTeamCode)).rejects.toMatchObject({
+      statusCode: 404,
+      code: "TEAM_NOT_FOUND",
+    });
   });
   it.each([
     { teamApproved: false, emailVerified: true },
     { teamApproved: true, emailVerified: false },
   ])("withholds unapproved or unverified codes (%j)", async (row) => {
     db.registeredTeam.findUnique.mockResolvedValue(row);
-    expect((await invoke(getTeamCode)).statusCode).toBe(400);
+    await expect(invoke(getTeamCode)).rejects.toMatchObject({
+      statusCode: 400,
+      code: "TEAM_NOT_APPROVED",
+      message: "team email not approved",
+    });
   });
   it("reports failed verification lookup", async () => {
     db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-    expect((await invoke(getTeamCode)).statusCode).toBe(500);
+    await expect(invoke(getTeamCode)).rejects.toThrow("offline");
   });
 });
 
@@ -281,7 +323,7 @@ describe("deleting the current user", () => {
   it("reports failed deletion", async () => {
     db.user.findMany.mockResolvedValue([]);
     db.user.delete.mockRejectedValue(new Error("offline"));
-    expect((await invoke(deleteUser)).statusCode).toBe(500);
+    await expect(invoke(deleteUser)).rejects.toThrow("offline");
   });
 });
 
@@ -324,7 +366,9 @@ describe("Collection match existence", () => {
   });
   it("reports import failures", async () => {
     pullMatches.mockRejectedValue(new Error("offline"));
-    expect((await invoke(checkMatchExists, { query })).statusCode).toBe(500);
+    await expect(invoke(checkMatchExists, { query })).rejects.toThrow(
+      "offline",
+    );
   });
 });
 

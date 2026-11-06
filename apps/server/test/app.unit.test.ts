@@ -36,8 +36,12 @@ const { kv } = await import("../src/redisClient.js");
 
 describe("Server HTTP routes", () => {
   it("mounts the v2 scout list alongside its v1 route", async () => {
-    const v1 = await request(app).get("/v1/manager/scouters");
-    const v2 = await request(app).get("/v2/collection/scouter");
+    const v1 = await request(app)
+      .get("/v1/manager/scouters")
+      .set("X-Lovat-Error-Format", "json-v1");
+    const v2 = await request(app)
+      .get("/v2/collection/scouter")
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(v1.status).toBe(400);
     expect(v2.status).toBe(v1.status);
     expect(v2.body).toEqual(v1.body);
@@ -46,6 +50,7 @@ describe("Server HTTP routes", () => {
   it("registers pre-match loading and validates requests before database access", async () => {
     const response = await request(app)
       .post("/v2/collection/load/2026test_qm1/254")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({});
     expect(response.status).toBe(400);
     expect(response.body.displayError).toBe(
@@ -59,6 +64,7 @@ describe("Server HTTP routes", () => {
     async (path) => {
       const response = await request(app)
         .post(`/v2/collection/${path}`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .send({});
       expect(response.status).toBe(400);
       expect(response.headers.ratelimit).toBeDefined();
@@ -71,8 +77,12 @@ describe("Server HTTP routes", () => {
     ["/collection/tournament", "/v1/manager/scouters/test/tournaments"],
     ["/collection/schedules/test", "/v1/manager/scouterschedules/test"],
   ])("keeps %s compatible with %s", async (current, legacy) => {
-    const before = await request(app).get(legacy);
-    const after = await request(app).get(current);
+    const before = await request(app)
+      .get(legacy)
+      .set("X-Lovat-Error-Format", "json-v1");
+    const after = await request(app)
+      .get(current)
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(after.status).toBe(before.status);
     expect(after.body).toEqual(before.body);
     expect(after.headers.ratelimit).toBeDefined();
@@ -81,8 +91,14 @@ describe("Server HTTP routes", () => {
   it.each(["load", "start", "end", "submit", "scoutreports"])(
     "mounts /collection/%s alongside the v2 alias",
     async (path) => {
-      const current = await request(app).post(`/collection/${path}`).send({});
-      const alias = await request(app).post(`/v2/collection/${path}`).send({});
+      const current = await request(app)
+        .post(`/collection/${path}`)
+        .set("X-Lovat-Error-Format", "json-v1")
+        .send({});
+      const alias = await request(app)
+        .post(`/v2/collection/${path}`)
+        .set("X-Lovat-Error-Format", "json-v1")
+        .send({});
       expect(current.status).toBe(400);
       expect(alias.status).toBe(current.status);
       expect(alias.body).toEqual(current.body);
@@ -90,35 +106,46 @@ describe("Server HTTP routes", () => {
   );
 
   it("reports a healthy process without starting the background scheduler", async () => {
-    const response = await request(app).get("/status");
+    const response = await request(app)
+      .get("/status")
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(response.status).toBe(200);
     expect(response.text).toBe("Server running");
   });
 
   it("rejects a protected report read without a token", async () => {
-    const response = await request(app).get(
-      "/v1/manager/scoutreports/test-report",
-    );
+    const response = await request(app)
+      .get("/v1/manager/scoutreports/test-report")
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(response.status).toBe(401);
-    expect(response.text).toBe("No authorization token provided");
+    expect(response.body).toMatchObject({
+      code: "UNAUTHORIZED",
+      displayError: "No authorization token provided",
+    });
     expect(response.headers.ratelimit).toBeDefined();
   });
 
   it("rejects report flagging without a token", async () => {
     const response = await request(app)
       .post("/v1/manager/scoutreports/setflag/test-report")
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ flag: "true" });
 
     expect(response.status).toBe(401);
-    expect(response.text).toBe("No authorization token provided");
+    expect(response.body).toMatchObject({
+      code: "UNAUTHORIZED",
+      displayError: "No authorization token provided",
+    });
   });
 
   it("allows configured browser origins and rejects unrelated origins", async () => {
     const trusted = await request(app)
       .get("/status")
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Origin", "https://dashboard.lovat.app");
     const untrusted = await request(app)
       .get("/status")
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Origin", "https://attacker.invalid");
     expect(trusted.headers["access-control-allow-origin"]).toBe(
       "https://dashboard.lovat.app",
@@ -131,6 +158,7 @@ describe("Server HTTP routes", () => {
     const timestamp = String(Math.floor(Date.now() / 1000));
     const withoutToken = await request(app)
       .post("/v1/slack/event")
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("x-slack-signature", "v0=synthetic")
       .set("x-slack-request-timestamp", timestamp)
       .send({ challenge });
@@ -138,6 +166,7 @@ describe("Server HTTP routes", () => {
 
     const verified = await request(app)
       .post("/v1/slack/event")
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("x-slack-signature", "v0=synthetic")
       .set("x-slack-request-timestamp", timestamp)
       .send({ token: process.env.SLACK_VERIFICATION_KEY, challenge });
@@ -147,9 +176,9 @@ describe("Server HTTP routes", () => {
   });
 
   it("creates a one-time Slack OAuth state and rejects unknown states", async () => {
-    const invite = await request(app).get(
-      "/v1/slack-invite?team_code=test-team",
-    );
+    const invite = await request(app)
+      .get("/v1/slack-invite?team_code=test-team")
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(invite.status).toBe(302);
     const state = new URL(invite.headers.location).searchParams.get("state");
     expect(state).toMatch(/^[A-Za-z0-9_-]{32}$/);
@@ -159,16 +188,20 @@ describe("Server HTTP routes", () => {
       600,
     );
 
-    const callback = await request(app).get(
-      `/v1/slack/add-workspace?code=synthetic&state=${state}`,
-    );
+    const callback = await request(app)
+      .get(`/v1/slack/add-workspace?code=synthetic&state=${state}`)
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(callback.status).toBe(400);
-    expect(callback.text).toBe("Invalid or expired OAuth state");
+    expect(callback.body).toMatchObject({
+      code: "BAD_REQUEST",
+      displayError: "Invalid or expired OAuth state",
+    });
   });
 
   it("rejects malformed report uploads before touching the database", async () => {
     const response = await request(app)
       .post("/v1/manager/scoutreports")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ uuid: "test-report", events: [] });
     expect(response.status).toBeGreaterThanOrEqual(400);
     expect(response.status).toBeLessThan(500);
@@ -198,6 +231,7 @@ describe("signed Website requests", () => {
     const timestamp = Math.floor(Date.now() / 1000);
     const response = await request(signedApp)
       .post("/signed")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({})
       .set("x-timestamp", String(timestamp))
       .set("x-signature", sign(timestamp));
@@ -211,6 +245,7 @@ describe("signed Website requests", () => {
       const timestamp = Math.floor(Date.now() / 1000);
       const changed = await request(signedApp)
         .post("/signed")
+        .set("X-Lovat-Error-Format", "json-v1")
         .send({})
         .set("x-timestamp", String(timestamp))
         .set("x-signature", sign(timestamp, { changed: true }));
@@ -220,6 +255,7 @@ describe("signed Website requests", () => {
         const shifted = timestamp + offset;
         const response = await request(signedApp)
           .post("/signed")
+          .set("X-Lovat-Error-Format", "json-v1")
           .send({})
           .set("x-timestamp", String(shifted))
           .set("x-signature", sign(shifted));
@@ -235,6 +271,7 @@ describe("signed Website requests", () => {
     const originalSignature = sign(timestamp, { action: "approve" });
     const changedBody = await request(signedApp)
       .post("/signed")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ action: "reject" })
       .set("x-timestamp", String(timestamp))
       .set("x-signature", originalSignature);
@@ -242,6 +279,7 @@ describe("signed Website requests", () => {
 
     const changedPath = await request(signedApp)
       .post("/signed?replayed=1")
+      .set("X-Lovat-Error-Format", "json-v1")
       .send({ action: "approve" })
       .set("x-timestamp", String(timestamp))
       .set("x-signature", originalSignature);
@@ -300,6 +338,7 @@ it("serves fresh OpenAPI documents and permits localhost origins in development"
     const { app: developmentApp } = await import("../src/app.js");
     const result = await request(developmentApp)
       .get("/v1/doc.json")
+      .set("X-Lovat-Error-Format", "json-v1")
       .set("Origin", "http://localhost:3000");
     expect(result.status).toBe(200);
     expect(result.body.openapi).toBe("3.1.0");
@@ -320,7 +359,81 @@ it("serves fresh OpenAPI documents and permits localhost origins in development"
   }
 });
 it("serves the production OpenAPI document", async () => {
-  const result = await request(app).get("/v1/doc.json");
+  const result = await request(app)
+    .get("/v1/doc.json")
+    .set("X-Lovat-Error-Format", "json-v1");
   expect(result.status).toBe(200);
   expect(result.body.openapi).toBe("3.1.0");
+  expect(result.body.components.schemas.ApiError).toMatchObject({
+    type: "object",
+    required: ["code", "message", "displayError"],
+    properties: {
+      invalidFields: { type: "array", items: { type: "string" } },
+      retryAfterSeconds: { type: "number" },
+    },
+  });
+  expect(
+    result.body.paths["/status"].get.responses["200"].content,
+  ).toHaveProperty("text/plain");
+});
+
+it("documents the shared error schema for every registered operation without replacing success responses", async () => {
+  const { generateOpenApiDocument, ApiErrorSchema } =
+    await import("../src/lib/openapi.js");
+  const { AppError, errorBody } = await import("../src/lib/errors.js");
+  const document = generateOpenApiDocument();
+  const content = {
+    "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+  };
+  let errors = 0;
+  for (const path of Object.values(document.paths ?? {})) {
+    if (!path) {
+      continue;
+    }
+    for (const method of [
+      "get",
+      "post",
+      "put",
+      "patch",
+      "delete",
+      "head",
+      "options",
+      "trace",
+    ] as const) {
+      const operation = path[method];
+      if (!operation) {
+        continue;
+      }
+      expect(operation.responses?.default).toEqual({
+        $ref: "#/components/responses/ApiErrorResponse",
+      });
+      for (const [status, response] of Object.entries(
+        operation.responses ?? {},
+      )) {
+        if (/^[45]\d{2}$/.test(status) && response && !("$ref" in response)) {
+          expect(response.content).toEqual(content);
+          errors++;
+        }
+      }
+    }
+  }
+  expect(errors).toBeGreaterThan(0);
+  const body = errorBody(
+    new AppError("Wait before retrying", 429, "RATE_LIMITED", {
+      retryAfterSeconds: 3,
+      invalidFields: ["code"],
+    }),
+  );
+  expect(ApiErrorSchema.parse(body)).toEqual(body);
+});
+
+it("returns the shared not-found contract for an unknown route", async () => {
+  const response = await request(app)
+    .get("/definitely-not-a-route")
+    .set("X-Lovat-Error-Format", "json-v1");
+  expect(response.status).toBe(404);
+  expect(response.body).toMatchObject({
+    code: "NOT_FOUND",
+    message: "Route not found",
+  });
 });

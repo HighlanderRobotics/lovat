@@ -277,26 +277,22 @@ it.each([
 ])(
   "denies scouting-lead report reads without ownership (%j)",
   async (overrides) => {
-    expect(
-      (
-        await invoke((req, res) => scouterScoutReports(req, res, vi.fn()), {
-          query: { scouterUuid: "scouter" },
-          user: { ...testUser, ...overrides },
-        })
-      ).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke((req, res) => scouterScoutReports(req, res, vi.fn()), {
+        query: { scouterUuid: "scouter" },
+        user: { ...testUser, ...overrides },
+      }),
+    ).rejects.toThrow("FORBIDDEN");
     expect(db.scoutReport.findMany).not.toHaveBeenCalled();
   },
 );
 it("reports unknown scouters before reading reports", async () => {
   db.scouter.findUnique.mockResolvedValue(null);
-  expect(
-    (
-      await invoke((req, res) => scouterScoutReports(req, res, vi.fn()), {
-        query: { scouterUuid: "scouter" },
-      })
-    ).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke((req, res) => scouterScoutReports(req, res, vi.fn()), {
+      query: { scouterUuid: "scouter" },
+    }),
+  ).rejects.toThrow("SCOUTER_NOT_FOUND");
   expect(db.scoutReport.findMany).not.toHaveBeenCalled();
 });
 it("includes every configured aggregate metric on the specific-scouter page", async () => {

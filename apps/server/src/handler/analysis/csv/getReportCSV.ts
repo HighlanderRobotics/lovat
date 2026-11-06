@@ -21,7 +21,7 @@ import { autoEnd, endgameToPoints, Metric } from "../analysisConstants.js";
 import { z } from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { averageScoutReport } from "../coreAnalysis/averageScoutReport.js";
 import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
@@ -96,7 +96,7 @@ export const getReportCSV = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     // Source data from queried tournament
     const params = z
       .object({
@@ -145,7 +145,8 @@ export const getReportCSV = async (
         tournamentKey: params.data.tournamentKey,
       },
     };
-    const sourceRule = dataSourceRuleSchema(z.number()).parse(
+    const sourceRule = parseStoredSourceRule(
+      z.number(),
       req.user?.teamSourceRule,
     );
     const filter = dataSourceRuleToPrismaFilter(sourceRule);
@@ -257,9 +258,6 @@ export const getReportCSV = async (
     res.header("Content-Type", "text/csv");
     res.send(csvString);
     return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };
 

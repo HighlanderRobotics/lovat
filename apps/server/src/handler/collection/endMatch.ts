@@ -16,7 +16,7 @@ export const endMatch = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  try {
+  {
     const report = await ownedReport(req, res, input.data.uuid);
 
     if (!report) {
@@ -64,9 +64,5 @@ export const endMatch = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.json({ uuid: report.uuid });
-  } catch (error) {
-    console.error("Failed to end match report", error);
-
-    res.status(500).send({ displayError: "Could not end match report." });
   }
 };

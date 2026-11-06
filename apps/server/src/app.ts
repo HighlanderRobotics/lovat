@@ -5,19 +5,19 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import "./loadEnv.js";
 
-import { setupExpressErrorHandler } from "posthog-node";
-import { posthog } from "./posthogClient.js";
+import { errorReporter } from "./lib/middleware/errorReporter.js";
 import posthogReporter from "./lib/middleware/posthogMiddleware.js";
 
 import routes from "./routes/index.js";
 import collectionRoutes from "./routes/collection/collection.routes.js";
 import path from "path";
 import { getVersion } from "./handler/manager/version.js";
+import { AppError, errorHandler, errorResponses } from "./lib/errors.js";
 
 export const app = express();
 
-setupExpressErrorHandler(posthog, app);
 app.set("trust proxy", 1);
+app.use(errorResponses);
 
 // Compress responses for clients that advertise support (Accept-Encoding: gzip)
 app.use(compression());
@@ -75,3 +75,9 @@ app.get("/status", (req, res) => {
 });
 
 app.get("/version", getVersion);
+
+app.use((_req, _res, next) =>
+  next(new AppError("Route not found", 404, "NOT_FOUND")),
+);
+app.use(errorReporter);
+app.use(errorHandler);

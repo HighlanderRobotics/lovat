@@ -6,7 +6,7 @@ export const getTournamentForScouterWithSchedule = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         code: z.string(),
@@ -37,8 +37,5 @@ export const getTournamentForScouterWithSchedule = async (
       },
     });
     res.status(200).send(tournaments);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

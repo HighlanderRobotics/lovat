@@ -9,7 +9,7 @@ import {
 } from "../analysisConstants.js";
 import { Event, Prisma, ScoutReport } from "@lovat/db";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../dataSourceRule.js";
 import z from "zod";
@@ -64,12 +64,12 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
     ctx: { user: import("@lovat/db").User },
   ) => {
     const { teams, metric } = args;
-    try {
+    {
       const sourceTnmtFilter = dataSourceRuleToPrismaFilter<string>(
-        dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+        parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
       );
       const sourceTeamFilter = dataSourceRuleToPrismaFilter<number>(
-        dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+        parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
       );
 
       // Data and aggregation based on metric. Variables determine data requested and aggregation method
@@ -550,9 +550,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       }
 
       return result;
-    } catch (error) {
-      console.error(error);
-      throw error;
     }
   },
 };

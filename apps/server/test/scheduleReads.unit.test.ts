@@ -73,7 +73,7 @@ for (const handler of [
     db.scouter.findUnique.mockRejectedValue(new Error("offline"));
     db.scouterScheduleShift.findMany.mockRejectedValue(new Error("offline"));
     db.teamMatchData.findMany.mockRejectedValue(new Error("offline"));
-    expect((await invoke(handler, { params, headers })).statusCode).toBe(500);
+    await expect(invoke(handler, { params, headers })).rejects.toThrow();
   });
 }
 it("expands schedules into qualification and elimination assignments for both alliances", async () => {
@@ -106,9 +106,9 @@ it("denies unknown Collection team codes", async () => {
 });
 it("reports unavailable qualification matches", async () => {
   db.teamMatchData.findFirst.mockResolvedValue(null);
-  expect(
-    (await invoke(getScheduleForScouter, { params, headers })).statusCode,
-  ).toBe(400);
+  const response = await invoke(getScheduleForScouter, { params, headers });
+  expect(response.statusCode).toBe(400);
+  expect(response.body).toMatchObject({ code: "MATCHES_NOT_AVAILABLE" });
 });
 it.each([0, 5])(
   "skips absent matches or reports incomplete imported matches (%s)",
@@ -269,9 +269,7 @@ it("requires a valid Collection code before returning tournaments", async () => 
 });
 it("reports failed tournament discovery", async () => {
   db.tournament.findMany.mockRejectedValue(new Error("offline"));
-  expect((await invoke(getScouterTournaments, { headers })).statusCode).toBe(
-    500,
-  );
+  await expect(invoke(getScouterTournaments, { headers })).rejects.toThrow();
 });
 
 it("returns the filtered page rather than the initial unfiltered tournament rows", async () => {

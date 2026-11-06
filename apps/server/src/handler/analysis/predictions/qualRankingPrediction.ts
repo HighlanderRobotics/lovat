@@ -33,7 +33,7 @@ export const qualRankingPrediction = createAnalysisHandler({
       } else if (error === "not enough data") {
         return { error: "not enough data" };
       }
-      console.error("Error in qualRankingPrediction:", error);
+      throw error;
     }
   },
 });

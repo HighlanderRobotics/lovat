@@ -1,4 +1,5 @@
 import { sendSignedRequest } from '$lib/util/sendSignedRequest';
+import { apiErrorCode } from '$lib/util/apiError.js';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -17,7 +18,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			body: 'You may now return to the app.'
 		};
 	} else {
-		const text = await response.text();
+		const text = apiErrorCode(await response.text());
 
 		if (text === 'CODE_NOT_RECOGNIZED') {
 			return {

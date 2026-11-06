@@ -58,7 +58,8 @@ export const invoke = async (
       body: {},
       query: {},
       params: {},
-      headers: {},
+      // Most handler tests represent updated clients; compatibility tests omit this header.
+      headers: { "x-lovat-error-format": "json-v1" },
       user: { ...testUser },
       tokenType: "jwt",
       ...overrides,
