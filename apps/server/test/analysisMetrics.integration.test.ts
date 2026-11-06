@@ -131,6 +131,7 @@ beforeAll(async () => {
     await db.scoutReport.create({
       data: {
         ...reportData,
+        reliability: i === 0 ? "VERIFIED" : "UNVERIFIED",
         scouterUuid: scouterId,
         teamMatchKey: matchKey,
         events: { create: events },

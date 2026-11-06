@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentage,
@@ -464,7 +465,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
           key: true,
           teamNumber: true,
           scoutReports: {
-            where: srFilter,
+            where: { ...srFilter, ...analysisReportFilter },
             select: srSelect,
           },
         },
