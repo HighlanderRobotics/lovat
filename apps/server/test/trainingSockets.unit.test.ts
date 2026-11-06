@@ -298,3 +298,33 @@ describe("Training socket connections", () => {
     expect(mocks.servers[0].close).toHaveBeenCalledOnce();
   });
 });
+
+it.each([
+  new Error("private decoder failure"),
+  new mocks.TrainingError(403, "private session failure"),
+])(
+  "closes authentication safely when frame decoding fails (%s)",
+  async (failure) => {
+    const { client } = connect();
+    const raw = Buffer.from("{}");
+    vi.spyOn(raw, "toString").mockImplementation(() => {
+      throw failure;
+    });
+    const listener = client.listeners("message")[0] as (
+      raw: Buffer,
+    ) => Promise<void>;
+    await listener(raw);
+    expect(client.close).toHaveBeenCalledWith(
+      1008,
+      "Invalid session credentials",
+    );
+    if (failure instanceof mocks.TrainingError)
+      expect(console.error).not.toHaveBeenCalled();
+    else {
+      expect(console.error).toHaveBeenCalled();
+      expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain(
+        failure.message,
+      );
+    }
+  },
+);

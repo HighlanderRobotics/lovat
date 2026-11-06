@@ -49,7 +49,9 @@ describe("central error handling", () => {
     });
     app.use(errorHandler);
 
-    const response = await request(app).get("/invalid-status");
+    const response = await request(app)
+      .get("/invalid-status")
+      .set("X-Lovat-Error-Format", "json-v1");
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -72,7 +74,9 @@ describe("central error handling", () => {
     });
     app.use(errorHandler);
 
-    const response = await request(app).get("/failure");
+    const response = await request(app)
+      .get("/failure")
+      .set("X-Lovat-Error-Format", "json-v1");
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -94,7 +98,9 @@ describe("central error handling", () => {
     });
     app.use(errorHandler);
 
-    const response = await request(app).get("/missing");
+    const response = await request(app)
+      .get("/missing")
+      .set("X-Lovat-Error-Format", "json-v1");
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
@@ -117,7 +123,13 @@ describe("central error handling", () => {
     });
     app.use(errorHandler);
 
-    expect((await request(app).get("/unavailable")).status).toBe(503);
+    expect(
+      (
+        await request(app)
+          .get("/unavailable")
+          .set("X-Lovat-Error-Format", "json-v1")
+      ).status,
+    ).toBe(503);
     expect(log).toHaveBeenCalledExactlyOnceWith(
       "Unexpected failure",
       expect.objectContaining({ name: failure.name }),
@@ -148,5 +160,85 @@ describe("central error handling", () => {
     expect(next.mock.calls[0][0]).not.toBe(failure);
     expect(response.status).not.toHaveBeenCalled();
     expect(response.json).not.toHaveBeenCalled();
+  });
+});
+
+it("maps Prisma conflicts and missing records without exposing database details", async () => {
+  const { ConflictError } = await import("../src/lib/errors.js");
+  expect(new ConflictError("A safe conflict").message).toBe("A safe conflict");
+  for (const code of ["P2002", "P2003", "P2034", "P2025", "UNKNOWN"]) {
+    const failure = Object.assign(new Error("private SQL"), {
+      name: "PrismaClientKnownRequestError",
+      code,
+    });
+    const result = normalizeError(failure);
+    expect(result.statusCode).toBe(
+      code === "P2025" ? 404 : code === "UNKNOWN" ? 500 : 409,
+    );
+    expect(result.message).not.toContain("private SQL");
+  }
+});
+it("keeps only valid public response details and stable error identifiers", async () => {
+  const { responseError, errorMetadata, RequestValidationError } =
+    await import("../src/lib/errors.js");
+  expect(new RequestValidationError().statusCode).toBe(400);
+  expect(responseError(418, null)).toMatchObject({
+    code: "REQUEST_FAILED",
+    message: "Request failed",
+  });
+  expect(responseError(500, { message: "private SQL" })).toMatchObject({
+    message: "Internal server error",
+  });
+  expect(
+    responseError(400, {
+      error: "Correct the input",
+      invalidFields: ["team"],
+      retryAfterSeconds: 3,
+    }),
+  ).toMatchObject({
+    message: "Correct the input",
+    invalidFields: ["team"],
+    retryAfterSeconds: 3,
+  });
+  expect(
+    responseError(400, {
+      message: 5,
+      invalidFields: ["team", false],
+      retryAfterSeconds: NaN,
+    }),
+  ).toEqual({
+    code: "BAD_REQUEST",
+    message: "Invalid request",
+    displayError: "Invalid request",
+  });
+  expect(responseError(404, "NOT_FOUND").code).toBe("NOT_FOUND");
+  expect(
+    errorMetadata(Object.assign(new Error("private"), { code: "bad-code" }))
+      .code,
+  ).toBeUndefined();
+});
+
+it("normalizes thrown validation errors and retains only safe diagnostic codes", async () => {
+  const { z } = await import("zod");
+  const { errorMetadata } = await import("../src/lib/errors.js");
+  const parsed = z.number().safeParse("invalid");
+  expect(normalizeError(parsed.error)).toMatchObject({
+    statusCode: 400,
+    code: "INVALID_REQUEST",
+    message: "Invalid request parameters",
+  });
+  const failure = Object.assign(new Error("private SQL"), {
+    code: "P2002",
+    stack: undefined,
+  });
+  expect(errorMetadata("private token")).toEqual({
+    name: "NonErrorFailure",
+    stack: undefined,
+    code: undefined,
+  });
+  expect(errorMetadata(failure)).toEqual({
+    name: "Error",
+    code: "P2002",
+    stack: undefined,
   });
 });

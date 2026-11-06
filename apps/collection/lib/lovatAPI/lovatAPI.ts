@@ -55,6 +55,7 @@ const getCommonHeaders = async () => {
 
   const headers: Record<string, string> = {
     "X-Team-Code": teamCode ?? "",
+    "X-Lovat-Error-Format": "json-v1",
   };
 
   if (appVersion) {

@@ -63,7 +63,9 @@ it("reports a failed profile lookup and returns safe JSON through the real app",
   mocks.findUnique.mockRejectedValueOnce(failure);
   const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-  const response = await request(app).get("/v1/manager/profile");
+  const response = await request(app)
+    .get("/v1/manager/profile")
+    .set("X-Lovat-Error-Format", "json-v1");
 
   expect(mocks.findUnique).toHaveBeenCalledWith(
     expect.objectContaining({ where: { id: testUser.id } }),
@@ -98,7 +100,9 @@ it("still returns and logs the request failure when telemetry throws", async () 
   });
   const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-  const response = await request(app).get("/v1/manager/profile");
+  const response = await request(app)
+    .get("/v1/manager/profile")
+    .set("X-Lovat-Error-Format", "json-v1");
 
   expect(response.status).toBe(500);
   expect(response.body.displayError).toBe("Internal server error");
@@ -117,7 +121,9 @@ it("returns the central 403 response for an analyst on a verified team without q
   mocks.authenticatedUser.mockReturnValue({ ...testUser, role: "ANALYST" });
   mocks.getVerifiedTeam.mockResolvedValueOnce("verified");
 
-  const response = await request(app).get("/v1/manager/analysts");
+  const response = await request(app)
+    .get("/v1/manager/analysts")
+    .set("X-Lovat-Error-Format", "json-v1");
 
   expect(mocks.getVerifiedTeam).toHaveBeenCalledExactlyOnceWith(
     "auth:team:8033",
@@ -138,6 +144,7 @@ it("returns 413 for oversized JSON before authentication or user queries", async
 
   const response = await request(app)
     .post("/v1/manager/notes/test-report")
+    .set("X-Lovat-Error-Format", "json-v1")
     .send({ notes: "x".repeat(110 * 1024) });
 
   expect(response.status).toBe(413);
@@ -159,6 +166,7 @@ it("returns 400 for malformed JSON without logging the submitted body or reachin
 
   const response = await request(app)
     .post("/v1/manager/notes/test-report")
+    .set("X-Lovat-Error-Format", "json-v1")
     .set("Content-Type", "application/json")
     .send(invalidBody);
 

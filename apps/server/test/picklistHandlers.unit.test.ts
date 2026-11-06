@@ -274,3 +274,17 @@ it.each([getSinglePicklist, getSingleMutablePicklist])(
     });
   },
 );
+
+it.each([getPicklists, getMutablePicklists])(
+  "preserves teamless picklist recovery for installed Dashboard builds (%s)",
+  async (list) => {
+    const response = await invoke(list, {
+      user: { ...testUser, teamNumber: null },
+      headers: {},
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.body).toBe(
+      "Not authortized to get mutable picklists because your not on a team",
+    );
+  },
+);

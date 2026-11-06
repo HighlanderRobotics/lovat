@@ -109,7 +109,7 @@ export function generateOpenApiDocument() {
       title: "Lovat API",
       version: pkg.version,
       description:
-        "API Documentation for Lovat, a scouting system used to scout teams and matches in the First Robotics Competition. HTTP error responses (400–599) use application/json and the ApiError schema. message and displayError contain the same safe text. invalidFields and retryAfterSeconds appear only when applicable. Authentication, validation, missing resources, rate limits and unexpected failures share this format. Success responses, including legacy domain messages returned with status 200, retain their documented shapes. Internal exception details and submitted values are not part of the error response.",
+        "API Documentation for Lovat, a scouting system used to scout teams and matches in the First Robotics Competition. Clients request the shared format using X-Lovat-Error-Format: json-v1. Without that header, direct guard responses retain their legacy formats for installed clients; unexpected failures are still sanitized. Negotiated HTTP error responses (400–599) use application/json and the ApiError schema. message and displayError contain the same safe text. invalidFields and retryAfterSeconds appear only when applicable. Authentication, validation, missing resources, rate limits and unexpected failures share this format. Success responses, including legacy domain messages returned with status 200, retain their documented shapes. Internal exception details and submitted values are not part of the error response.",
     },
     servers: [{ url: `${process.env.BASE_URL || "https://api.lovat.app"}` }],
   });

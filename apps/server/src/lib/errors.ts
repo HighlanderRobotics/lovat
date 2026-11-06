@@ -193,10 +193,15 @@ export function responseError(
   return errorBody(new AppError(message, statusCode, code, details));
 }
 export function errorResponses(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): void {
+  res.vary("X-Lovat-Error-Format");
+  if (req.get("X-Lovat-Error-Format") !== "json-v1") {
+    next();
+    return;
+  }
   const send = res.send.bind(res);
   const json = res.json.bind(res);
   const sendError = (body: unknown) => {

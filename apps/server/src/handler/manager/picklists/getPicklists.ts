@@ -9,11 +9,15 @@ export const getPicklists = async (
   {
     const user = req.user;
     if (user.teamNumber === null) {
-      res.status(403).send({
-        code: "TEAM_REQUIRED",
-        displayError:
-          "Not authortized to get mutable picklists because your not on a team",
-      });
+      const message =
+        "Not authortized to get mutable picklists because your not on a team";
+      res
+        .status(403)
+        .send(
+          req.headers["x-lovat-error-format"] === "json-v1"
+            ? { code: "TEAM_REQUIRED", displayError: message }
+            : message,
+        );
       return;
     }
     const rows = await prismaClient.sharedPicklist.findMany({
