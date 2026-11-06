@@ -8,6 +8,10 @@ on:
       - 'apps/**'
       - 'packages/**'
       - 'scripts/**'
+      - 'tools/**'
+      - '.github/actions/**'
+      - '.github/codeql-filters.json'
+      - '*'
   pull_request:
     branches: [main]
     paths:
@@ -15,9 +19,11 @@ on:
       - 'apps/**'
       - 'packages/**'
       - 'scripts/**'
+      - 'tools/**'
+      - '.github/actions/**'
+      - '.github/codeql-filters.json'
+      - '*'
   workflow_dispatch:
-  schedule:
-    - cron: '23 7 * * 2'
 
 permissions:
   contents: read
@@ -27,7 +33,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect CodeQL inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      any: ${{ steps.matrix.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+      - name: Validate matrix selection
+        run: node --test scripts/codeql-matrix.test.mjs
+      - uses: dorny/paths-filter@v3
+        id: paths
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          base: ${{ github.ref }}
+          # JSON is valid YAML and keeps this config easy to inspect with Node.
+          filters: .github/codeql-filters.json
+      - name: Select analyses
+        id: matrix
+        env:
+          CHANGED_FILTERS: ${{ steps.paths.outputs.changes || '[]' }}
+          FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' }}
+        run: node scripts/codeql-matrix.mjs
+
   analyze:
+    needs: changes
+    if: needs.changes.outputs.any == 'true'
     name: Analyze (${{ matrix.language }}${{ matrix.platform && format(' / {0}', matrix.platform) || '' }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -37,28 +75,7 @@ jobs:
       packages: read
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            os: ubuntu-latest
-            build-mode: none
-          - language: javascript-typescript
-            os: ubuntu-latest
-            build-mode: none
-          - language: c-cpp
-            os: ubuntu-latest
-            build-mode: none
-          - language: java-kotlin
-            os: ubuntu-latest
-            build-mode: manual
-          - language: swift
-            platform: ios
-            os: macos-15
-            build-mode: manual
-          - language: swift
-            platform: macos
-            os: macos-15
-            build-mode: manual
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - name: Select result destination
