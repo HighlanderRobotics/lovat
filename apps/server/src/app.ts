@@ -76,6 +76,8 @@ app.get("/status", (req, res) => {
 
 app.get("/version", getVersion);
 
-app.use((_req, _res, next) => next(new AppError("Route not found", 404, "NOT_FOUND")));
+app.use((_req, _res, next) =>
+  next(new AppError("Route not found", 404, "NOT_FOUND")),
+);
 app.use(errorReporter);
 app.use(errorHandler);
