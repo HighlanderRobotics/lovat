@@ -110,6 +110,12 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   fonts:
+    - family: Heebo
+      fonts:
+        - asset: assets/fonts/Heebo.ttf
+          weight: 400
+        - asset: assets/fonts/Heebo.ttf
+          weight: 500
     - family: monospace
       fonts:
         - asset: assets/fonts/RobotoMono-Regular.ttf
