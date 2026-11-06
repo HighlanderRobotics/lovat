@@ -55,7 +55,7 @@ import {
   ScouterScheduleMatch,
   getVerionsColor,
 } from "../lib/lovatAPI/getScouterSchedule";
-import { Picker } from "@react-native-picker/picker";
+import { Picker as NativePicker } from "@react-native-picker/picker";
 import { useHistoryStore } from "../lib/storage/historyStore";
 import { useStartMatchEnabledStore } from "../lib/storage/userStores";
 import React from "react";
@@ -463,7 +463,7 @@ const AutomaticMatchSelection = ({
         }}
       >
         {matchesWithScouter.length >= 1 && selectedMatch != null ? (
-          <Picker
+          <NativePicker
             style={{
               width: "100%",
               height: "100%",
@@ -486,7 +486,7 @@ const AutomaticMatchSelection = ({
             itemStyle={{ color: colors.onBackground.default }}
           >
             {matchesWithScouter.map((match) => (
-              <Picker.Item
+              <NativePicker.Item
                 key={matchKeyOf(match.matchIdentity)}
                 label={localizeMatchIdentity(
                   match.matchIdentity,
@@ -496,7 +496,7 @@ const AutomaticMatchSelection = ({
                 color={colors.onBackground.default}
               />
             ))}
-          </Picker>
+          </NativePicker>
         ) : (
           <View style={{ width: 250, alignItems: "center" }}>
             <Heading1Small>No matches found</Heading1Small>
