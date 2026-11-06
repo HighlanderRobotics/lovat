@@ -8,7 +8,7 @@ import {
 } from "../analysisConstants.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToArray,
 } from "../dataSourceRule.js";
 import prismaClient from "../../../prismaClient.js";
@@ -67,11 +67,11 @@ export const breakdownDetails = createAnalysisHandler({
     const data = await prismaClient.$queryRawUnsafe<QueryRow[]>(
       queryStr,
       dataSourceRuleToArray(
-        dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+        parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
         await allTeamNumbers,
       ),
       dataSourceRuleToArray(
-        dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+        parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
         await allTournaments,
       ),
     );

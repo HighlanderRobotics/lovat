@@ -3,6 +3,7 @@ import { MatchType } from "../models/match";
 import { ScoutReportMeta } from "../models/ScoutReportMeta";
 import { AllianceColor } from "../models/AllianceColor";
 import { get } from "./lovatAPI";
+import { isMissingMatchResponse } from "./apiError";
 
 export type MatchCheck =
   | { status: "exists"; allianceColor: AllianceColor }
@@ -40,7 +41,7 @@ export async function checkMatchExists(
     );
     if (
       response.status === 404 &&
-      (await response.text()) === "MATCH_NOT_FOUND"
+      isMissingMatchResponse(response.status, await response.text())
     ) {
       return { status: "missing" };
     }

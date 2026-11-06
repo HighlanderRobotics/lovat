@@ -93,10 +93,9 @@ for (const handler of [getReportCSV, getTeamCSV]) {
   it(`${handler.name} reports database failures`, async () => {
     mocks.scoutReport.findMany.mockRejectedValue(new Error("offline"));
     mocks.teamMatchData.findMany.mockRejectedValue(new Error("offline"));
-    expect(
-      (await invoke(handler, { query: { tournamentKey: "2026test" } }))
-        .statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(handler, { query: { tournamentKey: "2026test" } }),
+    ).rejects.toThrow();
   });
   it.each([{ auto: "1" }, { teleop: "1" }, { auto: "1", teleop: "1" }, {}])(
     `${handler.name} respects requested event phases (%j)`,
@@ -338,22 +337,24 @@ it.each(["L1", "L3", "NOT_ATTEMPTED"])(
 );
 for (const handler of [getReportCSV, getTeamCSV])
   it(`${handler.name} fails closed on malformed team visibility`, async () => {
-    const response = await invoke(handler, {
-      query: { tournamentKey: "2026test" },
-      user: { ...testUser, teamSourceRule: null },
-    });
-    expect(response.statusCode).toBe(500);
+    await expect(
+      invoke(handler, {
+        query: { tournamentKey: "2026test" },
+        user: { ...testUser, teamSourceRule: null },
+      }),
+    ).rejects.toThrow();
     expect(mocks.scoutReport.findMany).not.toHaveBeenCalled();
     expect(mocks.teamMatchData.findMany).not.toHaveBeenCalled();
   });
 it("does not fetch unrestricted historical reports for malformed tournament visibility", async () => {
   mocks.teamMatchData.findMany.mockResolvedValue([]);
   mocks.get.mockResolvedValue({ data: [{ team_number: 254 }] });
-  const response = await invoke(getTeamCSV, {
-    query: { tournamentKey: "2026test" },
-    user: { ...testUser, tournamentSourceRule: null },
-  });
-  expect(response.statusCode).toBe(400);
+  await expect(
+    invoke(getTeamCSV, {
+      query: { tournamentKey: "2026test" },
+      user: { ...testUser, tournamentSourceRule: null },
+    }),
+  ).rejects.toThrow("Invalid stored source rule");
   expect(mocks.scoutReport.findMany).not.toHaveBeenCalled();
 });
 it("exports historical reports without restricting either source dimension", async () => {

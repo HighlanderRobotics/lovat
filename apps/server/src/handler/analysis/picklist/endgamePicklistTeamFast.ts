@@ -25,7 +25,7 @@ export const endgamePicklistTeamFast = async (
   sourceTeamFilter: { in?: number[]; notIn?: number[] } | undefined,
   sourceTnmtFilter: { in?: string[]; notIn?: string[] } | undefined,
 ): Promise<number> => {
-  try {
+  {
     // Get data
     const endgameRows = await prismaClient.scoutReport.groupBy({
       by: ["endgameClimb"],
@@ -61,9 +61,6 @@ export const endgamePicklistTeamFast = async (
       );
 
     return endgameRuleOfSuccession(endgameMap, totalAttempts);
-  } catch (error) {
-    console.log(error);
-    throw error;
   }
 };
 

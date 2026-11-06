@@ -72,9 +72,9 @@ it("sets only the authenticated user's username", async () => {
 });
 it("reports username persistence errors", async () => {
   db.user.update.mockRejectedValue(new Error("offline"));
-  expect(
-    (await invoke(addUsername, { body: { username: "Scout" } })).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(addUsername, { body: { username: "Scout" } }),
+  ).rejects.toThrow();
 });
 it("updates the affiliated team website and requests Slack verification", async () => {
   expect(
@@ -102,13 +102,11 @@ it("rejects malformed website input", async () => {
 });
 it("reports website write and Slack delivery failures", async () => {
   db.slack.mockRejectedValue(new Error("offline"));
-  expect(
-    (
-      await invoke(addWebsite, {
-        body: { website: "https://team.example.invalid" },
-      })
-    ).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(addWebsite, {
+      body: { website: "https://team.example.invalid" },
+    }),
+  ).rejects.toThrow();
 });
 it("joins the requested team only for a matching code", async () => {
   expect(
@@ -138,9 +136,9 @@ it("reports unknown teams and invalid team numbers", async () => {
 });
 it("reports team lookup failure", async () => {
   db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-  expect(
-    (await invoke(checkCode, { query: { team: "8033" } })).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(checkCode, { query: { team: "8033" } }),
+  ).rejects.toThrow();
 });
 it("creates an expiring random verification code and emails its link", async () => {
   await sendVerificationEmail("team@example.invalid", 8033);
@@ -179,7 +177,7 @@ it("reports an unknown team on resend", async () => {
 });
 it("reports failed resend lookup", async () => {
   db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-  expect((await invoke(resendEmail)).statusCode).toBe(500);
+  await expect(invoke(resendEmail)).rejects.toThrow();
 });
 it("approves an unexpired code case-insensitively and refreshes the auth cache", async () => {
   expect(
@@ -238,10 +236,10 @@ it("reports approval infrastructure failures", async () => {
 });
 it("reports verification persistence errors instead of claiming an email was sent", async () => {
   db.emailVerificationRequest.create.mockRejectedValue(new Error("offline"));
-  expect((await invoke(resendEmail)).statusCode).toBe(500);
+  await expect(invoke(resendEmail)).rejects.toThrow();
   expect(db.send).not.toHaveBeenCalled();
 });
 it("reports email delivery rejection", async () => {
   db.send.mockRejectedValue(new Error("delivery failed"));
-  expect((await invoke(resendEmail)).statusCode).toBe(500);
+  await expect(invoke(resendEmail)).rejects.toThrow();
 });

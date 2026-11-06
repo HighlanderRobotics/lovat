@@ -96,7 +96,7 @@ for (const [kind, model, add, list, detail, update, remove, body] of [
   });
   it(`${kind} reports creation failures`, async () => {
     model.create.mockRejectedValue(new Error("database"));
-    expect((await invoke(add, { body })).statusCode).toBe(500);
+    await expect(invoke(add, { body })).rejects.toThrow();
   });
   it(`${kind} rejects malformed creation requests`, async () => {
     expect((await invoke(add)).statusCode).toBe(400);
@@ -117,21 +117,22 @@ for (const [kind, model, add, list, detail, update, remove, body] of [
     );
   });
   it(`${kind} denies teamless listing`, async () => {
-    expect(
-      (await invoke(list, { user: { ...testUser, teamNumber: null } }))
-        .statusCode,
-    ).toBe(403);
+    const response = await invoke(list, {
+      user: { ...testUser, teamNumber: null },
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.body).toMatchObject({ code: "TEAM_REQUIRED" });
     expect(model.findMany).not.toHaveBeenCalled();
   });
   it(`${kind} reports listing failures`, async () => {
     model.findMany.mockRejectedValue(new Error("database"));
-    expect((await invoke(list)).statusCode).toBe(500);
+    await expect(invoke(list)).rejects.toThrow();
   });
   it(`${kind} reports detail lookup failures`, async () => {
     model.findUnique.mockRejectedValue(new Error("database"));
-    expect(
-      (await invoke(detail, { params: { uuid: "list" } })).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(detail, { params: { uuid: "list" } }),
+    ).rejects.toThrow();
   });
   it(`${kind} validates detail identifiers`, async () => {
     expect((await invoke(detail)).statusCode).toBe(400);
@@ -207,9 +208,9 @@ for (const [kind, model, add, list, detail, update, remove, body] of [
   );
   it(`${kind} reports deletion failures`, async () => {
     model.delete.mockRejectedValue(new Error("database"));
-    expect(
-      (await invoke(remove, { params: { uuid: "list" } })).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(remove, { params: { uuid: "list" } }),
+    ).rejects.toThrow();
   });
   for (const handler of [add, update, remove]) {
     it(`${kind} blocks API tokens on ${handler.name}`, async () => {

@@ -13,7 +13,7 @@ import { weightedTourAvgLeft } from "./arrayAndAverageTeams.js";
 import z from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
 import { User } from "@lovat/db";
@@ -61,11 +61,11 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
 
   calculateAnalysis: async (args, ctx) => {
     const tnmtFilter = dataSourceRuleToPrismaFilter<string>(
-      dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+      parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
     );
 
     const teamFilter = dataSourceRuleToPrismaFilter<number>(
-      dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+      parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
     );
 
     const tmdWhere: Prisma.TeamMatchDataWhereInput = {

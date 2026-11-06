@@ -100,7 +100,10 @@ describe("Server HTTP routes", () => {
       "/v1/manager/scoutreports/test-report",
     );
     expect(response.status).toBe(401);
-    expect(response.text).toBe("No authorization token provided");
+    expect(response.body).toMatchObject({
+      code: "UNAUTHORIZED",
+      displayError: "No authorization token provided",
+    });
     expect(response.headers.ratelimit).toBeDefined();
   });
 
@@ -110,7 +113,10 @@ describe("Server HTTP routes", () => {
       .query({ flag: "true" });
 
     expect(response.status).toBe(401);
-    expect(response.text).toBe("No authorization token provided");
+    expect(response.body).toMatchObject({
+      code: "UNAUTHORIZED",
+      displayError: "No authorization token provided",
+    });
   });
 
   it("allows configured browser origins and rejects unrelated origins", async () => {
@@ -163,7 +169,10 @@ describe("Server HTTP routes", () => {
       `/v1/slack/add-workspace?code=synthetic&state=${state}`,
     );
     expect(callback.status).toBe(400);
-    expect(callback.text).toBe("Invalid or expired OAuth state");
+    expect(callback.body).toMatchObject({
+      code: "BAD_REQUEST",
+      displayError: "Invalid or expired OAuth state",
+    });
   });
 
   it("rejects malformed report uploads before touching the database", async () => {
@@ -323,4 +332,65 @@ it("serves the production OpenAPI document", async () => {
   const result = await request(app).get("/v1/doc.json");
   expect(result.status).toBe(200);
   expect(result.body.openapi).toBe("3.1.0");
+  expect(result.body.components.schemas.ApiError).toMatchObject({
+    type: "object",
+    required: ["code", "message", "displayError"],
+    properties: {
+      invalidFields: { type: "array", items: { type: "string" } },
+      retryAfterSeconds: { type: "number" },
+    },
+  });
+  expect(
+    result.body.paths["/status"].get.responses["200"].content,
+  ).toHaveProperty("text/plain");
+});
+
+it("documents the shared error schema for every registered operation without replacing success responses", async () => {
+  const { generateOpenApiDocument, ApiErrorSchema } =
+    await import("../src/lib/openapi.js");
+  const { AppError, errorBody } = await import("../src/lib/errors.js");
+  const document = generateOpenApiDocument();
+  const content = {
+    "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+  };
+  let errors = 0;
+  for (const path of Object.values(document.paths ?? {})) {
+    if (!path) {
+      continue;
+    }
+    for (const method of [
+      "get",
+      "post",
+      "put",
+      "patch",
+      "delete",
+      "head",
+      "options",
+      "trace",
+    ] as const) {
+      const operation = path[method];
+      if (!operation) {
+        continue;
+      }
+      expect(operation.responses?.default).toEqual({
+        $ref: "#/components/responses/ApiErrorResponse",
+      });
+      for (const [status, response] of Object.entries(
+        operation.responses ?? {},
+      )) {
+        if (/^[45]\d{2}$/.test(status) && response && !("$ref" in response)) {
+          expect(response.content).toEqual(content);
+          errors++;
+        }
+      }
+    }
+  }
+  expect(errors).toBeGreaterThan(0);
+  const body = errorBody(
+    new AppError("Wait before retrying", 429, "RATE_LIMITED", {
+      retryAfterSeconds: 3,
+      invalidFields: ["code"],
+    }),
+  );
+  expect(ApiErrorSchema.parse(body)).toEqual(body);
 });

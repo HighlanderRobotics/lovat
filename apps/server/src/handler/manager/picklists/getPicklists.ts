@@ -6,14 +6,14 @@ export const getPicklists = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     if (user.teamNumber === null) {
-      res
-        .status(403)
-        .send(
+      res.status(403).send({
+        code: "TEAM_REQUIRED",
+        displayError:
           "Not authortized to get mutable picklists because your not on a team",
-        );
+      });
       return;
     }
     const rows = await prismaClient.sharedPicklist.findMany({
@@ -33,8 +33,5 @@ export const getPicklists = async (
       },
     });
     res.status(200).send(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

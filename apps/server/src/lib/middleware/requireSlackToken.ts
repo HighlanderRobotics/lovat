@@ -5,7 +5,7 @@ export const requireSlackToken = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  try {
+  {
     const signature = req.headers["x-slack-signature"];
     const timestamp = req.headers["x-slack-request-timestamp"];
     const verificationKey = req.body?.token;
@@ -45,8 +45,5 @@ export const requireSlackToken = async (
     }
 
     next();
-  } catch (error) {
-    res.status(500).send("Internal server error verifying request");
-    return;
   }
 };

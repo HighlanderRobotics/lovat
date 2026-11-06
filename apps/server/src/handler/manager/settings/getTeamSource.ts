@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToArray,
 } from "../../analysis/dataSourceRule.js";
 import z from "zod";
@@ -11,8 +11,9 @@ export const getTeamSource = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
-    const teamSourceRule = dataSourceRuleSchema(z.number()).parse(
+  {
+    const teamSourceRule = parseStoredSourceRule(
+      z.number(),
       req.user.teamSourceRule,
     );
 
@@ -35,8 +36,5 @@ export const getTeamSource = async (
         .status(200)
         .send(dataSourceRuleToArray(teamSourceRule, await allTeamNumbers));
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

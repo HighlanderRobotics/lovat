@@ -19,7 +19,7 @@ import { autoEnd, endgameToPoints, Metric } from "../analysisConstants.js";
 import { z } from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { averageManyFast } from "../coreAnalysis/averageManyFast.js";
 import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
@@ -93,7 +93,7 @@ export const getTeamCSV = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     // Data will only be sourced from a tournament as sent with the request
     const params = z
       .object({
@@ -133,8 +133,13 @@ export const getTeamCSV = async (
       };
     }
 
-    const sourceRule = dataSourceRuleSchema(z.number()).parse(
+    const sourceRule = parseStoredSourceRule(
+      z.number(),
       req.user?.teamSourceRule,
+    );
+    const tournamentRule = parseStoredSourceRule(
+      z.string(),
+      req.user?.tournamentSourceRule,
     );
     // TMD instances will be sorted by team number and then looped through and aggregated
     const datapoints = await prismaClient.teamMatchData.findMany({
@@ -206,9 +211,6 @@ export const getTeamCSV = async (
 
           // Build the data source filters
           const teamFilter = dataSourceRuleToPrismaFilter(sourceRule);
-          const tournamentRule = dataSourceRuleSchema(z.string()).parse(
-            req.user?.tournamentSourceRule,
-          );
           const tournamentFilter = dataSourceRuleToPrismaFilter(tournamentRule);
 
           // Fetch all scout reports for these teams from filtered tournaments
@@ -473,9 +475,6 @@ export const getTeamCSV = async (
     res.header("Content-Type", "text/csv");
     res.send(csvString);
     return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };
 

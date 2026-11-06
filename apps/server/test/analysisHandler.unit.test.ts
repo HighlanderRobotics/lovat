@@ -138,9 +138,7 @@ it.each([true, false])(
   "reports calculation failures (%s caching)",
   async (shouldCache) => {
     mocks.calculate.mockRejectedValue(new Error("offline"));
-    const result = await run({ shouldCache });
-    expect(result.statusCode).toBe(500);
-    expect(result.body).toBe("Error calculating analysis");
+    await expect(run({ shouldCache })).rejects.toThrow("offline");
     expect(mocks.set).not.toHaveBeenCalled();
   },
 );
@@ -152,19 +150,19 @@ it.each(["body", "query", "params"] as const)(
   },
 );
 it("fails closed on malformed source visibility", async () => {
-  expect(
-    (await run({}, { user: { ...testUser, teamSourceRule: null } })).statusCode,
-  ).toBe(400);
+  await expect(
+    run({}, { user: { ...testUser, teamSourceRule: null } }),
+  ).rejects.toThrow("Invalid stored source rule");
   expect(mocks.calculate).not.toHaveBeenCalled();
 });
 it("reports Redis reads failing", async () => {
   mocks.get.mockRejectedValue(new Error("offline"));
-  expect((await run()).statusCode).toBe(500);
+  await expect(run()).rejects.toThrow("offline");
   expect(mocks.calculate).not.toHaveBeenCalled();
 });
 it("reports malformed cached JSON", async () => {
   mocks.get.mockResolvedValue("invalid");
-  expect((await run()).statusCode).toBe(500);
+  await expect(run()).rejects.toThrow(SyntaxError);
 });
 it("keeps a calculated response when Redis storage fails", async () => {
   mocks.set.mockRejectedValue(new Error("offline"));

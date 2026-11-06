@@ -111,11 +111,14 @@ it.each(["not enough data", new Error("offline")])(
   "reports match prediction failures (%s)",
   async (error) => {
     mocks.prediction.mockRejectedValue(error);
-    const result = await invoke(
-      (req, res) => matchPrediction(req, res, vi.fn()),
-      { query: teams },
-    );
-    expect(result.statusCode).toBe(error === "not enough data" ? 200 : 500);
+    const operation = invoke((req, res) => matchPrediction(req, res, vi.fn()), {
+      query: teams,
+    });
+    if (error === "not enough data") {
+      expect((await operation).statusCode).toBe(200);
+    } else {
+      await expect(operation).rejects.toBe(error);
+    }
     expect(mocks.alliance).not.toHaveBeenCalled();
   },
 );
@@ -139,15 +142,17 @@ it.each([
   null,
 ])("reports qualification prediction failures (%s)", async (error) => {
   mocks.qualification.mockRejectedValue(error);
-  const result = await invoke(
+  const operation = invoke(
     (req, res) => qualRankingPrediction(req, res, vi.fn()),
     { query: { tournamentKey: "2026test" } },
   );
-  expect(result.statusCode).toBe(
+  if (
     error === "not enough data" ||
-      (error instanceof Error &&
-        error.message === "Failed to fetch match or team data from TBA")
-      ? 200
-      : 500,
-  );
+    (error instanceof Error &&
+      error.message === "Failed to fetch match or team data from TBA")
+  ) {
+    expect((await operation).statusCode).toBe(200);
+  } else {
+    await expect(operation).rejects.toBe(error);
+  }
 });

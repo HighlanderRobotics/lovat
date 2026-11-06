@@ -3,6 +3,14 @@ import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  TrainingError: class extends Error {
+    constructor(
+      readonly status: number,
+      message: string,
+    ) {
+      super(message);
+    }
+  },
   snapshot: vi.fn(),
   origin: vi.fn(),
   heartbeat: vi.fn(),
@@ -16,6 +24,7 @@ vi.mock("../src/prismaClient.js", () => ({
 }));
 vi.mock("../src/handler/training/sessionService.js", () => ({
   snapshot: mocks.snapshot,
+  TrainingError: mocks.TrainingError,
 }));
 vi.mock("../src/handler/training/allowedOrigin.js", () => ({
   trainingOriginAllowed: mocks.origin,
@@ -91,6 +100,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-01T00:00:00Z"));
   vi.clearAllMocks();
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
   mocks.servers.length = 0;
   mocks.origin.mockReturnValue(true);
   mocks.snapshot.mockResolvedValue({ status: "LOBBY" });
@@ -101,6 +111,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.clearAllTimers();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("Training socket connections", () => {
@@ -136,15 +147,77 @@ describe("Training socket connections", () => {
         "Invalid session credentials",
       );
       expect(mocks.snapshot).not.toHaveBeenCalled();
+      expect(console.error).not.toHaveBeenCalled();
     },
   );
   it("closes sessions that become unavailable", async () => {
-    mocks.snapshot.mockRejectedValueOnce(new Error("expired"));
+    mocks.snapshot.mockRejectedValueOnce(
+      new mocks.TrainingError(410, "expired"),
+    );
     const { client } = connect();
     await authenticate(client);
     expect(client.close).toHaveBeenCalledWith(1008, "Session unavailable");
     await vi.advanceTimersByTimeAsync(6000);
     expect(mocks.snapshot).toHaveBeenCalledOnce();
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])(
+    "reports unexpected snapshot failures during initial send: %s",
+    async (initial) => {
+      const { client } = connect();
+      if (!initial) {
+        await authenticate(client);
+      }
+      mocks.snapshot.mockRejectedValueOnce(
+        new Error(`private database details ${credentials.token}`),
+      );
+      if (initial) {
+        await authenticate(client);
+      } else {
+        await vi.advanceTimersByTimeAsync(1000);
+      }
+      expect(client.close).toHaveBeenCalledWith(1008, "Session unavailable");
+      expect(console.error).toHaveBeenCalledExactlyOnceWith(
+        "Training socket update failed",
+        expect.objectContaining({ name: "Error" }),
+      );
+      expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain(
+        credentials.token,
+      );
+      const calls = mocks.snapshot.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(mocks.snapshot).toHaveBeenCalledTimes(calls);
+    },
+  );
+
+  it("reports participant heartbeat storage failures and closes the socket", async () => {
+    mocks.heartbeat.mockRejectedValueOnce(new Error("private storage failure"));
+    const { client } = connect();
+    await authenticate(client, {
+      ...credentials,
+      attemptUuid: "00000000-0000-4000-8000-000000000002",
+    });
+    expect(client.close).toHaveBeenCalledWith(1008, "Session unavailable");
+    expect(console.error).toHaveBeenCalledWith(
+      "Training socket update failed",
+      expect.objectContaining({ name: "Error" }),
+    );
+    expect(client.send).not.toHaveBeenCalled();
+  });
+
+  it("catches ping failures in the polling task", async () => {
+    const { client } = connect();
+    await authenticate(client);
+    client.ping.mockImplementationOnce(() => {
+      throw new Error("ping failed");
+    });
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(client.close).toHaveBeenCalledWith(1008, "Session unavailable");
+    expect(console.error).toHaveBeenCalledWith(
+      "Training socket update failed",
+      expect.objectContaining({ name: "Error" }),
+    );
   });
   it("sends browser snapshots each second without participant heartbeats", async () => {
     const { client } = connect();
@@ -156,6 +229,10 @@ describe("Training socket connections", () => {
     );
     expect(mocks.heartbeat).not.toHaveBeenCalled();
     client.emit("error", new Error("broken connection"));
+    expect(console.error).toHaveBeenCalledWith(
+      "Training socket connection failed",
+      expect.objectContaining({ name: "Error" }),
+    );
     expect(client.close).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(2000);
     expect(client.send).toHaveBeenCalledTimes(3);

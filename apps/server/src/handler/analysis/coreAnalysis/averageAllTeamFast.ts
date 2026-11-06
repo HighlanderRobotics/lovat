@@ -12,7 +12,7 @@ import {
 import z from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { runAnalysis } from "../analysisFunction.js";
 import { weightedTourAvgLeft } from "./arrayAndAverageTeams.js";
@@ -83,10 +83,12 @@ const config = {
   ) => {
     const metric = args.metric;
 
-    const sourceTnmtRule = dataSourceRuleSchema(z.string()).parse(
+    const sourceTnmtRule = parseStoredSourceRule(
+      z.string(),
       ctx.user.tournamentSourceRule,
     );
-    const sourceTeamRule = dataSourceRuleSchema(z.number()).parse(
+    const sourceTeamRule = parseStoredSourceRule(
+      z.number(),
       ctx.user.teamSourceRule,
     );
 

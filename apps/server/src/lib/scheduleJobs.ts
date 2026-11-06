@@ -4,6 +4,7 @@ import fetchMatches from "./fetchMatches.js";
 import prisma from "../prismaClient.js";
 import expireReportsInProgress from "./expireReportsInProgress.js";
 import deleteOldRequests from "./deleteOldRequests.js";
+import { runBackgroundTask } from "./errors.js";
 
 export default async function scheduleJobs(): Promise<void> {
   const year = 2024;
@@ -34,24 +35,26 @@ export default async function scheduleJobs(): Promise<void> {
 
     // repeat every 24 hours
     setInterval(
-      async () => {
-        console.log("Fetching tournaments from TBA...");
-        await fetchTournaments(year);
-        console.log("Done fetching tournaments from TBA.");
+      () =>
+        runBackgroundTask(async () => {
+          console.log("Fetching tournaments from TBA...");
+          await fetchTournaments(year);
+          console.log("Done fetching tournaments from TBA.");
 
-        console.log("Fetching teams from TBA...");
-        await fetchTeams();
-        console.log("Done fetching teams from TBA.");
-      },
+          console.log("Fetching teams from TBA...");
+          await fetchTeams();
+          console.log("Done fetching teams from TBA.");
+        }, "TBA daily refresh failed"),
       1000 * 60 * 60 * 24,
     );
 
     //repeat hourly
     setInterval(
-      async () => {
-        await fetchMatches();
-        console.log("Done fetching matches from TBA.");
-      },
+      () =>
+        runBackgroundTask(async () => {
+          await fetchMatches();
+          console.log("Done fetching matches from TBA.");
+        }, "TBA match refresh failed"),
       1000 * 60 * 60,
     );
   }
@@ -59,13 +62,14 @@ export default async function scheduleJobs(): Promise<void> {
   // repeat every 12 hours
   setInterval(
     async () => {
-      await deleteOldRequests();
-      try {
-        await expireReportsInProgress();
-      } catch (error) {
-        console.error("Report draft cleanup failed", error);
-      }
-      console.log("Done deleting old requests.");
+      await runBackgroundTask(async () => {
+        await deleteOldRequests();
+        console.log("Done deleting old requests.");
+      }, "Old request cleanup failed");
+      await runBackgroundTask(
+        expireReportsInProgress,
+        "Report draft cleanup failed",
+      );
     },
     1000 * 60 * 60 * 12,
   );

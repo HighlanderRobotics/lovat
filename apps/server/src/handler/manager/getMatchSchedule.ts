@@ -10,7 +10,7 @@ export const getMatchSchedule = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({ teamCode: z.string().min(1), tournament: z.string().min(1) })
       .safeParse({
@@ -81,10 +81,5 @@ export const getMatchSchedule = async (
       tournamentKey: params.data.tournament,
       matches: [...matches.values()],
     });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ displayError: "Unable to fetch the match schedule." });
   }
 };

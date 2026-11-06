@@ -493,9 +493,9 @@ describe("Collection lifecycle recovery", () => {
       db.scoutReportInProgress.updateMany.mockRejectedValue(
         new Error("database unavailable"),
       );
-      const response = await invoke(handler, request(body));
-      expect(response.statusCode).toBe(500);
-      expect(response.body).toHaveProperty("displayError");
+      await expect(invoke(handler, request(body))).rejects.toThrow(
+        "database unavailable",
+      );
     },
   );
 
