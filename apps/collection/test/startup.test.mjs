@@ -173,3 +173,18 @@ test("keeps a valid persisted scouter with a tournament on home", () => {
     "/home",
   );
 });
+
+test("changing scouters while the roster loads cannot invalidate the new selection", async () => {
+  const fetches = serviceFetches([]);
+  let current = true;
+  fetches.isCurrent = () => current;
+  fetches.fetchTeamScouters = async () => {
+    fetches.calls.push("scouters");
+    current = false;
+  };
+  assert.deepEqual(await loadScouterServices(scouter, fetches), {
+    invalidScouter: false,
+    error: null,
+  });
+  assert.deepEqual(fetches.calls, ["scouters"]);
+});

@@ -18,6 +18,7 @@ import {
   useOnboardingCompleteStore,
   useScouterStore,
   useTournamentStore,
+  useTeamStore,
 } from "./storage/userStores";
 import { loadScouterServices } from "./collection/startup";
 
@@ -38,13 +39,20 @@ export function getServiceLoader() {
       await Promise.all(startupStores.map(waitForStoreHydration));
 
       const scouter = useScouterStore.getState().value;
+      const teamCode = useTeamStore.getState().code;
+      const isCurrent = () =>
+        useScouterStore.getState().value?.uuid === scouter?.uuid &&
+        useTeamStore.getState().code === teamCode;
       const result = await loadScouterServices(scouter, {
+        isCurrent,
         fetchTeamScouters,
         fetchTournaments,
         fetchScouterSchedule,
         fetchMatchSchedule,
         getTeamScouters: () => useTeamScoutersStore.getState().data,
       });
+
+      if (!isCurrent()) return;
 
       if (result.invalidScouter) {
         useScouterStore.getState().setValue(null);

@@ -10,10 +10,10 @@ Collection supports iOS and Android only. Web is not a supported target, and the
 
 ## Prerequisites
 
-- Node.js 24.6.0
+- Node.js 24.6.0 and npm 11.5.1 (`nvm use` from this directory)
 - Expo and EAS tooling
-- macOS and Xcode for iOS builds
-- Android Studio and the Android SDK for Android builds
+- macOS, Xcode 27, CocoaPods, and an iOS 27 simulator or connected iPhone
+- Android Studio, JDK 21, Android platform/build-tools 37, and NDK 27.1.12297006
 
 ## Commands
 
@@ -30,6 +30,40 @@ npm run ts:check
 Copy `.env.example` to an appropriate local environment file and set `EXPO_PUBLIC_API_URL` to the desired Server authority. `EXPO_PUBLIC_*` values are included in client builds and must never contain secrets.
 
 Android has known pre-existing issues tracked as LVT-217. Offline report migrations and QR-code fallback are compatibility-sensitive.
+
+## Native setup and preflight
+
+From a fresh checkout in `apps/collection`, run:
+
+```bash
+nvm install
+nvm use
+npm ci
+npm run preflight -- tooling
+npm run check:dependencies
+npm run preflight -- ios
+# Or, with ANDROID_HOME and JAVA_HOME configured:
+npm run preflight -- android
+```
+
+Preflight is read-only. It exits nonzero for missing prerequisites and prints an exact correction for every failure. `all` checks both platforms; `--json` emits machine-readable results. Android also requires an authorized device or running emulator. The license-file check is preliminary: review all licenses with `sdkmanager --licenses` before building; Gradle may require additional package licenses. See [Expo's native environment setup](https://docs.expo.dev/get-started/set-up-your-environment/).
+
+Collection uses Expo managed native generation. `npm run ios` and `npm run android` generate native projects when absent. After SDK or plugin changes, regenerate with `npx expo prebuild --clean` **in a disposable checkout**, then run the platform command. This replaces generated native folders; preserve any local native edits first. Do not commit generated `ios/` or `android/` projects. Commit native settings in `app.json`, config plugins, or the versioned `patches/` folder. `npm ci` reapplies the menu header patch needed by SDK 58.
+
+Fresh-launch verification: use a new simulator/emulator (do not erase a personal device), launch the app, and confirm welcome → team → scouter → tournament → home without exceptions. Relaunch with a valid saved scouter and verify schedules load. Archive/delete that test scouter on a test server, refresh, and verify scouter selection returns. Repeat offline and reconnect to ensure cached identity is retained until the roster can be verified. The automated startup tests cover absent/deleted identities, offline fetches, legacy migration failures, and selection changes during a pending roster response.
+
+## Dependency checks
+
+```bash
+npm run check:dependencies
+npm run --silent audit:dependencies > dependency-audit.json
+npm audit --omit=dev --json
+npm test
+```
+
+CI checks the SDK dependency map, runs startup/preflight regression tests, and rejects high/critical npm advisories. It retains the full audit JSON as `collection-dependency-audit` for 14 days. Expo Doctor is an additional native compatibility check: `npx expo-doctor`.
+
+The 2026-11-06 SDK 58 alignment reduced the full audit from 16 to 13 moderate advisories; both full and production-only audits had **zero high or critical** findings. The production-only report contained five moderate entries through Expo CLI/fingerprint's `glob`/`minimatch` build tooling. Development findings additionally include TypeScript ESLint and the optional ngrok tunnel helper. A production dependency classification alone does not establish runtime reachability: the CLI paths execute during development/builds, rather than in the native app. Keep untrusted glob patterns and untrusted source trees out of build tooling. No high/critical exception was accepted. Do not apply `npm audit fix --force`: its suggested Expo 52 downgrade would undo iOS 27 lifecycle support. Recheck the generated audit artifact because advisories change over time.
 
 ## Versioning
 

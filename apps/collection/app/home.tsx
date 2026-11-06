@@ -55,7 +55,7 @@ import {
   ScouterScheduleMatch,
   getVerionsColor,
 } from "../lib/lovatAPI/getScouterSchedule";
-import { Picker as PickerWheel } from "react-native-wheel-pick";
+import { Picker } from "@react-native-picker/picker";
 import { useHistoryStore } from "../lib/storage/historyStore";
 import { useStartMatchEnabledStore } from "../lib/storage/userStores";
 import React from "react";
@@ -463,7 +463,7 @@ const AutomaticMatchSelection = ({
         }}
       >
         {matchesWithScouter.length >= 1 && selectedMatch != null ? (
-          <PickerWheel
+          <Picker
             style={{
               width: "100%",
               height: "100%",
@@ -477,21 +477,26 @@ const AutomaticMatchSelection = ({
                 ? selectedMatch && matchKeyOf(selectedMatch.matchIdentity)
                 : undefined
             }
-            pickerData={matchesWithScouter.map((match) => ({
-              label: localizeMatchIdentity(
-                match.matchIdentity,
-                MatchIdentityLocalizationFormat.Long,
-              ),
-              value: matchKeyOf(match.matchIdentity),
-            }))}
             onValueChange={(val: string) => {
               const match = matchesWithScouter.find(
                 (match) => matchKeyOf(match.matchIdentity) === val,
               );
               setSelectedMatch(match ?? null);
             }}
-            textColor={colors.onBackground.default}
-          />
+            itemStyle={{ color: colors.onBackground.default }}
+          >
+            {matchesWithScouter.map((match) => (
+              <Picker.Item
+                key={matchKeyOf(match.matchIdentity)}
+                label={localizeMatchIdentity(
+                  match.matchIdentity,
+                  MatchIdentityLocalizationFormat.Long,
+                )}
+                value={matchKeyOf(match.matchIdentity)}
+                color={colors.onBackground.default}
+              />
+            ))}
+          </Picker>
         ) : (
           <View style={{ width: 250, alignItems: "center" }}>
             <Heading1Small>No matches found</Heading1Small>

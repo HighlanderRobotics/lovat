@@ -32,6 +32,7 @@ export function validatePersistedScouter(
 }
 
 export type StartupServiceFetches = {
+  isCurrent?: () => boolean;
   fetchTeamScouters: () => Promise<void>;
   fetchTournaments: () => Promise<void>;
   fetchScouterSchedule: () => Promise<void>;
@@ -57,6 +58,11 @@ export async function loadScouterServices(
     await fetches.fetchTeamScouters();
   } catch (error) {
     teamScouterFetchError = error;
+  }
+
+  // A roster response for an old selection must never clear a new scouter.
+  if (fetches.isCurrent && !fetches.isCurrent()) {
+    return { invalidScouter: false, error: null };
   }
 
   if (

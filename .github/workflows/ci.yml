@@ -261,6 +261,18 @@ jobs:
           cache: npm
           cache-dependency-path: apps/collection/package-lock.json
       - run: npm ci
+      - run: npm run preflight -- tooling
+      - run: npm run check:dependencies
+      - name: Audit Collection dependencies
+        run: npm run --silent audit:dependencies > dependency-audit.json
+      - name: Upload Collection dependency audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-dependency-audit
+          path: apps/collection/dependency-audit.json
+          retention-days: 14
+      - run: npm test
       - run: npm run format:check
       - run: npm run lint
       - run: npm run ts:check

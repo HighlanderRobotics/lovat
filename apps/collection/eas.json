@@ -64,6 +64,13 @@
         "EXPO_NO_DOTENV": "1",
         "EXPO_PUBLIC_API_URL": "https://api.lovat.app"
       }
+    },
+    "native-smoke-ios": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      }
     }
   },
   "submit": {
