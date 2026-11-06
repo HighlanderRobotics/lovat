@@ -11,6 +11,7 @@ import scoutershifts from "./scoutershifts.routes.js";
 import settings from "./settings.routes.js";
 import apikey from "./apikey.routes.js";
 
+import { getUpcomingTeamTournaments } from "../../handler/manager/getUpcomingTeamTournaments.js";
 import { getTournaments } from "../../handler/manager/getTournaments.js";
 import { getTeams } from "../../handler/manager/getTeams.js";
 import { requireAuth } from "../../lib/middleware/requireAuth.js";
@@ -38,6 +39,26 @@ import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js
 import { checkMatchExists } from "../../handler/manager/checkMatchExists.js";
 
 const router = Router();
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/upcoming-entered-tournaments",
+  tags: ["Manager - Tournaments"],
+  summary: "Next two future Blue Alliance events for the signed-in user's team",
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: "Events in start-date order; week numbers start at one",
+    },
+    401: { description: "Unauthorized" },
+    502: { description: "Blue Alliance event data unavailable" },
+  },
+});
+router.get(
+  "/upcoming-entered-tournaments",
+  requireAuth,
+  getUpcomingTeamTournaments,
+);
 
 // OpenAPI documentation for selected manager endpoints
 const PaginationQuery = z.object({
