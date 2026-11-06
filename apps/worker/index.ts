@@ -1,3 +1,4 @@
+import { cairn } from "./src/telemetry";
 import { db } from "./src/db";
 import { tba } from "./src/tba";
 import { runWorker } from "./src/worker";
@@ -13,6 +14,7 @@ let lastReconciledAt = 0;
 const port = healthPort();
 const concurrency = Number(process.env.WORKER_CONCURRENCY ?? 2);
 const app = createHealthApp({
+  middleware: cairn.requests?.middleware,
   isReady: () =>
     !shutdown.signal.aborted &&
     lastReconciledAt > 0 &&
@@ -41,5 +43,6 @@ try {
   process.removeListener("SIGINT", stop);
   process.removeListener("SIGTERM", stop);
   await server.stop(true);
+  await cairn.shutdown();
   await db.$disconnect();
 }

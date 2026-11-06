@@ -7,7 +7,7 @@
     "start": "bun run index.ts",
     "enqueue": "bun run src/enqueue.ts",
     "backfill": "bun run src/backfill.ts",
-    "postinstall": "npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
+    "postinstall": "npm --prefix ../../packages/cairn-telemetry ci --include=dev && npm --prefix ../../packages/cairn-telemetry run build && npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@lovat/db": "file:../../packages/db",
-    "hono": "^4.13.13",
-    "zod": "4.6.5"
+    "hono": "4.13.16",
+    "zod": "4.6.5",
+    "@cairn/telemetry": "file:../../packages/cairn-telemetry"
   }
 }

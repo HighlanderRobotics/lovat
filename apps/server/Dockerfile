@@ -3,6 +3,7 @@ FROM node:22.20.0-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY packages/db ./packages/db
+COPY packages/cairn-telemetry ./packages/cairn-telemetry
 COPY apps/server ./apps/server
 WORKDIR /app/apps/server
 RUN npm ci --include=dev && npm run build

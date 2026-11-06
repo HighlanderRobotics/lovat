@@ -195,3 +195,13 @@ imports the schedule twice to check keys, scheduling markers, and duplicates.
 It refuses an event already present in the test database and removes only its
 own temporary tournament and match rows. This optional check needs live Nexus
 availability and is not part of the offline unit suite.
+
+## Optional Cairn telemetry
+
+Cairn request reporting is disabled by default. Set `CAIRN_ENABLED=true`, an HTTPS origin in `CAIRN_URL`, a dedicated ingestion token scoped to `lovat-api` and the selected environment, and `CAIRN_ENVIRONMENT` to enable it. `CAIRN_URL` must have no path, query, embedded credentials, or fragment. Plain HTTP is allowed only for loopback development. Invalid/incomplete settings produce a generic warning and leave request serving enabled. Never put a token in source or PR text.
+
+The Express adapter runs before parsers/routes and queues method, status, duration, a generated `x-cairn-request-id`, deployment/version, and registered route templates. It does not read request/response bodies, query strings, cookies, auth headers, team identities, or scouting notes. Known static router mounts are allowlisted; unmatched or unfamiliar mounts become `/__unmatched__` rather than exposing raw paths. Add new static prefixes to that list when introducing a new router. No extra SQL/Redis lookups are performed. Existing PostHog instrumentation is unchanged.
+
+Exports use the reviewed [local SDK source snapshot](../../packages/cairn-telemetry/README.md). Server `npm ci` and prebuild prepare its compiled output. Request handling does not await collector traffic. Queue/retry work uses the same process CPU and can drop events during outages. With reporting enabled, SIGINT/SIGTERM stops accepting HTTP work, allows up to five seconds for active connections, and gives SDK draining a one-second budget; stalled connections are then forcibly closed. With reporting disabled, no SDK timer, outgoing telemetry, new diagnostic header, or shutdown handler is enabled.
+
+This PR provides code and environment placeholders only. It does not configure Railway, create ingestion credentials, change authentication/report payloads, or enable production export. Validate a staging rollout against a reachable Cairn deployment before enabling production.

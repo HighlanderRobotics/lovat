@@ -100,3 +100,9 @@ and the [complete commit archive](docs/history/README.md) for all retained main
 and tagged application history, beginning in December 2022.
 
 This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
+
+## Optional Cairn observability
+
+Server and Worker have opt-in Cairn metadata reporting, disabled until their own scoped credentials and collector origin are configured. See [Server setup](apps/server/README.md#optional-cairn-telemetry), [Worker setup](apps/worker/README.md#optional-cairn-reporting), and the [pinned SDK source package](packages/cairn-telemetry/README.md). The API reports template/status/timing metadata; the worker reports lease-fenced import attempts and health requests. Scouting data, identities, provider bodies, and secrets are excluded. No database migration or live Railway configuration is part of this code integration.
+
+Integration verification: Server build, application/test typechecks, and 1,377 unit tests pass under Node 22.20.0; per-file unit coverage remains 100% for lines/statements/functions/branches. Lint has zero errors and 80 existing warnings. Worker typecheck and 40 behavior tests pass; 21 database integration tests are skipped locally because no disposable Lovat services were enabled. CI retains its guarded PostgreSQL/Redis integration and Docker checks. Source checksums verify the seven upstream SDK files. New telemetry and shutdown behavior are explicitly tested; no production exporter is enabled. Accurate recurring worker summaries require the linked Cairn follow-up PR #2.

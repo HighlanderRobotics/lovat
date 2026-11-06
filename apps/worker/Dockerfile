@@ -7,6 +7,8 @@ COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 WORKDIR /app
 COPY packages/db ./packages/db
+COPY packages/cairn-telemetry ./packages/cairn-telemetry
+RUN npm --prefix packages/cairn-telemetry ci --include=dev && npm --prefix packages/cairn-telemetry run build
 RUN npm --prefix packages/db ci --include=dev && npm --prefix packages/db run build
 
 COPY apps/worker ./apps/worker

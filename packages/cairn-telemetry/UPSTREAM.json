@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/HighlanderRobotics/cairn",
+  "commit": "fd029d1c90b100fd31313e902b065effeaac8712",
+  "package": "@cairn/telemetry",
+  "version": "0.1.0",
+  "sha256": {
+    "packages/telemetry/index.ts": "efc700f6261f20737be8ae7e13de9493c655e45278f1f2451f02ac0ad53837f3",
+    "packages/telemetry/sdk.ts": "fdcb0214fe3be96b3af1dfed42f358c659e779994802e14356508fc351429fe0",
+    "packages/telemetry/diagnostics.ts": "d36f80985db91de2e2bd50df9d7f24e8a371139db96c0ffe89d62decd5c35670",
+    "packages/telemetry/redaction.ts": "bef07f331a9635bdddb891c16133fc632c966736c9530625ec64f11d97d91444",
+    "packages/telemetry/lifecycle.ts": "ad0aabb64c1e4dda5f15f3e0d4bcd066a49fabdfa5afa6f50198afd5368a7618",
+    "packages/schemas/index.ts": "bae183289a838dc810cb761fc08458c04d18256ba6965fc62d9d415eb463ae7f",
+    "packages/operations/schemas.ts": "abb274fa7db35a0916f326e61b0798bccd5f063076fabb716e91d862b0fb8d02"
+  }
+}

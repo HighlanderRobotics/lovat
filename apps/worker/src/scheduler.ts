@@ -1,3 +1,8 @@
+import {
+  recordImportAttempt,
+  type AttemptObserver,
+  type AttemptOutcome,
+} from "./telemetry";
 import type { ImportJob, PrismaClient } from "@lovat/db";
 import { importAllTeams } from "./jobs/teams";
 import { importTournaments } from "./jobs/tournaments";
@@ -230,10 +235,22 @@ export function retryDelay(attempts: number, error: unknown, now = new Date()) {
 export async function runNextJob(
   db: PrismaClient,
   execute: (job: ImportJob, db: PrismaClient) => Promise<void> = executeImport,
+  observer: AttemptObserver = recordImportAttempt,
 ) {
   const job = await claimJob(db);
 
   if (!job) return false;
+
+  const startedAt = new Date().toISOString();
+  let terminal = false;
+  const observe = (outcome: AttemptOutcome) => {
+    try {
+      observer(job, outcome, startedAt);
+    } catch {
+      // Telemetry must never change job execution or lease handling.
+    }
+  };
+  observe("running");
 
   let renewing = false;
   let lostLease = false;
@@ -284,6 +301,8 @@ export async function runNextJob(
         },
       });
       if (completed.count === 1) {
+        observe("success");
+        terminal = true;
         console.info(
           `Import completed: ${job.kind} ${job.targetKey}; next refresh ${new Date(now.getTime() + interval).toISOString()}`,
         );
@@ -300,7 +319,7 @@ export async function runNextJob(
           : "Unknown import error";
 
     if (!lostLease) {
-      await db.importJob.updateMany({
+      const failed = await db.importJob.updateMany({
         where: {
           id: job.id,
           leaseToken: job.leaseToken,
@@ -314,11 +333,18 @@ export async function runNextJob(
           leaseExpiresAt: null,
         },
       });
+      if (failed.count === 1) {
+        observe("failed");
+        terminal = true;
+      }
     }
 
     console.error(`Import failed: ${job.kind} ${job.targetKey} (${lastError})`);
   } finally {
     clearInterval(heartbeat);
+    if (!terminal) {
+      observe("cancelled");
+    }
   }
 
   return true;
