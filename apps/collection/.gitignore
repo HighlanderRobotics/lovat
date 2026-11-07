@@ -6,7 +6,6 @@ node_modules/
 # Expo
 .expo/
 dist/
-web-build/
 build/
 
 # Native
@@ -34,3 +33,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Generated dependency audit artifact
+dependency-audit.json

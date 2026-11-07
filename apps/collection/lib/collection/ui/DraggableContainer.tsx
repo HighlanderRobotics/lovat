@@ -37,7 +37,7 @@ export const DraggableContainer = ({
 
   const startXRef = useRef<number>(0);
   const startYRef = useRef<number>(0);
-  const initialTouchIdRef = useRef<string | null>(null);
+  const initialTouchIdRef = useRef<number | null>(null);
   const isActiveRef = useRef<boolean>(false);
   const previousGamePhaseRef = useRef<GamePhase>(gamePhase);
 

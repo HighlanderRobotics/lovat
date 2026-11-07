@@ -16,7 +16,8 @@ import {
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
-import * as DropdownMenu from "zeego/dropdown-menu";
+import { MatchScoreWidget } from "./MatchScoreWidget";
+import { MenuView } from "@react-native-menu/menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
 import { Icon } from "../../components/Icon";
@@ -66,6 +67,8 @@ export const GameViewTemplate = (props: {
               style={{
                 flex: 1,
                 flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
               }}
             >
               <IconButton
@@ -78,6 +81,7 @@ export const GameViewTemplate = (props: {
                   reportState.undoEvent();
                 }}
               />
+              <MatchScoreWidget />
             </View>
           )}
 
@@ -132,35 +136,26 @@ export const GameViewTemplate = (props: {
 
           {reportState?.startTimestamp &&
             !reportState.meta?.collection?.trainingAttemptUuid && (
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <IconButton
-                    label="End match"
-                    icon="stop"
-                    color={colors.onBackground.default}
-                    size={30}
-                  />
-                </DropdownMenu.Trigger>
-
-                <DropdownMenu.Content
-                  loop={false}
-                  side="bottom"
-                  align="end"
-                  alignOffset={0}
-                  avoidCollisions={true}
-                  collisionPadding={0}
-                  sideOffset={0}
-                >
-                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
-                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
-                    <DropdownMenu.ItemTitle>
-                      Restart match
-                    </DropdownMenu.ItemTitle>
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
+              <MenuView
+                title="Match"
+                isAnchoredToRight
+                shouldOpenOnLongPress={false}
+                actions={[
+                  { id: "end", title: "End match" },
+                  { id: "restart", title: "Restart match" },
+                ]}
+                onPressAction={({ nativeEvent }) => {
+                  if (nativeEvent.event === "end") props.onEnd();
+                  if (nativeEvent.event === "restart") props.onRestart();
+                }}
+              >
+                <IconButton
+                  label="End match"
+                  icon="stop"
+                  color={colors.onBackground.default}
+                  size={30}
+                />
+              </MenuView>
             )}
         </SafeAreaView>
       </View>

@@ -1,14 +1,13 @@
 import { View } from "react-native";
 import { NavBar } from "../../lib/components/NavBar";
 import { IconButton } from "../../lib/components/IconButton";
-import { router, useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { colors } from "../../lib/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TitleMedium from "../../lib/components/text/TitleMedium";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import Button from "../../lib/components/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CommonActions } from "@react-navigation/native";
 import React from "react";
 import {
   useFieldOrientationStore,
@@ -27,8 +26,6 @@ import {
 } from "../../lib/services";
 
 export default function Reset() {
-  const navigation = useNavigation();
-
   const reset = async () => {
     console.log("resetting");
     useTeamStore.setState(useTeamStore.getInitialState());
@@ -47,11 +44,7 @@ export default function Reset() {
     useTournamentsStore.setState(useTournamentsStore.getInitialState());
     useScouterScheduleStore.setState(useScouterScheduleStore.getInitialState());
     await AsyncStorage.clear();
-    navigation.dispatch(
-      CommonActions.reset({
-        routes: [{ key: "index", name: "index" }],
-      }),
-    );
+    router.dismissTo("/");
   };
 
   return (

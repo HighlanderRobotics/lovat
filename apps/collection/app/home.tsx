@@ -31,7 +31,13 @@ import {
   useTeamScoutersStore,
   useMatchScheduleStore,
 } from "../lib/services";
-import { useScouterStore, useTournamentStore } from "../lib/storage/userStores";
+import {
+  startupStores,
+  useOnboardingCompleteStore,
+  useScouterStore,
+  useTeamStore,
+  useTournamentStore,
+} from "../lib/storage/userStores";
 import { Picker } from "../lib/components/Picker";
 import {
   MatchIdentity,
@@ -49,7 +55,7 @@ import {
   ScouterScheduleMatch,
   getVerionsColor,
 } from "../lib/lovatAPI/getScouterSchedule";
-import { Picker as PickerWheel } from "react-native-wheel-pick";
+import { Picker as NativePicker } from "@react-native-picker/picker";
 import { useHistoryStore } from "../lib/storage/historyStore";
 import { useStartMatchEnabledStore } from "../lib/storage/userStores";
 import React from "react";
@@ -60,8 +66,13 @@ import {
   MatchSelectionMode,
   useMatchSelectionModeStore,
 } from "../lib/storage/userStores";
-import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
+import {
+  createGenericPersistantStore,
+  waitForStoreHydration,
+} from "../lib/storage/zustandStorage";
 import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
+import { scheduledTeamsForAlliance } from "../lib/collection/scheduledTeams";
+import { resolveStartupRoute } from "../lib/collection/startup";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -74,6 +85,7 @@ export default function Home() {
     );
   const [meta, setMeta] = useState<ScoutReportMeta | null>(null);
   const [checkingMatch, setCheckingMatch] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const checkingMatchRef = useRef(false);
   const selectionVersion = useRef(0);
   const onMetaChanged = useCallback((value: ScoutReportMeta | null) => {
@@ -81,6 +93,43 @@ export default function Home() {
     setMeta(value);
   }, []);
   const reportState = useReportStateStore();
+  const onboardingComplete = useOnboardingCompleteStore((state) => state.value);
+  const teamCode = useTeamStore((state) => state.code);
+  const scouter = useScouterStore((state) => state.value);
+  const tournament = useTournamentStore((state) => state.value);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all(startupStores.map(waitForStoreHydration)).then(() => {
+      if (!cancelled) {
+        setHydrated(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    if (onboardingComplete && scouter && tournament) {
+      return;
+    }
+
+    router.replace(
+      resolveStartupRoute({
+        onboardingComplete,
+        teamCode,
+        scouter,
+        tournament,
+      }),
+    );
+  }, [hydrated, onboardingComplete, teamCode, scouter, tournament]);
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
   const loadServices = getServiceLoader();
@@ -363,18 +412,22 @@ const AutomaticMatchSelection = ({
   }, [selectedMatch, tournaments]);
 
   useEffect(() => {
-    if (!selectedMatch) {
+    const selectedScouterMatch = scouter
+      ? selectedMatch?.scouters[scouter.uuid]
+      : undefined;
+
+    if (!selectedMatch || !scouter || !selectedScouterMatch) {
       onChanged(null);
       return;
     }
 
     onChanged({
-      scouterUUID: scouter!.uuid,
-      allianceColor: selectedMatch.scouters[scouter!.uuid].allianceColor,
-      teamNumber: selectedMatch.scouters[scouter!.uuid].teamNumber,
+      scouterUUID: scouter.uuid,
+      allianceColor: selectedScouterMatch.allianceColor,
+      teamNumber: selectedScouterMatch.teamNumber,
       matchIdentity: selectedMatch.matchIdentity,
     });
-  }, [selectedMatch]);
+  }, [selectedMatch, scouter]);
 
   useEffect(() => {
     if (matchesWithScouter.length === 0) {
@@ -383,6 +436,8 @@ const AutomaticMatchSelection = ({
   }, [matchesWithScouter]);
 
   if (!scouter || !tournaments) return null;
+
+  const selectedScouterMatch = selectedMatch?.scouters[scouter.uuid];
 
   return (
     <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
@@ -395,10 +450,8 @@ const AutomaticMatchSelection = ({
         </Heading1Small>
       )}
 
-      {selectedMatch && (
-        <TitleMedium>
-          Scouting {selectedMatch.scouters[scouter.uuid].teamNumber}
-        </TitleMedium>
+      {selectedMatch && selectedScouterMatch && (
+        <TitleMedium>Scouting {selectedScouterMatch.teamNumber}</TitleMedium>
       )}
 
       <View
@@ -410,7 +463,7 @@ const AutomaticMatchSelection = ({
         }}
       >
         {matchesWithScouter.length >= 1 && selectedMatch != null ? (
-          <PickerWheel
+          <NativePicker
             style={{
               width: "100%",
               height: "100%",
@@ -424,21 +477,26 @@ const AutomaticMatchSelection = ({
                 ? selectedMatch && matchKeyOf(selectedMatch.matchIdentity)
                 : undefined
             }
-            pickerData={matchesWithScouter.map((match) => ({
-              label: localizeMatchIdentity(
-                match.matchIdentity,
-                MatchIdentityLocalizationFormat.Long,
-              ),
-              value: matchKeyOf(match.matchIdentity),
-            }))}
             onValueChange={(val: string) => {
               const match = matchesWithScouter.find(
                 (match) => matchKeyOf(match.matchIdentity) === val,
               );
               setSelectedMatch(match ?? null);
             }}
-            textColor={colors.onBackground.default}
-          />
+            itemStyle={{ color: colors.onBackground.default }}
+          >
+            {matchesWithScouter.map((match) => (
+              <NativePicker.Item
+                key={matchKeyOf(match.matchIdentity)}
+                label={localizeMatchIdentity(
+                  match.matchIdentity,
+                  MatchIdentityLocalizationFormat.Long,
+                )}
+                value={matchKeyOf(match.matchIdentity)}
+                color={colors.onBackground.default}
+              />
+            ))}
+          </NativePicker>
         ) : (
           <View style={{ width: 250, alignItems: "center" }}>
             <Heading1Small>No matches found</Heading1Small>
@@ -481,8 +539,32 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         )
       : undefined;
 
+  /**
+   * Teams the match schedule lists for the selected alliance. The schedule is
+   * persisted on the device, so this keeps working offline; when there is no
+   * cached schedule or alliance data the team field falls back to text entry.
+   */
+  const scheduledAllianceTeams = useMemo(() => {
+    const scheduledAlliance =
+      allianceColor === AllianceColor.Red ? "red" : "blue";
+
+    return scheduledTeamsForAlliance(
+      scheduledMatch?.teams,
+      scheduledAlliance,
+    ).map((teamNumber) => teamNumber.toString());
+  }, [scheduledMatch, allianceColor]);
+
+  // Only keep a team number that belongs to the selected alliance. Clearing
+  // instead of defaulting to the first team makes the scout confirm the robot,
+  // which matters offline where the server cannot reject a mismatched team.
+  const selectedTeamNumber =
+    scheduledAllianceTeams.length > 0 &&
+    !scheduledAllianceTeams.includes(teamNumber)
+      ? ""
+      : teamNumber;
+
   useEffect(() => {
-    const parsedTeamNumber = Number(teamNumber);
+    const parsedTeamNumber = Number(selectedTeamNumber);
     const parsedMatchNumber = Number(matchNumber);
 
     if (!Number.isSafeInteger(parsedTeamNumber) || parsedTeamNumber <= 0) {
@@ -515,7 +597,14 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         tournamentKey: tournament.key,
       },
     });
-  }, [matchType, matchNumber, teamNumber, allianceColor, tournament, scouter]);
+  }, [
+    matchType,
+    matchNumber,
+    selectedTeamNumber,
+    allianceColor,
+    tournament,
+    scouter,
+  ]);
 
   return (
     <ScrollView style={{ flex: 1, paddingTop: 14 }}>
@@ -547,26 +636,8 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
       />
 
       <View style={{ height: 14 }} />
-      <LabelSmall>Team number</LabelSmall>
-      {scheduledMatch && (
-        <BodyMedium>
-          Scheduled teams:{" "}
-          {scheduledMatch.teams
-            .map(
-              (team) =>
-                `${team.number}${team.alliance ? ` (${team.alliance})` : ""}`,
-            )
-            .join(", ")}
-        </BodyMedium>
-      )}
+      <LabelSmall>Alliance</LabelSmall>
       <View style={{ height: 7 }} />
-      <TextField
-        placeholder="8033"
-        value={teamNumber}
-        onChangeText={(text) => setTeamNumber(text)}
-        keyboardType="number-pad"
-      />
-      <View style={{ height: 14 }} />
       <Picker
         options={allianceColors.map((color) => ({
           label: color.localizedDescription,
@@ -575,6 +646,39 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         selected={allianceColor}
         onChange={(val) => setAllianceColor(val)}
       />
+
+      <View style={{ height: 14 }} />
+      <LabelSmall>Team number</LabelSmall>
+      <View style={{ height: 7 }} />
+      {scheduledAllianceTeams.length > 0 ? (
+        <Picker
+          options={scheduledAllianceTeams.map((number) => ({
+            label: number,
+            value: number,
+          }))}
+          selected={selectedTeamNumber}
+          onChange={(val) => setTeamNumber(val)}
+        />
+      ) : (
+        <TextField
+          placeholder="8033"
+          value={teamNumber}
+          onChangeText={(text) => setTeamNumber(text)}
+          keyboardType="number-pad"
+        />
+      )}
+      {scheduledMatch && scheduledAllianceTeams.length === 0 && (
+        <BodyMedium style={{ marginTop: 7 }}>
+          Match teams:{" "}
+          {scheduledMatch.teams
+            .map((team) =>
+              team.alliance
+                ? `${team.number} (${team.alliance})`
+                : team.number.toString(),
+            )
+            .join(", ")}
+        </BodyMedium>
+      )}
     </ScrollView>
   );
 };

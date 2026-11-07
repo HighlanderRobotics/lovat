@@ -1,4 +1,10 @@
-import { ActivityIndicator, Alert, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NavBar } from "../../lib/components/NavBar";
 import { IconButton } from "../../lib/components/IconButton";
@@ -15,7 +21,7 @@ import { Icon } from "../../lib/components/Icon";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import TextField from "../../lib/components/TextField";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import * as ContextMenu from "zeego/context-menu";
+import { MenuView } from "@react-native-menu/menu";
 import { uploadReport } from "../../lib/lovatAPI/uploadReport";
 import { z } from "zod";
 import React from "react";
@@ -147,130 +153,105 @@ const Match = ({ match }: { match: HistoryEntry }) => {
   const deleteMatchFromHistory = useHistoryStore((state) => state.deleteMatch);
 
   return (
-    <ContextMenu.Root>
-      <ContextMenu.Trigger>
-        <Link
-          asChild
-          href={{
-            pathname: "/history/[uuid]",
-            params: {
-              uuid: match.scoutReport.uuid,
-            },
+    <MenuView
+      title="Report"
+      shouldOpenOnLongPress
+      actions={[
+        ...(!match.uploaded
+          ? [
+              {
+                id: "upload",
+                title: "Upload report",
+                image:
+                  Platform.OS === "ios" ? "arrow.up.to.line" : "ic_menu_upload",
+              },
+            ]
+          : []),
+        {
+          id: "delete",
+          title: "Discard data",
+          attributes: { destructive: true },
+          image: Platform.OS === "ios" ? "trash" : "ic_menu_delete",
+        },
+      ]}
+      onPressAction={async ({ nativeEvent }) => {
+        if (nativeEvent.event === "upload" && !match.uploaded) {
+          try {
+            await uploadReport(match.scoutReport, match.meta);
+            setMatchUploaded(match.scoutReport.uuid);
+          } catch (error) {
+            const parsed = z.object({ message: z.string() }).safeParse(error);
+            Alert.alert(
+              "Failed to upload",
+              parsed.success
+                ? parsed.data.message
+                : "An unknown error occurred",
+            );
+          }
+        } else if (nativeEvent.event === "delete") {
+          Alert.alert(
+            "Discard data",
+            "Are you sure you want to discard this match data?",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Discard",
+                style: "destructive",
+                onPress: () => deleteMatchFromHistory(match.scoutReport.uuid),
+              },
+            ],
+          );
+        }
+      }}
+    >
+      <Link
+        asChild
+        href={{
+          pathname: "/history/[uuid]",
+          params: {
+            uuid: match.scoutReport.uuid,
+          },
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: colors.secondaryContainer.default,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderRadius: 7,
           }}
         >
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.secondaryContainer.default,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingVertical: 10,
-              paddingHorizontal: 14,
-              borderRadius: 7,
-            }}
-          >
-            <View>
-              <Heading1Small>
-                {localizeMatchIdentity(
-                  match.meta.matchIdentity,
-                  MatchIdentityLocalizationFormat.Long,
-                )}
-              </Heading1Small>
-              <BodyMedium>
-                {match.meta.teamNumber} •{" "}
-                {localizeDate(new Date(match.scoutReport.startTime))}
-              </BodyMedium>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 7 }}
-            >
-              {!match.uploaded && (
-                <Icon
-                  name="error"
-                  size={24}
-                  color={colors.onBackground.default}
-                />
+          <View>
+            <Heading1Small>
+              {localizeMatchIdentity(
+                match.meta.matchIdentity,
+                MatchIdentityLocalizationFormat.Long,
               )}
+            </Heading1Small>
+            <BodyMedium>
+              {match.meta.teamNumber} •{" "}
+              {localizeDate(new Date(match.scoutReport.startTime))}
+            </BodyMedium>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+            {!match.uploaded && (
               <Icon
-                name="arrow_forward_ios"
-                size={20}
+                name="error"
+                size={24}
                 color={colors.onBackground.default}
               />
-            </View>
-          </TouchableOpacity>
-        </Link>
-      </ContextMenu.Trigger>
-      <ContextMenu.Content
-        loop={false}
-        alignOffset={0}
-        avoidCollisions={true}
-        collisionPadding={0}
-      >
-        {!match.uploaded && (
-          <ContextMenu.Item
-            key="upload"
-            onSelect={async () => {
-              try {
-                await uploadReport(match!.scoutReport, match!.meta);
-                setMatchUploaded(match!.scoutReport.uuid);
-              } catch (e) {
-                let message;
-
-                try {
-                  message = z
-                    .object({
-                      message: z.string(),
-                    })
-                    .parse(e).message;
-                } catch {
-                  message = "An unknown error occurred";
-                }
-
-                Alert.alert("Failed to upload", message);
-              }
-            }}
-          >
-            <ContextMenu.ItemIcon
-              ios={{
-                name: "arrow.up.to.line",
-              }}
-              androidIconName="upload"
+            )}
+            <Icon
+              name="arrow_forward_ios"
+              size={20}
+              color={colors.onBackground.default}
             />
-            <ContextMenu.ItemTitle>Upload report</ContextMenu.ItemTitle>
-          </ContextMenu.Item>
-        )}
-        <ContextMenu.Item
-          key="delete"
-          destructive
-          onSelect={() => {
-            Alert.alert(
-              "Discard data",
-              "Are you sure you want to discard this match data?",
-              [
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                },
-                {
-                  text: "Discard",
-                  style: "destructive",
-                  onPress: () => {
-                    deleteMatchFromHistory(match.scoutReport.uuid);
-                  },
-                },
-              ],
-            );
-          }}
-        >
-          <ContextMenu.ItemIcon
-            ios={{
-              name: "trash",
-            }}
-            androidIconName="delete"
-          />
-          <ContextMenu.ItemTitle>Discard data</ContextMenu.ItemTitle>
-        </ContextMenu.Item>
-      </ContextMenu.Content>
-    </ContextMenu.Root>
+          </View>
+        </TouchableOpacity>
+      </Link>
+    </MenuView>
   );
 };

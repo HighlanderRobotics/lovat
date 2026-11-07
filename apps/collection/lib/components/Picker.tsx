@@ -30,9 +30,7 @@ type PickerProps<T> = {
 };
 
 export type PickerStyle =
-  | "horizontal-group"
-  | "vertical-group"
-  | "inset-picker";
+  "horizontal-group" | "vertical-group" | "inset-picker";
 
 export function Picker<T = string>(props: PickerProps<T>) {
   const {

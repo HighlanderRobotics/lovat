@@ -10,6 +10,26 @@ export type GenericStore<T> = {
   setValue: (value: T) => void;
 };
 
+type HydratableStore = {
+  persist: {
+    hasHydrated: () => boolean;
+    onFinishHydration: (listener: () => void) => () => void;
+  };
+};
+
+export function waitForStoreHydration(store: HydratableStore): Promise<void> {
+  if (store.persist.hasHydrated()) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const unsubscribe = store.persist.onFinishHydration(() => {
+      unsubscribe();
+      resolve();
+    });
+  });
+}
+
 export function createGenericPersistantStore<T>(name: string, defaultValue: T) {
   return create(
     persist<GenericStore<T>>(
