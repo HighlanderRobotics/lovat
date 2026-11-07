@@ -50,7 +50,6 @@
           }
         }
       ],
-      "./plugins/with-ios-menu-availability.cjs",
       "./plugins/with-ios-resource-targets.cjs",
       [
         "expo-splash-screen",
