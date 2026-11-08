@@ -117,18 +117,13 @@ export default function Home() {
       return;
     }
 
-    if (onboardingComplete && scouter && tournament) {
-      return;
-    }
-
-    router.replace(
-      resolveStartupRoute({
-        onboardingComplete,
-        teamCode,
-        scouter,
-        tournament,
-      }),
-    );
+    const route = resolveStartupRoute({
+      onboardingComplete,
+      teamCode,
+      scouter,
+      tournament,
+    });
+    if (route !== "/home") router.replace(route);
   }, [hydrated, onboardingComplete, teamCode, scouter, tournament]);
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
