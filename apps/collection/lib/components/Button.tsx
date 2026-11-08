@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { colors, ColorSet } from "../colors";
 import BodyMedium from "./text/BodyMedium";
+import { renderButtonContent } from "./buttonContent";
 
 type ButtonProps = {
   variant?: "primary" | "secondary" | "danger";
@@ -197,9 +198,14 @@ const Button: React.FC<ButtonProps> = ({
             color={filled ? textColor : backgroundColors.default}
           />
         )}
-        <AnimatedText style={textStyle}>
-          {loading ? (loadingChildren ?? children) : children}
-        </AnimatedText>
+        {renderButtonContent(
+          loading ? (loadingChildren ?? children) : children,
+          (label, key) => (
+            <AnimatedText key={key} style={textStyle}>
+              {label}
+            </AnimatedText>
+          ),
+        )}
       </AnimatedTouchableOpacity>
     </>
   );

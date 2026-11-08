@@ -77,12 +77,14 @@ export function Picker<T = string>(props: PickerProps<T>) {
               style={{
                 paddingHorizontal: 14,
                 paddingTop: i === 0 ? 14 : 8,
-                paddingBlock: i === options.length - 1 ? 14 : 8,
+                paddingBottom: i === options.length - 1 ? 14 : 8,
               }}
             >
               <View
                 style={{
+                  flex: 1,
                   flexDirection: "row",
+                  alignItems: "flex-start",
                   gap: 12,
                 }}
               >

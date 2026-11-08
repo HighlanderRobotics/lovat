@@ -137,7 +137,6 @@ export const GameViewTemplate = (props: {
           {reportState?.startTimestamp &&
             !reportState.meta?.collection?.trainingAttemptUuid && (
               <MenuView
-                title="Match"
                 isAnchoredToRight
                 shouldOpenOnLongPress={false}
                 actions={[
