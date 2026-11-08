@@ -73,3 +73,40 @@ test("unauthorized Android device does not pass", () => {
 test("rejects misspelled targets", () => {
   assert.throws(() => preflight("andriod", healthy), /Choose/);
 });
+
+test("a connected iPhone is sufficient without a simulator runtime", () => {
+  const checks = preflight("ios", {
+    ...healthy,
+    run: (command, args) => {
+      if (args[0] === "simctl")
+        return { ok: true, text: "No runtimes installed" };
+      if (args[0] === "devicectl")
+        return {
+          ok: true,
+          text: "iPhone   identifier   connected   iPhone 13   physical",
+        };
+      return healthy.run(command);
+    },
+  });
+  assert.equal(
+    checks.every((check) => check.ok),
+    true,
+  );
+});
+
+test("an unavailable iPhone does not replace the missing runtime", () => {
+  const checks = preflight("ios", {
+    ...healthy,
+    run: (command, args) => {
+      if (args[0] === "simctl")
+        return { ok: true, text: "No runtimes installed" };
+      if (args[0] === "devicectl")
+        return {
+          ok: true,
+          text: "iPhone   identifier   unavailable   iPhone 13   physical",
+        };
+      return healthy.run(command);
+    },
+  });
+  assert.equal(checks.at(-1).ok, false);
+});

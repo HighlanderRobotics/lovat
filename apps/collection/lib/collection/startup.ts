@@ -102,7 +102,7 @@ export function resolveStartupRoute({
   scouter: ScouterIdentity | null;
   tournament: unknown;
 }): StartupRoute {
-  if (onboardingComplete && scouter && tournament) {
+  if (onboardingComplete && teamCode && scouter?.uuid && tournament) {
     return "/home";
   }
 
@@ -110,7 +110,7 @@ export function resolveStartupRoute({
     return "/onboarding";
   }
 
-  if (!scouter) {
+  if (!scouter?.uuid) {
     return "/onboarding/name";
   }
 

@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { useNavigation } from "expo-router";
+import { resetToStart } from "../../lib/collection/resetNavigation";
 import { View } from "react-native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -105,6 +106,7 @@ const TournamentSelector = ({ filter }: { filter: string }) => {
 };
 
 const TournamentItem = ({ tournament }: { tournament: Tournament }) => {
+  const navigation = useNavigation();
   const selectTournament = useTournamentStore((state) => state.setValue);
   const setOnboardingComplete = useOnboardingCompleteStore(
     (state) => state.setValue,
@@ -116,7 +118,7 @@ const TournamentItem = ({ tournament }: { tournament: Tournament }) => {
       onPress={async () => {
         selectTournament(tournament);
         setOnboardingComplete(true);
-        router.dismissTo("/");
+        resetToStart(navigation);
       }}
       style={{
         paddingVertical: 10,

@@ -1,6 +1,7 @@
 import { Alert, View } from "react-native";
 import { NavBar } from "../../lib/components/NavBar";
-import { Redirect, Stack, router } from "expo-router";
+import { Redirect, Stack, router, useNavigation } from "expo-router";
+import { resetToStart } from "../../lib/collection/resetNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../lib/components/Button";
 import LabelSmall from "../../lib/components/text/LabelSmall";
@@ -37,6 +38,7 @@ import { RobotRole } from "../../lib/collection/RobotRole";
 import { MatchEventType } from "../../lib/collection/MatchEventType";
 
 export default function PostMatch() {
+  const navigation = useNavigation();
   const reportState = useReportStateStore();
   const localPractice = useTrainingModeStore((state) => state.value);
   const training = useTrainingSessionStore();
@@ -369,7 +371,7 @@ export default function PostMatch() {
                       onPress: () => {
                         useTrainingSessionStore.getState().clear();
                         reportState.reset();
-                        router.dismissTo("/");
+                        resetToStart(navigation);
                       },
                     },
                   ],

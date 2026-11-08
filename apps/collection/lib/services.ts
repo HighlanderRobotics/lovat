@@ -40,6 +40,7 @@ export function getServiceLoader() {
 
       const scouter = useScouterStore.getState().value;
       const teamCode = useTeamStore.getState().code;
+      if (!teamCode) return;
       const isCurrent = () =>
         useScouterStore.getState().value?.uuid === scouter?.uuid &&
         useTeamStore.getState().code === teamCode;

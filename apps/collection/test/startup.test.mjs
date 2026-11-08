@@ -188,3 +188,27 @@ test("changing scouters while the roster loads cannot invalidate the new selecti
   });
   assert.deepEqual(fetches.calls, ["scouters"]);
 });
+
+test("missing restored team credentials route to onboarding even with saved selections", () => {
+  assert.equal(
+    resolveStartupRoute({
+      onboardingComplete: true,
+      teamCode: "",
+      scouter,
+      tournament,
+    }),
+    "/onboarding",
+  );
+});
+
+test("a malformed saved scouter cannot bypass selection", () => {
+  assert.equal(
+    resolveStartupRoute({
+      onboardingComplete: true,
+      teamCode: "code",
+      scouter: {},
+      tournament,
+    }),
+    "/onboarding/name",
+  );
+});

@@ -76,10 +76,21 @@ export function preflight(target, options = {}) {
         "runtimes",
         "available",
       ]);
+      const hasRuntime = runtimes.ok && /iOS 27\./.test(runtimes.text);
+      const devices = hasRuntime
+        ? null
+        : run("xcrun", ["devicectl", "list", "devices"]);
+      const hasDevice =
+        devices?.ok &&
+        devices.text
+          .split("\n")
+          .some((line) =>
+            /\s(?:available(?:\s+\([^)]*\))?|connected)\s{2,}/i.test(line),
+          );
       check(
-        "iOS 27 simulator",
-        runtimes.ok && /iOS 27\./.test(runtimes.text),
-        "Install an iOS 27 simulator runtime in Xcode Settings > Components, or run on a connected device.",
+        "iOS 27 simulator or connected device",
+        hasRuntime || hasDevice,
+        "Install an iOS 27 simulator runtime in Xcode Settings > Components, or connect and unlock an iOS 16.4+ device and accept its trust prompt; verify it is available with xcrun devicectl list devices.",
       );
     }
   }

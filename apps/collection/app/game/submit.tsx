@@ -11,7 +11,8 @@ import {
 } from "../../lib/models/match";
 import { Suspense, useEffect, useState } from "react";
 import { ScoutReport } from "../../lib/collection/ScoutReport";
-import { router } from "expo-router";
+import { useNavigation } from "expo-router";
+import { resetToStart } from "../../lib/collection/resetNavigation";
 import { uploadReport } from "../../lib/lovatAPI/uploadReport";
 import { Icon } from "../../lib/components/Icon";
 import { useHistoryStore } from "../../lib/storage/historyStore";
@@ -144,6 +145,7 @@ const DoneButton = ({
   meta: ScoutReportMeta;
 }) => {
   const resetReportState = useReportStateStore((state) => state.reset);
+  const navigation = useNavigation();
   const upsertMatchToHistory = useHistoryStore((state) => state.upsertMatch);
 
   return (
@@ -157,7 +159,7 @@ const DoneButton = ({
         );
         useTrainingSessionStore.getState().clear();
         resetReportState();
-        router.dismissTo("/");
+        resetToStart(navigation);
       }}
     >
       Done
