@@ -61,7 +61,8 @@
         }
       ],
       "./plugins/with-ios-menu-availability.cjs",
-      "./plugins/with-ios-resource-targets.cjs"
+      "./plugins/with-ios-resource-targets.cjs",
+      "./plugins/withLovatWatch.cjs"
     ],
     "scheme": "lovat-collection"
   }

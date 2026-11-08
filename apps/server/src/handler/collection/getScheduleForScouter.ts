@@ -105,6 +105,16 @@ export const getScheduleForScouter = async (
             matchNumber: matchNumber,
             matchType: MatchTypeMap[matchType],
           },
+          include: {
+            match: {
+              select: {
+                scheduledTime: true,
+                predictedTime: true,
+                actualTime: true,
+                status: true,
+              },
+            },
+          },
           orderBy: {
             key: "asc",
           },
@@ -132,6 +142,15 @@ export const getScheduleForScouter = async (
               }
             }
           }
+          // Legacy rows may not have a canonical Match relation yet.
+          // Return null instead of inventing a start time for reminders.
+          const match = matchRows[0].match;
+          currData["scheduledTime"] =
+            match?.scheduledTime?.toISOString() ?? null;
+          currData["predictedTime"] =
+            match?.predictedTime?.toISOString() ?? null;
+          currData["actualTime"] = match?.actualTime?.toISOString() ?? null;
+          currData["status"] = match?.status ?? null;
           currData["scouters"] = scouterMap;
           finalArr.push(currData);
         }

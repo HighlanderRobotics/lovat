@@ -1,3 +1,4 @@
+import { WatchSync } from "../lib/watch/WatchSync";
 import { TrainingConnection } from "../lib/training/TrainingConnection";
 import { SplashScreen, Stack } from "expo-router";
 import { NativeModules } from "react-native";
@@ -131,6 +132,7 @@ export default function Layout() {
   return (
     <KeyboardProvider>
       <TrainingConnection />
+      <WatchSync />
       <GestureHandlerRootView
         style={{ backgroundColor: colors.background.default, flex: 1 }}
       >

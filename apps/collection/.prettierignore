@@ -2,3 +2,8 @@ dist/
 build/
 coverage/
 .expo/
+
+ios/
+android/
+watch/.build/
+watch/.swiftpm/

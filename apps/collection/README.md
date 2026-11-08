@@ -26,3 +26,7 @@ npm run ts:check
 Copy `.env.example` to an appropriate local environment file and set `EXPO_PUBLIC_API_URL` to the desired Server authority. `EXPO_PUBLIC_*` values are included in client builds and must never contain secrets.
 
 Android and web have known pre-existing issues tracked as LVT-217 and LVT-220. Offline report migrations and QR-code fallback are compatibility-sensitive.
+
+## Apple Watch
+
+The SwiftUI [Apple Watch companion](watch/README.md) displays scouting assignments and schedules match reminders using the existing Collection sign-in. It is embedded through an Expo config plugin and a local Swift bridge; use a native build rather than Expo Go.
