@@ -23,6 +23,25 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+## Redis cache maintenance
+
+Every Redis key uses `REDIS_KEY_PREFIX` (default `lovat:`). The example local
+configuration uses database 1 and prefix `lovat:local:`. Use distinct prefixes
+for environments sharing a database; changing a prefix makes previous keys
+inaccessible without deleting them.
+
+Startup preserves existing keys. To delete only keys in the configured namespace:
+
+```bash
+npm run cache:reset
+```
+
+Stop all Server instances and drain requests before a complete reset. An online
+reset removes scanned keys, but concurrent requests can repopulate the cache.
+Dependency metadata is retained so analyses finishing after a reset remain
+available for normal invalidation. Foreign keys and legacy unprefixed keys are
+never deleted. Configure the same Redis URL and prefix as the Server.
+
 ## Checks
 
 ```bash

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
     set: vi.fn(),
     get: vi.fn(),
     del: vi.fn(),
-    flushDb: vi.fn(),
+    scanIterator: vi.fn(),
     incr: vi.fn(),
     expire: vi.fn(),
   },
@@ -16,14 +16,18 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("redis", () => ({ createClient: mocks.create }));
 vi.mock("../src/prismaClient.js", () => ({ default: mocks.db }));
-import { closeRedis, kv } from "../src/redisClient.js";
-import { clearCache, invalidateCache } from "../src/lib/clearCache.js";
+import { closeRedis, connectRedis, kv } from "../src/redisClient.js";
+import { resetCache, invalidateCache } from "../src/lib/clearCache.js";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.create.mockReturnValue(mocks.client);
   mocks.client.on.mockReturnValue(mocks.client);
   mocks.client.connect.mockResolvedValue(mocks.client);
   mocks.db.cachedAnalysis.findMany.mockResolvedValue([]);
+  mocks.client.scanIterator.mockImplementation(async function* () {
+    yield ["lovat:k"];
+  });
+  mocks.client.del.mockResolvedValue(1);
   vi.spyOn(console, "log").mockImplementation(() => undefined);
 });
 afterEach(async () => {
@@ -36,15 +40,16 @@ it("opens Redis lazily, reuses the connection, and forwards all command argument
   await kv.set("k", "v");
   await kv.get("k");
   await kv.del(["k"]);
-  await kv.flush();
+  await kv.reset();
+  await connectRedis();
   await kv.incr("counter");
   await kv.exp("counter", 20);
   await kv.setEx("alias", "1", 60);
   expect(mocks.create).toHaveBeenCalledTimes(1);
   expect(mocks.client.connect).toHaveBeenCalledTimes(1);
-  expect(mocks.client.set).toHaveBeenCalledWith("k", "v");
-  expect(mocks.client.set).toHaveBeenCalledWith("alias", "1", { EX: 60 });
-  expect(mocks.client.expire).toHaveBeenCalledWith("counter", 20);
+  expect(mocks.client.set).toHaveBeenCalledWith("lovat:k", "v");
+  expect(mocks.client.set).toHaveBeenCalledWith("lovat:alias", "1", { EX: 60 });
+  expect(mocks.client.expire).toHaveBeenCalledWith("lovat:counter", 20);
   const reportError = mocks.client.on.mock.calls[0][1];
   reportError(new Error("offline"));
   expect(console.log).toHaveBeenCalledWith(
@@ -60,10 +65,10 @@ it("closes and recreates connections when reused after shutdown", async () => {
   expect(mocks.client.quit).toHaveBeenCalledTimes(1);
   expect(mocks.client.connect).toHaveBeenCalledTimes(2);
 });
-it("clears both cache metadata and Redis entries", async () => {
-  await clearCache();
-  expect(mocks.db.cachedAnalysis.deleteMany).toHaveBeenCalledWith();
-  expect(mocks.client.flushDb).toHaveBeenCalledTimes(1);
+it("resets only Redis keys and keeps metadata for late analysis writes", async () => {
+  await resetCache();
+  expect(mocks.db.cachedAnalysis.deleteMany).not.toHaveBeenCalled();
+  expect(mocks.client.del).toHaveBeenCalledWith(["lovat:k"]);
 });
 it("does not delete Redis entries when no dependent analyses exist", async () => {
   await invalidateCache(254, "2026test");
@@ -93,7 +98,7 @@ it("invalidates all dependent keys for arrays of teams and tournaments", async (
     },
     select: { key: true },
   });
-  expect(mocks.client.del).toHaveBeenCalledWith(["a", "b"]);
+  expect(mocks.client.del).toHaveBeenCalledWith(["lovat:a", "lovat:b"]);
   expect(mocks.db.cachedAnalysis.deleteMany).toHaveBeenCalledWith({
     where: { key: { in: ["a", "b"] } },
   });

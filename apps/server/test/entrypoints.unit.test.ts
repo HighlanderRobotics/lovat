@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   exercise: vi.fn(),
   schedule: vi.fn(),
+  connect: vi.fn(),
   clear: vi.fn(),
   listen: vi.fn(),
   create: vi.fn(),
@@ -17,6 +18,7 @@ vi.mock("../src/handler/training/trainingSockets.js", () => ({
 }));
 vi.mock("../src/app.js", () => ({ app: { listen: mocks.listen } }));
 vi.mock("../src/lib/scheduleJobs.js", () => ({ default: mocks.schedule }));
+vi.mock("../src/redisClient.js", () => ({ connectRedis: mocks.connect }));
 vi.mock("../src/lib/clearCache.js", () => ({ clearCache: mocks.clear }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
@@ -39,7 +41,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 it.each([undefined, "4321"])(
-  "schedules and clears cache before listening on the configured port (%s)",
+  "schedules and connects Redis before listening on the configured port (%s)",
   async (port) => {
     vi.stubEnv("PORT", port);
     await import("../src/server.js");
@@ -49,15 +51,16 @@ it.each([undefined, "4321"])(
       mocks.schedule.mock.invocationCallOrder[0],
     );
     expect(mocks.schedule).toHaveBeenCalledOnce();
-    expect(mocks.clear).toHaveBeenCalledOnce();
+    expect(mocks.clear).not.toHaveBeenCalled();
+    expect(mocks.connect).toHaveBeenCalledOnce();
     expect(mocks.listen).toHaveBeenCalledWith(
       port ?? 3000,
       expect.any(Function),
     );
     expect(mocks.schedule.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.clear.mock.invocationCallOrder[0],
+      mocks.connect.mock.invocationCallOrder[0],
     );
-    expect(mocks.clear.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mocks.connect.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.listen.mock.invocationCallOrder[0],
     );
   },

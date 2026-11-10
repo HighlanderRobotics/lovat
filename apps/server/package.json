@@ -22,7 +22,8 @@
     "prebuild": "npm --prefix ../../packages/db run build",
     "db:seed": "tsx src/seed.ts",
     "test:coverage:unit": "vitest run --coverage",
-    "test:report:preview": "vite preview --outDir test-report --host 127.0.0.1"
+    "test:report:preview": "vite preview --outDir test-report --host 127.0.0.1",
+    "cache:reset": "tsx src/resetCache.ts"
   },
   "keywords": [],
   "author": "",
