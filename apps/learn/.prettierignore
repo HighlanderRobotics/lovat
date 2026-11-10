@@ -8,3 +8,5 @@ src/content/docs/guides/scouting-a-match copy.mdx
 coverage
 playwright-report
 test-results
+
+test-report/

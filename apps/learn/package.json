@@ -16,7 +16,7 @@
     "test:image": "bash test/image.sh",
     "test:ci": "npm run test:typecheck && npm run test:coverage && npm run build",
     "test:typecheck": "tsc --project tsconfig.test.json",
-    "test:coverage": "node --experimental-test-coverage --test --test-coverage-include='plugins/*.mjs' --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 test/*.test.mjs"
+    "test:coverage": "node test/run-report.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.1",
