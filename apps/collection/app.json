@@ -56,7 +56,11 @@
         {
           "image": "./assets/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#1f1f1f"
+          "backgroundColor": "#1f1f1f",
+          "imageWidth": 200,
+          "ios": {
+            "enableFullScreenImage_legacy": true
+          }
         }
       ]
     ],
