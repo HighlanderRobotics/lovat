@@ -2,7 +2,7 @@ import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@lovat/db";
 import { checkOnlyOneInstanceOfScouter } from "../checkOnlyInstanceOfScouter.js";
 import { checkScouterShiftMatches } from "../scoutershifts/checkScouterShiftMatches.js";
 
@@ -10,7 +10,7 @@ export const addScouterShift = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -97,8 +97,5 @@ export const addScouterShift = async (
     } else {
       res.status(403).send("Not authorized to add scouter shift");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

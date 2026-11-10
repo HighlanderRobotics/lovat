@@ -4,20 +4,20 @@ import z from "zod";
 import axios from "axios";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { matchPredictionLogic } from "../analysis/predictions/matchPredictionLogic.js";
-import { MatchType } from "@prisma/client";
+import { MatchType } from "@lovat/db";
 import { MatchEnumToAbrivation } from "./managerConstants.js";
 
 export const pitDisplay = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         team: z.number().min(0),
         tournamentKey: z.string(),
-        topTeamCount: z.number(),
-        teamsAboveCount: z.number(),
+        topTeamCount: z.number().int().min(0),
+        teamsAboveCount: z.number().int().min(0),
       })
       .safeParse({
         team: Number(req.query.team),
@@ -73,7 +73,7 @@ export const pitDisplay = async (
           (team) => team.number === params.data.team,
         );
 
-        if (findTeamIndex) {
+        if (findTeamIndex >= 0) {
           if (
             findTeamIndex <
             params.data.topTeamCount + params.data.teamsAboveCount
@@ -81,11 +81,10 @@ export const pitDisplay = async (
             data.rankingBlocks = mappedData;
           } else {
             let arrRankings = mappedData.slice(0, params.data.topTeamCount);
-            const startingIndex =
-              findTeamIndex - params.data.teamsAboveCount || 0;
+            const startingIndex = findTeamIndex - params.data.teamsAboveCount;
             arrRankings.push({
               type: "collapsedDivider",
-              teamCount: startingIndex + 1 - params.data.topTeamCount,
+              teamCount: startingIndex - params.data.topTeamCount,
             });
             arrRankings = arrRankings.concat(mappedData.slice(startingIndex));
             data.rankingBlocks = arrRankings;
@@ -99,15 +98,14 @@ export const pitDisplay = async (
       where: {
         tournamentKey: params.data.tournamentKey,
         scoutReports: {
-          some: {},
+          some: { training: false },
         },
       },
       //reverse order (get most recent)
       orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
     });
-    nowPlaying.matchNumber = nowPlaying.matchNumber + 1;
-
     if (nowPlaying) {
+      nowPlaying.matchNumber += 1;
       const matchesData: any = {};
       matchesData.nowPlaying = await matchFormat(
         params.data.tournamentKey,
@@ -119,6 +117,7 @@ export const pitDisplay = async (
         nowPlaying.matchNumber + 1,
         nowPlaying.matchType,
       );
+      data.matches = matchesData;
       //if there are more matches left
       if (matchesData.next !== null) {
         const prevMatchAllRows = await prismaClient.teamMatchData.findMany({
@@ -132,7 +131,7 @@ export const pitDisplay = async (
           by: ["tournamentKey", "matchNumber", "matchType"],
           where: {
             scoutReports: {
-              some: {},
+              some: { training: false },
             },
           },
         });
@@ -182,11 +181,16 @@ export const pitDisplay = async (
             tournamentKey: params.data.tournamentKey,
             teamNumber: params.data.team,
             scoutReports: {
-              some: {},
+              some: { training: false },
             },
           },
           orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
         });
+
+        if (!nextTeamMatch) {
+          res.status(200).send(data);
+          return;
+        }
 
         //one elim (next) and one qual (prev)
         if (teamPrevMatch === null) {
@@ -198,10 +202,11 @@ export const pitDisplay = async (
             },
           });
         }
-        if (
-          nextTeamMatch &&
-          teamPrevMatch.matchType != nextTeamMatch.matchType
-        ) {
+        if (!teamPrevMatch) {
+          res.status(200).send(data);
+          return;
+        }
+        if (teamPrevMatch.matchType !== nextTeamMatch.matchType) {
           const maxQualifierRow = await prismaClient.teamMatchData.findFirst({
             where: {
               tournamentKey: params.data.tournamentKey,
@@ -210,6 +215,10 @@ export const pitDisplay = async (
             orderBy: [{ matchType: "asc" }, { matchNumber: "desc" }],
           });
 
+          if (!maxQualifierRow) {
+            res.status(200).send(data);
+            return;
+          }
           if (nowPlaying.matchType !== teamPrevMatch.matchType) {
             data.teamMatchTimeline = {
               matchCount:
@@ -243,9 +252,6 @@ export const pitDisplay = async (
     }
 
     res.status(200).send(data);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
   }
 };
 async function matchFormat(
@@ -253,7 +259,7 @@ async function matchFormat(
   matchNumber: number,
   matchType: MatchType,
 ) {
-  try {
+  {
     const fullLatestedScouted = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: tournamentKey,
@@ -264,7 +270,7 @@ async function matchFormat(
         key: "asc",
       },
     });
-    if (fullLatestedScouted.length < 0) {
+    if (fullLatestedScouted.length !== 6) {
       return null;
     }
     const blueTeams = [
@@ -324,7 +330,5 @@ async function matchFormat(
         throw error;
       }
     }
-  } catch (error) {
-    throw error;
   }
 }

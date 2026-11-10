@@ -2,7 +2,7 @@ import z from "zod";
 import { MetricsBreakdown } from "../analysisConstants.js";
 import { nonEventMetric, NonEventMetricResult } from "./nonEventMetric.js";
 import { runAnalysis, AnalysisFunctionConfig } from "../analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 const argsSchema = z.object({ team: z.number() });
 const returnSchema = z.object({ mainRoles: z.array(z.string()) });
@@ -23,22 +23,11 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
     args: z.infer<typeof argsSchema>,
     ctx: { user: User },
   ) => {
-    try {
+    {
       const roles: NonEventMetricResult = await nonEventMetric(ctx.user, {
         team: args.team,
         metric: MetricsBreakdown.robotRole,
       });
-
-      let eventTypeWithMostOccurrences: string = null;
-      let maxCount = 0;
-
-      // Iterate through robot roles
-      for (const [type, count] of Object.entries(roles) as [string, number][]) {
-        if (count > maxCount) {
-          maxCount = count;
-          eventTypeWithMostOccurrences = type;
-        }
-      }
 
       const sortedRoles = Object.entries(roles)
         .sort((a, b) => (b[1] as number) - (a[1] as number))
@@ -47,9 +36,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       return {
         mainRoles: sortedRoles,
       };
-    } catch (error) {
-      console.error(error);
-      throw error;
     }
   },
 };

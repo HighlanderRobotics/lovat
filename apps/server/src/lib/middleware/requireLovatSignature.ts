@@ -24,8 +24,7 @@ const requireLovatSignature = (
   const timestampDate = new Date(timestamp * 1000);
   const now = new Date();
   const diff = now.getTime() - timestampDate.getTime();
-  const diffMinutes = Math.floor(diff / 1000 / 60);
-  if (diffMinutes > 5) {
+  if (Math.abs(diff) > 5 * 60 * 1000) {
     res.status(401).send("Signature expired");
     return;
   }

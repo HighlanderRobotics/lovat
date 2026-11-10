@@ -20,7 +20,11 @@ const csrf =
 			return text(message, { status: 403 });
 		}
 
-		return resolve(event);
+		const response = await resolve(event);
+		// Operational pages include verification side effects and live pit data.
+		// Static assets are served separately by the adapter.
+		response.headers.set('cache-control', 'private, no-store');
+		return response;
 	};
 function isContentType(request: Request, ...types: string[]) {
 	const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';

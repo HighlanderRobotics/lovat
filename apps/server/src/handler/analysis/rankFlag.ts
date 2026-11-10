@@ -1,7 +1,7 @@
 import axios from "axios";
 import z from "zod";
 import { runAnalysis, AnalysisFunctionConfig } from "./analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 export async function computeRankFlag(
   eventKey: string,
@@ -39,13 +39,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
   returnSchema,
   usesDataSource: false,
   shouldCache: false,
-  createKey: async (args) => ({
-    key: [
-      "rankFlag",
-      args.eventKey,
-      JSON.stringify([...args.teams].sort((a, b) => a - b)),
-    ],
-  }),
   calculateAnalysis: async (args) => {
     const out = await computeRankFlag(args.eventKey, args.teams);
     return out as unknown as Record<string, number>;

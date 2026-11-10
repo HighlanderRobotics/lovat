@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/coverage
+**/test-report
+**/src/generated
+**/.env
+**/.env.*
+.git
+apps/support
+apps/dashboard
+apps/collection
+apps/website

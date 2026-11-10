@@ -19,6 +19,7 @@ import { ScoutReportMeta } from "../../lib/models/ScoutReportMeta";
 import { ScoutReportCode } from "../../lib/collection/ui/ScoutReportCode";
 import { CommonActions } from "@react-navigation/native";
 import React from "react";
+import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 
 export default function Submit() {
   const reportState = useReportStateStore();
@@ -50,9 +51,10 @@ export default function Submit() {
 
   useEffect(() => {
     if (scoutReport && !uploaded && !uploading && !uploadError) {
+      upsertMatchToHistory(scoutReport, false, reportState.meta!);
       setUploading(true);
 
-      uploadReport(scoutReport)
+      uploadReport(scoutReport, reportState.meta!)
         .then(() => {
           setUploading(false);
           setUploaded(true);
@@ -88,7 +90,19 @@ export default function Submit() {
         }}
       >
         <View style={{ flex: 1, paddingVertical: 16, maxWidth: 450 }}>
-          {scoutReport && <ScoutReportCode scoutReport={scoutReport!} />}
+          {scoutReport &&
+            !reportState.meta?.collection?.trainingAttemptUuid && (
+              <ScoutReportCode scoutReport={scoutReport!} />
+            )}
+          {reportState.meta?.collection?.trainingAttemptUuid && (
+            <View style={{ padding: 26, flex: 1, justifyContent: "center" }}>
+              <BodyMedium>
+                Training report for robot {reportState.meta.teamNumber}. Your
+                score will appear on the website after upload. Failed uploads
+                can be retried from History.
+              </BodyMedium>
+            </View>
+          )}
 
           <View style={{ paddingHorizontal: 26, flex: 1 }}>
             <UploadIndicator state={uploadState} />
@@ -143,6 +157,7 @@ const DoneButton = ({
           uploadState === UploadState.Uploaded,
           meta,
         );
+        useTrainingSessionStore.getState().clear();
         resetReportState();
         navigation.dispatch(
           CommonActions.reset({

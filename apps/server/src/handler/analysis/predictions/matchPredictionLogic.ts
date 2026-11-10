@@ -2,7 +2,7 @@ import z from "zod";
 import { Metric } from "../analysisConstants.js";
 import { arrayAndAverageTeams } from "../coreAnalysis/arrayAndAverageTeams.js";
 import { runAnalysis } from "../analysisFunction.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 
 const config = {
   argsSchema: z.object({
@@ -103,7 +103,14 @@ const config = {
     );
     const differentialMean = redAllianceMean - blueAllianceMean;
 
-    const redLoosing = getZPercent((0 - differentialMean) / differentialSDV);
+    const redLoosing =
+      differentialSDV === 0
+        ? differentialMean === 0
+          ? 0.5
+          : differentialMean > 0
+            ? 0
+            : 1
+        : getZPercent((0 - differentialMean) / differentialSDV);
 
     const redWinning = 1 - redLoosing;
     const blueWiinning = 1 - redWinning;

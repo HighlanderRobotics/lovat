@@ -4,15 +4,17 @@ import z from "zod";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { addTournamentMatches } from "./addTournamentMatches.js";
 import { ReverseMatchTypeMap } from "./managerConstants.js";
-import { MatchType, Prisma } from "@prisma/client";
+import { MatchType, MatchStatus, Prisma } from "@lovat/db";
+import { RequestValidationError } from "../../lib/errors.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToPrismaFilter,
 } from "../analysis/dataSourceRule.js";
 
 /**
  * @param params.tournament tournament to pull from
  * @param query.teams optional - limit to matches containing all these teams
+ * @param query.includePractice optional - include practice matches, defaults to false
  *
  * @returns list of matches organized by number and type, with data for teams/scouts/external reports
  */
@@ -20,20 +22,35 @@ export const getMatches = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     let teams = null;
     if (req.query.teams != undefined) {
-      teams = JSON.parse(req.query.teams as string);
+      if (typeof req.query.teams !== "string") {
+        throw new RequestValidationError("Invalid team filters");
+      }
+      try {
+        teams = JSON.parse(req.query.teams);
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          throw new RequestValidationError("Invalid team filters");
+        }
+        throw error;
+      }
     }
     const params = z
       .object({
         tournamentKey: z.string(),
         teamFilter: z.array(z.number()).nullable(),
+        includePractice: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((value) => value === "true"),
       })
       .safeParse({
         tournamentKey: req.params.tournament,
         teamFilter: teams,
+        includePractice: req.query.includePractice,
       });
     if (!params.success) {
       res.status(400).send(params);
@@ -53,7 +70,7 @@ export const getMatches = async (
         tournamentKey: params.data.tournamentKey,
         matchType: MatchType.QUALIFICATION,
         scoutReports: {
-          some: {},
+          some: { training: false },
         },
       },
       orderBy: [{ matchNumber: "desc" }],
@@ -65,10 +82,15 @@ export const getMatches = async (
     const lastFinishedMatch = last ? last.matchNumber : 0;
 
     // Filter to return a list of user's team's scout reports for each row, only valid if user has a team number
-    let includeTeamReports: Prisma.TeamMatchData$scoutReportsArgs | undefined =
-      undefined;
+    const ownReportSelect = {
+      scouter: { select: { name: true, uuid: true } },
+    } satisfies Prisma.ScoutReportSelect;
+    let includeTeamReports:
+      | { where: Prisma.ScoutReportWhereInput; select: typeof ownReportSelect }
+      | undefined;
 
-    const teamSourceRule = dataSourceRuleSchema(z.number()).parse(
+    const teamSourceRule = parseStoredSourceRule(
+      z.number(),
       req.user.teamSourceRule,
     );
 
@@ -89,35 +111,35 @@ export const getMatches = async (
 
       includeTeamReports = {
         where: {
+          training: false,
           scouter: {
             sourceTeamNumber: user.teamNumber,
           },
         },
-        select: {
-          scouter: {
-            select: {
-              name: true,
-              uuid: true,
-            },
-          },
-        },
+        select: ownReportSelect,
       };
     }
 
     const rawData = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: params.data.tournamentKey,
+        ...(params.data.includePractice
+          ? {}
+          : { matchType: { not: MatchType.PRACTICE } }),
       },
       select: {
         matchNumber: true,
         matchType: true,
         teamNumber: true,
         key: true,
+        match: { select: { status: true } },
+        practiceScheduled: true,
         _count: {
           // Represents the total number of valid scout reports for this row
           select: {
             scoutReports: {
               where: {
+                training: false,
                 scouter: {
                   sourceTeamNumber:
                     dataSourceRuleToPrismaFilter(teamSourceRule),
@@ -150,9 +172,13 @@ export const getMatches = async (
       teamNumber: number;
       matchType: MatchType;
       key: string;
+      match: { status: MatchStatus } | null;
       _count: { scoutReports: number };
       scoutReports: { scouter: { name: string; uuid: string } }[] | undefined;
     }[][] = rawData.reduce((acc, curr) => {
+      // Practice rows have team-number keys rather than official alliance slots.
+      // Format them separately so they cannot overwrite qualification matches.
+      if (curr.matchType === MatchType.PRACTICE) return acc;
       // Positive indices are quals, negatives are elims
       const i =
         curr.matchNumber * (curr.matchType === MatchType.ELIMINATION ? -1 : 1);
@@ -223,6 +249,52 @@ export const getMatches = async (
       };
     }[] = [];
 
+    const withPracticeMatches = (matches: typeof finalFormattedMatches) => {
+      if (!params.data.includePractice) return matches;
+
+      type MatchRow = (typeof groupedData)[number][number];
+      const practiceGroups = new Map<number, MatchRow[]>();
+      for (const row of rawData) {
+        if (
+          row.matchType !== MatchType.PRACTICE ||
+          (!row.practiceScheduled && row._count.scoutReports === 0)
+        ) {
+          continue;
+        }
+        const group = practiceGroups.get(row.matchNumber) ?? [];
+        group.push(row);
+        practiceGroups.set(row.matchNumber, group);
+      }
+
+      const practiceMatches = [...practiceGroups.entries()]
+        .sort(([left], [right]) => left - right)
+        .filter(([, rows]) =>
+          (params.data.teamFilter ?? []).every((requiredTeam) =>
+            rows.some((row) => row.teamNumber === requiredTeam),
+          ),
+        )
+        .map(([matchNumber, rows]) => ({
+          matchNumber,
+          matchType: ReverseMatchTypeMap[MatchType.PRACTICE],
+          scouted: rows.some((row) => row._count.scoutReports >= 1),
+          finished: false,
+          // Practice reports do not identify red/blue alliance positions.
+          teams: rows
+            .sort((left, right) => left.teamNumber - right.teamNumber)
+            .map((row) => ({
+              number: row.teamNumber,
+              scouters: (row.scoutReports ?? []).map((report) => ({
+                name: report.scouter.name,
+                scouted: true,
+              })),
+              externalReports:
+                row._count.scoutReports - (row.scoutReports?.length ?? 0),
+            })),
+        }));
+
+      return [...matches, ...practiceMatches];
+    };
+
     // If no team number is set, there are no scouters and all reports are external
     if (!user.teamNumber) {
       for (const k in groupedData) {
@@ -232,9 +304,10 @@ export const getMatches = async (
           matchNumber: match[0].matchNumber,
           matchType: ReverseMatchTypeMap[match[0].matchType],
           scouted: match.some((team) => team._count.scoutReports >= 1),
-          finished:
-            match[0].matchType === MatchType.QUALIFICATION &&
-            match[0].matchNumber <= lastFinishedMatch,
+          finished: match[0].match
+            ? match[0].match.status === MatchStatus.COMPLETED
+            : match[0].matchType === MatchType.QUALIFICATION &&
+              match[0].matchNumber <= lastFinishedMatch,
           team1: {
             number: match[0].teamNumber,
             scouters: [],
@@ -275,7 +348,7 @@ export const getMatches = async (
         }
       }
 
-      res.status(200).send(finalFormattedMatches);
+      res.status(200).send(withPracticeMatches(finalFormattedMatches));
       return;
     }
     // Done here if user has no team number
@@ -344,16 +417,17 @@ export const getMatches = async (
       }
 
       // Scouted flag based on if any team in this match has at least 1 sourced scout report
-      // Finished flag is true if the match is a qualification before the last finished match
+      // Prefer imported match completion; preserve the report-based fallback for legacy rows.
       // Scouters array includes all scouters from user's team, and all incomplete reports from assigned scouting shifts
       // External reports are the number of non-team scout reports, so [other team reports - user team reports]
       const currData = {
         matchNumber: match[0].matchNumber,
         matchType: ReverseMatchTypeMap[match[0].matchType],
         scouted: match.some((team) => team._count.scoutReports >= 1),
-        finished:
-          match[0].matchType === MatchType.QUALIFICATION &&
-          match[0].matchNumber <= lastFinishedMatch,
+        finished: match[0].match
+          ? match[0].match.status === MatchStatus.COMPLETED
+          : match[0].matchType === MatchType.QUALIFICATION &&
+            match[0].matchNumber <= lastFinishedMatch,
         team1: {
           number: match[0].teamNumber,
           scouters: matchScouters[0],
@@ -397,7 +471,7 @@ export const getMatches = async (
     }
 
     if (!params.data.teamFilter) {
-      res.status(200).send(finalFormattedMatches);
+      res.status(200).send(withPracticeMatches(finalFormattedMatches));
       return;
     }
 
@@ -411,9 +485,6 @@ export const getMatches = async (
       }
     }
 
-    res.status(200).send(denseFormattedMatches);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+    res.status(200).send(withPracticeMatches(denseFormattedMatches));
   }
 };

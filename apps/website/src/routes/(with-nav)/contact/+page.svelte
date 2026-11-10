@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Recaptcha from '$lib/components/Recaptcha.svelte';
+	import type { PageData, ActionData } from './$types';
 	import { Button, TextField } from 'magnolia-ui-svelte';
 
+	export let data: PageData;
+	export let form: ActionData;
+	let captcha: Recaptcha;
+	let captchaToken = '';
 	let submitClicked = false;
 	let teamValue = '';
 	let teamError = '';
@@ -35,7 +41,24 @@
 	</div>
 </section>
 <section class="form">
-	<form method="POST" use:enhance on:submit={() => (submitClicked = true)}>
+	<form
+		method="POST"
+		use:enhance={({ cancel }) => {
+			if (!captchaToken || submitClicked) {
+				cancel();
+				return;
+			}
+			submitClicked = true;
+			return async ({ update }) => {
+				try {
+					await update();
+				} finally {
+					submitClicked = false;
+					captcha?.reset();
+				}
+			};
+		}}
+	>
 		<label for="name">Name</label>
 		<TextField name="name" id="name" placeholder="Woodie Flowers" required />
 
@@ -60,8 +83,17 @@
 		<label for="message">Message</label>
 		<textarea name="message" id="message" placeholder="I would love to see..." required />
 
+		{#if data.recaptchaSiteKey}
+			<Recaptcha siteKey={data.recaptchaSiteKey} bind:token={captchaToken} bind:this={captcha} />
+		{:else}
+			<p role="alert">Contact verification is unavailable. Please try again later.</p>
+		{/if}
+		{#if form?.message}
+			<p role="alert">{form.message}</p>
+		{/if}
+
 		<div class="submit">
-			<Button disabled={submitClicked || !!teamError}>Send</Button>
+			<Button disabled={submitClicked || !!teamError || !captchaToken}>Send</Button>
 		</div>
 	</form>
 </section>

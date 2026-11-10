@@ -142,8 +142,8 @@
 			<p>
 				<strong>To contact You:</strong> To contact You by email, telephone calls, SMS, or other equivalent
 				forms of electronic communication, such as a mobile application's push notifications regarding
-				updates or informative communications related to the functionalities, products or contracted
-				services, including the security updates, when necessary or reasonable for their implementation.
+				updates or informative communications related to the functionalities, products or contracted services,
+				including the security updates, when necessary or reasonable for their implementation.
 			</p>
 		</li>
 		<li>

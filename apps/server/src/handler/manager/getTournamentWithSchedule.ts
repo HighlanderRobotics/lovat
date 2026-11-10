@@ -6,7 +6,7 @@ export const getTournamentsWithSchedule = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         uuid: z.string(),
@@ -42,8 +42,5 @@ export const getTournamentsWithSchedule = async (
       },
     });
     res.status(200).send(tournamentInfo);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: error, displayError: "Error" });
   }
 };

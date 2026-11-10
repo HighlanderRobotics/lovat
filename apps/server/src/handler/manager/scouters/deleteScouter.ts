@@ -8,7 +8,7 @@ export const deleteScouter = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -120,8 +120,5 @@ export const deleteScouter = async (
     invalidateCache(teamsScouted, tournamentsScouted);
 
     res.status(200).send("Scouter deleted");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

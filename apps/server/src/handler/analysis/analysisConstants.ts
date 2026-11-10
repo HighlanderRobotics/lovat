@@ -9,9 +9,10 @@ import {
   IntakeType,
   Beached,
   FieldTraversal,
-} from "@prisma/client";
+} from "@lovat/db";
 import prismaClient from "../../prismaClient.js";
 import { DataSourceRule } from "./dataSourceRule.js";
+import { endgameToPoints } from "./reportPoints.js";
 //add cooperation
 
 // Tunable constants
@@ -90,15 +91,6 @@ const minActionDuration = 0.5;
 
 const specificMatchPageMetrics = [];
 
-// Easy point calculation
-const endgameToPoints: Record<EndgameClimb, number> = {
-  [EndgameClimb.NOT_ATTEMPTED]: 0,
-  [EndgameClimb.FAILED]: 0,
-  [EndgameClimb.L1]: 10,
-  [EndgameClimb.L2]: 20,
-  [EndgameClimb.L3]: 30,
-};
-
 // Metrics that are analyzed by event count
 const metricToEvent: Partial<Record<Metric, EventAction>> = {
   [Metric.feedsPerMatch]: EventAction.START_FEEDING,
@@ -158,9 +150,8 @@ const accuracyToPercentage: Record<number, number> = {
 export const accuracyToPercentageInterpolated = (
   avg: number | null | undefined,
 ): number => {
+  if (avg === null || avg === undefined || !Number.isFinite(avg)) return 0;
   avg = Math.max(0, Math.min(5, avg));
-
-  if (avg === null || avg === undefined) return 0;
   const lower = Math.floor(avg);
   const upper = Math.ceil(avg);
 

@@ -7,7 +7,7 @@ export const getTeamEmail = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.user.role !== "SCOUTING_LEAD") {
       res.status(403).send("Forbidden");
       return;
@@ -24,8 +24,5 @@ export const getTeamEmail = async (
     }
 
     res.status(200).send(teamEmail.email);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

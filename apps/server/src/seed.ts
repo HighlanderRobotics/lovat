@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "./prismaClient.js";
 async function main() {
   const featureToggleSlackVerification = await prisma.featureToggle.create({
     data: {

@@ -5,7 +5,15 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
-  { ignores: ["babel.config.js"] },
+  {
+    ignores: [
+      "babel.config.js",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      ".expo/**",
+    ],
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,

@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Suppress automated version and security-update PRs. Alerts stay enabled separately.
+  # Wildcard ignores apply to security updates too; a zero PR limit alone does not.
+  - package-ecosystem: npm
+    directories:
+      - "/**"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
+
+  - package-ecosystem: pub
+    directories:
+      - "/**"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
+
+  # Gradle security alerts also require dependency-graph submission.
+  - package-ecosystem: gradle
+    directory: "/apps/dashboard/android"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
+
+  # CocoaPods and Docker security updates are not supported by Dependabot.

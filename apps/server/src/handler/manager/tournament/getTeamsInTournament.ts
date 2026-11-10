@@ -6,7 +6,7 @@ export const getTeamsInTournament = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         tournamentKey: z.string(),
@@ -27,7 +27,7 @@ export const getTeamsInTournament = async (
         teamNumber: true,
       },
     });
-    if (!rows) {
+    if (rows.length === 0) {
       res.status(404).send("Tournament or teams not found");
       return;
     }
@@ -44,8 +44,5 @@ export const getTeamsInTournament = async (
     });
 
     res.status(200).send(teams);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

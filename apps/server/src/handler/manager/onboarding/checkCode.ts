@@ -7,7 +7,7 @@ export const checkCode = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -49,8 +49,5 @@ export const checkCode = async (
     } else {
       res.status(404).send("team not found");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

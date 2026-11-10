@@ -129,6 +129,7 @@ class LovatAPI {
       if (token != null) 'Authorization': 'Bearer $token',
       'X-Operating-System': kIsWeb ? "web" : Platform.operatingSystem,
       'X-App-Version': packageInfo.version,
+      'X-Lovat-Error-Format': 'json-v1',
       'X-Build-Number': packageInfo.buildNumber,
       if (jsonBody) 'Content-Type': "application/json",
     };
@@ -254,4 +255,9 @@ class LovatAPIException implements Exception {
 
 const kProductionBaseUrl = "https://api.lovat.app";
 
-final lovatAPI = LovatAPI(kProductionBaseUrl);
+const kDefaultBaseUrl = String.fromEnvironment(
+  'LOVAT_API_BASE',
+  defaultValue: kProductionBaseUrl,
+);
+
+final lovatAPI = LovatAPI(kDefaultBaseUrl);

@@ -1,15 +1,15 @@
 PODS:
-  - Auth0 (2.7.2):
-    - JWTDecode (~> 3.1)
-    - SimpleKeychain (~> 1.1)
-  - auth0_flutter (1.7.2):
-    - Auth0 (= 2.7.2)
+  - Auth0 (2.10.0):
+    - JWTDecode (= 3.2.0)
+    - SimpleKeychain (= 1.2.0)
+  - auth0_flutter (1.14.0):
+    - Auth0 (= 2.10.0)
     - Flutter
     - FlutterMacOS
-    - JWTDecode (= 3.1.0)
-    - SimpleKeychain (= 1.1.0)
+    - JWTDecode (= 3.2.0)
+    - SimpleKeychain (= 1.2.0)
   - FlutterMacOS (1.0.0)
-  - JWTDecode (3.1.0)
+  - JWTDecode (3.2.0)
   - mobile_scanner (7.0.0):
     - Flutter
     - FlutterMacOS
@@ -23,7 +23,7 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - SimpleKeychain (1.1.0)
+  - SimpleKeychain (1.2.0)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
 
@@ -62,18 +62,18 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  Auth0: 28cb24cb19ebd51f0b07751f16d83b59f4019532
-  auth0_flutter: f085572268059bc194c7b023d7f432f5ebb72413
+  Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
+  auth0_flutter: 031042ca6cf84f1b21611062b33ea7ec4bf3bc52
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  JWTDecode: 3eaab1e06b6f4dcbdd6716aff09ba4c2104ca8b7
-  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
-  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
-  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
-  SimpleKeychain: f8707c8e97b38c6a6e687b17732afc9bcef06439
-  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
+  JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
+  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  share_plus: 3c787998077d6b31e839225a282e9e27edf99274
+  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+  SimpleKeychain: 768cf43ae778b1c21816e94dddf01bb8ee96a075
+  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
 
-PODFILE CHECKSUM: 8d40c19d3cbdb380d870685c3a564c989f1efa52
+PODFILE CHECKSUM: dd7266e0d73a69fc390c31f95bb1a916a6acab60
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import {
   FlippedActionMap,
@@ -35,6 +36,7 @@ const config = {
     const autoData = await prismaClient.event.findMany({
       where: {
         scoutReport: {
+          ...analysisReportFilter,
           uuid: args.scoutReportUuid,
         },
         time: {
@@ -46,10 +48,16 @@ const config = {
       },
     });
     const scoutReport = await prismaClient.scoutReport.findUnique({
-      where: {
-        uuid: args.scoutReportUuid,
-      },
+      where: { ...analysisReportFilter, uuid: args.scoutReportUuid },
     });
+    if (!scoutReport) {
+      return {
+        autoPoints: 0,
+        positions: [],
+        match: args.matchKey,
+        tournamentName: "",
+      };
+    }
     const match = await prismaClient.teamMatchData.findUnique({
       where: {
         key: scoutReport.teamMatchKey,

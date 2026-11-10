@@ -8,7 +8,7 @@ export const addWebsite = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -37,8 +37,5 @@ export const addWebsite = async (
 
     await sendSlackVerification(row.number, row.email, req.body.website);
     res.status(200).send("Slack verification sent");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

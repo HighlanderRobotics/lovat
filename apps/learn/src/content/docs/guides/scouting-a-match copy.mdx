@@ -1,0 +1,79 @@
+---
+title: Scouting a Match
+description: Everything you need to scout a match in Lovat Collection.
+---
+
+{/*
+import Phone from "../../../components/Phone.astro";
+import preMatch from "../../../assets/pre-match.png";
+import autoCoral from "../../../assets/auto-coral.jpg";
+import teleop from "../../../assets/teleop-nopiece.png"; */}
+
+## The Game Screen
+
+In the top right of your screen, you can see the time elapsed, the game stage (Pre-match, Autonomous, or Teleop), and the team you are scouting. Before starting the match, choose a starting position. There are five starting positions: one for each bump, one for each trench, and one for the hub. Immediately as the match starts, tap the play button.
+
+{/* <Phone src={preMatch} alt="Phone" orientation="landscape-left" /> */}
+
+### Autonomous
+
+Each button represents a specific action the robot can take.
+
+If the robot crosses into the neutral zone, tap the corresponding purple button for where they crossed. Make sure to pay attention to if it crossed at the hub or the bump.
+
+If the robot tries to crash into the neutral zone's fuel to scatter it, tap the blue bomb button. Tap the yellow intake icon to
+
+Shooting fuel is more complicated. There are two shooting modes: count and rate. The default is rate.
+
+While holding, score will increase based on your scoring mode.
+
+**Rate** (default)
+In this mode, the rate at which you score balls increases as you drag farther from the hexagon.
+
+**Count**
+In this mode, your distance from the hexagon determines how many balls the robot has scored. You can move closer to the hexagon if you've scored too many balls.
+
+In order to determine the ball rate, we’re also keeping track how long you held down the button for. So, try to synchronize when you start and stop pressing the button to when the robot starts and stops shooting.
+
+The same applies to feeding, except instead of dragging away from the hexagon, drag from the feeding icon.
+
+{/* <Phone src={autoCoral} alt="Phone" orientation="landscape-left" /> */}
+
+### Teleop
+
+Scoring in teleop
+
+{/* <Phone src={teleop} alt="Phone" orientation="landscape-left" /> */}
+
+## Post Match
+
+After the match you will answer some questions about the robot in the match.
+Robot Role should represent what the robot did for the majority of the match. Offense and defense will likely be the most common. Select immobile only if the robot doesn't move for most of the match.
+Driver Ability is an estimate of how well the robot's drivers controlled the robot, in your opinion. 1 is the worst, and 5 is best.
+Barge Result represents the robot's barge result. Be sure to pay attention to shallow versus deep cages.
+The next questions are about the robot's mechanical ability. Algae pickup and coral pickup are about how the robot is able to pick up game pieces. Knocks algae refers to if the robot is able to remove algae from the reef by hitting the reef in some way.
+
+### Notes
+
+Optionally, you can add a note about the team's performance in the match. You don't have to upload a note every match. When writing notes, try to balance being specific and readable. For example, you could say “Climbed in ~15s” instead of “Fast climb” or “The robot’s climbing mechanism worked quickly and effectively compared to other teams”
+
+Notes should give only information that isn't shown in the data for the match. Avoid saying things such as how many coral the robot scored.
+
+Some things that can be included are
+
+- Information about the team's human player, such as if they are struggling to feed multiple robots or are missing a lot
+- Penalties caused by the robot, if you're sure the penalty was by the robot you're scouting
+- Perceived Mechanical/Electrical/Software issues, such as broken mechanisms, losing comms, or an auto going the wrong direction
+- If the robot often gets in the way of teammates
+- Strategies such as using a buddy auto
+
+Some examples of good notes could be
+
+- Lost comms with 15s left. Small intake.
+- Got lots of penalties from pinning
+
+Always make sure to keep your notes respectful and clear.
+
+### Uploading data
+
+After you submit your report, a QR code will appear with your data. An indicator will appear below the QR code if your data uploads successfully. If it does, tap "done" and continue on to scout the next match. If the indicator says "Upload failed", usually due to bad connection, your data will still be saved. Click done and [upload it later](/guides/uploading-past-data/).

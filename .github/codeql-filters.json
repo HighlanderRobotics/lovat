@@ -1,0 +1,50 @@
+{
+  "workflow": [
+    ".github/workflows/codeql.yml",
+    ".github/codeql-filters.json",
+    "scripts/codeql-matrix*.mjs"
+  ],
+  "actions": [".github/workflows/**", ".github/actions/**"],
+  "javascript": [
+    "**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,svelte,astro}",
+    "**/package.json",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+    "**/bun.lock*",
+    "**/tsconfig*.json",
+    "**/babel.config.*",
+    "**/.babelrc*"
+  ],
+  "cpp": [
+    "**/*.{c,cc,cpp,cxx,h,hh,hpp,hxx,inl,m,mm}",
+    "**/CMakeLists.txt",
+    "**/*.cmake",
+    "apps/dashboard/pubspec.yaml",
+    "apps/dashboard/pubspec.lock"
+  ],
+  "android": [
+    "apps/dashboard/android/**",
+    "apps/dashboard/packages/**/android/**",
+    "**/*.{java,kt,kts,gradle}",
+    "apps/dashboard/pubspec.yaml",
+    "apps/dashboard/pubspec.lock",
+    "apps/dashboard/.metadata"
+  ],
+  "ios": [
+    "apps/dashboard/ios/**",
+    "apps/dashboard/packages/**/ios/**",
+    "apps/dashboard/packages/**/darwin/**",
+    "apps/dashboard/pubspec.yaml",
+    "apps/dashboard/pubspec.lock",
+    "apps/dashboard/.metadata"
+  ],
+  "macos": [
+    "apps/dashboard/macos/**",
+    "apps/dashboard/packages/**/macos/**",
+    "apps/dashboard/packages/**/darwin/**",
+    "apps/dashboard/pubspec.yaml",
+    "apps/dashboard/pubspec.lock",
+    "apps/dashboard/.metadata"
+  ]
+}

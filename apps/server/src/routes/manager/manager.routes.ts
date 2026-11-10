@@ -11,10 +11,12 @@ import scoutershifts from "./scoutershifts.routes.js";
 import settings from "./settings.routes.js";
 import apikey from "./apikey.routes.js";
 
+import { getUpcomingTeamTournaments } from "../../handler/manager/getUpcomingTeamTournaments.js";
 import { getTournaments } from "../../handler/manager/getTournaments.js";
 import { getTeams } from "../../handler/manager/getTeams.js";
 import { requireAuth } from "../../lib/middleware/requireAuth.js";
 import { getMatches } from "../../handler/manager/getMatches.js";
+import { getMatchSchedule } from "../../handler/manager/getMatchSchedule.js";
 import { updateNotes } from "../../handler/manager/updateNotes.js";
 import { getScouters } from "../../handler/manager/scouters/getScouters.js";
 import { getProfile } from "../../handler/manager/getProfile.js";
@@ -38,6 +40,26 @@ import { requireVerifiedTeam } from "../../lib/middleware/requireVerifiedTeam.js
 import { checkMatchExists } from "../../handler/manager/checkMatchExists.js";
 
 const router = Router();
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/upcoming-entered-tournaments",
+  tags: ["Manager - Tournaments"],
+  summary: "Next two future Blue Alliance events for the signed-in user's team",
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: "Events in start-date order; week numbers start at one",
+    },
+    401: { description: "Unauthorized" },
+    502: { description: "Blue Alliance event data unavailable" },
+  },
+});
+router.get(
+  "/upcoming-entered-tournaments",
+  requireAuth,
+  getUpcomingTeamTournaments,
+);
 
 // OpenAPI documentation for selected manager endpoints
 const PaginationQuery = z.object({
@@ -111,6 +133,18 @@ const MatchSchema = z.object({
   team6: MatchTeamSchema,
 });
 
+const PracticeMatchSchema = z.object({
+  matchNumber: z.number().int(),
+  matchType: z.literal(2),
+  scouted: z.boolean(),
+  finished: z.literal(false),
+  teams: z
+    .array(MatchTeamSchema)
+    .describe(
+      "Publicly scheduled or visibly reported practice teams, sorted by team number; no alliance slots",
+    ),
+});
+
 registry.registerPath({
   method: "get",
   path: "/v1/manager/matches/{tournament}",
@@ -118,12 +152,24 @@ registry.registerPath({
   summary: "List matches for a tournament",
   request: {
     params: z.object({ tournament: z.string() }),
-    query: z.object({ teams: z.string().optional() }),
+    query: z.object({
+      teams: z.string().optional(),
+      includePractice: z
+        .enum(["true", "false"])
+        .optional()
+        .describe(
+          "Defaults to false. When true, append practice matches (matchType 2) with a teams array instead of team1–team6. Official scouting-shift numbering is unchanged.",
+        ),
+    }),
   },
   responses: {
     200: {
       description: "Formatted match list",
-      content: { "application/json": { schema: z.array(MatchSchema) } },
+      content: {
+        "application/json": {
+          schema: z.array(z.union([MatchSchema, PracticeMatchSchema])),
+        },
+      },
     },
     400: { description: "Invalid parameters" },
     401: { description: "Unauthorized" },
@@ -143,7 +189,12 @@ registry.registerPath({
       matchNumber: z.coerce.number().int(),
       isElim: z
         .union([z.literal("true"), z.literal("false"), z.boolean()])
-        .transform((value) => value === true || value === "true"),
+        .transform((value) => value === true || value === "true")
+        .optional()
+        .describe("Legacy match selector; provide this or matchType."),
+      matchType: z
+        .enum(["QUALIFICATION", "ELIMINATION", "PRACTICE"])
+        .optional(),
     }),
   },
   responses: {
@@ -153,13 +204,54 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             match: TeamMatchDataSchema,
-            alliance: z.string(),
+            alliance: z.enum(["red", "blue"]).nullable(),
           }),
         },
       },
     },
     400: { description: "Invalid parameters" },
     404: { description: "Match not found" },
+  },
+  security: [],
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/matchschedule/{tournament}",
+  tags: ["Manager - Matches"],
+  summary:
+    "Fetch public match assignments for Collection, including scheduled practice matches",
+  request: {
+    params: z.object({ tournament: z.string().min(1) }),
+    headers: z.object({ "x-team-code": z.string().min(1) }),
+  },
+  responses: {
+    200: {
+      description:
+        "Official and publicly scheduled practice assignments, without private scouting data",
+      content: {
+        "application/json": {
+          schema: z.object({
+            tournamentKey: z.string(),
+            matches: z.array(
+              z.object({
+                matchNumber: z.number().int(),
+                matchType: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+                teams: z.array(
+                  z.object({
+                    number: z.number().int(),
+                    alliance: z.enum(["red", "blue"]).nullable(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    400: { description: "Missing team code or tournament" },
+    401: { description: "Invalid team code" },
+    500: { description: "Unable to fetch schedule" },
   },
   security: [],
 });
@@ -457,6 +549,7 @@ router.get("/teams", requireAuth, getTeams);
 router.get("/tournaments", requireAuth, getTournaments);
 
 router.get("/checkmatch", checkMatchExists);
+router.get("/matchschedule/:tournament", getMatchSchedule);
 
 router.get(
   "/matches/:tournament",

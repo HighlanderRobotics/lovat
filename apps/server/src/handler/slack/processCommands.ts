@@ -6,7 +6,7 @@ export const processCommand = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         command: z.string(),
@@ -17,11 +17,11 @@ export const processCommand = async (
       })
       .parse(req.body);
 
-    const body = params.text.split(" ");
+    const body = params.text.trim().split(/\s+/);
 
-    const action = body[0] ?? null;
+    const action = body[0];
 
-    if (body.length === 0 || action === "help") {
+    if (!action || action === "help") {
       res
         .status(200)
         .send(
@@ -154,8 +154,5 @@ export const processCommand = async (
           `${body[1]} is not a valid argument for '/lovat team'. Try /lovat team set (team code)`,
         );
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

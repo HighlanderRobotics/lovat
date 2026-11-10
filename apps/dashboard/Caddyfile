@@ -1,0 +1,18 @@
+{
+ admin off
+ auto_https off
+}
+:{$PORT:8080} {
+ root * /srv
+ encode zstd gzip
+ respond /healthz "ok" 200
+ # Flutter's JS, manifests and service worker have stable names across releases.
+ header Cache-Control "no-cache"
+ @navigation {
+  method GET HEAD
+  header Accept *text/html*
+  not file {path}
+ }
+ rewrite @navigation /index.html
+ file_server
+}

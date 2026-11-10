@@ -1,0 +1,22 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/worker/Dockerfile",
+    "watchPatterns": ["/apps/worker/**", "/packages/db/**"]
+  },
+  "deploy": {
+    "runtime": "V2",
+    "startCommand": "bun index.ts",
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 120,
+    "drainingSeconds": 60,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "multiRegionConfig": {
+      "us-west2": { "numReplicas": 1 }
+    }
+  }
+}

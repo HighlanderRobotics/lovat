@@ -1,0 +1,14 @@
+**
+!CHANGELOG.md
+!apps
+!apps/website
+!apps/website/**
+apps/website/node_modules
+apps/website/build
+apps/website/dist
+apps/website/.svelte-kit
+apps/website/.env
+apps/website/.env.*
+!apps/website/.env.example
+apps/website/.git
+apps/website/.DS_Store

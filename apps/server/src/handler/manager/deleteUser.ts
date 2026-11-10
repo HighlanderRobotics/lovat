@@ -6,7 +6,7 @@ export const deleteUser = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -26,14 +26,6 @@ export const deleteUser = async (
         .status(400)
         .send("Cannot delete the only scouting lead for the given team");
       return;
-    } else if (
-      req.user.role === "SCOUTING_LEAD" &&
-      checkScoutingLead.length === 1
-    ) {
-      res
-        .status(400)
-        .send("Cannot delete the only scouting lead for the given team");
-      return;
     } else {
       await prismaClient.user.delete({
         where: {
@@ -42,8 +34,5 @@ export const deleteUser = async (
       });
       res.status(200).send("User deleted");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

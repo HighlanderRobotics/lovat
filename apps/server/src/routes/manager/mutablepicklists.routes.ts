@@ -124,6 +124,7 @@ registry.registerPath({
       content: { "text/plain": { schema: z.string() } },
     },
     400: { description: "Invalid request" },
+    404: { description: "Picklist not found or not on same team" },
     401: { description: "Unauthorized" },
     403: {
       description:

@@ -112,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const AnalystsBox(),
               const SizedBox(height: 40),
               const ResetAppButton(),
-              if (lovatAPI.baseUrl != kProductionBaseUrl) ...[
+              if (lovatAPI.baseUrl != kDefaultBaseUrl) ...[
                 const SizedBox(height: 20),
                 customApiConfig(context)
               ],
@@ -166,9 +166,9 @@ class _SettingsPageState extends State<SettingsPage> {
           onPressed: () async {
             final prefs = await SharedPreferences.getInstance();
 
-            await prefs.setString('api_base_url', kProductionBaseUrl);
+            await prefs.setString('api_base_url', kDefaultBaseUrl);
 
-            lovatAPI.baseUrl = kProductionBaseUrl;
+            lovatAPI.baseUrl = kDefaultBaseUrl;
 
             if (mounted && context.mounted) {
               Navigator.of(context)
@@ -176,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
             }
           },
           style: const ButtonStyle(visualDensity: VisualDensity.compact),
-          child: const Text("Use production"),
+          child: const Text("Use default server"),
         ),
       ],
     ));

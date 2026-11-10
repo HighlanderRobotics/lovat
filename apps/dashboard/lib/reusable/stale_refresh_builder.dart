@@ -140,9 +140,7 @@ class _StaleRefreshBuilderState<T> extends State<StaleRefreshBuilder<T>> {
       }
     }
 
-    if (_cacheTimestamp == null) {
-      _cacheTimestamp = QueryCache.readTimestamp(key);
-    }
+    _cacheTimestamp ??= QueryCache.readTimestamp(key);
 
     if (mounted) {
       setState(() {

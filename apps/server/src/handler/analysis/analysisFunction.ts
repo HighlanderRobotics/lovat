@@ -3,7 +3,10 @@ import prismaClient from "../../prismaClient.js";
 import { dataSourceRuleSchema } from "./dataSourceRule.js";
 import { kv } from "../../redisClient.js";
 import { AnalysisContext } from "./analysisConstants.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
+
+// Bump when formulas change so existing Redis entries cannot return old results.
+export const analysisCacheVersion = "v5";
 
 export type CreateKeyResult = {
   key: string[];
@@ -17,14 +20,25 @@ export type AnalysisFunctionConfig<
 > = {
   argsSchema: T;
   returnSchema?: R;
-  createKey: (params: z.infer<T>) => Promise<CreateKeyResult> | CreateKeyResult;
   calculateAnalysis: (
     params: z.infer<T>,
     ctx: AnalysisContext,
   ) => Promise<z.infer<R>>;
   usesDataSource: boolean;
-  shouldCache: boolean;
-};
+} & (
+  | {
+      shouldCache: true;
+      createKey: (
+        params: z.infer<T>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+  | {
+      shouldCache: false;
+      createKey?: (
+        params: z.infer<T>,
+      ) => Promise<CreateKeyResult> | CreateKeyResult;
+    }
+);
 
 export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
   config: AnalysisFunctionConfig<T, R>,
@@ -86,8 +100,19 @@ export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
     keyFragments.push(`{${tournamentSource.mode}:[${tournamentSource.items}]}`);
   }
 
-  const key = ["analysis", "function", ...keyFragments].join(":");
-  const cacheRow = await kv.get(key);
+  const key = [
+    "analysis",
+    analysisCacheVersion,
+    "function",
+    user.id,
+    ...keyFragments,
+  ].join(":");
+  const cachedValue = await kv.get(key);
+  const cacheRow =
+    cachedValue &&
+    (await prismaClient.cachedAnalysis.findUnique({ where: { key } }))
+      ? cachedValue
+      : null;
 
   if (!cacheRow) {
     const result = await config.calculateAnalysis(passedArgs, context);

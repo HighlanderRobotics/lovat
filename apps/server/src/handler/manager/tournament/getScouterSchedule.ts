@@ -8,7 +8,7 @@ export const getScouterSchedule = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         tournament: z.string(),
@@ -73,9 +73,6 @@ export const getScouterSchedule = async (
     });
 
     res.status(200).send({ hash: hashJsonObject(rows), data: rows });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };
 function hashJsonObject(json: object): string {

@@ -1,11 +1,13 @@
 import axios from "axios";
 import prismaClient from "../../../prismaClient.js";
 import { matchPredictionLogic } from "./matchPredictionLogic.js";
-import { User } from "@prisma/client";
+import { User } from "@lovat/db";
 import { alliancePage } from "./alliancePage.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
 import { addTournamentMatches } from "../../manager/addTournamentMatches.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
+import { scoutReportSourceFilter } from "../scoutReportSourceFilter.js";
 
 type TeamRanking = {
   teamNumber: number;
@@ -81,19 +83,27 @@ const config = {
 
     matchesResponse.data.sort((a, b) => a.predicted_time - b.predicted_time);
 
-    const lastMatch = (
-      await prismaClient.teamMatchData.findFirstOrThrow({
-        where: {
-          tournamentKey: args.tournamentKey,
-          scoutReports: {
-            some: {},
+    const lastScoutedMatch = await prismaClient.teamMatchData.findFirst({
+      where: {
+        tournamentKey: args.tournamentKey,
+        matchType: "QUALIFICATION",
+        scoutReports: {
+          some: {
+            training: false,
+            AND: [reportReliabilityFilter, scoutReportSourceFilter(ctx.user)],
           },
         },
-        orderBy: {
-          matchNumber: "desc",
-        },
-      })
-    ).matchNumber;
+      },
+      orderBy: {
+        matchNumber: "desc",
+      },
+    });
+
+    if (!lastScoutedMatch) {
+      return [];
+    }
+
+    const lastMatch = lastScoutedMatch.matchNumber;
 
     const teams: Record<number, TeamRanking> = teamsResponse.data.reduce(
       (acc, team) => {
@@ -161,22 +171,14 @@ const config = {
         } else {
           let redRPs = 0;
           let blueRPs = 0;
-          let matchPrediction;
-
-          try {
-            matchPrediction = await matchPredictionLogic(ctx.user, {
-              red1: redTeams[0],
-              red2: redTeams[1],
-              red3: redTeams[2],
-              blue1: blueTeams[0],
-              blue2: blueTeams[1],
-              blue3: blueTeams[2],
-            });
-          } catch (error) {
-            if (error === "not enough data") {
-              throw "not enough data";
-            }
-          }
+          const matchPrediction = await matchPredictionLogic(ctx.user, {
+            red1: redTeams[0],
+            red2: redTeams[1],
+            red3: redTeams[2],
+            blue1: blueTeams[0],
+            blue2: blueTeams[1],
+            blue3: blueTeams[2],
+          });
 
           const redAlliance = await alliancePage(ctx.user, {
             team1: redTeams[0],

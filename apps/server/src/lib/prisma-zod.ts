@@ -7,7 +7,7 @@ import {
 // Ensure this module's Zod instance has .openapi
 extendZodWithOpenApi(z);
 
-// Enums (mirrored from prisma/schema.prisma)
+// Enums (mirrored from packages/db/prisma/schema.prisma)
 export const PositionSchema = z.enum([
   "LEFT_TRENCH",
   "LEFT_BUMP",
@@ -65,7 +65,11 @@ export const RobotRoleSchema = z.enum([
 ]);
 export const WarningTypeSchema = z.enum(["BREAK"]);
 export const UserRoleSchema = z.enum(["ANALYST", "SCOUTING_LEAD"]);
-export const MatchTypeSchema = z.enum(["QUALIFICATION", "ELIMINATION"]);
+export const MatchTypeSchema = z.enum([
+  "QUALIFICATION",
+  "ELIMINATION",
+  "PRACTICE",
+]);
 
 // Common JSON rule shapes used in User
 export const DataSourceRuleNumberSchema = z.object({
@@ -118,6 +122,7 @@ export const ScoutReportSchema = z.object({
   driverAbility: z.number().int(),
   scouterUuid: z.string().uuid(),
   robotBrokeDescription: z.string().optional().nullable(),
+  reliability: z.enum(["UNVERIFIED", "VERIFIED", "FLAGGED", "BAD_REPORT"]),
   // year-specific fields
   accuracy: z.number().int(),
   beached: BeachedSchema,

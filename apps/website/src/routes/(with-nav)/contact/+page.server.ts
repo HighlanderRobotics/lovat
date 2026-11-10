@@ -1,10 +1,42 @@
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
-import { error, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
+
+export const load: PageServerLoad = () => ({
+	recaptchaSiteKey: env.RECAPTCHA_SITE_KEY || ''
+});
 
 export const actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
+
+		if (!env.RECAPTCHA_SECRET_KEY || !env.RECAPTCHA_SITE_KEY) {
+			return fail(503, { message: 'Contact verification is unavailable. Please try again later.' });
+		}
+
+		const token = data.get('g-recaptcha-response');
+		if (typeof token !== 'string' || !token.trim()) {
+			return fail(400, { message: 'Please complete the reCAPTCHA verification.' });
+		}
+
+		let verification: { success?: boolean } | null;
+		try {
+			const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+				method: 'POST',
+				body: new URLSearchParams({ secret: env.RECAPTCHA_SECRET_KEY, response: token }),
+				signal: AbortSignal.timeout(10_000)
+			});
+			if (!response.ok) throw new Error('reCAPTCHA service unavailable');
+			verification = await response.json();
+		} catch {
+			return fail(503, { message: 'Verification is unavailable. Please try again.' });
+		}
+
+		if (verification?.success !== true) {
+			return fail(400, {
+				message: 'Verification failed or expired. Please complete reCAPTCHA again.'
+			});
+		}
 
 		const name = data.get('name');
 		const email = data.get('email');

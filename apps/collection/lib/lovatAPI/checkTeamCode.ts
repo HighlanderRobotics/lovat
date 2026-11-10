@@ -3,11 +3,14 @@ import { get } from "./lovatAPI";
 
 export const checkTeamCode = async (code: string) => {
   const response = await get(
-    `/v1/manager/scouter/checkcode?code=${encodeURIComponent(code)}`,
+    `/collection/checkcode?code=${encodeURIComponent(code)}`,
   );
 
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error(
+      response.statusText ||
+        `Unable to check team code (HTTP ${response.status}). Please try again.`,
+    );
   }
 
   const responseSchema = z.union([

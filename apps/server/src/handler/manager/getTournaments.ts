@@ -1,13 +1,14 @@
 import { Response } from "express";
 import prismaClient from "../../prismaClient.js";
 import z from "zod";
+import { AppError } from "../../lib/errors.js";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 
 export const getTournaments = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
-  try {
+  {
     let rows = await prismaClient.tournament.findMany({
       orderBy: {
         date: "asc",
@@ -28,14 +29,13 @@ export const getTournaments = async (
               filter: req.query.filter,
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
-          if (!params.success) {
-            res.status(400).send(params);
-            return;
-          }
-          await prismaClient.tournament.findMany({
+          rows = await prismaClient.tournament.findMany({
             take: params.data.take,
             skip: params.data.skip,
             where: {
@@ -59,12 +59,11 @@ export const getTournaments = async (
               filter: req.query.filter,
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
-          }
-          if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
           rows = await prismaClient.tournament.findMany({
             skip: params.data.skip,
@@ -91,8 +90,11 @@ export const getTournaments = async (
               filter: req.query.filter,
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
           rows = await prismaClient.tournament.findMany({
             take: params.data.take,
@@ -115,8 +117,11 @@ export const getTournaments = async (
               filter: req.query.filter,
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
           rows = await prismaClient.tournament.findMany({
             where: {
@@ -144,8 +149,11 @@ export const getTournaments = async (
               take: Number(req.query.take),
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
           rows = await prismaClient.tournament.findMany({
             take: params.data.take,
@@ -163,8 +171,11 @@ export const getTournaments = async (
               take: Number(req.query.take),
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
 
           rows = await prismaClient.tournament.findMany({
@@ -184,8 +195,11 @@ export const getTournaments = async (
               skip: Number(req.query.skip),
             });
           if (!params.success) {
-            res.status(400).send(params);
-            return;
+            throw new AppError(
+              "Invalid tournament query parameters",
+              400,
+              "INVALID_QUERY_PARAMETERS",
+            );
           }
           rows = await prismaClient.tournament.findMany({
             skip: params.data.skip,
@@ -222,7 +236,7 @@ export const getTournaments = async (
         },
       });
       teamTournamentKeys = new Set(
-        teamTournaments.map((obj) => obj.tournamentKey)
+        teamTournaments.map((obj) => obj.tournamentKey),
       );
       const presentTeamTournaments = [];
       for (let i = 0; i < rows.length; i++) {
@@ -241,8 +255,5 @@ export const getTournaments = async (
     }));
 
     res.status(200).send({ tournaments: rows, count: count });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

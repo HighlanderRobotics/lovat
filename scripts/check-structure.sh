@@ -19,7 +19,19 @@ required_paths=(
   apps/website/package.json
   apps/website/README.md
   apps/website/AGENTS.md
+  apps/learn/package.json
+  apps/learn/package-lock.json
+  apps/learn/README.md
+  apps/learn/AGENTS.md
   packages/README.md
+  packages/db/package.json
+  packages/db/package-lock.json
+  packages/db/prisma/schema.prisma
+  packages/db/prisma/migrations
+  packages/db/prisma.config.ts
+  tools/pr-reviewer/package.json
+  tools/pr-reviewer/package-lock.json
+  tools/pr-reviewer/README.md
 )
 
 for required_path in "${required_paths[@]}"; do

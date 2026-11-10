@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains four independently buildable applications under `apps/`. Root instructions apply everywhere. Read the nearest app-local `AGENTS.md` before editing an application.
+This repository contains independently buildable applications under `apps/`. Root instructions apply everywhere. Read the nearest app-local `AGENTS.md` before editing an application.
 
 Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` files should contain only application-specific instructions and must not duplicate this workflow guidance.
 
@@ -12,7 +12,9 @@ Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` file
 - `apps/dashboard`: Flutter analysis and scouting-management client.
 - `apps/collection`: Expo and React Native scouting client.
 - `apps/website`: SvelteKit public site and operational routes.
-- `packages`: reserved; no shared runtime package exists.
+- `apps/learn`: Astro/Starlight user guides for Dashboard and Collection.
+- `packages/db`: shared Prisma schema, migrations, generated types, and PostgreSQL client; consumed by Server and intended for the separate Support backend.
+- `tools/pr-reviewer`: standalone OpenRouter review workflow for pull requests; it keeps its own package, lockfile, and checks.
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.
 
@@ -20,7 +22,8 @@ Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` file
 
 ### Branches
 
-- Do all feature work on a branch. Start from the latest default branch unless the user requests another base.
+- Do all feature work on a fresh branch from the fully updated default branch unless the user requests another base. Check the working tree first, preserve existing work, and run `git pull --ff-only origin main` before creating a new branch from `main`. Do not branch from another task's branch or stale local `main` unless the user requests that base.
+- If local changes or divergent history prevent updating the default branch, resolve that condition before starting implementation. Never discard work or reset history to force the update.
 - Keep unrelated work out of the branch. Preserve existing uncommitted changes and never include them in a commit or PR without the user's approval.
 - For Linear work, name branches `<user>/<ticket-id>-<short-slug>`, using lowercase words separated by hyphens, for example `ben/lvt-227-remove-unsafe-redis-flushing`.
 - When no Linear ticket applies, use `<user>/<short-description>`. Do not invent a ticket reference.
@@ -57,6 +60,18 @@ Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` file
 - Never run a destructive database command against an unverified database URL.
 - Run the nearest app checks before completion and report pre-existing failures separately.
 
+## Commit messages and pull request descriptions
+
+Write for student contributors who may be unfamiliar with the affected code or the discussion that led to the change. Give them enough context to understand the goal and learn from the implementation without turning the description into a tutorial.
+
+- **Commit messages:** Use a short, imperative subject that names the specific change and its purpose where practical. Add a brief body when the reason or a tradeoff would otherwise be unclear. Avoid vague subjects such as "Fix issues" and lists of edited filenames.
+- **PR titles and summaries:** Lead with the problem or goal, then explain the resulting behavior and who benefits. Describe the final change so the PR makes sense without the chat history or linked issue. A list of implementation steps alone is not a summary.
+- **Teaching context:** Explain why a non-obvious implementation choice solves the problem. Define unfamiliar terms when needed, and use a concrete before/after example when it makes the behavior easier to understand. Assume intelligence, but not prior project knowledge; skip textbook explanations and details already obvious in the diff.
+- **Length and structure:** For a small PR, aim for one or two short paragraphs plus verification. Follow the repository PR template, keeping its sections brief. Add detail only for meaningful complexity, risks, or decisions a reviewer needs to assess.
+- **Verification:** State what was checked and the result. Distinguish automated checks from manual testing, and disclose skipped checks and their reasons. Do not imply that compilation or formatting checks prove the feature works.
+
+For example, a layout-fix summary could read: "Long match labels can overflow the Dashboard's breakdown details, making scouting information hard to read. This change lets row labels wrap within the available width and shortens oversized page titles with an ellipsis. Constraining the text width gives Flutter a boundary at which to wrap or truncate it."
+
 ## Common checks
 
 ```bash
@@ -68,7 +83,7 @@ The aggregate script assumes app dependencies are already installed and intentio
 
 ## Current limitations
 
-- Server tests compile TypeScript but do not provide behavioral coverage.
+- Server has an initial behavioral suite; database-backed API coverage is still limited.
 - Collection Android and web have tracked pre-existing issues.
 - Dashboard analysis has one baseline informational failure and little test coverage.
 - Website check and formatting commands fail at the migration baseline; production build needs private environment configuration.

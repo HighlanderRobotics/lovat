@@ -2,6 +2,56 @@ import { Request, Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 
+const tbaTeamStatusSchema = z.object({
+  qual: z
+    .object({
+      ranking: z
+        .object({
+          rank: z.number().nullish(),
+          ranking_points: z.number().nullish(),
+          matches_played: z.number().nullish(),
+          sort_orders: z.array(z.number()).nullish(),
+        })
+        .nullish(),
+    })
+    .nullish(),
+});
+
+type TbaTeamStatus = z.infer<typeof tbaTeamStatusSchema>;
+
+const fetchTbaTeamStatuses = async (
+  tournamentKey: string,
+): Promise<Record<string, TbaTeamStatus>> => {
+  try {
+    const tbaResponse = await fetch(
+      `https://www.thebluealliance.com/api/v3/event/${tournamentKey}/teams/statuses`,
+      {
+        headers: process.env.TBA_KEY?.trim()
+          ? { "X-TBA-Auth-Key": process.env.TBA_KEY.trim() }
+          : {},
+      },
+    );
+    if (!tbaResponse.ok) {
+      return {};
+    }
+
+    const statuses = z
+      .record(z.string(), z.unknown())
+      .parse(await tbaResponse.json());
+    const valid: Record<string, TbaTeamStatus> = {};
+    for (const [key, value] of Object.entries(statuses)) {
+      const parsed = tbaTeamStatusSchema.safeParse(value);
+      if (parsed.success) {
+        valid[key] = parsed.data;
+      }
+    }
+    return valid;
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+};
+
 export const getTeamRankings = async (
   req: Request,
   res: Response,
@@ -27,7 +77,7 @@ export const getTeamRankings = async (
         teamNumber: true,
       },
     });
-    if (!rows) {
+    if (rows.length === 0) {
       res.status(404).send("Tournament or teams not found");
       return;
     }
@@ -38,6 +88,7 @@ export const getTeamRankings = async (
     const teams: {
       number: number;
       name: string;
+      avatar: string | null;
       rank: number | null;
       rankingPoints: number | null;
       matchesPlayed: number | null;
@@ -48,40 +99,49 @@ export const getTeamRankings = async (
             in: uniqueTeamNumbers,
           },
         },
+        include: {
+          seasons: {
+            where: {
+              seasonYear: Number(params.data.tournamentKey.slice(0, 4)) || 0,
+            },
+            select: { avatar: true },
+            take: 1,
+          },
+        },
       })
-    ).map((e) => ({
-      ...e,
+    ).map(({ seasons, ...team }) => ({
+      ...team,
+      avatar: seasons?.[0]?.avatar ?? null,
       rank: null,
       rankingPoints: null,
       matchesPlayed: null,
     }));
 
-    try {
-      const tbaResponse = await fetch(
-        `https://www.thebluealliance.com/api/v3/event/${params.data.tournamentKey}/teams/statuses`,
-      );
-      if (!tbaResponse.ok) throw Error("Failed to fetch from TBA");
+    const tbaTeamStatuses = await fetchTbaTeamStatuses(
+      params.data.tournamentKey,
+    );
 
-      const tbaTeams = await tbaResponse.json();
-
-      for (const team of tbaTeams) {
-        try {
-          const tbaTeam = tbaTeams[`frc${team.number}`];
-
-          team.rank = tbaTeam.qual.ranking.rank;
-          team.matchesPlayed = tbaTeam.qual.ranking.matches_played;
-          team.rankingPoints = Math.round(
-            tbaTeam.qual.ranking.sort_orders[0] * team.matchesPlayed,
-          );
-        } catch (e) {
-          continue;
-        }
+    for (const team of teams) {
+      const ranking = tbaTeamStatuses[`frc${team.number}`]?.qual?.ranking;
+      if (!ranking) {
+        continue;
       }
-    } finally {
-      res.status(200).send(teams);
+
+      team.rank = ranking.rank ?? null;
+      team.matchesPlayed = ranking.matches_played ?? null;
+      team.rankingPoints =
+        ranking.ranking_points ??
+        (ranking.sort_orders?.length && ranking.matches_played != null
+          ? Math.round(ranking.sort_orders[0] * ranking.matches_played)
+          : null);
     }
+
+    res.status(200).send(teams);
   } catch (error) {
     console.error(error);
-    res.status(500).send(error);
+    if (res.headersSent) {
+      return;
+    }
+    res.status(500).send("Internal server error");
   }
 };

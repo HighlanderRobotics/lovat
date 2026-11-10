@@ -1,3 +1,4 @@
+import { analysisReportsSql } from "../reportReliability.js";
 import z from "zod";
 import {
   allTeamNumbers,
@@ -8,7 +9,7 @@ import {
 } from "../analysisConstants.js";
 import { createAnalysisHandler } from "../analysisHandler.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToArray,
 } from "../dataSourceRule.js";
 import prismaClient from "../../../prismaClient.js";
@@ -40,17 +41,20 @@ export const breakdownDetails = createAnalysisHandler({
             tmnt."name" AS tournament,
             sc."sourceTeamNumber" AS sourceteam,
             teamScouter."name" AS scouter
-        FROM "ScoutReport" s
+        FROM ${analysisReportsSql} s
         JOIN "Scouter" sc ON sc."uuid" = s."scouterUuid"
         JOIN "TeamMatchData" tmd
             ON tmd."teamNumber" = ${params.team}
             AND tmd."key" = s."teamMatchKey"
+            AND tmd."matchType" <> 'PRACTICE'
+            AND s."reliability" NOT IN ('FLAGGED', 'BAD_REPORT')
             AND sc."sourceTeamNumber" = ANY($1)
             AND tmd."tournamentKey" = ANY($2)
         JOIN "Tournament" tmnt ON tmd."tournamentKey" = tmnt."key"
         LEFT JOIN "Scouter" teamScouter
             ON teamScouter."uuid" = s."scouterUuid"
             AND teamScouter."sourceTeamNumber" = ${ctx.user.teamNumber}
+        WHERE s."training" = false
         ORDER BY tmnt."date" DESC, tmd."matchType" DESC, tmd."matchNumber" DESC
         `;
     interface QueryRow {
@@ -64,11 +68,11 @@ export const breakdownDetails = createAnalysisHandler({
     const data = await prismaClient.$queryRawUnsafe<QueryRow[]>(
       queryStr,
       dataSourceRuleToArray(
-        dataSourceRuleSchema(z.number()).parse(ctx.user.teamSourceRule),
+        parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
         await allTeamNumbers,
       ),
       dataSourceRuleToArray(
-        dataSourceRuleSchema(z.string()).parse(ctx.user.tournamentSourceRule),
+        parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
         await allTournaments,
       ),
     );

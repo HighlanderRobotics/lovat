@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  Keyboard,
 } from "react-native";
 import TitleMedium from "../lib/components/text/TitleMedium";
 import TextField from "../lib/components/TextField";
@@ -15,12 +16,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors } from "../lib/colors";
 import BodyMedium from "../lib/components/text/BodyMedium";
 import { IconButton } from "../lib/components/IconButton";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   getServiceLoader,
   useServiceErrorStore,
   useServicesLoadingStore,
   useTeamScoutersStore,
+  useMatchScheduleStore,
 } from "../lib/services";
 import { useScouterStore, useTournamentStore } from "../lib/storage/userStores";
 import { Picker } from "../lib/components/Picker";
@@ -52,6 +61,7 @@ import {
   useMatchSelectionModeStore,
 } from "../lib/storage/userStores";
 import { createGenericPersistantStore } from "../lib/storage/zustandStorage";
+import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
 
 export default function Home() {
   const { value: matchSelectionMode, setValue: setMatchSelectionMode } =
@@ -63,6 +73,13 @@ export default function Home() {
         : MatchSelectionMode.Automatic,
     );
   const [meta, setMeta] = useState<ScoutReportMeta | null>(null);
+  const [checkingMatch, setCheckingMatch] = useState(false);
+  const checkingMatchRef = useRef(false);
+  const selectionVersion = useRef(0);
+  const onMetaChanged = useCallback((value: ScoutReportMeta | null) => {
+    selectionVersion.current++;
+    setMeta(value);
+  }, []);
   const reportState = useReportStateStore();
 
   const startMatchEnabled = useStartMatchEnabledStore((state) => state.value);
@@ -71,6 +88,9 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       loadServices();
+      return () => {
+        selectionVersion.current++;
+      };
     }, []),
   );
 
@@ -119,19 +139,46 @@ export default function Home() {
             style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}
           >
             <View style={{ alignItems: "stretch", flex: 1, maxWidth: 450 }}>
-              <View style={{ flex: 1 }}>
+              <View
+                style={{ flex: 1 }}
+                pointerEvents={checkingMatch ? "none" : "auto"}
+              >
                 <MatchSelection
                   matchSelectionMode={matchSelectionMode}
-                  onMetaChanged={setMeta}
+                  onMetaChanged={onMetaChanged}
                 />
               </View>
               <View style={{ gap: 10 }}>
                 <Button
                   variant="primary"
-                  disabled={!meta || !startMatchEnabled}
-                  onPress={() => {
-                    if (!meta) return;
-                    reportState.scoutMatch(meta);
+                  disabled={!meta || !startMatchEnabled || checkingMatch}
+                  loadingChildren="Checking match…"
+                  onPress={async () => {
+                    if (!meta || checkingMatchRef.current) return;
+                    checkingMatchRef.current = true;
+                    Keyboard.dismiss();
+                    setCheckingMatch(true);
+                    const version = selectionVersion.current;
+                    try {
+                      const result = await checkMatchExists(meta);
+                      // Ignore a response if the user changed details or left Home.
+                      if (version !== selectionVersion.current) return;
+                      if (result.status === "missing") {
+                        throw new Error(
+                          "This match does not exist, or this team is not in it. Check the match type, number, and team.",
+                        );
+                      }
+                      reportState.scoutMatch({
+                        ...meta,
+                        allianceColor:
+                          result.status === "exists"
+                            ? result.allianceColor
+                            : meta.allianceColor,
+                      });
+                    } finally {
+                      checkingMatchRef.current = false;
+                      setCheckingMatch(false);
+                    }
                   }}
                 >
                   Scout this match
@@ -139,6 +186,7 @@ export default function Home() {
                 <Button
                   variant="primary"
                   filled={false}
+                  disabled={checkingMatch}
                   onPress={onSwitchMatchSelectionMode}
                 >
                   {matchSelectionMode === MatchSelectionMode.Automatic
@@ -154,7 +202,7 @@ export default function Home() {
   );
 
   function onSwitchMatchSelectionMode() {
-    setMeta(null);
+    onMetaChanged(null);
     toggleMatchSelectionMode();
   }
 }
@@ -422,17 +470,27 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
     useAllianceColorChoice();
   const tournament = useTournamentStore((state) => state.value);
   const scouter = useScouterStore((state) => state.value);
+  const schedule = useMatchScheduleStore((state) => state.data);
+  const scheduledMatch =
+    schedule?.tournamentKey === tournament?.key
+      ? schedule?.matches.find(
+          (match) =>
+            match.matchNumber === Number(matchNumber) &&
+            match.matchType ===
+              matchTypes.find((type) => type.type === matchType)?.num,
+        )
+      : undefined;
 
   useEffect(() => {
-    const parsedTeamNumber = parseInt(teamNumber);
-    const parsedMatchNumber = parseInt(matchNumber);
+    const parsedTeamNumber = Number(teamNumber);
+    const parsedMatchNumber = Number(matchNumber);
 
-    if (isNaN(parsedTeamNumber)) {
+    if (!Number.isSafeInteger(parsedTeamNumber) || parsedTeamNumber <= 0) {
       props.onChanged(null);
       return;
     }
 
-    if (isNaN(parsedMatchNumber)) {
+    if (!Number.isSafeInteger(parsedMatchNumber) || parsedMatchNumber <= 0) {
       props.onChanged(null);
       return;
     }
@@ -457,7 +515,7 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
         tournamentKey: tournament.key,
       },
     });
-  }, [matchType, matchNumber, teamNumber, allianceColor]);
+  }, [matchType, matchNumber, teamNumber, allianceColor, tournament, scouter]);
 
   return (
     <ScrollView style={{ flex: 1, paddingTop: 14 }}>
@@ -490,6 +548,17 @@ const ManualMatchSelection = (props: ManualMatchSelectionProps) => {
 
       <View style={{ height: 14 }} />
       <LabelSmall>Team number</LabelSmall>
+      {scheduledMatch && (
+        <BodyMedium>
+          Scheduled teams:{" "}
+          {scheduledMatch.teams
+            .map(
+              (team) =>
+                `${team.number}${team.alliance ? ` (${team.alliance})` : ""}`,
+            )
+            .join(", ")}
+        </BodyMedium>
+      )}
       <View style={{ height: 7 }} />
       <TextField
         placeholder="8033"
@@ -559,6 +628,7 @@ const ServiceStatus = () => {
     useTeamScoutersStore.getState(),
     useScouterScheduleStore.getState(),
     useTournamentsStore.getState(),
+    useMatchScheduleStore.getState(),
   ];
 
   const serviceCacheTimes = servicesCached.map((item) => item.timestamp);

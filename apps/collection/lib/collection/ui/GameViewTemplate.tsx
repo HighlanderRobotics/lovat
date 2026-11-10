@@ -1,3 +1,4 @@
+import { TrainingReadyButton } from "../../training/TrainingReadyButton";
 import { Pressable, View, TouchableOpacity } from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,7 +16,6 @@ import {
 import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
-import { StatusBar } from "expo-status-bar";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React from "react";
@@ -39,20 +39,23 @@ export const GameViewTemplate = (props: {
 
   return (
     <>
-      <StatusBar hidden={true} backgroundColor={colors.background.default} />
       <GameViewOverlay overlay={props.overlay} setOverlay={props.setOverlay} />
       <View
         style={{
           backgroundColor: colors.secondaryContainer.default,
           paddingVertical: 7,
-          paddingHorizontal: 14,
           flexDirection: "row",
           alignItems: "center",
         }}
       >
         <SafeAreaView
-          edges={["top", "left", "right"]}
+          // This landscape screen hides the status bar. A portrait top inset can
+          // otherwise remain here during the first orientation transition.
+          edges={["left", "right"]}
           style={{
+            flex: 1,
+            // Keep the icons and their expanded touch areas inside the safe edges.
+            paddingHorizontal: 28,
             flexDirection: "row",
             alignItems: "center",
           }}
@@ -109,50 +112,56 @@ export const GameViewTemplate = (props: {
             </LabelSmall>
           </View>
 
-          {!reportState?.startTimestamp && (
-            <IconButton
-              label="Start match"
-              icon="play_arrow"
-              color={colors.onBackground.default}
-              size={30}
-              disabled={!startEnabled}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          {!reportState?.startTimestamp &&
+            (reportState.meta?.collection?.trainingAttemptUuid ? (
+              <TrainingReadyButton />
+            ) : (
+              <IconButton
+                label="Start match"
+                icon="play_arrow"
+                color={colors.onBackground.default}
+                size={30}
+                disabled={!startEnabled}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-                reportState.initializeMatchTimestamp();
-              }}
-            />
-          )}
+                  reportState.initializeMatchTimestamp();
+                }}
+              />
+            ))}
 
-          {reportState?.startTimestamp && (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger>
-                <IconButton
-                  label="End match"
-                  icon="stop"
-                  color={colors.onBackground.default}
-                  size={30}
-                />
-              </DropdownMenu.Trigger>
+          {reportState?.startTimestamp &&
+            !reportState.meta?.collection?.trainingAttemptUuid && (
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <IconButton
+                    label="End match"
+                    icon="stop"
+                    color={colors.onBackground.default}
+                    size={30}
+                  />
+                </DropdownMenu.Trigger>
 
-              <DropdownMenu.Content
-                loop={false}
-                side="bottom"
-                align="end"
-                alignOffset={0}
-                avoidCollisions={true}
-                collisionPadding={0}
-                sideOffset={0}
-              >
-                <DropdownMenu.Item key="end" onSelect={props.onEnd}>
-                  <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
-                  <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
-          )}
+                <DropdownMenu.Content
+                  loop={false}
+                  side="bottom"
+                  align="end"
+                  alignOffset={0}
+                  avoidCollisions={true}
+                  collisionPadding={0}
+                  sideOffset={0}
+                >
+                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
+                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
+                    <DropdownMenu.ItemTitle>
+                      Restart match
+                    </DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            )}
         </SafeAreaView>
       </View>
       <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>

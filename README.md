@@ -1,5 +1,9 @@
 # Lovat
 
+[![CI](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
+[![Tests (CI workflow)](https://img.shields.io/github/actions/workflow/status/HighlanderRobotics/lovat/ci.yml?branch=main&label=Tests)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
+[![CodeQL](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml?query=branch%3Amain)
+
 Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Competition events. It collects match observations, analyzes team performance, supports scouting operations, and presents data for match strategy and alliance selection.
 
 ## Applications
@@ -10,6 +14,7 @@ Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Comp
 | [`apps/server`](apps/server) | API, authentication, storage, imports, caching, and analysis | Node.js, Express, TypeScript, Prisma, PostgreSQL, Redis |
 | [`apps/dashboard`](apps/dashboard) | Analysis, scouting management, predictions, and picklists | Flutter and Dart |
 | [`apps/website`](apps/website) | Public site and selected operational routes | SvelteKit and TypeScript |
+| [`apps/learn`](apps/learn) | User guides for Dashboard and Collection | Astro, Starlight, MDX, Svelte |
 
 ## Data flow
 
@@ -31,6 +36,7 @@ See [`docs/architecture.md`](docs/architecture.md) for boundaries and cross-appl
 - Collection: Node.js 24.6.0 and Expo/EAS tooling.
 - Dashboard: Flutter; CI versions are documented in its local instructions.
 - Website: Node.js 20.19.6.
+- Learn: Node.js 22 and npm.
 - macOS and Xcode are required for local iOS builds.
 
 Each application retains its own lockfile. Install dependencies inside the application directory.
@@ -49,6 +55,7 @@ cd apps/server && npm run dev
 cd apps/collection && npm start
 cd apps/dashboard && flutter run -d chrome
 cd apps/website && npm run dev
+cd apps/learn && npm run dev
 ```
 
 Several applications require environment files or external services for full runtime behavior. Copy only committed `.env.example` files and never commit credentials.
@@ -56,6 +63,10 @@ Several applications require environment files or external services for full run
 ## Working here
 
 Read [`AGENTS.md`](AGENTS.md) and the nearest app-local `AGENTS.md` before editing. Keep changes within the app that owns the behavior. Update all affected producers and consumers together when a shared contract changes.
+
+## Pull request review
+
+Internal pull requests receive an automated OpenRouter review when they are opened, updated, reopened, or marked ready for review. The reviewer lives in [`tools/pr-reviewer`](tools/pr-reviewer), follows [`CODE_REVIEW.md`](CODE_REVIEW.md), and is configured by [`.lovat-review.json`](.lovat-review.json). Fork pull requests and drafts are skipped by default. Maintainers configure the `OPENROUTER_API_KEY` secret and may override the model with the `OPENROUTER_MODEL` variable. See the [reviewer README](tools/pr-reviewer/README.md) for setup, permissions, and limits.
 
 ## Linear MCP
 
@@ -71,11 +82,21 @@ Run `codex mcp get linear` to verify the server configuration, or use `/mcp` ins
 
 ## Deployment
 
-- Server: Railway, repository root `apps/server`.
+The [server test overview](https://highlanderrobotics.github.io/lovat/) can be
+published by CI after successful server checks on main. See
+[test report hosting](docs/test-report-hosting.md) for setup.
+
+- Server: Railway, repository root `/`, config `/apps/server/railway.json`, Dockerfile `apps/server/Dockerfile` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
 - Dashboard: Netlify web deployment and GitHub Actions Android artifact.
 - Collection: EAS, project root `apps/collection`.
 - Website: Netlify, base directory `apps/website`.
 
+- Learn: static site; base directory `apps/learn`, build `npm run build`, output `dist`.
+
 ## History
 
-This repository combines four formerly separate repositories. Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
+See the [changelog](CHANGELOG.md) for changes grouped by month and feature across Lovat's full history
+and the [complete commit archive](docs/history/README.md) for all retained main
+and tagged application history, beginning in December 2022.
+
+This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.

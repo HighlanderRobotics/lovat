@@ -1,6 +1,7 @@
-import { EndgameClimb, Prisma } from "@prisma/client";
+import { EndgameClimb, Prisma } from "@lovat/db";
 import prismaClient from "../../../prismaClient.js";
 import { defaultEndgamePoints, endgameToPoints } from "../analysisConstants.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 // Number of endgame possibilities that result in points earned (essentially, successes)
 const numPointResults: number = Object.keys(EndgameClimb).reduce((acc, cur) => {
@@ -24,7 +25,7 @@ export const endgamePicklistTeamFast = async (
   sourceTeamFilter: { in?: number[]; notIn?: number[] } | undefined,
   sourceTnmtFilter: { in?: string[]; notIn?: string[] } | undefined,
 ): Promise<number> => {
-  try {
+  {
     // Get data
     const endgameRows = await prismaClient.scoutReport.groupBy({
       by: ["endgameClimb"],
@@ -32,8 +33,11 @@ export const endgamePicklistTeamFast = async (
         _all: true,
       },
       where: {
+        training: false,
+        ...reportReliabilityFilter,
         teamMatchData: {
           teamNumber: team,
+          matchType: { not: "PRACTICE" },
           ...(sourceTnmtFilter && { tournamentKey: sourceTnmtFilter }),
         },
         ...(sourceTeamFilter && {
@@ -57,9 +61,6 @@ export const endgamePicklistTeamFast = async (
       );
 
     return endgameRuleOfSuccession(endgameMap, totalAttempts);
-  } catch (error) {
-    console.log(error);
-    throw error;
   }
 };
 

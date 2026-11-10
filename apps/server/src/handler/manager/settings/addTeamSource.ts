@@ -9,7 +9,7 @@ export const addTeamSource = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     if (req.body.mode === "ALL_TEAMS") {
       await prismaClient.user.update({
@@ -65,8 +65,5 @@ export const addTeamSource = async (
       res.status(200).send("team sources added");
       return;
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

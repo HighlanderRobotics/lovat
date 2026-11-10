@@ -354,18 +354,7 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
           children: [
             Expanded(
                 child: ValueTile(
-                    value: Text((() {
-                      switch (reportAnalysis.climbResult) {
-                        case EndgameClimbResult.l1:
-                          return "${reportAnalysis.totalPoints - 10}";
-                        case EndgameClimbResult.l2:
-                          return "${reportAnalysis.totalPoints - 20}";
-                        case EndgameClimbResult.l3:
-                          return "${reportAnalysis.totalPoints - 30}";
-                        default:
-                          return "${reportAnalysis.totalPoints}";
-                      }
-                    })()),
+                    value: Text("${reportAnalysis.fuelScore}"),
                     label: const Text("Fuel Scored"))),
             Expanded(
                 child: ValueTile(
@@ -397,7 +386,7 @@ class _RawScoutReportPageState extends State<RawScoutReportPage> {
         const SectionTitle("Auto"),
         AnimatedAutoPath(analysis: reportAnalysis),
         ValueTile(
-          value: Text("${reportAnalysis.autoScore}"),
+          value: Text("${reportAnalysis.autoPathScore}"),
           label: const Text("Path score"),
           colorCombination: ColorCombination.colored,
         ),

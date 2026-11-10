@@ -41,6 +41,11 @@ Future<String?> getServerAuthority() async {
   return prefs.getString("serverAuthority");
 }
 
+const websiteBaseUrl = String.fromEnvironment(
+  'LOVAT_WEBSITE_URL',
+  defaultValue: 'https://lovat.app',
+);
+
 const auth0Domain = 'lovat.us.auth0.com';
 
 final auth0 = Auth0(auth0Domain, "PaUUK4Sjmcdy5oueW7geI2rgMfuWd1G4");

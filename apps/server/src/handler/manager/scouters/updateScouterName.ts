@@ -7,7 +7,7 @@ export const updateScouterName = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -67,8 +67,5 @@ export const updateScouterName = async (
     });
 
     res.status(200).send("Scouter name updated");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

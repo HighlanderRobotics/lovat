@@ -1,0 +1,41 @@
+---
+title: Managing Scouters
+description: Lovat Dashboard's scouting management features for scouting leads and how to use them.
+---
+
+import Phone from "../../../components/Phone.astro";
+import drawer from "../../../assets/scouters-drawer.jpg";
+import scouterOverview from "../../../assets/scouters-overview.jpg";
+import editNotes from "../../../assets/edit-notes.png";
+import shifts from "../../../assets/schedules.png";
+import editShift from "../../../assets/shift-data.png";
+
+## Scouter List
+
+You can access a list of your scouters by opening the navigation drawer (the three lines icon in the top left) and clicking "Scouters". Here you can add scouters (plus sign in the bottom right) and see how many matches they have scouted / missed. Tap a scouter to view each of the reports they have submitted, or tap the three dots icon in the top right to rename or delete them.
+
+<Phone src={drawer} alt="Phone" orientation="portrait" />
+<Phone src={scouterOverview} alt="Phone" orientation="portrait" />
+
+## Editing Notes
+
+As a scouting lead, you can also edit any notes submitted by one of your scouters. You can do this by going to the Team Lookup page, selecting the notes tab, and clicking the pencil icon on the note.
+
+<Phone src={editNotes} alt="Phone" orientation="portrait" />
+
+## Scouter Schedules
+
+Scouter schedules can be made and assigned to scouters in Lovat Dashboard by scouting leads. They simplify scouting for scouters, and they remove the risk of scouters entering incorrect match details. Scouters can still scout matches without a schedule, but it is recommended to use them.
+
+### Creating a Schedule
+
+Before creating a scouter schedule, make sure you have the correct tournament selected by going to the settings page. If you don't have the correct tournament selected, scouters won't receive their schedules. To create a schedule, go to the Match Schedule page and click the pencil icon in the top right. Then, click the purple plus sign in the bottom right.
+Now, enter the information for the shift you want to create. Put the match numbers for the first and last matches to be scouted during the shift, and select a scouter for each robot.
+
+<Phone src={shifts} alt="Phone" orientation="portrait" />
+<Phone src={editShift} alt="Phone" orientation="portrait" />
+
+### Editing a Schedule
+
+You can edit a schedule by going to the Match Schedule page and clicking the pencil icon, just like when creating a new shift. Then, click the shift to be modified and enter the new information. Keep in mind that scouters might not see your changes immediately if you are somewhere with no connection or bad connection.
+You can also delete shifts by swiping them towards the left until a red box with a trash can appears.

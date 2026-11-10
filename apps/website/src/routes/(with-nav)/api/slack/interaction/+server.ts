@@ -1,6 +1,6 @@
 import { error, text } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SLACK_SIGNING_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { createHmac } from 'crypto';
 import { sendSignedRequest } from '$lib/util/sendSignedRequest';
 
@@ -32,8 +32,12 @@ export const POST: RequestHandler = async (event) => {
 
 	const baseString = `v0:${requestTimestamp}:${await textRequest.text()}`;
 
+	if (!env.SLACK_SIGNING_SECRET) {
+		throw error(503, 'Slack integration is not configured');
+	}
+
 	// Validate signature
-	const hmac = createHmac('sha256', SLACK_SIGNING_SECRET);
+	const hmac = createHmac('sha256', env.SLACK_SIGNING_SECRET);
 	hmac.update(baseString);
 	const signature = `v0=${hmac.digest('hex')}`;
 

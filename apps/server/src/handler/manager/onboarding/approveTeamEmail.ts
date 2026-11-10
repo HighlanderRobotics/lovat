@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@lovat/db";
 const { PrismaClientKnownRequestError } = Prisma;
 import { kv } from "../../../redisClient.js";
 

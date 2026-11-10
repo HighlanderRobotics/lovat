@@ -14,14 +14,15 @@ import {
   ClimbSide,
   FeederType,
   IntakeType,
-} from "@prisma/client";
+} from "@lovat/db";
 import { autoEnd, endgameToPoints, Metric } from "../analysisConstants.js";
 import { z } from "zod";
 import {
   dataSourceRuleToPrismaFilter,
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
 } from "../dataSourceRule.js";
 import { averageManyFast } from "../coreAnalysis/averageManyFast.js";
+import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
 
 interface AggregatedTeamData {
   teamNumber: number;
@@ -92,7 +93,7 @@ export const getTeamCSV = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     // Data will only be sourced from a tournament as sent with the request
     const params = z
       .object({
@@ -132,21 +133,30 @@ export const getTeamCSV = async (
       };
     }
 
+    const sourceRule = parseStoredSourceRule(
+      z.number(),
+      req.user?.teamSourceRule,
+    );
+    const tournamentRule = parseStoredSourceRule(
+      z.string(),
+      req.user?.tournamentSourceRule,
+    );
     // TMD instances will be sorted by team number and then looped through and aggregated
     const datapoints = await prismaClient.teamMatchData.findMany({
       where: {
         tournamentKey: params.data.tournamentKey,
+        matchType: { not: "PRACTICE" },
       },
       select: {
         teamNumber: true,
         scoutReports: {
           where: (() => {
-            const parsed = dataSourceRuleSchema(z.number()).safeParse(
-              req.user?.teamSourceRule,
-            );
-            if (!parsed.success) return {};
-            const filter = dataSourceRuleToPrismaFilter(parsed.data);
-            return filter ? { scouter: { sourceTeamNumber: filter } } : {};
+            const filter = dataSourceRuleToPrismaFilter(sourceRule);
+            return {
+              training: false,
+              ...reportReliabilityFilter,
+              ...(filter ? { scouter: { sourceTeamNumber: filter } } : {}),
+            };
           })(),
           select: {
             uuid: true,
@@ -200,28 +210,20 @@ export const getTeamCSV = async (
           );
 
           // Build the data source filters
-          const parsedTeamRule = dataSourceRuleSchema(z.number()).safeParse(
-            req.user?.teamSourceRule,
-          );
-          const teamFilter = parsedTeamRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTeamRule.data)
-            : undefined;
-
-          const parsedTournamentRule = dataSourceRuleSchema(
-            z.string(),
-          ).safeParse(req.user?.tournamentSourceRule);
-          const tournamentFilter = parsedTournamentRule.success
-            ? dataSourceRuleToPrismaFilter(parsedTournamentRule.data)
-            : undefined;
+          const teamFilter = dataSourceRuleToPrismaFilter(sourceRule);
+          const tournamentFilter = dataSourceRuleToPrismaFilter(tournamentRule);
 
           // Fetch all scout reports for these teams from filtered tournaments
           const allReports = await prismaClient.scoutReport.findMany({
             where: {
+              training: false,
+              ...reportReliabilityFilter,
               teamMatchData: {
                 teamNumber: { in: teams },
                 ...(tournamentFilter
                   ? { tournamentKey: tournamentFilter }
                   : {}),
+                matchType: { not: "PRACTICE" },
               },
               ...(teamFilter
                 ? { scouter: { sourceTeamNumber: teamFilter } }
@@ -291,10 +293,15 @@ export const getTeamCSV = async (
               teamNumber: { in: teams },
               ...(tournamentFilter ? { tournamentKey: tournamentFilter } : {}),
               scoutReports: {
-                some: teamFilter
-                  ? { scouter: { sourceTeamNumber: teamFilter } }
-                  : {},
+                some: {
+                  training: false,
+                  ...reportReliabilityFilter,
+                  ...(teamFilter
+                    ? { scouter: { sourceTeamNumber: teamFilter } }
+                    : {}),
+                },
               },
+              matchType: { not: "PRACTICE" },
             },
             _count: {
               key: true,
@@ -367,13 +374,8 @@ export const getTeamCSV = async (
 
           const csvString = stringify(aggregatedData, {
             header: true,
-            columns: aggregatedData.length
-              ? Object.keys(aggregatedData[0])
-              : [],
+            columns: Object.keys(aggregatedData[0]),
             bom: true,
-            cast: {
-              boolean: (b) => (b ? "TRUE" : "FALSE"),
-            },
             quote: false,
           });
 
@@ -462,13 +464,9 @@ export const getTeamCSV = async (
     const csvString = stringify(aggregatedData, {
       header: true,
       // Creates column headers from data properties
-      columns: aggregatedData.length ? Object.keys(aggregatedData[0]) : [],
+      columns: Object.keys(aggregatedData[0]),
       // Required for excel viewing
       bom: true,
-      // Rename boolean values to TRUE and FALSE
-      cast: {
-        boolean: (b) => (b ? "TRUE" : "FALSE"),
-      },
       // Turn off quotation marks
       quote: false,
     });
@@ -477,9 +475,6 @@ export const getTeamCSV = async (
     res.header("Content-Type", "text/csv");
     res.send(csvString);
     return;
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };
 
@@ -541,8 +536,8 @@ async function aggregateTeamReports(
 
   // Main iteration for most aggregation summing (roles, fieldTraversal, perc flags)
   reports.forEach((report) => {
-    for (const role of report.robotRoles || []) {
-      roles[role] += report.weight / (report.robotRoles.length || 1);
+    for (const role of report.robotRoles) {
+      roles[role] += report.weight / report.robotRoles.length;
     }
 
     switch (report.fieldTraversal) {

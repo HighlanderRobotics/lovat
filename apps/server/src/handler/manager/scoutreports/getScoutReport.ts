@@ -2,13 +2,14 @@ import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@lovat/db";
+import { scoutReportSourceFilter } from "../../analysis/scoutReportSourceFilter.js";
 
 export const getScoutReport = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         uuid: z.string(),
@@ -21,9 +22,10 @@ export const getScoutReport = async (
       res.status(400).send(params);
       return;
     }
-    const scoutReport = await prismaClient.scoutReport.findUnique({
+    const scoutReport = await prismaClient.scoutReport.findFirst({
       where: {
         uuid: params.data.uuid,
+        ...scoutReportSourceFilter(req.user),
       },
       include: {
         scouter: {
@@ -62,8 +64,5 @@ export const getScoutReport = async (
     res
       .status(200)
       .send({ scoutReport: responseReport, events: events, canModify });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send(error);
   }
 };

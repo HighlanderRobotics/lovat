@@ -1,4 +1,5 @@
 <script>
+	import { websiteUrl } from '$lib/siteUrls';
 	import CallToAction from '$lib/CallToAction.svelte';
 	import CollectionSection from '$lib/CollectionSection.svelte';
 	import FeatureScroller from '$lib/FeatureScroller.svelte';
@@ -17,7 +18,7 @@
 	/>
 
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://lovat.app/" />
+	<meta property="og:url" content={`${websiteUrl()}/`} />
 	<meta property="og:title" content="Lovat — Centralize your team's strategy in minutes" />
 	<meta
 		property="og:description"
@@ -26,7 +27,7 @@
 	<meta property="og:image" content="/assets/img/social-banner.png" />
 
 	<meta property="twitter:card" content="summary_large_image" />
-	<meta property="twitter:url" content="https://lovat.app/" />
+	<meta property="twitter:url" content={`${websiteUrl()}/`} />
 	<meta property="twitter:title" content="Lovat — Centralize your team's strategy in minutes" />
 	<meta
 		property="twitter:description"
