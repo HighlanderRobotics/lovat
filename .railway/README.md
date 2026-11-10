@@ -3,7 +3,7 @@
 `railway.ts` owns build and deployment settings for `api`, `worker`, `dashboard`,
 `website`, and `learn`. Install the isolated tooling with `npm --prefix .railway ci`
 and check it with `npm --prefix .railway run typecheck` and
-`npm --prefix .railway test`. Use Node 22.20.0 and Railway CLI 5.42.1 or newer.
+`npm --prefix .railway test`. Use Node 22.20.0 and Railway CLI 5.62.1 or newer.
 
 The `lovat-apps` named partial owns only these application services. Databases,
 volumes, buckets, secrets, domains, and source connections remain managed outside
@@ -11,6 +11,10 @@ this repository. This prevents an app configuration apply from deleting omitted
 infrastructure. Any other IaC authoring file targeting the same environment must
 also use a named partial. Do not rename the partial after adoption without
 transferring ownership with `railway config partials`.
+
+CLI 5.62.1 includes the environment-context fix from railwayapp/cli#1139.
+Older releases can pass an empty context and silently omit staging limits; the
+authoring file now refuses to render without an environment name.
 
 ## One-time cutover
 

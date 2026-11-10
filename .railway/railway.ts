@@ -4,6 +4,12 @@ import { defineRailway, project, service } from "railway/iac";
 export const partial = "lovat-apps";
 
 export default defineRailway((ctx) => {
+  if (!ctx.environment?.trim()) {
+    throw new Error(
+      "Railway environment context is required. Use Railway CLI 5.62.1 or newer and link the intended environment.",
+    );
+  }
+
   const dashboard = service("dashboard", {
     build: {
       builder: "DOCKERFILE",

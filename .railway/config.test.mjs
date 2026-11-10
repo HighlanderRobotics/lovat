@@ -49,3 +49,12 @@ for (const environment of ["production", "staging"]) {
     }
   });
 }
+
+test("refuses missing environment context rather than dropping staging limits", () => {
+  for (const environment of [undefined, "", "   "]) {
+    assert.throws(
+      () => config(createRailwayContext({ environment })),
+      /environment context is required/,
+    );
+  }
+});
