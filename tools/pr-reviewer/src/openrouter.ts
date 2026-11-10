@@ -249,6 +249,16 @@ export class OpenRouterClient implements ReviewerModel {
         responseText.length,
       );
 
+      if (choice?.finish_reason === "length") {
+        this.logger.error(
+          `OpenRouter output was truncated: ${attemptLabel} ${responseDetails}.`,
+        );
+        throw new OpenRouterError(
+          "OpenRouter stopped because the output token limit was reached. Increase maxOutputTokens or reduce the review batch size.",
+          { code: "output_limit" },
+        );
+      }
+
       if (content === null || content.trim().length === 0) {
         const error = new OpenRouterError("OpenRouter returned an empty response.", {
           retryable: true,
@@ -268,16 +278,6 @@ export class OpenRouterClient implements ReviewerModel {
         }
 
         throw error;
-      }
-
-      if (choice?.finish_reason === "length") {
-        this.logger.error(
-          `OpenRouter output was truncated: ${attemptLabel} ${responseDetails}.`,
-        );
-        throw new OpenRouterError(
-          "OpenRouter stopped because the output token limit was reached. Increase maxOutputTokens or reduce the review batch size.",
-          { code: "output_limit" },
-        );
       }
 
       this.logger.info(
@@ -305,6 +305,9 @@ export class OpenRouterClient implements ReviewerModel {
       ],
       temperature: this.options.temperature,
       max_tokens: this.options.maxOutputTokens,
+      // Reasoning shares max_tokens with the final JSON. Keep effort low so
+      // reasoning models leave room for findings within the output budget.
+      reasoning: { effort: "low" },
       stream: false,
       usage: { include: true },
       ...(useJsonSchema
