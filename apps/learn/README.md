@@ -15,7 +15,7 @@ npm run preview
 Development runs at `http://localhost:4321`. Production output is `dist/`.
 Guides live in `src/content/docs/guides`, images in `src/assets`, and sidebar configuration in `astro.config.mjs`.
 
-For static hosting, set the base directory to `apps/learn`, build command to `npm run build`, and publish directory to `dist`. The app-local Dockerfile and railway.json configure Railway hosting; see below.
+For static hosting, set the base directory to `apps/learn`, build command to `npm run build`, and publish directory to `dist`. The app-local Dockerfile and repository `.railway/railway.ts` configure Railway hosting; see below.
 
 ## Railway hosting
 

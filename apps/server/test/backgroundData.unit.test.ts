@@ -2,7 +2,6 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   team: { upsert: vi.fn() },
-  tournament: { upsert: vi.fn() },
   teamMatchData: { groupBy: vi.fn() },
   emailVerificationRequest: { deleteMany: vi.fn() },
   registeredTeam: { deleteMany: vi.fn() },
@@ -14,7 +13,6 @@ vi.mock("../src/handler/manager/addTournamentMatches.js", () => ({
   addTournamentMatches: mocks.addMatches,
 }));
 import fetchTeams from "../src/lib/fetchTeams.js";
-import fetchTournaments from "../src/lib/fetchTournaments.js";
 import fetchMatches from "../src/lib/fetchMatches.js";
 import deleteOldRequests from "../src/lib/deleteOldRequests.js";
 import { arrayToRule } from "../src/lib/migrateDataSources.js";
@@ -59,52 +57,10 @@ it("does not write teams for an empty first page", async () => {
   expect(mocks.get).toHaveBeenCalledOnce();
   expect(mocks.team.upsert).not.toHaveBeenCalled();
 });
-it.each([true, false])(
-  "imports explicit or default year ranges (%s)",
-  async (explicit) => {
-    const tournament = {
-      key: "2026test",
-      name: "Test event",
-      city: "Test city",
-      start_date: "2026-03-12",
-    };
-    mocks.get.mockResolvedValue({ data: [tournament] });
-    if (explicit) await fetchTournaments(2025, 2026);
-    else await fetchTournaments();
-    expect(mocks.get.mock.calls.map(([url]) => url)).toEqual(
-      (explicit ? [2025, 2026] : [2023, 2024, 2025, 2026]).map(
-        (year) =>
-          `https://www.thebluealliance.com/api/v3/events/${year}/simple`,
-      ),
-    );
-    const fields = {
-      name: tournament.name,
-      location: tournament.city,
-      date: tournament.start_date,
-    };
-    expect(mocks.tournament.upsert).toHaveBeenCalledWith({
-      where: { key: tournament.key },
-      update: fields,
-      create: { key: tournament.key, ...fields },
-    });
-  },
-);
-it("makes no requests for an inverted year range", async () => {
-  await fetchTournaments(2026, 2025);
-  expect(mocks.get).not.toHaveBeenCalled();
+it("propagates team import errors", async () => {
+  mocks.get.mockRejectedValue(new Error("offline"));
+  await expect(fetchTeams()).rejects.toThrow("offline");
 });
-it("accepts a year with no events", async () => {
-  mocks.get.mockResolvedValue({ data: [] });
-  await fetchTournaments(2026, 2026);
-  expect(mocks.tournament.upsert).not.toHaveBeenCalled();
-});
-it.each([fetchTeams, fetchTournaments])(
-  "propagates import errors (%s)",
-  async (fn) => {
-    mocks.get.mockRejectedValue(new Error("offline"));
-    await expect(fn()).rejects.toThrow("offline");
-  },
-);
 it("refreshes only distinct tournaments in the current date window", async () => {
   mocks.teamMatchData.groupBy.mockResolvedValue([
     { tournamentKey: "2026a" },

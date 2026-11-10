@@ -143,15 +143,15 @@ Railway must use the repository root and `apps/server/Dockerfile` so the shared 
 
 ### Railway service configuration
 
-Keep **Root Directory** set to `/` so Docker can copy `packages/db`. Set
-**Config File** to `/apps/server/railway.json`; that file selects
-`apps/server/Dockerfile`. Update this Railway setting before deploying the
-relocation commit, since there is no longer a root `railway.json`.
+Keep **Root Directory** set to `/` so Docker can copy `packages/db`.
+The `api` service in [Railway IaC](../../.railway/railway.ts) selects
+`apps/server/Dockerfile`, the private database migration/start command, and
+`/status` healthcheck. Clear the legacy **Config File** path during the
+[one-time cutover](../../.railway/README.md), then plan and apply the IaC file.
 Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
 
 The Dockerfile-specific `apps/server/Dockerfile.dockerignore` filters the
-repository-root build context. Database migration, startup, environment
-variables, and healthcheck behavior remain defined in the moved config.
+repository-root build context.
 
 Build locally from the repository root:
 
@@ -164,7 +164,8 @@ docker build -f apps/server/Dockerfile -t lovat-server .
 In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance
 imports so a fresh local database can start without an external API key.
 PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
-for real team, tournament, and match imports. Routes that call Blue Alliance
+for real team and match refreshes. Tournament imports run in the separate
+worker, which automatically refreshes the current UTC season every six hours. Routes that call Blue Alliance
 directly still require the key. Production keeps its existing import behavior.
 
 ### Practice match imports from Nexus

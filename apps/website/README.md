@@ -45,7 +45,7 @@ publishing. No keys are required to build the site.
 
 See [Railway web hosting](../../docs/railway-web-hosting.md) for Docker builds, PR environment variables, validation, and cutover.
 
-The Website service must use repository root `/` and config file `/apps/website/railway.json` so its Docker build can include the root changelog.
+The Website service must use repository root `/` and applied settings from `/.railway/railway.ts` so its Docker build can include the root changelog.
 
 Check these settings in each PR environment too. An inherited `/apps/website`
 root hides the repository-level files and causes Docker `COPY` steps for
