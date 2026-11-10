@@ -3,6 +3,9 @@ import { defineRailway, github, preserve, project, service } from "railway/iac";
 // Application services only; database/storage resources are managed separately.
 export const partial = "lovat-apps";
 
+// Railway omits platform defaults from stored config: sleeping defaults to false,
+// restart policy to ON_FAILURE, and retry count to 10. Do not re-declare those
+// defaults, which otherwise produce a perpetual no-op plan.
 export default defineRailway((ctx) => {
   if (!ctx.environment?.trim()) {
     throw new Error(
@@ -44,9 +47,7 @@ export default defineRailway((ctx) => {
     deploy: {
       healthcheckPath: "/healthz",
       healthcheckTimeout: 120,
-      restartPolicyType: "ON_FAILURE",
       restartPolicyMaxRetries: 3,
-      sleepApplication: false,
     },
   });
 
@@ -61,9 +62,7 @@ export default defineRailway((ctx) => {
     deploy: {
       healthcheckPath: "/healthz",
       healthcheckTimeout: 120,
-      restartPolicyType: "ON_FAILURE",
       restartPolicyMaxRetries: 3,
-      sleepApplication: false,
     },
   });
 
@@ -93,21 +92,22 @@ export default defineRailway((ctx) => {
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/server/Dockerfile",
+      // Retain inert inherited Nixpacks metadata; Dockerfile is the active builder.
+      ...(!production
+        ? { nixpacksPlan: { repo: "MangoSwirl/lovat-server" } }
+        : {}),
       watchPatterns: ["/apps/server/**", "/packages/db/**", "/.railway/**"],
     },
     deploy: {
       runtime: "V2",
-      numReplicas: 1,
       startCommand:
         "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && exec npm start'",
-      sleepApplication: false,
       useLegacyStacker: false,
       multiRegionConfig: {
         "us-west2": {
           numReplicas: 1,
         },
       },
-      restartPolicyType: "ON_FAILURE",
       restartPolicyMaxRetries: 20,
       healthcheckPath: "/status",
       healthcheckTimeout: 1200,
@@ -137,9 +137,7 @@ export default defineRailway((ctx) => {
     deploy: {
       healthcheckPath: "/healthz",
       healthcheckTimeout: 120,
-      restartPolicyType: "ON_FAILURE",
       restartPolicyMaxRetries: 3,
-      sleepApplication: false,
     },
   });
 
@@ -154,13 +152,9 @@ export default defineRailway((ctx) => {
     deploy: {
       runtime: "V2",
       startCommand: "bun index.ts",
-      numReplicas: 1,
-      sleepApplication: false,
       healthcheckPath: "/health",
       healthcheckTimeout: 120,
       drainingSeconds: 60,
-      restartPolicyType: "ON_FAILURE",
-      restartPolicyMaxRetries: 10,
       multiRegionConfig: {
         "us-west2": {
           numReplicas: 1,

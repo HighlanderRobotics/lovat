@@ -63,6 +63,12 @@ then `railway config apply` before deploying application images. Merely merging
 this file does not apply infrastructure. The CI workflow validates TypeScript and
 renders production/staging graphs without credentials; it does not apply changes.
 
+Platform-default values are omitted from the authoring graph to avoid perpetual
+no-op drift: sleeping is disabled, restart policy is `ON_FAILURE`, and the default
+retry count is 10. The explicit per-region replica maps retain one western replica.
+Non-production API builds retain inert inherited Nixpacks metadata; Dockerfile
+remains the active builder.
+
 API retains the private database migration/start command and staging's 2 CPU /
 2 GiB limit. Worker retains its single western replica, disabled sleeping, and
 60-second drain window. Historical tournament imports are explicit worker jobs:

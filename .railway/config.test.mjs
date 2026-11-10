@@ -20,7 +20,11 @@ for (const environment of ["production", "staging"]) {
     for (const resource of graph.resources) {
       assert.equal(resource.build.builder, "DOCKERFILE");
       assert(resource.build.watchPatterns.includes("/.railway/**"));
-      assert.equal(resource.deploy.sleepApplication, false);
+      assert.notEqual(resource.deploy.sleepApplication, true);
+      assert.equal(
+        resource.deploy.restartPolicyType ?? "ON_FAILURE",
+        "ON_FAILURE",
+      );
       // Keep source connections and credential values during adoption.
       assert.equal(resource.source.repo, "HighlanderRobotics/lovat");
       assert.equal(
