@@ -81,6 +81,10 @@ import { importTournaments } from "./src/jobs/tournaments";
 await importTournaments(2026, 2026);
 ```
 
+The worker is the sole tournament-catalog importer; Server startup and daily
+jobs do not fetch tournaments. Its scheduler imports only the current UTC year
+every six hours. Explicit historical imports remain available.
+
 The year range is inclusive and defaults to 2023 through the current UTC year.
 The full TBA event endpoint supplies metadata, season/district relations, and
 parent-event links. Each year and its fetch validators commit together. Missing
@@ -255,8 +259,9 @@ before installing the worker with its frozen lockfile, checks TypeScript, and
 runs as the non-root `node` user. The Docker build context excludes local
 environment files, generated clients, dependency directories, and other apps.
 
-For the worker service, set Root Directory to `/` and Config File to
-`/apps/worker/railway.json`. Configure these variables in the intended preview
+For the worker service, keep Root Directory `/` and apply its settings from
+[Railway IaC](../../.railway/railway.ts). Clear the legacy Config File path during
+the [one-time cutover](../../.railway/README.md). Configure these variables in the intended preview
 environment:
 
 ```text
