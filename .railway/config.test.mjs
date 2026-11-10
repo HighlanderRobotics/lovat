@@ -21,9 +21,18 @@ for (const environment of ["production", "staging"]) {
       assert.equal(resource.build.builder, "DOCKERFILE");
       assert(resource.build.watchPatterns.includes("/.railway/**"));
       assert.equal(resource.deploy.sleepApplication, false);
-      // Provider-managed sources, secrets and storage must not be replaced.
-      assert.equal(resource.source, undefined);
-      assert.equal(resource.variables, undefined);
+      // Keep source connections and credential values during adoption.
+      assert.equal(resource.source.repo, "HighlanderRobotics/lovat");
+      assert.equal(
+        resource.source.branch,
+        environment === "production"
+          ? "main"
+          : "offseason/mock-game-charged-up",
+      );
+      assert(Object.keys(resource.variables).length > 0);
+      for (const value of Object.values(resource.variables)) {
+        assert.deepEqual(value, { type: "preserve" });
+      }
     }
     const api = service("api");
     assert.equal(api.build.dockerfilePath, "apps/server/Dockerfile");
@@ -56,5 +65,23 @@ test("refuses missing environment context rather than dropping staging limits", 
       () => config(createRailwayContext({ environment })),
       /environment context is required/,
     );
+  }
+});
+
+test("refuses preview plans without an explicit source branch", () => {
+  const previous = process.env.RAILWAY_CONFIG_BRANCH;
+  delete process.env.RAILWAY_CONFIG_BRANCH;
+  try {
+    assert.throws(
+      () => config(createRailwayContext({ environment: "lovat-pr-115" })),
+      /RAILWAY_CONFIG_BRANCH/,
+    );
+    process.env.RAILWAY_CONFIG_BRANCH = "example/preview";
+    const graph = config(createRailwayContext({ environment: "lovat-pr-115" }));
+    for (const service of graph.resources)
+      assert.equal(service.source.branch, "example/preview");
+  } finally {
+    if (previous === undefined) delete process.env.RAILWAY_CONFIG_BRANCH;
+    else process.env.RAILWAY_CONFIG_BRANCH = previous;
   }
 });

@@ -6,8 +6,10 @@ and check it with `npm --prefix .railway run typecheck` and
 `npm --prefix .railway test`. Use Node 22.20.0 and Railway CLI 5.62.1 or newer.
 
 The `lovat-apps` named partial owns only these application services. Databases,
-volumes, buckets, secrets, domains, and source connections remain managed outside
-this repository. This prevents an app configuration apply from deleting omitted
+volumes, buckets, and domains remain managed outside this repository. Existing
+variable names are listed with `preserve()`; their values remain on Railway.
+GitHub sources and root directories are declared explicitly because omission
+would disconnect sources or delete variables during adoption. This prevents an app configuration apply from deleting omitted
 infrastructure. Any other IaC authoring file targeting the same environment must
 also use a named partial. Do not rename the partial after adoption without
 transferring ownership with `railway config partials`.
@@ -25,22 +27,29 @@ deployment. Do not put its path in the dashboard's legacy **Config File** field.
    project and a disposable preview environment. Verify the project/environment
    and actual service names, especially `api` (the directory is `apps/server`).
    Never link this file to an unrelated project.
-2. Keep the existing source connections and roots: `/` for api, worker, website;
-   `/apps/dashboard` for dashboard; `/apps/learn` for learn. These settings remain
-   provider-managed, as do domains and environment variables. Keep Dashboard's
-   release workflow as its deploy authority; do not add GitHub autodeploys to it.
+2. Verify the declared source connections and roots: `/` for api, worker, website;
+   `/apps/dashboard` for dashboard; `/apps/learn` for learn. For a PR environment, set
+   `RAILWAY_CONFIG_BRANCH` to its existing GitHub branch for every plan/apply.
+   Production uses `main`; staging retains `offseason/mock-game-charged-up`.
+   Compare variable names with `env` in the file and add `preserve()` entries for
+   any newly configured variables before applying. Never include secret values. Preserve Dashboard's existing release workflow when deciding source/deploy policy.
 3. Confirm the preview has isolated Postgres/Redis and sandbox integration keys.
    Deploy API migrations before the worker starts; API remains the migration owner.
 4. Clear the old **Config File** paths on all five services. The old app-local
    `railway.json` files are removed by this PR. Preserve the last applied settings
    until the new configuration is applied; coordinate this step before deploying
    the merged sources. Do not run `config migrate --apply` over this authored file.
-5. From the repository root, run `railway config plan`. Review every change:
+5. From the repository root, run `railway config plan` (for previews, prefix it
+   with `RAILWAY_CONFIG_BRANCH=<existing-preview-branch>`). Review every change:
    existing services should be adopted, never duplicated under different names.
    Expect the existing build/deploy settings plus `.railway` watch paths. Reject
-   unexpected service, variable, domain, or storage removals. Inspect ownership
+   any service, variable, domain, or storage removals. If unrelated changes are
+   already staged in the environment, preserve that patch: do not use the shared
+   accept/deploy action. Review the IaC plan separately and verify the pre-existing
+   patch is unchanged afterward. Inspect ownership
    with `railway config partials list` if the environment already has IaC owners.
-6. Run `railway config apply` after reviewing the plan. Deploy the preview images,
+6. Run `railway config apply` after reviewing the plan, using the same
+   `RAILWAY_CONFIG_BRANCH` for previews. Deploy the preview images,
    verify `/status`, `/health`, and `/healthz`, and check the worker logs for a
    successful current-year tournament import. The server no longer imports the
    tournament catalog; a healthy worker with `TBA_KEY` is required.

@@ -1,4 +1,4 @@
-import { defineRailway, project, service } from "railway/iac";
+import { defineRailway, github, preserve, project, service } from "railway/iac";
 
 // Application services only; database/storage resources are managed separately.
 export const partial = "lovat-apps";
@@ -10,7 +10,32 @@ export default defineRailway((ctx) => {
     );
   }
 
+  const production = ctx.environment === "production";
+  const branch = production
+    ? "main"
+    : (process.env.RAILWAY_CONFIG_BRANCH ??
+      (ctx.environment === "staging"
+        ? "offseason/mock-game-charged-up"
+        : undefined));
+
+  if (!branch?.trim()) {
+    throw new Error(
+      "Set RAILWAY_CONFIG_BRANCH to the target preview's existing GitHub branch before planning.",
+    );
+  }
+
+  const source = (rootDirectory: string) =>
+    github("HighlanderRobotics/lovat", {
+      branch,
+      rootDirectory,
+      checkSuites: false,
+    });
+  const keep = (...names: string[]) =>
+    Object.fromEntries(names.map((name) => [name, preserve()]));
+
   const dashboard = service("dashboard", {
+    source: source("/apps/dashboard"),
+    env: keep("LOVAT_API_BASE", "LOVAT_WEBSITE_URL", "PORT"),
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "Dockerfile",
@@ -26,6 +51,8 @@ export default defineRailway((ctx) => {
   });
 
   const learn = service("learn", {
+    source: source("/apps/learn"),
+    env: keep("PORT", "PUBLIC_WEBSITE_URL"),
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "Dockerfile",
@@ -41,6 +68,28 @@ export default defineRailway((ctx) => {
   });
 
   const api = service("api", {
+    source: source("/"),
+    env: keep(
+      "AUTH0_DOMAIN",
+      "BASE_URL",
+      "DATABASE_PRIVATE_URL",
+      "DATABASE_URL",
+      "DIRECT_DATABASE_URL",
+      "LOVAT_SIGNING_KEY",
+      "LOVAT_WEBSITE",
+      "PIT_DISPLAY_KEY",
+      "PORT",
+      "POSTHOG_PROJECT_API_KEY",
+      "REDIS_URL",
+      "RESEND_KEY",
+      "SLACK_APP_ID",
+      "SLACK_CLIENT_ID",
+      "SLACK_CLIENT_SECRET",
+      "SLACK_VERIFICATION_KEY",
+      "SLACK_WEBHOOK",
+      "TBA_KEY",
+      ...(!production ? ["CORS_ALLOWED_ORIGINS", "NPM_CONFIG_PRODUCTION"] : []),
+    ),
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/server/Dockerfile",
@@ -69,6 +118,17 @@ export default defineRailway((ctx) => {
   });
 
   const website = service("website", {
+    source: source("/"),
+    env: keep(
+      "LOVAT_API_BASE",
+      "LOVAT_SIGNING_KEY",
+      "ORIGIN",
+      "PORT",
+      "PUBLIC_DASHBOARD_URL",
+      "PUBLIC_LEARN_URL",
+      "PUBLIC_WEBSITE_URL",
+      ...(production ? ["RECAPTCHA_SECRET_KEY", "RECAPTCHA_SITE_KEY"] : []),
+    ),
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/website/Dockerfile",
@@ -84,6 +144,8 @@ export default defineRailway((ctx) => {
   });
 
   const worker = service("worker", {
+    source: source("/"),
+    env: keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/worker/Dockerfile",
