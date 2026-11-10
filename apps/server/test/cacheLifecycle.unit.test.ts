@@ -103,3 +103,21 @@ it("invalidates all dependent keys for arrays of teams and tournaments", async (
     where: { key: { in: ["a", "b"] } },
   });
 });
+
+it.each(["  lovat:custom:  ", "   "])(
+  "uses a safe configured Redis prefix (%s)",
+  async (prefix) => {
+    vi.stubEnv("REDIS_KEY_PREFIX", prefix);
+    vi.resetModules();
+    const client = await import("../src/redisClient.js");
+    try {
+      await client.kv.get("analysis:existing");
+      expect(mocks.client.get).toHaveBeenCalledWith(
+        `${prefix.trim() || "lovat:"}analysis:existing`,
+      );
+    } finally {
+      await client.closeRedis();
+      vi.unstubAllEnvs();
+    }
+  },
+);

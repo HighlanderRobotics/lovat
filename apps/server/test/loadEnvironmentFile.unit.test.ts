@@ -21,3 +21,12 @@ it("loads a reset namespace from a file without overriding deployment configurat
     await rm(directory, { recursive: true });
   }
 });
+
+it("reports unreadable configuration instead of silently using another namespace", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "lovat-reset-error-"));
+  try {
+    expect(() => loadEnvironmentFile(directory)).toThrow();
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});

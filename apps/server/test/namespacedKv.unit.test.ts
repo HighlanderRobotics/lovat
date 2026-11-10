@@ -75,6 +75,9 @@ test("all key operations stay inside the Lovat namespace", async () => {
   assert.equal(redis.expirations.get("lovat:test:auth:apikey:one:rate"), 3);
   assert.equal(await kv.get("analysis:one"), "cached");
 
+  await kv.set("single", "remove");
+  assert.equal(await kv.del("single"), 1);
+  assert.equal(await kv.get("single"), null);
   await kv.del(["analysis:one", "posthog:alias:one"]);
 
   assert.equal(redis.values.has("lovat:test:analysis:one"), false);
