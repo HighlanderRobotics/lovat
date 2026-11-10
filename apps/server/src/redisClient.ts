@@ -1,4 +1,5 @@
 import { createClient } from "redis";
+import { createNamespacedKv } from "./lib/namespacedKv.js";
 
 const createRedisClient = () =>
   createClient({ url: process.env.REDIS_URL }).on("error", (err) =>
@@ -17,6 +18,10 @@ const getRedis = () => {
   return connection;
 };
 
+export const connectRedis = async (): Promise<void> => {
+  await getRedis();
+};
+
 export const closeRedis = async (): Promise<void> => {
   if (connection && redis) {
     await connection;
@@ -26,58 +31,19 @@ export const closeRedis = async (): Promise<void> => {
   }
 };
 
-const set = async (
-  key: string,
-  data: string,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["set"]> => {
-  return await (await getRedis()).set(key, data);
-};
-
-const get = async (
-  key: string,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["get"]> => {
-  return await (await getRedis()).get(key);
-};
-
-const del = async (
-  key: string[] | string,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["del"]> => {
-  return await (await getRedis()).del(key);
-};
-
-const flush = async (): ReturnType<
-  Awaited<ReturnType<typeof getRedis>>["flushDb"]
-> => {
-  return await (await getRedis()).flushDb();
-};
-
-const incr = async (
-  key: string,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["incr"]> => {
-  return await (await getRedis()).incr(key);
-};
-
-const exp = async (
-  key: string,
-  exp: number,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["expire"]> => {
-  return await (await getRedis()).expire(key, exp);
-};
-
-const setEx = async (
-  key: string,
-  data: string,
-  seconds: number,
-): ReturnType<Awaited<ReturnType<typeof getRedis>>["set"]> => {
-  return await (await getRedis()).set(key, data, { EX: seconds });
-};
-
-export const kv = {
-  set,
-  get,
-  del,
-  flush,
-  incr,
-  exp,
-  setEx,
-};
+export const kv = createNamespacedKv(
+  {
+    set: async (key, data, options) =>
+      options
+        ? (await getRedis()).set(key, data, options)
+        : (await getRedis()).set(key, data),
+    get: async (key) => (await getRedis()).get(key),
+    del: async (keys) => (await getRedis()).del(keys),
+    incr: async (key) => (await getRedis()).incr(key),
+    expire: async (key, seconds) => (await getRedis()).expire(key, seconds),
+    async *scanIterator(options) {
+      yield* (await getRedis()).scanIterator(options);
+    },
+  },
+  process.env.REDIS_KEY_PREFIX?.trim() || "lovat:",
+);

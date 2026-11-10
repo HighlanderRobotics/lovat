@@ -1,12 +1,10 @@
 import prismaClient from "../prismaClient.js";
 import { kv } from "../redisClient.js";
 
-export const clearCache = async () => {
-  await prismaClient.cachedAnalysis.deleteMany();
-
-  await kv.flush();
-
-  console.log("Cache cleared");
+// Keep dependency metadata so in-flight analyses remain discoverable by invalidation.
+export const resetCache = async (): Promise<void> => {
+  const deletedRedisKeys = await kv.reset();
+  console.log(`Lovat cache reset (${deletedRedisKeys} Redis keys deleted)`);
 };
 
 export const invalidateCache = async (
