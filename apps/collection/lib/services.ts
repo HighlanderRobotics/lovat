@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { GenericStore, storage } from "./storage/zustandStorage";
+import {
+  GenericStore,
+  storage,
+  waitForStoreHydration,
+} from "./storage/zustandStorage";
 import {
   getScouterSchedule,
   ScouterSchedule,
@@ -9,7 +13,14 @@ import { Scouter } from "./models/scouter";
 import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
 import { getMatchSchedule, MatchSchedule } from "./lovatAPI/getMatchSchedule";
-import { useTournamentStore } from "./storage/userStores";
+import {
+  startupStores,
+  useOnboardingCompleteStore,
+  useScouterStore,
+  useTournamentStore,
+  useTeamStore,
+} from "./storage/userStores";
+import { loadScouterServices } from "./collection/startup";
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
@@ -22,25 +33,45 @@ export function getServiceLoader() {
 
   return async () => {
     let error: string | null = null;
+
     try {
       setServicesLoading(true);
-      // A missing scouter schedule must not stop the official schedule refresh.
-      const results = await Promise.allSettled([
-        fetchTournaments(),
-        fetchTeamScouters(),
-        fetchScouterSchedule(),
-        fetchMatchSchedule(),
-      ]);
-      const failure = results.find((result) => result.status === "rejected");
-      if (failure?.status === "rejected") throw failure.reason;
+      await Promise.all(startupStores.map(waitForStoreHydration));
+
+      const scouter = useScouterStore.getState().value;
+      const teamCode = useTeamStore.getState().code;
+      if (!teamCode) return;
+      const isCurrent = () =>
+        useScouterStore.getState().value?.uuid === scouter?.uuid &&
+        useTeamStore.getState().code === teamCode;
+      const result = await loadScouterServices(scouter, {
+        isCurrent,
+        fetchTeamScouters,
+        fetchTournaments,
+        fetchScouterSchedule,
+        fetchMatchSchedule,
+        getTeamScouters: () => useTeamScoutersStore.getState().data,
+      });
+
+      if (!isCurrent()) return;
+
+      if (result.invalidScouter) {
+        useScouterStore.getState().setValue(null);
+        useTournamentStore.getState().setValue(null);
+        useOnboardingCompleteStore.getState().setValue(false);
+        return;
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
     } catch (e) {
       console.error(e);
       error = JSON.stringify(e);
     } finally {
-      console.log("Fetch successful");
       setServicesLoading(false);
+      setServiceError(error);
     }
-    setServiceError(error);
   };
 }
 

@@ -86,3 +86,10 @@ export const useScoringModeStore = createGenericPersistantStore<ScoringMode>(
   "scoringModeStore",
   ScoringMode.Rate,
 );
+
+export const startupStores = [
+  useOnboardingCompleteStore,
+  useScouterStore,
+  useTeamStore,
+  useTournamentStore,
+];

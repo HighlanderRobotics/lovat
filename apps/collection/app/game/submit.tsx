@@ -12,12 +12,12 @@ import {
 import { Suspense, useEffect, useState } from "react";
 import { ScoutReport } from "../../lib/collection/ScoutReport";
 import { useNavigation } from "expo-router";
+import { resetToStart } from "../../lib/collection/resetNavigation";
 import { uploadReport } from "../../lib/lovatAPI/uploadReport";
 import { Icon } from "../../lib/components/Icon";
 import { useHistoryStore } from "../../lib/storage/historyStore";
 import { ScoutReportMeta } from "../../lib/models/ScoutReportMeta";
 import { ScoutReportCode } from "../../lib/collection/ui/ScoutReportCode";
-import { CommonActions } from "@react-navigation/native";
 import React from "react";
 import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 
@@ -145,8 +145,8 @@ const DoneButton = ({
   meta: ScoutReportMeta;
 }) => {
   const resetReportState = useReportStateStore((state) => state.reset);
-  const upsertMatchToHistory = useHistoryStore((state) => state.upsertMatch);
   const navigation = useNavigation();
+  const upsertMatchToHistory = useHistoryStore((state) => state.upsertMatch);
 
   return (
     <Button
@@ -159,11 +159,7 @@ const DoneButton = ({
         );
         useTrainingSessionStore.getState().clear();
         resetReportState();
-        navigation.dispatch(
-          CommonActions.reset({
-            routes: [{ key: "index", name: "index" }],
-          }),
-        );
+        resetToStart(navigation);
       }}
     >
       Done
