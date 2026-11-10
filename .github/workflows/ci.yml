@@ -346,12 +346,44 @@ jobs:
           cache: npm
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
-      - run: npm run test:changelog
-      - run: npm run test:training
+      - run: npm run test:ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: website-coverage
+          path: apps/website/coverage/
+          retention-days: 14
       - run: npm run format:check
       - run: npm run lint
       - run: npm run check
       - run: npm run build
+
+  website-browser:
+    name: Website browser
+    needs: changes
+    if: ${{ needs.changes.outputs.website == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+          cache: npm
+          cache-dependency-path: apps/website/package-lock.json
+      - run: npm ci
+      - run: npx --no-install playwright install --with-deps --no-shell chromium
+      - run: npm run test:image
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: website-browser-failure
+          path: |
+            apps/website/playwright-report/
+            apps/website/test-results/
+          retention-days: 7
 
   learn:
     name: Learn
@@ -387,6 +419,7 @@ jobs:
         dashboard-format,
         dashboard,
         website,
+        website-browser,
         learn,
       ]
     runs-on: ubuntu-latest
@@ -397,6 +430,7 @@ jobs:
       SERVER_RESULT: ${{ needs.server.result }}
       WORKER_RESULT: ${{ needs.worker.result }}
       COLLECTION_RESULT: ${{ needs.collection.result }}
+      WEBSITE_BROWSER_RESULT: ${{ needs.website-browser.result }}
       WEBSITE_RESULT: ${{ needs.website.result }}
       LEARN_RESULT: ${{ needs.learn.result }}
       DASHBOARD_FORMAT_RESULT: ${{ needs.dashboard-format.result }}
@@ -414,6 +448,7 @@ jobs:
             "$DASHBOARD_FORMAT_RESULT" \
             "$DASHBOARD_RESULT" \
             "$WEBSITE_RESULT" \
+            "$WEBSITE_BROWSER_RESULT" \
             "$LEARN_RESULT"; do
             case "$result" in
               success|skipped) ;;

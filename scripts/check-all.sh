@@ -33,7 +33,7 @@ check_dashboard() {
 
 check_website() {
   cd "$repo_root/apps/website" || return
-  npm run check && npm run lint && npm run build
+  npm run test:ci && npm run check && npm run lint && npm run build
 }
 
 check_learn() {

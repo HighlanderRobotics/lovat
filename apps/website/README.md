@@ -67,3 +67,25 @@ independently and can fail even when the website lockfile is unchanged.
 `/changelog` is generated from the root [CHANGELOG.md](../../CHANGELOG.md) during the Website build. Edit that file, using `## Month YYYY` headings, `### Feature` headings, and Markdown bullets. An empty Unreleased section is hidden; feature sections under Unreleased are shown.
 
 The Vite plugin reads the file directly, watches it during development, renders Markdown with raw HTML disabled, and rewrites repository-relative links to GitHub. The generated content is bundled and prerendered, so the deployed server requires no Markdown file or GitHub requests at runtime. Rebuild the Website to publish changelog edits. CI and Railway watch the root file as well as Website sources. Netlify's existing app base directory works with the full repository checkout; include root changelog changes if you configure a custom build-ignore rule.
+
+## Testing
+
+Use the Node version in `.nvmrc` (20.19.6), then `npm ci`.
+
+- `npm test`: Vitest server tests in Node plus isolated Svelte Testing Library component tests in jsdom.
+- `npm run test:watch`: rerun focused tests while editing.
+- `npm run typecheck:test`: typecheck tests and their Svelte imports with generated SvelteKit route types.
+- `npm run test:coverage`: V8 text/HTML/lcov reports in `coverage/`, with enforced 80% lines/statements/functions and 75% branches across the explicitly listed initial critical modules. This is a scoped baseline, not whole-app coverage. Expand the include list as features gain tests.
+- `npm run test:ci`: test typecheck, coverage gate and existing changelog/training regression suites.
+- `npm run build && npm run test:e2e`: Playwright against the built adapter-node application and a synthetic local API. Install Chromium once with `npx --no-install playwright install --no-shell chromium`.
+- `npm run test:image`: build and test the production Docker image on an ephemeral loopback port. Requires Docker. Both application and fixture API run on an internal network without Internet access; containers are removed on exit.
+
+CI runs the fast suites under Node 20 and a separate blocking image/browser job under Node 24. Chromium and its runner are pinned together by the lockfile. Traces, screenshots and browser reports upload only on failure; coverage uploads separately. The aggregate `Monorepo CI` gate includes browser results.
+
+Server tests reset synthetic environment values, timers and fetch stubs for every test; unexpected fetch calls fail immediately. Tests cover CSRF hooks, exact HMAC signing, Slack timestamp/signature failures and approve/reject actions, CAPTCHA/delivery failures, honeypots, verification outcomes and redirect behavior. No real Slack/email requests or production bypasses are used. Browser tests block external requests and cover SSR, hydration, keyboard/mobile navigation, WCAG A/AA axe checks, redirects, verification and a pit display using `test/fixtures/pit.json` (invented teams, no production data).
+
+Put server cases in `test/*.node.test.ts`, Svelte cases in `test/*.dom.test.ts`, and built-site journeys in `e2e/`. Keep fixtures synthetic. The local browser server uses a test-only fetch preload allowing only its fixture API; Docker uses network isolation instead. A custom `TEST_BASE_URL` must be local and already configured with the fixture API and public preview URLs.
+
+Accessibility automation does not replace manual keyboard/screen-reader review. Keyboard menu interaction is automated; broader assistive-technology review remains a release task. Related issues: LVT-267, LVT-268, LVT-269; shared CI adoption: LVT-273.
+
+The browser suite exposed an existing invalid font shorthand in the pinned Magnolia dependency. `postinstall` applies a small, idempotent source patch that uses valid CSS and falls back to the reduced icon font if the external full font is unavailable. Installation fails with a review instruction if upstream changes the patched code; remove the patch when the upstream fix is adopted. The suite also checks that in-paragraph Download help links remain visibly underlined.
