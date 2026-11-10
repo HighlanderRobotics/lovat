@@ -4,6 +4,8 @@
 
 This repository contains independently buildable applications under `apps/`. Root instructions apply everywhere. Read the nearest app-local `AGENTS.md` before editing an application.
 
+Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` files should contain only application-specific instructions and must not duplicate this workflow guidance.
+
 ## Repository map
 
 - `apps/server`: Express, Prisma, PostgreSQL, and Redis service.
@@ -16,12 +18,36 @@ This repository contains independently buildable applications under `apps/`. Roo
 - `docs`: architecture and migration evidence.
 - `scripts`: repository coordination checks.
 
-## Starting a task
+## Development workflow
 
-- Start every new task on a fresh branch created from fully pulled `main`.
-- Check the working tree first and preserve any existing work. Switch to `main`, run `git pull --ff-only origin main`, and create the task branch only after the pull succeeds. Do not branch from another task's branch or a stale local `main`.
-- Use the branch name requested by Ben or supplied by the issue; otherwise use the `codex/` prefix.
-- If local changes or divergent history prevent updating `main`, resolve that condition before starting implementation. Never discard work or reset history to force the update.
+### Branches
+
+- Do all feature work on a fresh branch from the fully updated default branch unless the user requests another base. Check the working tree first, preserve existing work, and run `git pull --ff-only origin main` before creating a new branch from `main`. Do not branch from another task's branch or stale local `main` unless the user requests that base.
+- If local changes or divergent history prevent updating the default branch, resolve that condition before starting implementation. Never discard work or reset history to force the update.
+- Keep unrelated work out of the branch. Preserve existing uncommitted changes and never include them in a commit or PR without the user's approval.
+- For Linear work, name branches `<user>/<ticket-id>-<short-slug>`, using lowercase words separated by hyphens, for example `ben/lvt-227-remove-unsafe-redis-flushing`.
+- When no Linear ticket applies, use `<user>/<short-description>`. Do not invent a ticket reference.
+
+### Commits
+
+- Follow the [Conventional Commits 1.0.0 specification](https://www.conventionalcommits.org/en/v1.0.0/) using the form `type(scope): description` when a scope is useful.
+- Add the Linear identifier in a commit footer when applicable, for example `Refs: LVT-227`.
+- Keep commits atomic and use imperative descriptions. Do not include `Co-Authored-By` lines.
+- On long-running tasks, commit whenever a substantive step is complete. Do not wait until the entire task is finished to commit working milestones.
+
+### Linear
+
+- Keep applicable Linear tickets current throughout the work using the Linear MCP tools. Do not use browser automation for Linear updates.
+- Move the ticket to an active state when work begins. Add the branch or implementation context when it helps other contributors understand the current state.
+- When a PR opens, attach it to the ticket and add the implementation summary, exact verification results, known failures, and review status.
+- Move the ticket to Done only after the change merges. If the team's workflow has no exact matching state, use the closest state and explain the choice in a comment.
+
+### Pull requests and merging
+
+- Open a PR when the implementation, relevant checks, and self-review are complete.
+- Link the Linear issue when applicable. Include the exact verification commands and separate pre-existing failures from regressions.
+- Do not merge a PR unless the user explicitly requests it.
+- When asked to merge a branch with many interim commits, prefer squash merge so the default branch receives one coherent Conventional Commit.
 
 ## Working rules
 
@@ -32,7 +58,6 @@ This repository contains independently buildable applications under `apps/`. Roo
 - Never commit credentials, private `.env` files, signing assets, database dumps, production data, generated dependencies, or build output.
 - Treat scouting notes and team strategy as sensitive. Preserve tenant and source-team filters.
 - Never run a destructive database command against an unverified database URL.
-- Use atomic, imperative commits without `Co-Authored-By` lines.
 - Run the nearest app checks before completion and report pre-existing failures separately.
 
 ## Commit messages and pull request descriptions
