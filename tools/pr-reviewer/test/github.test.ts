@@ -114,18 +114,18 @@ describe("GitHubApi", () => {
           body: "finding",
           path: "src/a.ts",
           line: 12,
-          user: { type: "Bot" },
+          user: { type: "Bot", login: "github-actions[bot]" },
         },
       ]),
-      jsonResponse([{ id: 2, body: "summary", user: { type: "Bot" } }]),
+      jsonResponse([{ id: 2, body: "summary", user: { type: "Bot", login: "github-actions[bot]" } }]),
     ]);
 
     const api = client(fetchImpl);
     await expect(api.listReviewComments()).resolves.toEqual([
-      { id: 1, body: "finding", path: "src/a.ts", line: 12, userType: "Bot" },
+      { id: 1, body: "finding", path: "src/a.ts", line: 12, userType: "Bot", userLogin: "github-actions[bot]" },
     ]);
     await expect(api.listReviews()).resolves.toEqual([
-      { id: 2, body: "summary", userType: "Bot" },
+      { id: 2, body: "summary", userType: "Bot", userLogin: "github-actions[bot]" },
     ]);
   });
 
@@ -226,5 +226,60 @@ describe("parseNextLink", () => {
     expect(parseNextLink(null)).toBeNull();
     expect(parseNextLink("")).toBeNull();
     expect(parseNextLink('<https://api.github.com/x?page=1>; rel="prev"')).toBeNull();
+  });
+});
+
+describe("GitHub summary and cleanup APIs", () => {
+  it("paginates conversation comments and updates the selected comment in place", async () => {
+    const { fetchImpl, calls } = scriptedFetch([
+      jsonResponse([{ id: 1, body: "human", user: { type: "User", login: "student" } }], {
+        headers: { link: '<https://api.github.com/repos/HighlanderRobotics/lovat/issues/42/comments?page=2>; rel="next"' },
+      }),
+      jsonResponse([{ id: 2, body: "summary", user: { type: "Bot", login: "github-actions[bot]" } }]),
+      jsonResponse({ id: 2 }),
+      jsonResponse({ id: 3 }),
+    ]);
+    const api = client(fetchImpl);
+    const comments = await api.listSummaryComments();
+    expect(comments).toHaveLength(2);
+    expect(comments[1]).toMatchObject({ id: 2, userLogin: "github-actions[bot]" });
+    expect(calls[0]!.url).toContain("/issues/42/comments");
+    await api.updateSummaryComment(2, "updated");
+    expect(calls[2]!.url).toContain("/issues/comments/2");
+    expect(calls[2]!.init.method).toBe("PATCH");
+    expect(JSON.parse(String(calls[2]!.init.body))).toEqual({ body: "updated" });
+    await api.createSummaryComment("first summary");
+    expect(calls[3]!.url).toContain("/issues/42/comments");
+    expect(calls[3]!.init.method).toBe("POST");
+  });
+
+  it("uses the review's GraphQL node ID to minimize it as outdated", async () => {
+    const { fetchImpl, calls } = scriptedFetch([
+      jsonResponse([{ id: 10, node_id: "PRR_10", body: "legacy", user: { type: "Bot", login: "github-actions[bot]" } }]),
+      jsonResponse({ data: { minimizeComment: { minimizedComment: { isMinimized: true } } } }),
+    ]);
+    const api = client(fetchImpl);
+    const reviews = await api.listReviews();
+    expect(reviews[0]!.nodeId).toBe("PRR_10");
+    await api.minimizeReview(reviews[0]!.nodeId!);
+    expect(calls[1]!.url).toBe("https://api.github.com/graphql");
+    const body = JSON.parse(String(calls[1]!.init.body));
+    expect(body.variables).toEqual({ id: "PRR_10" });
+    expect(body.query).toContain("classifier: OUTDATED");
+  });
+
+  it("surfaces GraphQL errors even when GitHub returns HTTP 200", async () => {
+    const { fetchImpl } = scriptedFetch([
+      jsonResponse({ errors: [{ message: "not permitted" }] }),
+    ]);
+    await expect(client(fetchImpl).minimizeReview("PRR_1")).rejects.toThrow("could not minimize");
+  });
+
+  it("uses the enterprise GraphQL endpoint when a REST API URL is provided", async () => {
+    const { fetchImpl, calls } = scriptedFetch([
+      jsonResponse({ data: { minimizeComment: { minimizedComment: { isMinimized: true } } } }),
+    ]);
+    await client(fetchImpl, { apiUrl: "https://github.example.com/api/v3" }).minimizeReview("PRR_1");
+    expect(calls[0]!.url).toBe("https://github.example.com/api/graphql");
   });
 });

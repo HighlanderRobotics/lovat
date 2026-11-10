@@ -59,22 +59,26 @@ describe("review state", () => {
         id: 1,
         body: `${SUMMARY_MARKER}\n${encodeState({ version: 1, fingerprints: ["1111111111111111"] })}`,
         userType: "Bot",
+        userLogin: "github-actions[bot]",
       },
       {
         id: 2,
         body: `${SUMMARY_MARKER}\n${encodeState({ version: 1, fingerprints: ["2222222222222222"] })}`,
         userType: "Bot",
+        userLogin: "github-actions[bot]",
       },
       {
         id: 3,
         body: `${SUMMARY_MARKER}\n${encodeState({ version: 1, fingerprints: ["3333333333333333"] })}`,
         userType: "User",
+        userLogin: "contributor",
       },
     ];
 
     expect(findPreviousState(reviews)).toEqual({
       version: 1,
       fingerprints: ["2222222222222222"],
+      lastReviewId: 2,
     });
   });
 
@@ -86,6 +90,7 @@ describe("review state", () => {
         path: "src/a.ts",
         line: 1,
         userType: "Bot",
+        userLogin: "github-actions[bot]",
       },
       {
         id: 2,
@@ -93,6 +98,7 @@ describe("review state", () => {
         path: "src/a.ts",
         line: 2,
         userType: "User",
+        userLogin: "contributor",
       },
     ];
 

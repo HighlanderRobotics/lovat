@@ -8,6 +8,11 @@ import { safeErrorMessage } from "./redact.js";
 import {
   collectPriorFingerprints,
   findPreviousState,
+  findSummaryComment,
+  isReviewerPost,
+  SUMMARY_MARKER,
+  SUMMARY_COMMENT_MARKER,
+  renderNewFindingsReview,
   renderCompletedSummary,
   renderFailureSummary,
   renderInlineComment,
@@ -19,6 +24,7 @@ import type {
   ModelUsage,
   ReviewerModel,
   ReviewGitHub,
+  SummaryCommentInfo,
 } from "./types.js";
 
 export interface RunReviewInput {
@@ -57,7 +63,7 @@ export const consoleLogger: Logger = {
 };
 
 /**
- * Run one complete review. Failures are published as a visible failed review
+ * Run one complete review. Failures update the persistent summary
  * before the outcome is returned; the workflow then exits non-zero.
  */
 export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
@@ -92,6 +98,10 @@ async function runReviewInner(
   logger.info(
     `AI review starting: ${input.repoFullName}#${input.pullNumber} at ${shortSha(pullRequest.headSha)} (base ${shortSha(pullRequest.baseSha)}), ${pullRequest.changedFiles} changed file(s)${pullRequest.draft ? ", draft" : ""}.`,
   );
+
+  if (pullRequest.headSha !== input.headSha || pullRequest.state !== "open") {
+    return { status: "skipped", reason: "pull request is closed or the workflow commit is superseded" };
+  }
 
   const config = await loadConfig(input.github, input.baseSha, input.env);
   onConfig(config);
@@ -136,11 +146,14 @@ async function runReviewInner(
     `AI review batching: ${batches.length} batch(es), ${diffCharacters.toLocaleString("en-US")} diff character(s), per-batch budget ${diffBudget.toLocaleString("en-US")}${budgetIsBelowMinimum ? " (configured input budget is below the prompt size)" : ""}.`,
   );
 
-  const [reviews, comments] = await Promise.all([
+  const [reviews, comments, summaryComments] = await Promise.all([
     input.github.listReviews(),
     input.github.listReviewComments(),
+    input.github.listSummaryComments(),
   ]);
-  const priorFingerprints = collectPriorFingerprints(reviews, comments);
+  const summary = findSummaryComment(summaryComments);
+  const previousState = findPreviousState(reviews, summary);
+  const priorFingerprints = collectPriorFingerprints(reviews, comments, summary);
   logger.info(
     `AI review state: ${reviews.length} prior review(s), ${comments.length} prior comment(s), ${priorFingerprints.size} known finding fingerprint(s).`,
   );
@@ -235,6 +248,7 @@ async function runReviewInner(
   const state: ReviewState = {
     version: 1,
     fingerprints: prepared.findings.map((finding) => finding.fingerprint),
+    lastReviewId: previousState?.lastReviewId ?? 0,
   };
 
   const details = buildDetails({
@@ -288,36 +302,62 @@ async function runReviewInner(
     `AI review findings: ${prepared.findings.length} accepted, ${previouslyReported.size} previously reported, ${newFindings.length} new, ${positionlessNewFindings.length} summary-only, ${prepared.stats.filteredByConfidence} below confidence, ${prepared.stats.filteredByCategory} outside categories, ${prepared.stats.unknownFile} outside the diff, ${prepared.stats.duplicated} duplicate(s), ${prepared.stats.capped} capped.`,
   );
 
-  let inlineFallback = false;
-  let body = renderCompletedSummary({ ...summaryInput, inlineFallback: false });
+  // A cancelled workflow can still finish an in-flight model request. Do not
+  // replace the latest summary with a result for a superseded commit.
+  const latest = await input.github.getPullRequest();
+  if (latest.headSha !== input.headSha || latest.state !== "open") {
+    return { status: "skipped", reason: "pull request is closed or the workflow commit is superseded" };
+  }
 
+  let inlineFallback = false;
   logger.info(
-    `AI review publishing: ${inlineComments.length} inline comment(s), summary body ${body.length.toLocaleString("en-US")} characters.`,
+    `AI review publishing: ${inlineComments.length} inline comment(s), ${newFindings.length} new finding(s), persistent summary.`,
   );
 
-  try {
-    await input.github.createReview({ body, comments: inlineComments });
-  } catch (error) {
-    if (
-      inlineComments.length > 0 &&
-      error instanceof GitHubApiError &&
-      error.status === 422
-    ) {
-      inlineFallback = true;
-      logger.warn(
-        "GitHub rejected inline comment positions; publishing all findings in the review summary.",
-      );
-      body = renderCompletedSummary({
-        ...summaryInput,
-        inlineFallback: true,
-        limitations: [
-          ...limitations,
-          "GitHub rejected one or more inline comment positions, so every finding appears in this summary instead.",
-        ],
+  if (newFindings.length > 0) {
+    const reviewBody = (fallback: boolean) => renderNewFindingsReview({
+      findings: newFindings,
+      headSha: input.headSha,
+      state,
+      inlineFallback: fallback,
+    });
+    try {
+      const review = await input.github.createReview({
+        body: reviewBody(false), comments: inlineComments,
       });
-      await input.github.createReview({ body, comments: [] });
-    } else {
-      throw error;
+      state.lastReviewId = review.id;
+    } catch (error) {
+      if (inlineComments.length > 0 && error instanceof GitHubApiError && error.status === 422) {
+        // The full finding details will be available in the persistent summary.
+        // Keep a recoverable copy in the new review if summary updating fails.
+        inlineFallback = true;
+        logger.warn("GitHub rejected inline positions; publishing findings in the persistent summary.");
+        const review = await input.github.createReview({ body: reviewBody(true), comments: [] });
+        state.lastReviewId = review.id;
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  const body = renderCompletedSummary({
+    ...summaryInput,
+    inlineFallback,
+    fullFindingDetails: true,
+    limitations: inlineFallback
+      ? [...limitations, "GitHub rejected one or more inline comment positions, so every finding appears in this summary instead."]
+      : limitations,
+  });
+  await publishSummary(input.github, summary, body);
+
+  // Cleanup is best-effort and happens only after the replacement is visible.
+  // The snapshot excludes the new review, which stays expanded for discussion.
+  for (const review of reviews) {
+    if (!isReviewerPost(review) || !review.body.includes(SUMMARY_MARKER) || !review.nodeId) continue;
+    try {
+      await input.github.minimizeReview(review.nodeId);
+    } catch (error) {
+      logger.warn(`Could not minimize superseded AI review ${review.id}: ${safeErrorMessage(error, input.knownSecrets ?? [])}`);
     }
   }
 
@@ -343,11 +383,18 @@ async function publishFailure(
   logger: Logger,
 ): Promise<void> {
   try {
-    const reviews = await input.github.listReviews();
-    const state = findPreviousState(reviews);
+    const latest = await input.github.getPullRequest();
+    if (latest.headSha !== input.headSha || latest.state !== "open") return;
+    const [reviews, comments] = await Promise.all([
+      input.github.listReviews(), input.github.listSummaryComments(),
+    ]);
+    const summary = findSummaryComment(comments);
+    const state = findPreviousState(reviews, summary);
     const body = renderFailureSummary({
       model,
       message,
+      headSha: input.headSha,
+      previousSummary: summary?.body,
       ...(input.runUrl === undefined ? {} : { runUrl: input.runUrl }),
       state,
       ...(input.knownSecrets === undefined
@@ -355,13 +402,23 @@ async function publishFailure(
         : { knownSecrets: input.knownSecrets }),
     });
 
-    await input.github.createReview({ body, comments: [] });
+    await publishSummary(input.github, summary, body);
   } catch (error) {
     logger.error(
       "Could not publish the failed-review summary to GitHub.",
       safeErrorMessage(error, input.knownSecrets ?? []),
     );
   }
+}
+
+async function publishSummary(
+  github: ReviewGitHub,
+  summary: SummaryCommentInfo | undefined,
+  body: string,
+): Promise<void> {
+  const markedBody = `${SUMMARY_COMMENT_MARKER}\n${body}`;
+  if (summary) await github.updateSummaryComment(summary.id, markedBody);
+  else await github.createSummaryComment(markedBody);
 }
 
 function buildDetails(input: {
