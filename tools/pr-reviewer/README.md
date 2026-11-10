@@ -66,7 +66,7 @@ being ignored. All fields are optional because the tool applies defaults.
 | `excludedPaths` | built-in list | Gitignore-like globs. An explicit list **replaces** the defaults. |
 | `categories` | all | Allowed categories: `BUG`, `SECURITY`, `PERFORMANCE`, `DATABASE`, `TYPE_SAFETY`, `ARCHITECTURE`. |
 | `temperature` | `0.1` | Sampling temperature. |
-| `maxOutputTokens` | `4096` | Per-request output limit. |
+| `maxOutputTokens` | `16384` | Per-request limit shared by reasoning and the final JSON review. |
 | `maxInputTokens` | unset | Optional cap used to shrink the per-request diff budget. |
 | `requestTimeoutMs` | `120000` | Timeout for one OpenRouter request. |
 | `maxRetries` | `3` | Retries for timeouts, network failures, rate limits, and transient server errors. |
@@ -81,6 +81,12 @@ from the configuration file.
 `CODE_REVIEW.md` is the repository-specific review guide. It is inserted into
 the model's system prompt and is authoritative for project conventions. Keep it
 focused on durable rules; it is truncated if it grows beyond 40,000 characters.
+
+Reasoning effort is set to `low` on each request. The output budget includes
+both reasoning and the final JSON; the 16,384-token default gives reasoning
+models more room to produce findings. A `finish_reason` of `length` fails with
+`output_limit` even when content is empty, rather than repeating the same
+request as an empty-response retry. See [OpenRouter reasoning budgets](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
 ## How findings are published
 
