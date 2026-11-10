@@ -38,7 +38,7 @@ check_website() {
 
 check_learn() {
   cd "$repo_root/apps/learn" || return
-  npm run build
+  npm run test:ci
 }
 
 check_reviewer() {
