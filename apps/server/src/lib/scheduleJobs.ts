@@ -1,4 +1,3 @@
-import fetchTournaments from "./fetchTournaments.js";
 import fetchTeams from "./fetchTeams.js";
 import fetchMatches from "./fetchMatches.js";
 import prisma from "../prismaClient.js";
@@ -7,7 +6,6 @@ import deleteOldRequests from "./deleteOldRequests.js";
 import { runBackgroundTask } from "./errors.js";
 
 export default async function scheduleJobs(): Promise<void> {
-  const year = 2024;
   const skipTba =
     process.env.NODE_ENV === "development" && !process.env.TBA_KEY?.trim();
 
@@ -17,16 +15,10 @@ export default async function scheduleJobs(): Promise<void> {
     // Prevent unnecessary fetching in dev mode which is frequently restarted
     if (
       process.env.NODE_ENV === "development" &&
-      (await prisma.tournament.count()) > 0 &&
       (await prisma.team.count()) > 0
     ) {
       console.log("Skipping initial TBA data fetch");
     } else {
-      // Import tournaments
-      console.log("Fetching tournaments from TBA...");
-      await fetchTournaments(year);
-      console.log("Done fetching tournaments from TBA.");
-
       // Import teams
       console.log("Fetching teams from TBA...");
       await fetchTeams();
@@ -37,10 +29,6 @@ export default async function scheduleJobs(): Promise<void> {
     setInterval(
       () =>
         runBackgroundTask(async () => {
-          console.log("Fetching tournaments from TBA...");
-          await fetchTournaments(year);
-          console.log("Done fetching tournaments from TBA.");
-
           console.log("Fetching teams from TBA...");
           await fetchTeams();
           console.log("Done fetching teams from TBA.");
