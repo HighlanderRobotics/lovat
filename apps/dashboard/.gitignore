@@ -48,3 +48,10 @@ app.*.map.json
 # Secrets
 /lib/correct_passwords.dart
 android/local.properties
+
+# Behavioral suite artifacts
+/test-report/
+/coverage/
+/packages/chips_input/coverage/
+/packages/chips_input/pubspec.lock
+/tool/__pycache__/

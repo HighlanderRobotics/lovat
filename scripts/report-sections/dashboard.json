@@ -1,0 +1,12 @@
+{
+  "slug": "dashboard",
+  "label": "Dashboard",
+  "required": [
+    "index.html",
+    "coverage/index.html",
+    "packages/chips_input/index.html",
+    "packages/chips_input/coverage/index.html",
+    "browser/index.html"
+  ],
+  "browser": true
+}

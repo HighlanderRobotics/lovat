@@ -28,7 +28,7 @@ check_collection() {
 
 check_dashboard() {
   cd "$repo_root/apps/dashboard" || return
-  flutter analyze && dart format --output=none --set-exit-if-changed .
+  python3 tool/run_tests.py && flutter analyze && dart format --output=none --set-exit-if-changed .
 }
 
 check_website() {

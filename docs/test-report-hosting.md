@@ -1,6 +1,6 @@
 # Lovat test report hosting
 
-GitHub Pages hosts static reports for all three web applications. No live
+GitHub Pages hosts static application test reports. No live
 Vitest process, application server or database is needed to view the reports.
 
 | Application | Test results                                                                             | Coverage                                                                 | Browser tests                                                             |
@@ -14,6 +14,15 @@ from `/lovat/` to `/lovat/server/`. All report links are relative, including the
 Vitest coverage iframe, so nested project paths work without a custom domain.
 If a custom domain is configured later, these directories become `/server/`,
 `/learn/` and `/website/` on that domain.
+
+
+Dashboard registers `scripts/report-sections/dashboard.json`. Its app and local
+chips package results and HTML coverage are uploaded as `dashboard-test-report`;
+the focused Chrome journey is uploaded separately as `dashboard-browser-report`.
+Main publishes both under `/lovat/dashboard/` and `/lovat/dashboard/browser/` only
+after the aggregate gate succeeds. Unit failures still retain diagnostic artifacts
+without replacing the published successful site. Native/device and sandbox Auth0
+checks remain separate release evidence, not public unit-test success claims.
 
 ## Publishing setup
 
