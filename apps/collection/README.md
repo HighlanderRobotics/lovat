@@ -93,3 +93,19 @@ verify the first build after this upgrade still launches on an iOS 27 device.
   `app.json`; confirm it in the built app's `Info.plist` or the EAS build details.
 - If EAS Submit reports that an App Store Connect API key is required, upload a
   local archive with Xcode Organizer, or a cloud-built `.ipa` with Transporter.
+
+## Testing framework
+
+Use Node 24.6.0 and `npm ci`. `npm test` runs the retained Node regression suite (including match validation) and Jest 30.5 / jest-expo 58 / React Native Testing Library 14 suites. `npm run test:ci` also typechecks tests; `npm run test:unit` and `npm run test:watch` are the focused Jest commands. These versions match Expo SDK 58 and React 19.3; the older SDK 54 proposal in LVT-259 is no longer compatible.
+
+Tests execute real Zustand stores, AsyncStorage persistence, report serialization/migrations, undo, timer cleanup, submission success/failure, History retry and QR chunk assembly. Only native services, navigation and outbound boundaries are mocked. Each case clears storage and restores timers, globals and mocks. Unexpected fetch calls fail. Fixtures use invented teams and keys. The tests found and fixed a Submit render crash during report reset; invalid QR chunk sizes now fail immediately. QR offsets and payload shape remain compatible with Dashboard.
+
+`test-report/index.html`, JUnit XML, Jest JSON and HTML/lcov coverage are generated even when a test command fails, and the original exit code is preserved. Coverage enforces 85% statements/lines, 70% branches and 90% functions across the explicitly listed critical modules in `jest.config.cjs`, not the entire app. CI uploads `collection-test-report`; successful main runs publish it at https://highlanderrobotics.github.io/lovat/collection/. PRs never deploy.
+
+### Native release journeys
+
+`.maestro/` provides installed-app onboarding/deep-link, offline recording, process restart, reconnect/History retry and Settings checks. `scripts/test-native-android.sh` starts a synthetic fixture API, disables airplane connectivity and stops the API so an ADB tunnel cannot hide offline failures, then restarts the app without clearing storage. It verifies that the retried lifecycle preserves one UUID and produces one successful submission. Run it against an installed standalone APK with localhost HTTP permitted for the fixture; it never changes the production app network policy or auth behavior. Install Maestro CLI `cli-2.12.1` and Android platform tools first.
+
+The manual **Collection native candidate tests** workflow accepts an APK artifact run/name and requires that artifact's source SHA to match the selected workflow revision. A failed native flow fails the workflow and retains JUnit/logs. It is a candidate/release check, not a required PR test until Android build stability is proven (LVT-217). No cloud builds or releases are started by the test workflow. Use the existing `native-smoke-ios` EAS simulator profile for iOS candidates; run the same flows with a reachable local fixture, omitting Android airplane/ADB commands. iOS has no simulator airplane mode.
+
+Before a release, the release owner must run the candidate checks and record the build SHA/version, then manually verify camera permission grant/deny, physical-device multi-code QR transfer, background/restart persistence, and the iOS system/browser permission prompts. Unit/component tests do not claim to validate native camera, signing, installation or permissions. Native flows require a candidate device/build and are documented separately from the automated Pages suite. Related: LVT-259/260/261/262 and LVT-273.

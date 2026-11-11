@@ -36,3 +36,6 @@ yarn-error.*
 
 # Generated dependency audit artifact
 dependency-audit.json
+
+test-report/
+.maestro/results/
