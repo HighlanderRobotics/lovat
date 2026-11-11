@@ -12,3 +12,7 @@ apps/website/.env.*
 !apps/website/.env.example
 apps/website/.git
 apps/website/.DS_Store
+apps/website/coverage
+apps/website/playwright-report
+apps/website/test-results
+apps/website/test-report

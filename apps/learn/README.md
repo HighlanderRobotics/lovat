@@ -27,7 +27,7 @@ Use Node 22.20.0 and run `npm ci`. `npm test` runs isolated Node tests for direc
 
 For browser coverage, run `npx --no-install playwright install --no-shell chromium` once, start Docker, then run `npm run test:image`. This builds the production Caddy image with a local preview Website URL and checks the root redirect, real 404 status, every configured sidebar destination, local images and built-site search. The script binds an ephemeral loopback port and removes the container even on failure. No credentials or live services are required. Browser requests outside the local origin are blocked.
 
-`npm run test:e2e` can target an already running Caddy build with `TEST_BASE_URL=http://127.0.0.1:PORT`; build with `PUBLIC_WEBSITE_URL=http://127.0.0.1:4322`. It deliberately requires Caddy's production redirect/404 behavior rather than the Astro development server. CI runs both layers on Learn and workflow changes, fails on any test failure, and uploads traces/screenshots/reports only on failure. To debug, use `npx --no-install playwright show-report`.
+`npm run test:e2e` can target an already running Caddy build with `TEST_BASE_URL=http://127.0.0.1:PORT`; build with `PUBLIC_WEBSITE_URL=http://127.0.0.1:4322`. It deliberately requires Caddy's production redirect/404 behavior rather than the Astro development server. CI runs both layers on Learn and workflow changes, fails on any test failure, and uploads browser reports after every run and retains traces/screenshots only on failure. To debug, use `npx --no-install playwright show-report`.
 
 Add plugin regression cases in `test/site-links.test.mjs` and user journeys in `e2e/`. Sidebar test destinations come directly from `astro.config.mjs`. Related work: LVT-270, LVT-271; shared CI adoption: LVT-273.
 

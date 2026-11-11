@@ -26,7 +26,11 @@ export const POST: RequestHandler = async (event) => {
 
 	// Validate request timestamp
 	const now = Math.floor(Date.now() / 1000);
-	if (Math.abs(now - parseInt(requestTimestamp)) > 60 * 5) {
+	if (
+		!/^\d+$/.test(requestTimestamp) ||
+		!Number.isSafeInteger(Number(requestTimestamp)) ||
+		Math.abs(now - Number(requestTimestamp)) > 60 * 5
+	) {
 		throw error(400, 'Outdated request');
 	}
 
