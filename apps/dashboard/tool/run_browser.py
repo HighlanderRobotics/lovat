@@ -26,7 +26,12 @@ try:
                         raise RuntimeError('Local test service did not start: ' + url)
                     time.sleep(.5)
         with (OUT / 'journey.log').open('w') as log:
-            status = subprocess.call(['flutter', 'drive', '--driver=test_driver/integration_test.dart', '--target=integration_test/app_journey_test.dart', '-d', 'web-server', '--browser-name=chrome', '--headless'], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+            command = ['flutter', 'drive', '--driver=test_driver/integration_test.dart', '--target=integration_test/app_journey_test.dart', '-d', 'web-server', '--browser-name=chrome', '--headless']
+            # ChromeDriver does not read Flutter's CHROME_EXECUTABLE variable.
+            # Explicitly select the binary paired with the pinned driver.
+            if os.environ.get('CHROME_EXECUTABLE'):
+                command += ['--chrome-binary', os.environ['CHROME_EXECUTABLE']]
+            status = subprocess.call(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
         print((OUT / 'journey.log').read_text())
 except Exception as error:
     print(error)
