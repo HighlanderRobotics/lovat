@@ -7,6 +7,8 @@ export default mergeConfig(
 	defineConfig({
 		plugins: [svelteTesting()],
 		test: {
+			reporters: ['default', 'html'],
+			outputFile: { html: 'test-report/index.html' },
 			projects: [
 				{
 					extends: true,
@@ -29,6 +31,7 @@ export default mergeConfig(
 			],
 			coverage: {
 				provider: 'v8',
+				reportsDirectory: 'test-report/coverage',
 				reporter: ['text', 'html', 'lcov'],
 				include: [
 					'src/hooks.server.ts',

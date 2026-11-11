@@ -75,7 +75,7 @@ Use the Node version in `.nvmrc` (20.19.6), then `npm ci`.
 - `npm test`: Vitest server tests in Node plus isolated Svelte Testing Library component tests in jsdom.
 - `npm run test:watch`: rerun focused tests while editing.
 - `npm run typecheck:test`: typecheck tests and their Svelte imports with generated SvelteKit route types.
-- `npm run test:coverage`: V8 text/HTML/lcov reports in `coverage/`, with enforced 80% lines/statements/functions and 75% branches across the explicitly listed initial critical modules. This is a scoped baseline, not whole-app coverage. Expand the include list as features gain tests.
+- `npm run test:coverage`: V8 text/HTML/lcov reports in `test-report/coverage/`, with enforced 80% lines/statements/functions and 75% branches across the explicitly listed initial critical modules. This is a scoped baseline, not whole-app coverage. Expand the include list as features gain tests.
 - `npm run test:ci`: test typecheck, coverage gate and existing changelog/training regression suites.
 - `npm run build && npm run test:e2e`: Playwright against the built adapter-node application and a synthetic local API. Install Chromium once with `npx --no-install playwright install --no-shell chromium`.
 - `npm run test:image`: build and test the production Docker image on an ephemeral loopback port. Requires Docker. Both application and fixture API run on an internal network without Internet access; containers are removed on exit.
@@ -89,3 +89,5 @@ Put server cases in `test/*.node.test.ts`, Svelte cases in `test/*.dom.test.ts`,
 Accessibility automation does not replace manual keyboard/screen-reader review. Keyboard menu interaction is automated; broader assistive-technology review remains a release task. Related issues: LVT-267, LVT-268, LVT-269; shared CI adoption: LVT-273.
 
 The browser suite exposed an existing invalid font shorthand in the pinned Magnolia dependency. `postinstall` applies a small, idempotent source patch that uses valid CSS and falls back to the reduced icon font if the external full font is unavailable. Installation fails with a review instruction if upstream changes the patched code; remove the patch when the upstream fix is adopted. The suite also checks that in-paragraph Download help links remain visibly underlined.
+
+`npm run test:coverage` also generates a static Vitest overview in `test-report/`; its coverage view uses relative routing so it works at `/lovat/website/`. CI uploads `website-test-report` and `website-browser-report` for every applicable run, including failures when reports exist. Successful main runs publish [Website reports](https://highlanderrobotics.github.io/lovat/website/) and [browser results](https://highlanderrobotics.github.io/lovat/website/browser/). See `docs/test-report-hosting.md` for the combined Pages publishing gate.

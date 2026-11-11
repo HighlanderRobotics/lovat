@@ -22,7 +22,8 @@
 		"test:e2e": "playwright test",
 		"test:image": "bash test/image.sh",
 		"test:ci": "npm run typecheck:test && npm run test:coverage && npm run test:changelog && npm run test:training",
-		"postinstall": "node scripts/patch-magnolia.mjs"
+		"postinstall": "node scripts/patch-magnolia.mjs",
+		"posttest:coverage": "node scripts/prepare-test-report.mjs"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.11.0",
@@ -40,6 +41,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
 		"@typescript-eslint/parser": "^8.0.0",
 		"@vitest/coverage-v8": "3.2.7",
+		"@vitest/ui": "3.2.7",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.46.1",

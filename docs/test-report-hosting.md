@@ -1,49 +1,69 @@
-# Server test report hosting
+# Lovat test report hosting
 
-The combined server coverage run produces a static Vitest overview with unit
-and integration results, timings, source views, and coverage. GitHub Pages hosts
-the generated files; no Node.js server, production database, or live Vitest
-process is needed to view them.
+GitHub Pages hosts static reports for all three web applications. No live
+Vitest process, application server or database is needed to view the reports.
 
-## Enable publishing
+| Application | Test results                                                                             | Coverage                                                                 | Browser tests                                                             |
+| ----------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Server      | [Vitest](https://highlanderrobotics.github.io/lovat/server/)                             | [Coverage](https://highlanderrobotics.github.io/lovat/server/coverage/)  | —                                                                         |
+| Learn       | [Node tests and link-plugin coverage](https://highlanderrobotics.github.io/lovat/learn/) | Included in Node report                                                  | [Playwright](https://highlanderrobotics.github.io/lovat/learn/browser/)   |
+| Website     | [Vitest](https://highlanderrobotics.github.io/lovat/website/)                            | [Coverage](https://highlanderrobotics.github.io/lovat/website/coverage/) | [Playwright](https://highlanderrobotics.github.io/lovat/website/browser/) |
 
-1. In the repository's **Settings → Pages**, select **GitHub Actions** as the
-   build and deployment source.
-2. Ensure the `github-pages` environment permits deployments from `main`.
-3. In **Settings → Secrets and variables → Actions → Variables**, create the
-   repository variable `TEST_REPORT_PAGES_ENABLED` with the value `true`.
-4. Merge this change, or rerun all jobs of the latest main CI run that includes
-   server changes after enabling these settings.
+The project root `/lovat/` is now a report directory. The Server report has moved
+from `/lovat/` to `/lovat/server/`. All report links are relative, including the
+Vitest coverage iframe, so nested project paths work without a custom domain.
+If a custom domain is configured later, these directories become `/server/`,
+`/learn/` and `/website/` on that domain.
 
-The default report URL is <https://highlanderrobotics.github.io/lovat/>. For
-`tests.lovat.app`, configure that custom domain in Pages and add a DNS CNAME for
-`tests` pointing to `highlanderrobotics.github.io`. Enable HTTPS once GitHub has
-verified the domain. The custom domain is optional.
+## Publishing setup
 
-## Updates and failures
+1. Select **GitHub Actions** in repository **Settings → Pages**.
+2. Permit deployments from `main` in the `github-pages` environment.
+3. Set repository variable `TEST_REPORT_PAGES_ENABLED=true`.
 
-CI generates the report while running tests against disposable PostgreSQL and
-Redis. It uploads `server-test-report` for PR and main runs, even after test
-failures when report files are available. The separate `server-coverage`
-artifact continues to contain coverage files.
+These settings are already enabled for HighlanderRobotics/lovat. Setting the
+variable to `false` stops deployments and restores path-filtered main test runs
+without removing the last published site.
 
-Only successful main push runs with server changes package a Pages artifact.
-Publishing waits for both the server job and the Monorepo CI gate to pass.
-PRs never publish, and failures leave the last successful public report intact.
-Merges that do not run server tests leave that report unchanged. Use the CI run
-history to identify which commit produced the latest successful deployment.
+## Updates, artifacts and failures
 
-Publishing is disabled until `TEST_REPORT_PAGES_ENABLED=true`; test generation
-and downloadable artifacts still work. Setting the variable to `false` stops
-future deployments without deleting the last published site.
+When publishing is enabled, every main push runs Server, Website (including its
+production browser job) and Learn, even if only one app changed. PR jobs remain
+path-filtered. This deliberately produces a complete set from the same commit:
+a partial deployment cannot erase another application's reports or label an
+older report as current.
 
-## Local preview
+CI uploads `server-test-report`, `learn-test-report`, `learn-browser-report`,
+`website-test-report` and `website-browser-report` as ordinary Actions artifacts
+with 14-day retention. They remain available on failures if generated; browser
+traces/screenshots are retained only for failed tests. Unit reports include
+coverage and test names; Learn additionally provides JUnit XML.
 
-From `apps/server`, run `npm run test:coverage` using the disposable service
-configuration documented in the server README, then `npm run test:report:preview`.
-The generated site lives in `apps/server/test-report/` and is ignored by Git and
-excluded from the API Docker build context.
+The publish job waits for all report producers and the Monorepo CI gate to
+succeed, downloads artifacts from that exact workflow run, validates every
+required index, then packages one combined Pages artifact. Only main pushes
+publish. PRs and failed runs leave the last successful public site intact.
+`revision.json` identifies the published commit. The publish job is serialized
+with the existing `test-report-pages` concurrency group.
 
-The public site includes test source code, test names, and synthetic fixture
-output from this public repository. Keep real credentials and scouting data out
-of test fixtures and logs.
+## Local preview and verification
+
+- Server: run `npm run test:coverage` with disposable PostgreSQL/Redis, then
+  `npm run test:report:preview` from `apps/server`.
+- Learn: `npm run test:coverage` produces `test-report/index.html` and `unit.xml`;
+  `npm run test:image` produces the Playwright report in `playwright-report/`.
+- Website: `npm run test:coverage` produces `test-report/` including HTML coverage;
+  `npm run test:image` produces `playwright-report/`.
+
+To preview the complete layout, stage the three test reports under `server/`,
+`learn/`, `website/` in an untracked temporary directory; copy each app's
+Playwright report to its `browser/` child. Run
+`node scripts/prepare-pages-reports.mjs /path/to/staged-reports` and serve that
+directory with any static HTTP server. The script rejects missing reports and
+symbolic links. Run `node --test scripts/prepare-pages-reports.test.mjs` to
+verify assembly, path handling and failure behavior without dependencies.
+
+Reports contain source code and synthetic fixture output from this public
+repository. Keep real credentials, personal data and scouting data out of tests
+and logs. Failed browser artifacts are not publicly deployed because publishing
+requires passing tests with retries disabled.
