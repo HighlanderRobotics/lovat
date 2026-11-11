@@ -13,6 +13,7 @@ const server = http.createServer(async (request, response) => {
   let result;
   if (url.pathname === '/v1/manager/tournaments') result = { tournaments: [{ key: 'synthetic-event', name: 'Synthetic Event' }], count: 1 };
   else if (url.pathname.endsWith('/rankedTeams')) result = [ { number: 1234, rank: 1, rankingPoints: 20, matchesPlayed: 6 }, { number: 5678, rank: 2, rankingPoints: 10, matchesPlayed: 6 } ];
+  else if (url.pathname.startsWith('/v1/analysis/flag/team/')) result = [];
   else if (url.pathname === '/v1/analysis/picklist') result = [ { team: 1234, result: 2 }, { team: 5678, result: 1 } ];
   else if (url.pathname === '/v1/manager/mutablepicklists/synthetic-picklist') {
     if (request.method === 'PUT') {

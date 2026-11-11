@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -37,7 +38,8 @@ void main() {
       const MaterialApp(home: Scaffold(body: TournamentKeyPicker())),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(TournamentKeyPicker));
+    expect(find.byType(DropdownSearch<Tournament>), findsOneWidget);
+    await tester.tap(find.byType(DropdownSearch<Tournament>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Synthetic Event').last);
     await tester.pumpAndSettle();
@@ -62,19 +64,17 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           key: UniqueKey(),
-          onGenerateInitialRoutes: (_) => [
-            MaterialPageRoute<void>(
-              settings: RouteSettings(
-                arguments: {
-                  'picklist': picklist,
-                  'callback': () {
-                    saved++;
-                  },
+          onGenerateRoute: (_) => MaterialPageRoute<void>(
+            settings: RouteSettings(
+              arguments: {
+                'picklist': picklist,
+                'callback': () {
+                  saved++;
                 },
-              ),
-              builder: (_) => const MutablePicklistPage(),
+              },
             ),
-          ],
+            builder: (_) => const MutablePicklistPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -83,14 +83,13 @@ void main() {
     await openPicklist();
     final row = find.byKey(const Key('1234'));
     // Long-press drag works with mobile handles and desktop default handles.
-    final handle = find.descendant(
-      of: row,
-      matching: find.byIcon(Icons.drag_handle),
-    );
+    final handles = find.byType(ReorderableDragStartListener);
     final gesture = await tester.startGesture(
-      tester.getCenter(handle.evaluate().isEmpty ? row : handle),
+      tester.getCenter(handles.evaluate().isEmpty ? row : handles.first),
     );
     await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveBy(const Offset(0, 20));
+    await tester.pump();
     await gesture.moveBy(const Offset(0, 100));
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.up();
