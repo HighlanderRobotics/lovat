@@ -80,7 +80,7 @@ Use the Node version in `.nvmrc` (20.19.6), then `npm ci`.
 - `npm run build && npm run test:e2e`: Playwright against the built adapter-node application and a synthetic local API. Install Chromium once with `npx --no-install playwright install --no-shell chromium`.
 - `npm run test:image`: build and test the production Docker image on an ephemeral loopback port. Requires Docker. Both application and fixture API run on an internal network without Internet access; containers are removed on exit.
 
-CI runs the fast suites under Node 20 and a separate blocking image/browser job under Node 24. Chromium and its runner are pinned together by the lockfile. Traces, screenshots and browser reports upload only on failure; coverage uploads separately. The aggregate `Monorepo CI` gate includes browser results.
+CI runs the fast suites under Node 20 and a separate blocking image/browser job under Node 24. Chromium and its runner are pinned together by the lockfile. Browser HTML reports upload after every run; traces and screenshots are retained only on failure. Coverage uploads separately. The aggregate `Monorepo CI` gate includes browser results.
 
 Server tests reset synthetic environment values, timers and fetch stubs for every test; unexpected fetch calls fail immediately. Tests cover CSRF hooks, exact HMAC signing, Slack timestamp/signature failures and approve/reject actions, CAPTCHA/delivery failures, honeypots, verification outcomes and redirect behavior. No real Slack/email requests or production bypasses are used. Browser tests block external requests and cover SSR, hydration, keyboard/mobile navigation, WCAG A/AA axe checks, redirects, verification and a pit display using `test/fixtures/pit.json` (invented teams, no production data).
 

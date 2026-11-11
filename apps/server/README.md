@@ -120,9 +120,11 @@ when a report is available. Download and extract the artifact, then serve its
 directory with a static HTTP server; opening `index.html` directly from disk
 cannot load the compressed test data reliably.
 
-Successful server CI runs on main can publish the report to GitHub Pages.
-See [test report hosting](../../docs/test-report-hosting.md) for the one-time
-Pages settings, public URL, and optional `tests.lovat.app` custom domain.
+Successful main CI runs publish the combined report site to GitHub Pages. The
+[Server report](https://highlanderrobotics.github.io/lovat/server/) now lives at
+`/lovat/server/`; `/lovat/` lists all application reports. See
+[test report hosting](../../docs/test-report-hosting.md) for publishing settings
+and the complete directory layout.
 
 ## Optional database restore
 

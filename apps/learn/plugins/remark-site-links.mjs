@@ -10,7 +10,10 @@ export default function remarkSiteLinks({
       if (["link", "definition"].includes(node.type) && node.url) {
         try {
           const url = new URL(node.url);
-          if (["lovat.app", "www.lovat.app"].includes(url.hostname)) {
+          if (
+            ["http:", "https:"].includes(url.protocol) &&
+            ["lovat.app", "www.lovat.app"].includes(url.hostname)
+          ) {
             node.url = `${target.origin}${url.pathname}${url.search}${url.hash}`;
           }
         } catch {
