@@ -4,11 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheEntry {
-  const CacheEntry({
-    required this.body,
-    this.etag,
-    required this.timestamp,
-  });
+  const CacheEntry({required this.body, this.etag, required this.timestamp});
 
   final String body;
   final String? etag;
@@ -30,6 +26,10 @@ class CacheEntry {
 }
 
 class ResponseCache {
+  ResponseCache({int Function()? now})
+      : _now = now ?? (() => DateTime.now().millisecondsSinceEpoch);
+
+  final int Function() _now;
   static const _prefsKey = 'lovat_api_cache';
 
   final Map<String, CacheEntry> _cache = {};
@@ -48,7 +48,11 @@ class ResponseCache {
       try {
         final decoded = jsonDecode(raw) as Map<String, dynamic>;
         decoded.forEach((key, value) {
-          _cache[key] = CacheEntry.fromJson(value as Map<String, dynamic>);
+          try {
+            _cache[key] = CacheEntry.fromJson(value as Map<String, dynamic>);
+          } catch (_) {
+            // Keep valid entries even when one persisted record is malformed.
+          }
         });
       } catch (_) {}
     }
@@ -61,11 +65,7 @@ class ResponseCache {
   }
 
   void put(String key, String body, {String? etag}) {
-    final entry = CacheEntry(
-      body: body,
-      etag: etag ?? _cache[key]?.etag,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-    );
+    final entry = CacheEntry(body: body, etag: etag, timestamp: _now());
     _cache[key] = entry;
     _dirty = true;
     _scheduleFlush();
@@ -103,6 +103,13 @@ class ResponseCache {
   }
 
   Future<void> flush() async {
+    _flushTimer?.cancel();
+    _flushTimer = null;
     await _flush();
+  }
+
+  void dispose() {
+    _flushTimer?.cancel();
+    _flushTimer = null;
   }
 }

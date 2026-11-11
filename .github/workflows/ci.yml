@@ -37,6 +37,8 @@ jobs:
               - '.github/workflows/ci.yml'
             dashboard:
               - 'apps/dashboard/**'
+              - '.github/workflows/dashboard-native-tests.yml'
+              - '.github/workflows/dashboard-deploy.yml'
               - '.github/workflows/ci.yml'
             collection:
               - 'apps/collection/**'
@@ -239,7 +241,7 @@ jobs:
 
   test-report:
     name: Publish test reports
-    needs: [server, website, website-browser, learn, gate]
+    needs: [server, website, website-browser, learn, dashboard, dashboard-browser, gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -257,26 +259,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.20.0
-      - uses: actions/download-artifact@v4
+      - name: Download this run's public reports
+        uses: actions/download-artifact@v4
         with:
-          name: server-test-report
-          path: public-test-reports/server
-      - uses: actions/download-artifact@v4
-        with:
-          name: learn-test-report
-          path: public-test-reports/learn
-      - uses: actions/download-artifact@v4
-        with:
-          name: learn-browser-report
-          path: public-test-reports/learn/browser
-      - uses: actions/download-artifact@v4
-        with:
-          name: website-test-report
-          path: public-test-reports/website
-      - uses: actions/download-artifact@v4
-        with:
-          name: website-browser-report
-          path: public-test-reports/website/browser
+          pattern: "*-report"
+          path: downloaded-test-reports
+      - name: Stage app report directories
+        run: node scripts/stage-pages-reports.mjs downloaded-test-reports public-test-reports
       - name: Validate and index reports from this run
         run: node scripts/prepare-pages-reports.mjs public-test-reports
       - name: Configure GitHub Pages
@@ -339,9 +328,9 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
 
   dashboard:
-    name: Dashboard analyze and build
+    name: Dashboard tests, analyze and build
     needs: changes
-    if: ${{ needs.changes.outputs.dashboard == 'true' }}
+    if: ${{ needs.changes.outputs.dashboard == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -354,8 +343,51 @@ jobs:
           flutter-version: 3.35.4
       - run: flutter --version
       - run: flutter pub get
+      - run: python3 tool/run_tests.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard-test-report
+          path: apps/dashboard/test-report/
+          retention-days: 14
+          if-no-files-found: error
       - run: flutter analyze
       - run: flutter build web --release
+
+  dashboard-browser:
+    name: Dashboard Chrome journey
+    needs: changes
+    if: ${{ needs.changes.outputs.dashboard == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.6.0
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.35.4
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '141.0.7390.37'
+          install-chromedriver: true
+          install-dependencies: true
+      - run: flutter pub get
+      - run: python3 tool/run_browser.py
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard-browser-report
+          path: apps/dashboard/test-report/browser/
+          retention-days: 14
+          if-no-files-found: error
 
   website:
     name: Website
@@ -487,6 +519,7 @@ jobs:
         collection,
         dashboard-format,
         dashboard,
+        dashboard-browser,
         website,
         website-browser,
         learn,
@@ -503,6 +536,7 @@ jobs:
       WEBSITE_RESULT: ${{ needs.website.result }}
       LEARN_RESULT: ${{ needs.learn.result }}
       DASHBOARD_FORMAT_RESULT: ${{ needs.dashboard-format.result }}
+      DASHBOARD_BROWSER_RESULT: ${{ needs.dashboard-browser.result }}
       DASHBOARD_RESULT: ${{ needs.dashboard.result }}
     steps:
       - name: Require applicable jobs
@@ -516,6 +550,7 @@ jobs:
             "$COLLECTION_RESULT" \
             "$DASHBOARD_FORMAT_RESULT" \
             "$DASHBOARD_RESULT" \
+            "$DASHBOARD_BROWSER_RESULT" \
             "$WEBSITE_RESULT" \
             "$WEBSITE_BROWSER_RESULT" \
             "$LEARN_RESULT"; do

@@ -67,3 +67,11 @@ Reports contain source code and synthetic fixture output from this public
 repository. Keep real credentials, personal data and scouting data out of tests
 and logs. Failed browser artifacts are not publicly deployed because publishing
 requires passing tests with retries disabled.
+
+Dashboard registers `scripts/report-sections/dashboard.json`. Its app and local
+chips package results and HTML coverage are uploaded as `dashboard-test-report`;
+the focused Chrome journey is uploaded separately as `dashboard-browser-report`.
+Main publishes both under `/lovat/dashboard/` and `/lovat/dashboard/browser/` only
+after the aggregate gate succeeds. Unit failures still retain diagnostic artifacts
+without replacing the published successful site. Native/device and sandbox Auth0
+checks remain separate release evidence, not public unit-test success claims.

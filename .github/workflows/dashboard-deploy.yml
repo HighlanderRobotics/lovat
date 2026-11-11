@@ -25,9 +25,33 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.35.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.6.0
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '141.0.7390.37'
+          install-chromedriver: true
+          install-dependencies: true
       - name: Install dependencies
         working-directory: apps/dashboard
         run: flutter pub get
+      - name: Test this versioned candidate
+        working-directory: apps/dashboard
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          python3 tool/run_tests.py
+          python3 tool/run_browser.py
+          git rev-parse HEAD > test-report/source-sha.txt
+          grep '^version:' pubspec.yaml > test-report/candidate-version.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard-candidate-tests-${{ github.sha }}
+          path: apps/dashboard/test-report/
+          retention-days: 14
       - name: Build web
         working-directory: apps/dashboard
         run: flutter build web --release
@@ -56,6 +80,15 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.35.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.6.0
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '141.0.7390.37'
+          install-chromedriver: true
+          install-dependencies: true
       - name: Install dependencies
         working-directory: apps/dashboard
         run: flutter pub get
@@ -75,6 +108,21 @@ jobs:
           NEW_BUILD: ${{ steps.version.outputs.new_build }}
         run: |
           sed -i "s/version: .*/version: $CURRENT_VERSION+$NEW_BUILD/" pubspec.yaml
+      - name: Test this versioned candidate
+        working-directory: apps/dashboard
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          python3 tool/run_tests.py
+          python3 tool/run_browser.py
+          git rev-parse HEAD > test-report/source-sha.txt
+          grep '^version:' pubspec.yaml > test-report/candidate-version.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard-candidate-tests-${{ github.sha }}
+          path: apps/dashboard/test-report/
+          retention-days: 14
       - name: Build web
         working-directory: apps/dashboard
         run: flutter build web --release
