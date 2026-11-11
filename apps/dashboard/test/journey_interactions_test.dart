@@ -95,6 +95,21 @@ void main() {
       expect(callbacks, 1);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(MaterialApp(
+        key: UniqueKey(),
+        onGenerateRoute: (_) => MaterialPageRoute<void>(
+          settings: RouteSettings(arguments: {
+            'picklist': MutablePicklist(
+                uuid: 'synthetic', name: 'Synthetic strategy', teams: saved!),
+            'callback': () {},
+          }),
+          builder: (_) => const MutablePicklistPage(),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await lovatAPI.cache.flush();
     }, variant: TargetPlatformVariant({platform}));
   }
 }
