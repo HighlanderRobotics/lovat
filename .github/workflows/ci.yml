@@ -61,6 +61,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./scripts/check-structure.sh
       - run: node --test scripts/prepare-pages-reports.test.mjs
+      - run: python3 -m unittest discover -s scripts -p railway_preview_qr_test.py
 
   railway-config:
     name: Railway IaC
