@@ -1,5 +1,7 @@
 import http from 'node:http';
-let picklist = { uuid: 'synthetic-picklist', name: 'Synthetic strategy', teams: [1234, 5678] };
+import { readFileSync } from 'node:fs';
+const fixtures = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url), 'utf8'));
+let picklist = fixtures.picklist;
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1');
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,10 +13,10 @@ const server = http.createServer(async (request, response) => {
   if (url.pathname === '/healthz') { response.end('{}'); return; }
   if (request.headers.authorization !== 'Bearer synthetic-dashboard') { response.writeHead(401).end('{}'); return; }
   let result;
-  if (url.pathname === '/v1/manager/tournaments') result = { tournaments: [{ key: 'synthetic-event', name: 'Synthetic Event' }], count: 1 };
-  else if (url.pathname.endsWith('/rankedTeams')) result = [ { number: 1234, rank: 1, rankingPoints: 20, matchesPlayed: 6 }, { number: 5678, rank: 2, rankingPoints: 10, matchesPlayed: 6 } ];
-  else if (url.pathname.startsWith('/v1/analysis/flag/team/')) result = [];
-  else if (url.pathname === '/v1/analysis/picklist') result = [ { team: 1234, result: 2 }, { team: 5678, result: 1 } ];
+  if (url.pathname === '/v1/manager/tournaments') result = fixtures.tournaments;
+  else if (url.pathname.endsWith('/rankedTeams')) result = fixtures.rankedTeams;
+  else if (url.pathname.startsWith('/v1/analysis/flag/team/')) result = fixtures.flags;
+  else if (url.pathname === '/v1/analysis/picklist') result = fixtures.analysis;
   else if (url.pathname === '/v1/manager/mutablepicklists/synthetic-picklist') {
     if (request.method === 'PUT') {
       let body = ''; for await (const chunk of request) body += chunk;

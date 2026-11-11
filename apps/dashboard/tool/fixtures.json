@@ -1,0 +1,10 @@
+{
+  "tournaments": {"tournaments": [{"key": "synthetic-event", "name": "Synthetic Event"}], "count": 1},
+  "rankedTeams": [
+    {"number": 1234, "rank": 1, "rankingPoints": 20, "matchesPlayed": 6},
+    {"number": 5678, "rank": 2, "rankingPoints": 10, "matchesPlayed": 6}
+  ],
+  "analysis": {"teams": [{"team": 1234, "result": 2}, {"team": 5678, "result": 1}]},
+  "picklist": {"uuid": "synthetic-picklist", "name": "Synthetic strategy", "teams": [1234, 5678]},
+  "flags": []
+}
