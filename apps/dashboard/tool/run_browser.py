@@ -12,6 +12,7 @@ OUT = ROOT / 'test-report/browser'
 OUT.mkdir(parents=True, exist_ok=True)
 processes = []
 status = 1
+(OUT / 'journey.log').write_text('Browser journey did not start.\n')
 try:
     with (OUT / 'fixture.log').open('w') as fixture_log, (OUT / 'driver.log').open('w') as driver_log:
         processes.append(subprocess.Popen(['node', 'tool/fixture_api.mjs'], cwd=ROOT, stdout=fixture_log, stderr=subprocess.STDOUT))
