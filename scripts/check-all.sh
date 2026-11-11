@@ -23,7 +23,7 @@ check_server() {
 
 check_collection() {
   cd "$repo_root/apps/collection" || return
-  npm run lint && npm run format:check && npm run ts:check
+  npm run test:ci && npm run lint && npm run format:check && npm run ts:check
 }
 
 check_dashboard() {

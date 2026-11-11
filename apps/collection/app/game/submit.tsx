@@ -75,6 +75,8 @@ export default function Submit() {
     }
   }, [reportState]);
 
+  if (!reportState.meta) return null;
+
   return (
     <>
       <NavBar

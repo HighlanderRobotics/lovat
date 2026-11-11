@@ -76,3 +76,7 @@ Reports contain source code and synthetic fixture output from this public
 repository. Keep real credentials, personal data and scouting data out of tests
 and logs. Failed browser artifacts are not publicly deployed because publishing
 requires passing tests with retries disabled.
+
+## Collection reports
+
+Collection publishes its Jest/Node summary, JUnit XML and critical-module coverage at `/lovat/collection/`. Its main job runs whenever report publishing is enabled so all reports still come from one successful commit. Native candidate Maestro results upload as separate diagnostic artifacts from the manually dispatched release workflow; they are not represented as passing by the public unit report. Optional app sections are registered in `scripts/report-sections/`, allowing independent framework PRs to extend the report directory without replacing existing apps.

@@ -42,6 +42,7 @@ jobs:
               - '.github/workflows/ci.yml'
             collection:
               - 'apps/collection/**'
+              - '.github/workflows/collection-native-tests.yml'
               - '.github/workflows/ci.yml'
             learn:
               - 'apps/learn/**'
@@ -281,7 +282,7 @@ jobs:
   collection:
     name: Collection
     needs: changes
-    if: ${{ needs.changes.outputs.collection == 'true' }}
+    if: ${{ needs.changes.outputs.collection == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -305,7 +306,15 @@ jobs:
           name: collection-dependency-audit
           path: apps/collection/dependency-audit.json
           retention-days: 14
-      - run: npm test
+      - run: npm run test:ci
+      - name: Upload Collection test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-test-report
+          path: apps/collection/test-report/
+          retention-days: 14
+          if-no-files-found: error
       - run: npm run format:check
       - run: npm run lint
       - run: npm run ts:check

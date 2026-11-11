@@ -1,0 +1,6 @@
+{
+  "slug": "collection",
+  "label": "Collection",
+  "required": ["index.html", "coverage/index.html", "junit.xml"],
+  "browser": false
+}
