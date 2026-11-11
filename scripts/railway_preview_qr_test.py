@@ -79,7 +79,7 @@ class PreviewTests(unittest.TestCase):
             self.assertEqual(urllib.parse.parse_qs(urllib.parse.urlparse(link).query)['u'], [API])
 
     def test_backend_scope_includes_worker_server_and_shared_db(self):
-        for path in ['apps/worker/index.ts', 'apps/server/src/app.ts', 'packages/db/prisma/schema.prisma']:
+        for path in ['apps/worker/index.ts', 'apps/server/src/app.ts', 'packages/db/prisma/schema.prisma', '.railway/railway.ts']:
             self.assertTrue(affects_backend([path]))
         self.assertFalse(affects_backend(['apps/website/src/routes/+page.svelte']))
 

@@ -15,7 +15,7 @@ from pathlib import Path
 
 MARKER = '<!-- lovat-railway-preview-qr -->'
 RAILWAY_BOT = 'railway-app[bot]'
-RELEVANT = ('apps/server/', 'apps/worker/', 'packages/db/')
+RELEVANT = ('apps/server/', 'apps/worker/', 'packages/db/', '.railway/')
 
 
 def affects_backend(files):

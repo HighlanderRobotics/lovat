@@ -7,6 +7,7 @@ on:
       - 'apps/server/**'
       - 'apps/worker/**'
       - 'packages/db/**'
+      - '.railway/**'
       - '.github/workflows/server-railway-qr-codes.yml'
       - 'scripts/railway_preview_qr*.py'
   issue_comment:
