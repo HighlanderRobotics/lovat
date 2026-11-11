@@ -40,6 +40,7 @@ jobs:
               - '.github/workflows/ci.yml'
             collection:
               - 'apps/collection/**'
+              - '.github/workflows/collection-native-tests.yml'
               - '.github/workflows/ci.yml'
             learn:
               - 'apps/learn/**'
@@ -257,26 +258,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.20.0
-      - uses: actions/download-artifact@v4
+      - name: Download this run's public reports
+        uses: actions/download-artifact@v4
         with:
-          name: server-test-report
-          path: public-test-reports/server
-      - uses: actions/download-artifact@v4
-        with:
-          name: learn-test-report
-          path: public-test-reports/learn
-      - uses: actions/download-artifact@v4
-        with:
-          name: learn-browser-report
-          path: public-test-reports/learn/browser
-      - uses: actions/download-artifact@v4
-        with:
-          name: website-test-report
-          path: public-test-reports/website
-      - uses: actions/download-artifact@v4
-        with:
-          name: website-browser-report
-          path: public-test-reports/website/browser
+          pattern: "*-report"
+          path: downloaded-test-reports
+      - name: Stage app report directories
+        run: node scripts/stage-pages-reports.mjs downloaded-test-reports public-test-reports
       - name: Validate and index reports from this run
         run: node scripts/prepare-pages-reports.mjs public-test-reports
       - name: Configure GitHub Pages
@@ -292,7 +280,7 @@ jobs:
   collection:
     name: Collection
     needs: changes
-    if: ${{ needs.changes.outputs.collection == 'true' }}
+    if: ${{ needs.changes.outputs.collection == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -316,7 +304,15 @@ jobs:
           name: collection-dependency-audit
           path: apps/collection/dependency-audit.json
           retention-days: 14
-      - run: npm test
+      - run: npm run test:ci
+      - name: Upload Collection test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-test-report
+          path: apps/collection/test-report/
+          retention-days: 14
+          if-no-files-found: error
       - run: npm run format:check
       - run: npm run lint
       - run: npm run ts:check

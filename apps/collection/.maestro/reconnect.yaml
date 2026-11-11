@@ -1,0 +1,20 @@
+appId: com.frc8033.lovatcollection
+---
+- tapOn: "Upload"
+- extendedWaitUntil:
+    notVisible: "Uploading"
+    timeout: 20000
+- assertNotVisible: "Upload"
+- stopApp
+- launchApp:
+    clearState: false
+- tapOn: "history"
+- tapOn:
+    text: ".*1234.*"
+- assertNotVisible: "Upload"
+- back
+- back
+- tapOn: "settings"
+- assertVisible: "Settings"
+- openLink: "lovat-collection://history"
+- assertVisible: "History"

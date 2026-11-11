@@ -1,0 +1,21 @@
+appId: com.frc8033.lovatcollection
+---
+- launchApp:
+    clearState: true
+- openLink: "lovat-collection://set-url?u=http%3A%2F%2F127.0.0.1%3A9877"
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn: "Begin"
+- tapOn: "Code"
+- inputText: "SYNTHETIC"
+- tapOn: "Next"
+- extendedWaitUntil:
+    visible: "Synthetic Scout"
+    timeout: 20000
+- tapOn: "Synthetic Scout"
+- extendedWaitUntil:
+    visible: "2026 Synthetic Event"
+    timeout: 20000
+- tapOn: "2026 Synthetic Event"
+- assertVisible: "Scout this match"
