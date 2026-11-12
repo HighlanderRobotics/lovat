@@ -9,6 +9,9 @@ on:
         default: ''
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 jobs:
   android:
     runs-on: ubuntu-24.04
