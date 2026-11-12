@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
   pull-requests: read
+defaults:
+  run:
+    shell: bash
 
 jobs:
   changes:
@@ -270,7 +273,7 @@ jobs:
           npm run test:integration -- test/crossAppContract.integration.test.ts 2>&1 | tee "$LOVAT_CONTRACT_OUTPUT_DIR/server.log"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.35.4
+          flutter-version: 3.41.0
           channel: stable
       - name: Decode the actual Server response in Dashboard
         id: dashboard

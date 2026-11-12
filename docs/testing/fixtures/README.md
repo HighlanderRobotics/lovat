@@ -43,7 +43,7 @@ REDIS_URL=redis://127.0.0.1:6379/15 LOVAT_DB_TEST=1 \
 ```
 
 The script locates the pinned Node binaries under the usual nvm installation
-(or `LOVAT_NODE_ROOT`); Flutter 3.35.4 must be on PATH. It refuses other service
+(or `LOVAT_NODE_ROOT`); Flutter 3.41.0 must be on PATH. It refuses other service
 hosts/database names and never loads a private `.env`. It retains stage logs,
 serialized payloads, the actual Server response and HTML under `contract-report/`.
 The root `check-all.sh` includes this check, so it now needs these disposable
