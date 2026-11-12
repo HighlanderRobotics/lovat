@@ -24,7 +24,8 @@ p.parent.mkdir(parents=True, exist_ok=True)
 p.write_text('''<network-security-config>
   <base-config cleartextTrafficPermitted="false" />
   <domain-config cleartextTrafficPermitted="true">
-    <domain>127.0.0.1</domain><domain>localhost</domain>
+    <domain includeSubdomains="false">127.0.0.1</domain>
+    <domain includeSubdomains="false">localhost</domain>
   </domain-config>
 </network-security-config>
 ''')
