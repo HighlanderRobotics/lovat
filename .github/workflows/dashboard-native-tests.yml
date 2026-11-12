@@ -2,6 +2,11 @@ name: Dashboard native integration
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      candidate_version:
+        description: Version assigned by the release workflow before any candidate tests
+        type: string
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -20,6 +25,17 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.35.4
+      - name: Assign release candidate version
+        if: inputs.candidate_version != ''
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        run: |
+          [[ "$CANDIDATE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]
+          python3 - <<'PYTHON'
+          import os, pathlib, re
+          path = pathlib.Path('apps/dashboard/pubspec.yaml')
+          path.write_text(re.sub(r'^version: .*$', 'version: ' + os.environ['CANDIDATE_VERSION'], path.read_text(), flags=re.M))
+          PYTHON
       - run: flutter pub get
         working-directory: apps/dashboard
       - name: Enable hardware acceleration
@@ -56,6 +72,17 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.35.4
+      - name: Assign release candidate version
+        if: inputs.candidate_version != ''
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        run: |
+          [[ "$CANDIDATE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]
+          python3 - <<'PYTHON'
+          import os, pathlib, re
+          path = pathlib.Path('apps/dashboard/pubspec.yaml')
+          path.write_text(re.sub(r'^version: .*$', 'version: ' + os.environ['CANDIDATE_VERSION'], path.read_text(), flags=re.M))
+          PYTHON
       - run: flutter pub get
         working-directory: apps/dashboard
       - name: Create disposable simulator and run journey
