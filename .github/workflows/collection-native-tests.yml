@@ -41,7 +41,9 @@ jobs:
       - name: Build standalone synthetic candidate from a fresh native project
         env:
           LOVAT_DISPOSABLE_BUILD: "1"
-        run: bash apps/collection/scripts/build-native-candidate.sh
+        run: |
+          mkdir -p apps/collection/.maestro/results
+          bash apps/collection/scripts/build-native-candidate.sh 2>&1 | tee apps/collection/.maestro/results/build-full.log
       - uses: actions/upload-artifact@v4
         with:
           name: collection-native-candidate-${{ github.sha }}
@@ -99,6 +101,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+          sudo udevadm settle
+          sudo chmod a+rw /dev/kvm
+          mkdir -p apps/collection/.maestro/results
+          ls -l /dev/kvm | tee apps/collection/.maestro/results/kvm.txt
           test -r /dev/kvm && test -w /dev/kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
