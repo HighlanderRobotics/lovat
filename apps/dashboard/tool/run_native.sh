@@ -6,6 +6,7 @@ device=${2:-emulator-5554}
 case "$platform" in android|ios) ;; *) echo 'Expected android or ios' >&2; exit 1 ;; esac
 mkdir -p test-report/native
 git rev-parse HEAD > test-report/native/source-sha.txt
+flutter --version > test-report/native/flutter-version.txt
 grep '^version:' pubspec.yaml > test-report/native/candidate-version.txt
 fixture_pid=""
 cleanup() {

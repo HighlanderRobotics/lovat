@@ -24,7 +24,7 @@ See [Railway web hosting](../../docs/railway-web-hosting.md) for app-local Docke
 
 ## Behavioral testing and reports
 
-Use Flutter **3.35.4** (the formatter job remains on **3.16.2**). Install
+Use Flutter **3.41.0** (the formatter job remains on **3.16.2**). Install
 app dependencies with `flutter pub get`, then run:
 
 ```sh
@@ -103,3 +103,12 @@ artifacts. Native/sandbox Auth0 acceptance remains pending until these checks ru
 
 The owner, evidence template and platform-by-platform pending acceptance matrix
 are in [manual release checks](docs/manual-release-checks.md).
+
+Flutter 3.41.0 is pinned across app CI, native/release workflows, CodeQL and
+Docker because the iOS app already uses the UIScene lifecycle APIs. The SDK
+upgrade intentionally reconciles SDK-owned lockfile entries.
+
+The reusable native workflow also builds Linux and macOS release targets. Its
+Android/iOS journeys and desktop builds use the same resolved candidate version;
+release jobs wait for every platform result. Web compilation and the Chrome
+journey remain in app CI and build-only release validation.
