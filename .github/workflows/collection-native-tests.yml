@@ -104,7 +104,7 @@ jobs:
           sudo udevadm settle
           sudo chmod a+rw /dev/kvm
           mkdir -p apps/collection/.maestro/results
-          ls -l /dev/kvm | tee apps/collection/.maestro/results/kvm.txt
+          stat /dev/kvm | tee apps/collection/.maestro/results/kvm.txt
           test -r /dev/kvm && test -w /dev/kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
