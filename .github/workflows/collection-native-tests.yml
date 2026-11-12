@@ -4,20 +4,70 @@ on:
     inputs:
       candidate_run_id:
         description: GitHub Actions run containing a candidate APK built from this exact SHA
-        required: true
+        required: false
       artifact_name:
         description: Artifact containing one standalone APK with localhost HTTP enabled for the fixture API
-        required: true
+        required: false
 permissions:
   contents: read
   actions: read
 jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          RUN_ID: ${{ inputs.candidate_run_id }}
+          ARTIFACT: ${{ inputs.artifact_name }}
+        run: |
+          if [[ -n "$RUN_ID" || -n "$ARTIFACT" ]]; then
+            [[ "$RUN_ID" =~ ^[0-9]+$ ]] && test -n "$ARTIFACT"
+          fi
+  build:
+    needs: validate
+    if: inputs.candidate_run_id == '' && inputs.artifact_name == ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.6.0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+        working-directory: apps/collection
+      - name: Build standalone synthetic candidate from a fresh native project
+        env:
+          LOVAT_DISPOSABLE_BUILD: "1"
+        run: bash apps/collection/scripts/build-native-candidate.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-native-candidate-${{ github.sha }}
+          path: apps/collection/candidate/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: collection-native-build-logs-${{ github.sha }}
+          path: apps/collection/.maestro/results/
+          retention-days: 14
   android:
+    needs: [validate, build]
+    if: ${{ always() && needs.validate.result == 'success' && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.candidate_run_id != '' && inputs.artifact_name != '')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        if: inputs.candidate_run_id == ''
+        with:
+          name: collection-native-candidate-${{ github.sha }}
+          path: candidate
       - name: Verify candidate source revision
+        if: inputs.candidate_run_id != ''
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
@@ -26,6 +76,7 @@ jobs:
           candidate_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CANDIDATE_RUN_ID" --jq .head_sha)
           test "$candidate_sha" = "$GITHUB_SHA"
       - uses: actions/download-artifact@v4
+        if: inputs.candidate_run_id != ''
         with:
           name: ${{ inputs.artifact_name }}
           run-id: ${{ inputs.candidate_run_id }}
@@ -43,10 +94,20 @@ jobs:
           curl --fail --location https://github.com/mobile-dev-inc/maestro/releases/download/cli-2.12.1/maestro.zip -o /tmp/maestro.zip
           unzip -q /tmp/maestro.zip -d "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/maestro/bin" >> "$GITHUB_PATH"
+      - name: Enable hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          disable-linux-hw-accel: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -accel on
           script: bash apps/collection/scripts/test-native-candidate.sh candidate
       - uses: actions/upload-artifact@v4
         if: always()

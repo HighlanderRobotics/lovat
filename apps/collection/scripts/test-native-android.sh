@@ -4,8 +4,15 @@ cd "$(dirname "$0")/.."
 mkdir -p .maestro/results
 fixture_pid=""
 cleanup() {
+  result=$?
+  trap - EXIT
+  printf '%s\n' "$result" > .maestro/results/exit-code.txt
+  adb logcat -d > .maestro/results/logcat.txt 2>&1 || true
+  adb shell getprop > .maestro/results/device.txt 2>&1 || true
+  adb exec-out screencap -p > .maestro/results/screenshot.png 2>/dev/null || true
   adb shell cmd connectivity airplane-mode disable || true
   if [[ -n "$fixture_pid" ]]; then kill "$fixture_pid" 2>/dev/null || true; fi
+  exit "$result"
 }
 trap cleanup EXIT
 start_fixture() {
