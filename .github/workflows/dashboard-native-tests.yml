@@ -87,14 +87,10 @@ jobs:
         working-directory: apps/dashboard
       - name: Create disposable simulator and run journey
         run: |
-          device=$(python3 - <<'PYTHON'
-          import json, subprocess
-          data = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', '--json']))
-          runtime = next(r['identifier'] for r in data['runtimes'] if r.get('isAvailable') and r['identifier'].startswith('com.apple.CoreSimulator.SimRuntime.iOS-'))
-          device_type = next(d['identifier'] for d in data['devicetypes'] if d['name'].startswith('iPhone'))
-          print(subprocess.check_output(['xcrun', 'simctl', 'create', 'lovat-dashboard-ci', device_type, runtime], text=True).strip())
-          PYTHON
-          )
+          mkdir -p apps/dashboard/test-report/native
+          xcrun simctl list --json > apps/dashboard/test-report/native/simulators.json
+          python3 -m unittest discover -s apps/dashboard/tool -p test_create_test_simulator.py
+          device=$(python3 apps/dashboard/tool/create_test_simulator.py)
           trap 'xcrun simctl shutdown "$device" || true; xcrun simctl delete "$device"' EXIT
           xcrun simctl boot "$device"
           xcrun simctl bootstatus "$device" -b
