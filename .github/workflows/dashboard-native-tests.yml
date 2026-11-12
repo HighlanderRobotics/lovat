@@ -46,7 +46,7 @@ jobs:
           sudo udevadm settle
           sudo chmod a+rw /dev/kvm
           mkdir -p apps/dashboard/test-report/native
-          ls -l /dev/kvm | tee apps/dashboard/test-report/native/kvm.txt
+          stat /dev/kvm | tee apps/dashboard/test-report/native/kvm.txt
           test -r /dev/kvm && test -w /dev/kvm
       - name: Run synthetic native journey
         uses: reactivecircus/android-emulator-runner@v2
