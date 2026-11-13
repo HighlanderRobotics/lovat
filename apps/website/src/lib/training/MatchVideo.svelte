@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button } from 'magnolia-ui-svelte';
+	import { Button } from '@highlanderrobotics/magnolia-svelte';
 	import { createTrainingPlayback, type TrainingPlayer, type PlaybackState } from './playback';
 	export let url: string;
 	export let playEnabled = true;
@@ -104,17 +104,17 @@
 {#if showPlay && !state.started && !state.ending}<div class="play-action">
 		<Button
 			disabled={!state.ready || state.busy || !playEnabled}
-			on:click={() => playback?.play(playEnabled)}
+			onclick={() => playback?.play(playEnabled)}
 			>{!state.ready ? 'Loading starting positions…' : 'Play'}</Button
 		>
 	</div>{/if}
 {#if state.finishFailed}<div class="play-action">
-		<Button disabled={state.busy} on:click={() => playback?.retryFinish()}
+		<Button disabled={state.busy} onclick={() => playback?.retryFinish()}
 			>Retry finishing session</Button
 		>
 	</div>{/if}
 {#if state.interruptFailed}<div class="play-action">
-		<Button disabled={state.busy} on:click={() => playback?.retryInterrupt()}
+		<Button disabled={state.busy} onclick={() => playback?.retryInterrupt()}
 			>Retry saving interruption</Button
 		>
 	</div>{/if}

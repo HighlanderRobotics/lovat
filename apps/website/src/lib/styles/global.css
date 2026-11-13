@@ -1,0 +1,52 @@
+/* Website-owned reset: Magnolia now scopes its styles to library controls. */
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+body {
+	min-height: 100vh;
+	background: var(--mg-background);
+	color: var(--mg-on-background);
+	font-family: var(--mg-font-family);
+	line-height: 1.5;
+}
+.mg-root {
+	min-height: 100vh;
+}
+img,
+picture {
+	max-width: 100%;
+	display: block;
+}
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+a:not([class]) {
+	text-decoration-skip-ink: auto;
+}
+ul[role='list'],
+ol[role='list'] {
+	list-style: none;
+}
+html:focus-within {
+	scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+	html:focus-within {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

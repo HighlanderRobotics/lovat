@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button } from 'magnolia-ui-svelte';
+	import { Button } from '@highlanderrobotics/magnolia-svelte';
 	import QRCode from 'qrcode';
 	import Navbar from '$lib/Navbar.svelte';
 	import MatchVideo from '$lib/training/MatchVideo.svelte';
@@ -291,7 +291,7 @@
 	<TrainingBackdrop {stage} />
 	{#if step === 'start'}<Navbar training />{/if}
 	{#if step !== 'start' && stage !== 'pre' && stage !== 'playing'}
-		<button class="back" on:click={back} disabled={busy}
+		<button class="back" onclick={back} disabled={busy}
 			><img src="/assets/training/back.svg" width="18" height="18" alt="" />Back</button
 		>
 	{/if}
@@ -300,7 +300,7 @@
 		{#if step === 'start'}
 			<h1 class="start-title">Lovat Training</h1>
 			<div class="bottom-action start-action">
-				<Button disabled={busy} on:click={() => (step = 'select')}>Start Practicing</Button>
+				<Button disabled={busy} onclick={() => (step = 'select')}>Start Practicing</Button>
 			</div>
 		{:else if step === 'select'}
 			<section class="selection">
@@ -322,7 +322,7 @@
 			<div class="bottom-action">
 				<Button
 					disabled={busy || !videos.some((video) => video.uuid === selected)}
-					on:click={() => perform(createSession)}>Next</Button
+					onclick={() => perform(createSession)}>Next</Button
 				>
 			</div>
 		{:else if session}
@@ -331,17 +331,16 @@
 					<h1>Results</h1>
 					<TrainingResults participants={session.participants} />
 					<div class="results-actions">
-						<Button variant="secondary" disabled={busy} on:click={() => perform(results)}
+						<Button variant="secondary" disabled={busy} onclick={() => perform(results)}
 							>Refresh results</Button
-						><Button disabled={busy} on:click={() => perform(newSession)}>New session</Button>
+						><Button disabled={busy} onclick={() => perform(newSession)}>New session</Button>
 					</div>
 				</section>
 			{:else if pendingInterrupt !== null}
 				<section class="interrupted">
 					<h1>Saving playback interruption</h1>
 					<p>Reconnect to finish saving this session.</p>
-					<Button disabled={interruptInFlight} on:click={() => perform(flushInterrupt)}
-						>Retry</Button
+					<Button disabled={interruptInFlight} onclick={() => perform(flushInterrupt)}>Retry</Button
 					>
 				</section>
 			{:else if session.status === 'LOBBY'}
@@ -366,7 +365,7 @@
 				<div class="bottom-action">
 					<Button
 						disabled={!canQueue || !connected || busy}
-						on:click={() => perform(() => control('arm'))}>Next</Button
+						onclick={() => perform(() => control('arm'))}>Next</Button
 					>
 				</div>
 			{:else if session.status === 'ARMED' || session.status === 'PLAYING'}
@@ -403,12 +402,12 @@
 					<TrainingRoster participants={session.participants} submitted columns={3} />
 				</section>
 				<div class="bottom-action">
-					<Button disabled={busy} on:click={() => perform(results)}>View Results</Button>
+					<Button disabled={busy} onclick={() => perform(results)}>View Results</Button>
 				</div>
 			{:else}<section class="interrupted">
 					<h1>Session interrupted</h1>
 					<p>Start a new session so everyone records the same timeline.</p>
-					<Button disabled={busy} on:click={() => perform(newSession)}>New session</Button>
+					<Button disabled={busy} onclick={() => perform(newSession)}>New session</Button>
 				</section>{/if}
 		{/if}
 		{#if error || connectionError}<div class="error" role="alert">
@@ -416,8 +415,8 @@
 				{#if !credentials}<Button
 						variant="secondary"
 						disabled={busy}
-						on:click={() => location.reload()}>Retry</Button
-					>{:else}<Button variant="secondary" disabled={busy} on:click={() => perform(newSession)}
+						onclick={() => location.reload()}>Retry</Button
+					>{:else}<Button variant="secondary" disabled={busy} onclick={() => perform(newSession)}
 						>Start again</Button
 					>{/if}
 			</div>{/if}
