@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/pages/tournament_teams.dart';
-import 'package:scouting_dashboard_app/color_schemes.g.dart';
+import 'package:magnolia_ui/magnolia_ui.dart';
 import 'package:scouting_dashboard_app/pages/alliance.dart';
 import 'package:scouting_dashboard_app/pages/auto_path_selector.dart';
 import 'package:scouting_dashboard_app/pages/initial_loader.dart';
@@ -136,13 +136,7 @@ void main() async {
 
       return null;
     },
-    theme: ThemeData(
-      useMaterial3: true,
-      colorScheme: darkColorScheme,
-    ),
-    darkTheme: ThemeData(
-      useMaterial3: true,
-      colorScheme: darkColorScheme,
-    ),
+    theme: MagnoliaTheme.light(),
+    darkTheme: MagnoliaTheme.dark(),
   ));
 }
