@@ -83,7 +83,8 @@ Projects**. The connected list-projects inventory omitted it; a direct project I
 lookup and the local Railway CLI both work. See the
 [cutover verification record](evidence/2026-11-12/verification.md) and redacted
 configuration snapshot. The five application services already belong to the
-`lovat-apps` named partial in production, staging and PR #128.
+`lovat-apps` named partial in production and staging. PR #128 inherits matching
+settings but has no explicit partial ownership; preview adoption remains open.
 
 The audit found source/sleeping/preview-limit drift in the authored file. The
 updated definitions preserve the observed live settings rather than changing

@@ -16,10 +16,12 @@ created Railway preview builds through the existing GitHub integration.
 | staging      | `1902828c-65ae-455c-90c8-5a370b7cedab` | `main`                                                    | `lovat-apps`, all five apps | No changes   |
 | lovat-pr-128 | `d42d9835-c01a-48c4-bcd2-424fa61e93c3` | `jackshim415/lvt-334-server-redact-request-analytics-and` | `lovat-apps`, all five apps | No changes   |
 
-All environments had no pending staged patch at inspection. Ownership maps
+All environments had no pending staged patch at inspection. Production/staging ownership maps
 contain exactly `service.api`, `service.worker`, `service.dashboard`,
 `service.website` and `service.learn`; databases and storage are outside this
-partial. Legacy Config File is blank on API; the other four apps have no legacy
+partial. PR #128 has an empty ownership map. Its empty plan confirms matching
+inherited settings, **not** explicit preview partial adoption. That adoption
+requires a separately reviewed apply and subsequent ownership verification. Legacy Config File is blank on API; the other four apps have no legacy
 file configured. All five use Dockerfile builds and include `/.railway/**` in
 their watch patterns. API and Worker additionally watch `/packages/db/**`.
 
@@ -74,8 +76,8 @@ inspection. Its Worker had no preview deployment at the snapshot point. A
 passing deployment or static health endpoint does not prove dependency health,
 import freshness or isolation. No manual production traffic, fault injection,
 restore or rollback exercise was performed. Keep LVT-336 open until the remaining
-isolation and rollback evidence is recorded; named-partial adoption itself is
-confirmed for the inspected environments.
+isolation, preview ownership and rollback evidence is recorded; named-partial
+adoption itself is confirmed for production and staging.
 
 ## Reproduce without applying changes
 
