@@ -1,0 +1,41 @@
+{
+  "name": "@lovat/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./legacy": {
+      "types": "./dist/legacy/index.d.ts",
+      "import": "./dist/legacy/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "openapi.json",
+    "openapi.legacy.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "generate": "npm run build && node tools/generate.mjs",
+    "generate:check": "npm run build && node tools/generate.mjs --check",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=22.20.0 <23 || >=24"
+  },
+  "dependencies": {
+    "zod": "4.6.5",
+    "@asteasolutions/zod-to-openapi": "9.1.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "prettier": "3.9.9"
+  }
+}

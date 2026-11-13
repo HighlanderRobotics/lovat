@@ -1,8 +1,6 @@
-import { afterEach, expect, it, vi } from "vitest";
-import { OpenApiGeneratorV31 } from "@asteasolutions/zod-to-openapi";
-import { generateOpenApiDocument } from "../src/lib/openapi.js";
+import { expect, it } from "vitest";
+import { normalizeLegacyErrorResponses } from "@lovat/api/legacy";
 
-afterEach(() => vi.restoreAllMocks());
 it("preserves referenced/default/success responses while filling sparse error documentation", () => {
   const originalDefault = { description: "Existing default" };
   const success = { description: "OK", content: { "text/plain": {} } };
@@ -25,10 +23,7 @@ it("preserves referenced/default/success responses while filling sparse error do
       },
     },
   };
-  vi.spyOn(OpenApiGeneratorV31.prototype, "generateDocument").mockReturnValue(
-    generated as never,
-  );
-  const document = generateOpenApiDocument();
+  const document = normalizeLegacyErrorResponses(generated as never);
   expect(document.paths?.["/mixed"]?.post?.responses).toMatchObject({
     "200": success,
     "400": referenced,
@@ -48,8 +43,5 @@ it("preserves referenced/default/success responses while filling sparse error do
   });
 });
 it("supports a document with no registered paths", () => {
-  vi.spyOn(OpenApiGeneratorV31.prototype, "generateDocument").mockReturnValue(
-    {} as never,
-  );
-  expect(generateOpenApiDocument().paths).toBeUndefined();
+  expect(normalizeLegacyErrorResponses({} as never).paths).toBeUndefined();
 });

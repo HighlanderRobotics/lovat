@@ -33,6 +33,7 @@ jobs:
               - '.github/workflows/ci.yml'
             server:
               - 'apps/server/**'
+              - 'packages/api/**'
               - 'packages/db/**'
               - '.github/workflows/ci.yml'
             dashboard:
@@ -142,6 +143,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             apps/server/package-lock.json
+            packages/api/package-lock.json
             packages/db/package-lock.json
       - run: npm ci
       - run: npm run format:check

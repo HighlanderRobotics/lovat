@@ -96,7 +96,12 @@ export default defineRailway((ctx) => {
       ...(!production
         ? { nixpacksPlan: { repo: "MangoSwirl/lovat-server" } }
         : {}),
-      watchPatterns: ["/apps/server/**", "/packages/db/**", "/.railway/**"],
+      watchPatterns: [
+        "/apps/server/**",
+        "/packages/api/**",
+        "/packages/db/**",
+        "/.railway/**",
+      ],
     },
     deploy: {
       runtime: "V2",
