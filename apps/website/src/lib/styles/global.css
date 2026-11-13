@@ -1,4 +1,9 @@
 /* Website-owned reset: Magnolia now scopes its styles to library controls. */
+:root {
+	/* The package supplies the other legacy aliases; these two are Website-specific. */
+	--surface-container: var(--mg-surface);
+	--outline-variant: var(--mg-outline);
+}
 *,
 *::before,
 *::after {
