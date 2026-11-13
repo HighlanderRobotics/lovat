@@ -1,229 +1,181 @@
+import express, { Router } from "express";
+import type { ErrorRequestHandler } from "express";
+import request from "supertest";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { Request, Response } from "express";
-import type { AuthenticatedRequest } from "../src/lib/middleware/requireAuth.js";
-import { testUser } from "./helpers/handlerHarness.js";
-const db = vi.hoisted(() => ({
-  scouter: { findUnique: vi.fn() },
-  registeredTeam: { findUnique: vi.fn() },
-  get: vi.fn(),
-  setEx: vi.fn(),
+
+const mocks = vi.hoisted(() => ({
   capture: vi.fn(),
   alias: vi.fn(),
-}));
-vi.mock("../src/prismaClient.js", () => ({ default: db }));
-vi.mock("../src/redisClient.js", () => ({
-  kv: { get: db.get, setEx: db.setEx },
+  findUnique: vi.fn(),
+  get: vi.fn(),
+  setEx: vi.fn(),
 }));
 vi.mock("../src/posthogClient.js", () => ({
-  posthog: { capture: db.capture, alias: db.alias },
+  posthog: { capture: mocks.capture, alias: mocks.alias },
 }));
+vi.mock("../src/prismaClient.js", () => ({
+  default: {
+    scouter: { findUnique: mocks.findUnique },
+    registeredTeam: { findUnique: mocks.findUnique },
+  },
+}));
+vi.mock("../src/redisClient.js", () => ({ kv: mocks }));
+import type { AuthenticatedRequest } from "../src/lib/middleware/requireAuth.js";
 import reporter from "../src/lib/middleware/posthogMiddleware.js";
-const run = async (
-  overrides: Record<string, unknown> = {},
-  statusCode = 200,
-  body: unknown = "ok",
-) => {
-  let finish: () => Promise<void> = async () => undefined;
-  const req = {
-    method: "POST",
-    headers: {},
-    ips: [],
-    ip: "127.0.0.1",
-    route: { path: "/reports" },
-    baseUrl: "/v1/manager",
-    originalUrl: "/v1/manager/reports",
-    body: {},
-    query: {},
-    ...overrides,
-  } as unknown as Request | AuthenticatedRequest;
-  const res = {
-    statusCode,
-    send: vi.fn(),
-    once: vi.fn((_event: string, callback: () => Promise<void>) => {
-      finish = callback;
-    }),
-    getHeader: vi.fn().mockReturnValue("MISS"),
-  };
-  const next = vi.fn();
-  await reporter(req, res as unknown as Response, next);
-  expect(next).toHaveBeenCalledTimes(1);
-  res.send(body);
-  await finish();
-  return res;
+
+const secret = "private-password-api-key-token-team-code-email-scouting-note";
+const app = express();
+app.use(express.json());
+app.use((req, _res, next) => {
+  if (req.headers.authorization) {
+    Object.assign(req as AuthenticatedRequest, {
+      user: { id: secret, username: secret, email: secret, teamNumber: 8033 },
+    });
+  }
+  next();
+});
+app.use(reporter);
+const manager = Router();
+manager.all("/reports/:uuid", (req, res) => {
+  res.set("X-Lovat-Cache", "miss");
+  res.status(Number(req.query.status) || 200).json({ error: secret });
+});
+manager.get("/failure/:uuid", () => {
+  throw new Error(secret);
+});
+manager.get("/cache/:value", (req, res) => {
+  res.set("X-Lovat-Cache", req.params.value).send("ok");
+});
+app.use("/v1/manager", manager);
+const dynamic = Router();
+dynamic.get("/reports/:uuid", (_req, res) => res.send("ok"));
+app.use("/private/:tenant", dynamic);
+app.use((_req, res) => res.status(404).send(secret));
+const errors: ErrorRequestHandler = (_error, _req, res, _next) => {
+  res.status(500).json({ error: secret });
 };
+app.use(errors);
+
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.spyOn(console, "error").mockImplementation(() => undefined);
-  vi.spyOn(console, "log").mockImplementation(() => undefined);
-  db.get.mockResolvedValue(null);
-  db.scouter.findUnique.mockResolvedValue({
-    uuid: "s",
-    name: "Scout",
-    sourceTeamNumber: 8033,
-  });
-  db.registeredTeam.findUnique.mockResolvedValue({ number: 8033 });
 });
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
-it("reports asynchronous analytics failures without rejecting the finish callback", async () => {
-  db.get.mockRejectedValueOnce(new Error("private redis connection details"));
-  await expect(
-    run({ headers: { "x-scouter-uuid": "s", "x-device-id": "d" } }),
-  ).resolves.toBeDefined();
-  expect(console.error).toHaveBeenCalledWith(
-    "Request analytics failed",
-    expect.objectContaining({ name: "Error" }),
-  );
-  expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain(
-    "private redis connection details",
-  );
-  expect(db.capture).not.toHaveBeenCalled();
-});
-it("captures authenticated responses with proxy IP, cache, and client headers", async () => {
-  await run(
-    {
-      user: testUser,
-      ips: ["192.0.2.1"],
-      headers: {
-        "x-app-version": ["26.0", "ignored"],
-        "x-os-name": "test",
-        "x-build-number": "10",
+
+it.each([200, 400, 401, 403, 500])(
+  "captures only anonymous operational fields for HTTP %s",
+  async (status) => {
+    vi.stubEnv("RAILWAY_DEPLOYMENT_ID", "deployment-123");
+    const response = await request(app)
+      .post(`/v1/manager/reports/${secret}?status=${status}&token=${secret}`)
+      .set("Authorization", `Bearer ${secret}`)
+      .set("X-Team-Code", secret)
+      .set("X-Scouter-Uuid", secret)
+      .set("X-Device-Id", secret)
+      .set("X-Request-Id", secret)
+      .set("X-App-Version", secret)
+      .set("X-Os-Name", secret)
+      .set("X-Build-Number", secret)
+      .send({ password: secret, apiKey: secret, privateReport: secret });
+
+    expect(response.status).toBe(status);
+    expect(response.body).toEqual({ error: secret });
+    expect(mocks.capture).toHaveBeenCalledExactlyOnceWith({
+      distinctId: "lovat-server",
+      event: "response",
+      timestamp: expect.any(Date),
+      disableGeoip: true,
+      properties: {
+        $process_person_profile: false,
+        service: "server",
+        environment: expect.any(String),
+        requestId: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        railwayDeployment: "deployment-123",
+        method: "POST",
+        route: "/v1/manager/reports/:uuid",
+        statusCode: status,
+        errorCode:
+          status >= 500
+            ? "SERVER_ERROR"
+            : status >= 400
+              ? "REQUEST_ERROR"
+              : undefined,
+        responseTime: expect.any(Number),
+        cache: "miss",
       },
-      tokenType: "jwt",
-    },
-    400,
-    '{"error":"bad"}',
-  );
-  expect(db.capture).toHaveBeenCalledWith(
-    expect.objectContaining({
-      distinctId: testUser.id,
-      properties: expect.objectContaining({
-        $ip: "192.0.2.1",
-        appVersion: "26.0",
-        appBuild: "10",
-        authType: "jwt",
-        resBody: { error: "bad" },
-        cache: "MISS",
-        $set: expect.objectContaining({ userType: "user", teamNumber: 8033 }),
-      }),
-    }),
-  );
-});
-it.each(["plain error", { error: "bad" }])(
-  "preserves non-JSON error payloads %j",
-  async (body) => {
-    await run({ user: testUser }, 500, body);
-    expect(db.capture).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({ resBody: body }),
-      }),
-    );
+    });
+    expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.get).not.toHaveBeenCalled();
+    expect(mocks.setEx).not.toHaveBeenCalled();
+    expect(mocks.alias).not.toHaveBeenCalled();
   },
 );
+
 it.each([
-  "/scouters/:uuid/tournaments",
-  "/scouters",
-  "/scouterschedules/:tournament",
-])("skips successful polling responses for %s", async (path) => {
-  await run({ user: testUser, method: "GET", route: { path } });
-  expect(db.capture).not.toHaveBeenCalled();
-});
-it("captures polling failures and unknown routes", async () => {
-  await run(
-    { user: testUser, method: "GET", route: { path: "/scouters" } },
-    500,
+  `/missing/${secret}?token=${secret}`,
+  `/private/${secret}/reports/${secret}`,
+])(
+  "never falls back to raw paths or dynamic mount values: %s",
+  async (path) => {
+    await request(app).get(path);
+    expect(mocks.capture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({ route: "unmatched" }),
+      }),
+    );
+    expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
+  },
+);
+
+it("counts anonymous requests with stable routes and independent request IDs", async () => {
+  await request(app).get("/v1/manager/reports/one");
+  await request(app).get("/v1/manager/reports/two");
+  const events = mocks.capture.mock.calls.map(([event]) => event);
+  expect(events).toHaveLength(2);
+  expect(events[0].properties.route).toBe(events[1].properties.route);
+  expect(events[0].properties.requestId).not.toBe(
+    events[1].properties.requestId,
   );
-  await run({ user: testUser, method: "GET", route: undefined });
-  expect(db.capture).toHaveBeenCalledTimes(2);
 });
-it("aliases a device to its scouter once and caches the alias", async () => {
-  await run({
-    headers: {
-      "x-scouter-uuid": "s",
-      "x-team-code": "synthetic",
-      "x-device-id": "device",
-    },
-  });
-  expect(db.alias).toHaveBeenCalledWith({ distinctId: "device", alias: "s" });
-  expect(db.setEx).toHaveBeenCalledWith("posthog:alias:device:s", "1", 2592000);
-  expect(db.capture).toHaveBeenCalledWith(
-    expect.objectContaining({
-      distinctId: "s",
-      properties: expect.objectContaining({
-        $set: expect.objectContaining({
-          userType: "scouter",
-          teamNumber: 8033,
+
+it.each(["hit", "miss", secret])(
+  "allowlists cache status %s",
+  async (value) => {
+    await request(app).get(`/v1/manager/cache/${value}`);
+    expect(mocks.capture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          cache: value === secret ? "unknown" : value,
         }),
       }),
-    }),
-  );
-});
-it("does not alias a device again when its cache entry exists", async () => {
-  db.get.mockResolvedValue("1");
-  await run({ headers: { "x-scouter-uuid": "s", "x-device-id": "device" } });
-  expect(db.alias).not.toHaveBeenCalled();
-});
-it("captures a scouter without a device identifier", async () => {
-  await run({ headers: { "x-scouter-uuid": "s" } });
-  expect(db.capture).toHaveBeenCalledWith(
-    expect.objectContaining({ distinctId: "s" }),
-  );
-});
-it.each([
-  [
-    { "x-team-code": "synthetic", "x-device-id": "device" },
-    "127.0.0.1",
-    "device",
-  ],
-  [{ "x-team-code": "synthetic" }, "127.0.0.1", "scouter:ip:127.0.0.1"],
-  [{ "x-team-code": "synthetic" }, undefined, "scouter:unknown"],
-])(
-  "falls back to team-code identity when no scouter is present %j",
-  async (headers, ip, distinctId) => {
-    await run({ headers, ip });
-    expect(db.capture).toHaveBeenCalledWith(
-      expect.objectContaining({ distinctId }),
     );
   },
 );
-it("falls back to a team code when the scouter was deleted", async () => {
-  db.scouter.findUnique.mockResolvedValue(null);
-  db.registeredTeam.findUnique.mockResolvedValue(null);
-  await run({
-    headers: { "x-scouter-uuid": "deleted", "x-team-code": "synthetic" },
+
+it("keeps responses working and logs no SDK details when capture fails", async () => {
+  mocks.capture.mockImplementation(() => {
+    throw new Error(secret);
   });
-  expect(db.capture).toHaveBeenCalledWith(
+  const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  const response = await request(app).get("/v1/manager/reports/one");
+  expect(response.status).toBe(200);
+  expect(log).toHaveBeenCalledExactlyOnceWith("Request analytics failed");
+  expect(JSON.stringify(log.mock.calls)).not.toContain(secret);
+});
+
+it("preserves the endpoint group when Express unwinds a failed router", async () => {
+  const response = await request(app).get(`/v1/manager/failure/${secret}`);
+  expect(response.status).toBe(500);
+  expect(mocks.capture).toHaveBeenCalledWith(
     expect.objectContaining({
       properties: expect.objectContaining({
-        $set: expect.objectContaining({ teamNumber: undefined }),
+        route: "/v1/manager/failure/:uuid",
+        statusCode: 500,
       }),
     }),
   );
-});
-it("skips scouter polling responses", async () => {
-  await run({
-    method: "GET",
-    route: { path: "/scouters" },
-    headers: { "x-scouter-uuid": "s" },
-  });
-  expect(db.capture).not.toHaveBeenCalled();
-});
-it("keeps anonymous requests working after identity lookup fails", async () => {
-  db.scouter.findUnique.mockRejectedValue(new Error("database"));
-  await run({ headers: { "x-scouter-uuid": "s" } });
-  expect(db.capture).not.toHaveBeenCalled();
-  expect(console.error).toHaveBeenCalled();
-});
-it("logs development requests even without an analytics identity", async () => {
-  vi.stubEnv("NODE_ENV", "development");
-  await run();
-  expect(console.log).toHaveBeenCalledWith(
-    "%s %s: %d ms, HTTP %d",
-    "POST",
-    "/v1/manager/reports",
-    expect.any(Number),
-    200,
-  );
+  expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
 });
