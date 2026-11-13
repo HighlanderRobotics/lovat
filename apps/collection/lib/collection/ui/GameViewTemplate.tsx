@@ -192,13 +192,14 @@ function GameViewOverlay({
   overlay: boolean;
   setOverlay: (value: boolean) => void;
 }) {
+  // Remove the modal's native touch targets while it is closed. Opacity only
+  // changes painting; hidden controls should not remain over the playing field.
+  if (!overlay) return null;
+
   return (
     <Pressable
-      pointerEvents={overlay ? "auto" : "none"}
-      disabled={overlay}
       style={{
         backgroundColor: "#45454540",
-        opacity: overlay ? 1 : 0,
         position: "absolute",
         zIndex: 50,
         width: "100%",
