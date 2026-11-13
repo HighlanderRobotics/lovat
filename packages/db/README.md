@@ -135,3 +135,7 @@ These fields contain public official data and preserve the season context.
 display it as Week 1, Week 2, and so on; championship grouping uses `eventType`.
 The worker uses a versioned events cache key to refresh existing season records
 after this field is introduced.
+
+## Per-service pool limits
+
+Services can pass an optional second argument to createDb: maxConnections, idleTimeoutMs, and statementTimeoutMs. Values must be positive integers. Existing callers retain the original ten-connection pool and five-minute idle timeout; SQL statement timeouts are opt-in. The replacement API uses four connections, a 30-second idle timeout, and an eight-second statement timeout to bound contention and long queries.

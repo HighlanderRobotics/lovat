@@ -1,0 +1,49 @@
+name: API rewrite
+on:
+  pull_request:
+    paths:
+      [
+        "apps/api/**",
+        "apps/server/src/routes/**",
+        "apps/server/src/app.ts",
+        "apps/server/src/handler/training/training.routes.ts",
+        "packages/api/**",
+        "packages/db/**",
+        ".github/workflows/api-rewrite.yml",
+      ]
+  push:
+    branches: [main]
+    paths:
+      [
+        "apps/api/**",
+        "packages/api/**",
+        "packages/db/**",
+        ".github/workflows/api-rewrite.yml",
+      ]
+permissions:
+  contents: read
+jobs:
+  contracts-and-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: |
+            packages/api/package-lock.json
+            packages/db/package-lock.json
+            apps/api/package-lock.json
+      - run: npm ci
+        working-directory: packages/db
+      - run: npm run build
+        working-directory: packages/db
+      - run: npm ci
+        working-directory: packages/api
+      - run: npm test && npm run generate:check && npm run lint && npm run format:check
+        working-directory: packages/api
+      - run: npm ci
+        working-directory: apps/api
+      - run: npm test && npm run lint && npm run format:check && npm run inventory:check
+        working-directory: apps/api

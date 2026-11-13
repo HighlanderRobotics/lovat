@@ -1,0 +1,1869 @@
+[
+  {
+    "method": "GET",
+    "path": "/collection/checkcode",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "checkCodeScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/end",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "endMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/load",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "preMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/load/:match/:team",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "preMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/collection/schedules/:tournament",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScheduleForScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/collection/scouter",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScoutersOnTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/scouter",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "addNewScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/scoutreports",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "addScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/start",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "startMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/submit",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "submitReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/collection/tournament",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScouterTournaments"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/train/:session",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/training/:session/submit",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/training/sessions",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/collection/training/sessions/:session",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/training/sessions/:session/control",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/training/sessions/:session/grade",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/collection/training/sessions/:session/participants/:attempt",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/collection/training/sessions/:session/ready",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/collection/training/videos",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/status",
+    "source": "apps/server/src/app.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/alliance",
+    "source": "apps/server/src/routes/analysis/analysis.routes.ts",
+    "handlers": [
+      "alliancePageResponse"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/breakdown/team/:team",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "breakdownMetrics"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/breakdown/team/:team/:breakdown",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "breakdownDetails"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/category/team/:team",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "categoryMetrics"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/csvplain",
+    "source": "apps/server/src/routes/analysis/csv.routes.ts",
+    "handlers": [
+      "getTeamCSV"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/flag/team/:team",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "multipleFlags"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/matchprediction",
+    "source": "apps/server/src/routes/analysis/analysis.routes.ts",
+    "handlers": [
+      "matchPrediction"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/metric/:metric/team/:team",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "detailsPage"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/metrics/scoutreport/:uuid",
+    "source": "apps/server/src/routes/analysis/scoutreport.routes.ts",
+    "handlers": [
+      "matchPageSpecificScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/notes/team/:team",
+    "source": "apps/server/src/routes/analysis/teamLookup.routes.ts",
+    "handlers": [
+      "getNotes"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/picklist",
+    "source": "apps/server/src/routes/analysis/analysis.routes.ts",
+    "handlers": [
+      "picklistShell"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/pitdisplay",
+    "source": "apps/server/src/routes/analysis/analysis.routes.ts",
+    "handlers": [
+      "pitDisplay"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/qualrankingprediction",
+    "source": "apps/server/src/routes/analysis/analysis.routes.ts",
+    "handlers": [
+      "qualRankingPrediction"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/reportcsv",
+    "source": "apps/server/src/routes/analysis/csv.routes.ts",
+    "handlers": [
+      "getReportCSV"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/scoutreports/match/:match",
+    "source": "apps/server/src/routes/analysis/scoutreport.routes.ts",
+    "handlers": [
+      "scoutReportForMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analysis/timeline/scoutreport/:uuid",
+    "source": "apps/server/src/routes/analysis/scoutreport.routes.ts",
+    "handlers": [
+      "timelineForScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/doc.json",
+    "source": "apps/server/src/routes/index.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/analysts",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getAnalysts"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/apikey",
+    "source": "apps/server/src/routes/manager/apikey.routes.ts",
+    "handlers": [
+      "revokeApiKey"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/apikey",
+    "source": "apps/server/src/routes/manager/apikey.routes.ts",
+    "handlers": [
+      "getApiKeys"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/manager/apikey",
+    "source": "apps/server/src/routes/manager/apikey.routes.ts",
+    "handlers": [
+      "renameApiKey"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/apikey",
+    "source": "apps/server/src/routes/manager/apikey.routes.ts",
+    "handlers": [
+      "addApiKey"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/archive/uuid/:uuid",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "archiveScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/checkmatch",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "checkMatchExists"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/code",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getTeamCode"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/dashboard/scoutreport",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "addScoutReportDashboard"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/emailTeamCode",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "emailTeamCode"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/match-results-page",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getMatchResults"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/matches/:tournament",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getMatches"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/matchschedule/:tournament",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "getMatchSchedule"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/mutablepicklists",
+    "source": "apps/server/src/routes/manager/mutablepicklists.routes.ts",
+    "handlers": [
+      "getMutablePicklists"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/mutablepicklists",
+    "source": "apps/server/src/routes/manager/mutablepicklists.routes.ts",
+    "handlers": [
+      "addMutablePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/mutablepicklists/:uuid",
+    "source": "apps/server/src/routes/manager/mutablepicklists.routes.ts",
+    "handlers": [
+      "deleteMutablePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/mutablepicklists/:uuid",
+    "source": "apps/server/src/routes/manager/mutablepicklists.routes.ts",
+    "handlers": [
+      "getSingleMutablePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/mutablepicklists/:uuid",
+    "source": "apps/server/src/routes/manager/mutablepicklists.routes.ts",
+    "handlers": [
+      "updateMutablePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/name/uuid/:uuid",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "changeNameScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/noteam",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "addNotOnTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/notes/:uuid",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "updateNotes"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/resendverificationemail",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "resendEmailLimiter",
+      "resendEmail"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/team",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "addRegisteredTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/teamcode",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "checkCode"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/teamwebsite",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "addWebsite"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/username",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "addUsername"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/onboarding/verifyemail",
+    "source": "apps/server/src/routes/manager/onboarding.routes.ts",
+    "handlers": [
+      "requireLovatSignature",
+      "approveTeamEmail"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/picklists",
+    "source": "apps/server/src/routes/manager/picklists.routes.ts",
+    "handlers": [
+      "getPicklists"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/picklists",
+    "source": "apps/server/src/routes/manager/picklists.routes.ts",
+    "handlers": [
+      "addPicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/picklists/:uuid",
+    "source": "apps/server/src/routes/manager/picklists.routes.ts",
+    "handlers": [
+      "deletePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/picklists/:uuid",
+    "source": "apps/server/src/routes/manager/picklists.routes.ts",
+    "handlers": [
+      "getSinglePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/picklists/:uuid",
+    "source": "apps/server/src/routes/manager/picklists.routes.ts",
+    "handlers": [
+      "updatePicklist"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/profile",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "getProfile"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/registeredteams/:team/approve",
+    "source": "apps/server/src/routes/manager/registeredteams.routes.ts",
+    "handlers": [
+      "approveRegisteredTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireLovatSignature"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/registeredteams/:team/registrationstatus",
+    "source": "apps/server/src/routes/manager/registeredteams.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "checkRegisteredTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/registeredteams/:team/reject",
+    "source": "apps/server/src/routes/manager/registeredteams.routes.ts",
+    "handlers": [
+      "rejectRegisteredTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireLovatSignature"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/scouter",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "addNewScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouter/checkcode",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "checkCodeScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouter/tournaments",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "getTournamentForScouterWithSchedule"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/scouterdashboard",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "deleteScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/scouterdashboard",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "addScouterDashboard"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/scoutername",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "updateScouterName"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouterreports",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "scouterScoutReports"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouters",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "getScoutersOnTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouters/:uuid/tournaments",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "getScouterTournaments"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouterschedules/:tournament",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "getScheduleForScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scoutershift/scouters",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getScouters"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/scoutershifts/:uuid",
+    "source": "apps/server/src/routes/manager/scoutershifts.routes.ts",
+    "handlers": [
+      "deleteScouterShift"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/scoutershifts/:uuid",
+    "source": "apps/server/src/routes/manager/scoutershifts.routes.ts",
+    "handlers": [
+      "updateScouterShift"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scoutershifts/generate",
+    "source": "apps/server/src/routes/manager/scoutershifts.routes.ts",
+    "handlers": [
+      "superScoutingSchedule"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scouterspage",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "scoutingLeadProgressPage"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/scoutreports",
+    "source": "apps/server/src/routes/manager/scoutreports.routes.ts",
+    "handlers": [
+      "addScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/scoutreports/:uuid",
+    "source": "apps/server/src/routes/manager/scoutreports.routes.ts",
+    "handlers": [
+      "deleteScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/scoutreports/:uuid",
+    "source": "apps/server/src/routes/manager/scoutreports.routes.ts",
+    "handlers": [
+      "getScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/scoutreports/setflag/:report",
+    "source": "apps/server/src/routes/manager/scoutreports.routes.ts",
+    "handlers": [
+      "setScoutReportFlag"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth",
+      "requireVerifiedTeam"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/settings",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "updateSettings"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/settings/teamemail",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "requireVerifiedTeam",
+      "getTeamEmail"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/manager/settings/teamemail",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "updateTeamEmails",
+      "updateTeamEmail"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/settings/teamsource",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "getTeamSource"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/settings/teamsource",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "addTeamSource"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/settings/tournamentsource",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "getTournamentSource"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/settings/tournamentsource",
+    "source": "apps/server/src/routes/manager/settings.routes.ts",
+    "handlers": [
+      "addTournamentSource"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/team-tournament-status",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getTeamTournamentStatus"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/teams",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "getTeams"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/tournament/:tournament/rankedTeams",
+    "source": "apps/server/src/routes/manager/tournaments.routes.ts",
+    "handlers": [
+      "getTeamRankings"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/tournament/:tournament/scoutershifts",
+    "source": "apps/server/src/routes/manager/tournaments.routes.ts",
+    "handlers": [
+      "requireVerifiedTeam",
+      "getScouterSchedule"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/tournament/:tournament/scoutershifts",
+    "source": "apps/server/src/routes/manager/tournaments.routes.ts",
+    "handlers": [
+      "requireVerifiedTeam",
+      "addScouterShift"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/tournament/:tournament/teams",
+    "source": "apps/server/src/routes/manager/tournaments.routes.ts",
+    "handlers": [
+      "getTeamsInTournament"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter",
+      "requireAuth"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/tournaments",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "getTournaments"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/unarchive/uuid/:uuid",
+    "source": "apps/server/src/routes/manager/scouters.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "unarchiveScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/upcoming-entered-tournaments",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "getUpcomingTeamTournaments"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/manager/upgradeuser",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "updateRoleToScoutingLead"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/manager/user",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "deleteUser"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/manager/users",
+    "source": "apps/server/src/routes/manager/manager.routes.ts",
+    "handlers": [
+      "requireAuth",
+      "requireVerifiedTeam",
+      "getUsers"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/slack-invite",
+    "source": "apps/server/src/routes/index.ts",
+    "handlers": [
+      "onboardingRedirect"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v1/slack/add-workspace",
+    "source": "apps/server/src/routes/slack/slack.routes.ts",
+    "handlers": [
+      "addSlackWorkspace"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/slack/command",
+    "source": "apps/server/src/routes/slack/slack.routes.ts",
+    "handlers": [
+      "requireSlackToken",
+      "processCommand"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v1/slack/event",
+    "source": "apps/server/src/routes/slack/slack.routes.ts",
+    "handlers": [
+      "requireSlackToken",
+      "processEvent"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/checkcode",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "checkCodeScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/end",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "endMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/load",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "preMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/load/:match/:team",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "preMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/schedules/:tournament",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScheduleForScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/scouter",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScoutersOnTeam"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/scouter",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "addNewScouter"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/scoutreports",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "addScoutReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/start",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "startMatch"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/submit",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "submitReport"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/tournament",
+    "source": "apps/server/src/routes/collection/collection.routes.ts",
+    "handlers": [
+      "getScouterTournaments"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/train/:session",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/training/:session/submit",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/training/sessions",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/training/sessions/:session",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/training/sessions/:session/control",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/training/sessions/:session/grade",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "DELETE",
+    "path": "/v2/collection/training/sessions/:session/participants/:attempt",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "POST",
+    "path": "/v2/collection/training/sessions/:session/ready",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/v2/collection/training/videos",
+    "source": "apps/server/src/handler/training/training.routes.ts",
+    "handlers": [],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  },
+  {
+    "method": "GET",
+    "path": "/version",
+    "source": "apps/server/src/app.ts",
+    "handlers": [
+      "getVersion"
+    ],
+    "middleware": [
+      "errorResponses",
+      "posthogReporter"
+    ],
+    "replacement": null
+  }
+]
