@@ -62,9 +62,11 @@ Do not use a personal device: bootstrap intentionally clears app storage.
 For iOS, build the existing `native-smoke-ios` EAS simulator profile with Xcode 27
 from that same source SHA, record the run URL, version and artifact hash, install
 on a disposable simulator, and run `.maestro/bootstrap.yaml`,
-`.maestro/offline-restart.yaml` and `.maestro/reconnect.yaml` against the synthetic
-fixture (`node test/native/fixture-api.mjs`). Stop the fixture before the offline
-flow and restart it before reconnect; iOS simulators have no airplane-mode API.
+`.maestro/enter-game.yaml`, `.maestro/record-match.yaml`,
+`.maestro/offline-restart.yaml` and `.maestro/reconnect.yaml` in that order,
+each in a separate Maestro invocation against the synthetic fixture
+(`node test/native/fixture-api.mjs`). Stop the fixture before `enter-game.yaml`
+and restart it before reconnect; iOS simulators have no airplane-mode API.
 Retain Maestro JUnit/screenshots and the fixture submission ledger. This iOS
 procedure is a pending operator check until its actual build/run evidence is
 attached; a build profile alone is not a passed native test. Physical-device
