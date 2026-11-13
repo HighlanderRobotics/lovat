@@ -1,0 +1,20 @@
+appId: com.frc8033.lovatcollection
+---
+- tapOn:
+    text: "Start position Hub"
+    retryTapIfNoChange: true
+- assertVisible:
+    text: "Start position Hub"
+    selected: true
+- assertVisible:
+    text: "Start match"
+    enabled: true
+- tapOn:
+    text: "Start match"
+    enabled: true
+- assertNotVisible: "Start position Hub"
+- tapOn: "Intake from depot"
+- tapOn: "Undo"
+- tapOn: "Intake from depot"
+- tapOn: "End match"
+- tapOn: "End match"
