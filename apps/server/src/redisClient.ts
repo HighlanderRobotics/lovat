@@ -22,6 +22,14 @@ export const connectRedis = async (): Promise<void> => {
   await getRedis();
 };
 
+/** Readiness must not open a second connection or queue a ping while offline. */
+export const pingRedis = async (): Promise<void> => {
+  if (!redis?.isReady) {
+    throw new Error("Redis unavailable");
+  }
+  await redis.ping();
+};
+
 export const closeRedis = async (): Promise<void> => {
   if (connection && redis) {
     await connection;

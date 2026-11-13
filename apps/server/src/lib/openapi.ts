@@ -83,11 +83,11 @@ export const LovatTimestampHeader = z.object({
   }),
 });
 
-// Minimal example: document the /status health check route
+// Preserve the legacy process-status contract for installed callers.
 registry.registerPath({
   method: "get",
   path: "/status",
-  summary: "Health check",
+  summary: "Legacy process status",
   description: "Returns a simple message indicating the server is running.",
   responses: {
     200: {
@@ -100,6 +100,44 @@ registry.registerPath({
     },
   },
 });
+
+for (const [path, status, description] of [
+  ["/live", "live", "Process liveness; does not check dependencies."],
+  [
+    "/ready",
+    "ready",
+    "Ready only after initialization and bounded PostgreSQL/Redis probes pass.",
+  ],
+] as const) {
+  registry.registerPath({
+    method: "get",
+    path,
+    summary: description,
+    responses: {
+      200: {
+        description,
+        content: {
+          "application/json": {
+            schema: z.object({ status: z.literal(status) }),
+          },
+        },
+      },
+      ...(path === "/ready"
+        ? {
+            503: {
+              description:
+                "Starting, draining, or a critical dependency is unavailable.",
+              content: {
+                "application/json": {
+                  schema: z.object({ status: z.literal("not_ready") }),
+                },
+              },
+            },
+          }
+        : {}),
+    },
+  });
+}
 
 export function generateOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
