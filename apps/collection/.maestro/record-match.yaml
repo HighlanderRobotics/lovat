@@ -1,20 +1,21 @@
 appId: com.frc8033.lovatcollection
 ---
-- tapOn:
-    text: "Start position Hub"
-    retryTapIfNoChange: true
+# Maestro 2.12.1's Android gRPC tap is ineffective after landscape rotation
+# on this API 35 image. Its supported longPressOn uses Android's shell input
+# path instead; the controls have no long-press action. Preserve state assertions.
+- longPressOn: "Start position Hub"
 - assertVisible:
     text: "Start position Hub"
     selected: true
 - assertVisible:
     text: "Start match"
     enabled: true
-- tapOn:
+- longPressOn:
     text: "Start match"
     enabled: true
 - assertNotVisible: "Start position Hub"
-- tapOn: "Intake from depot"
-- tapOn: "Undo"
-- tapOn: "Intake from depot"
-- tapOn: "End match"
-- tapOn: "End match"
+- longPressOn: "Intake from depot"
+- longPressOn: "Undo"
+- longPressOn: "Intake from depot"
+- longPressOn: "End match"
+- longPressOn: "End match"
