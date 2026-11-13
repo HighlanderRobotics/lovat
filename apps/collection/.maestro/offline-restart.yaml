@@ -6,7 +6,9 @@ appId: com.frc8033.lovatcollection
     timeout: 20000
 - tapOn: "Start position Hub"
 - tapOn: "Start match"
+- tapOn: "Intake from depot"
 - tapOn: "Undo"
+- tapOn: "Intake from depot"
 - tapOn: "End match"
 - tapOn: "End match"
 - scrollUntilVisible:
