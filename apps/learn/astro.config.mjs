@@ -71,6 +71,7 @@ export default defineConfig({
         "@fontsource/roboto/400.css",
         "@fontsource/roboto/500.css",
         "@fontsource/roboto/700.css",
+        "@highlanderrobotics/magnolia-starlight/theme.css",
         "./src/custom.css",
       ],
     }),

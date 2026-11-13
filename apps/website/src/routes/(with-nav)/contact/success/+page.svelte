@@ -1,5 +1,5 @@
 <script>
-	import { Button } from 'magnolia-ui-svelte';
+	import { Button } from '@highlanderrobotics/magnolia-svelte';
 </script>
 
 <svelte:head>

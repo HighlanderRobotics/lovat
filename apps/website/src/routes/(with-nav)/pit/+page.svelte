@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Button, TextField } from 'magnolia-ui-svelte';
+	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte';
 
 	let submitClicked = false;
 </script>
@@ -36,7 +36,7 @@
 		<TextField name="teamsAboveCount" id="teamsAboveCount" placeholder="3" type="number" required />
 
 		<div class="submit">
-			<Button disabled={submitClicked}>Open</Button>
+			<Button type="submit" disabled={submitClicked}>Open</Button>
 		</div>
 	</form>
 </section>

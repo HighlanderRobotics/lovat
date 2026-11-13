@@ -286,6 +286,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  magnolia_ui:
+    dependency: "direct main"
+    description:
+      path: "packages/flutter"
+      ref: fb6a12d6c19e3ab27780b31aa56d13c40bbebbf0
+      resolved-ref: fb6a12d6c19e3ab27780b31aa56d13c40bbebbf0
+      url: "https://github.com/HighlanderRobotics/magnolia-ui.git"
+    source: git
+    version: "0.1.0"
   matcher:
     dependency: transitive
     description:
@@ -749,4 +758,4 @@ packages:
     version: "0.6.0"
 sdks:
   dart: ">=3.9.0-0 <=3.27.3"
-  flutter: ">=3.32.0"
+  flutter: ">=3.35.0"
