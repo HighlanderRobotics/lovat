@@ -30,7 +30,7 @@ deployment. Do not put its path in the dashboard's legacy **Config File** field.
 2. Verify the declared source connections and roots: `/` for api, worker, website;
    `/apps/dashboard` for dashboard; `/apps/learn` for learn. For a PR environment, set
    `RAILWAY_CONFIG_BRANCH` to its existing GitHub branch for every plan/apply.
-   Production uses `main`; staging retains `offseason/mock-game-charged-up`.
+   Production and staging use `main`, matching the verified live services.
    Compare variable names with `env` in the file and add `preserve()` entries for
    any newly configured variables before applying. Never include secret values. Preserve Dashboard's existing release workflow when deciding source/deploy policy.
 3. Confirm the preview has isolated Postgres/Redis and sandbox integration keys.
@@ -75,3 +75,20 @@ API retains the private database migration/start command and staging's 2 CPU /
 `bun run enqueue tournaments 2025` or `bun run backfill 1992 2025`.
 
 See [Railway's IaC migration guide](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
+
+## Verified live state (November 12, 2026)
+
+The Lovat project is `c210dce8-37af-4bf0-b1e0-7e28b30597c6` in **8033 Admin's
+Projects**. The connected list-projects inventory omitted it; a direct project ID
+lookup and the local Railway CLI both work. See the
+[cutover verification record](evidence/2026-11-12/verification.md) and redacted
+configuration snapshot. The five application services already belong to the
+`lovat-apps` named partial in production, staging and PR #128.
+
+The audit found source/sleeping/preview-limit drift in the authored file. The
+updated definitions preserve the observed live settings rather than changing
+service availability, cost or staging source on the next apply. Healthcheck
+readiness (LVT-339), required deployment checks (LVT-337), and release migrations
+(LVT-338) remain separate proposed changes. No live settings were applied by
+this audit. Secret-value isolation and a restore/rollback exercise still need
+independent evidence.
