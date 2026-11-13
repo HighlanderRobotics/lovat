@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p .maestro/results
+: > .maestro/results/ledger.jsonl
 fixture_pid=""
 cleanup() {
   result=$?
@@ -27,19 +28,19 @@ start_fixture() {
 adb wait-for-device
 adb reverse tcp:9877 tcp:9877
 start_fixture
-maestro test --format junit --output .maestro/results/bootstrap.xml .maestro/bootstrap.yaml
+maestro test --debug-output .maestro/results/bootstrap-debug --test-output-dir .maestro/results/bootstrap-debug --format junit --output .maestro/results/bootstrap.xml .maestro/bootstrap.yaml
 # Stop the fixture as well: an ADB reverse tunnel can survive airplane mode.
 kill "$fixture_pid"
 wait "$fixture_pid" || true
 fixture_pid=""
 adb shell cmd connectivity airplane-mode enable
-maestro test --format junit --output .maestro/results/offline.xml .maestro/offline-restart.yaml
+maestro test --debug-output .maestro/results/offline-debug --test-output-dir .maestro/results/offline-debug --format junit --output .maestro/results/offline.xml .maestro/offline-restart.yaml
 adb shell cmd connectivity airplane-mode disable
 start_fixture
-maestro test --format junit --output .maestro/results/reconnect.xml .maestro/reconnect.yaml
+maestro test --debug-output .maestro/results/reconnect-debug --test-output-dir .maestro/results/reconnect-debug --format junit --output .maestro/results/reconnect.xml .maestro/reconnect.yaml
 node --input-type=module - <<'JS'
 import {readFileSync} from 'node:fs';
-const entries=readFileSync('.maestro/results/ledger.jsonl','utf8').trim().split('\n').map(JSON.parse);
+const entries=readFileSync('.maestro/results/ledger.jsonl','utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
 const submitted=entries.filter(e=>e.path==='/collection/submit'||e.path==='/collection/scoutreports');
 if(submitted.length!==1)throw new Error('Expected one successful synthetic report submission');
 if(!entries.every(e=>e.uuid===submitted[0].uuid))throw new Error('Lifecycle/retry changed the report UUID');

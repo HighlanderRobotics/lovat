@@ -6,7 +6,9 @@ appId: com.frc8033.lovatcollection
     timeout: 20000
 - waitForAnimationToEnd:
     timeout: 5000
-- tapOn: "Start position Hub"
+- tapOn:
+    text: "Start position Hub"
+    retryTapIfNoChange: true
 - assertVisible:
     text: "Start position Hub"
     selected: true
