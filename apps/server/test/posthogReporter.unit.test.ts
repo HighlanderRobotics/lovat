@@ -179,3 +179,12 @@ it("preserves the endpoint group when Express unwinds a failed router", async ()
   );
   expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
 });
+
+it("groups methods outside the telemetry allowlist without copying them", async () => {
+  await request(app).trace("/v1/manager/reports/one");
+  expect(mocks.capture).toHaveBeenCalledWith(
+    expect.objectContaining({
+      properties: expect.objectContaining({ method: "OTHER" }),
+    }),
+  );
+});
