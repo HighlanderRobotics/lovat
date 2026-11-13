@@ -1,0 +1,84 @@
+{
+  "worker": [
+    "apps/worker/**",
+    "packages/db/**",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "server": [
+    "apps/server/**",
+    "packages/db/**",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "dashboard": [
+    "apps/dashboard/**",
+    ".github/workflows/dashboard-native-tests.yml",
+    ".github/workflows/dashboard-deploy.yml",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "collection": [
+    "apps/collection/**",
+    ".github/workflows/collection-native-tests.yml",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "learn": [
+    "apps/learn/**",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "website": [
+    "apps/website/**",
+    "CHANGELOG.md",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "reviewer": [
+    "tools/pr-reviewer/**",
+    ".github/workflows/ai-review.yml",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "docs/testing/fixtures/**",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
+  "contracts": [
+    "docs/testing/fixtures/**",
+    "apps/server/**",
+    "packages/db/**",
+    "apps/collection/lib/collection/**",
+    "apps/collection/lib/lovatAPI/collectionRequests.ts",
+    "apps/collection/lib/storage/scoutReportMigrations.ts",
+    "apps/collection/test/jest/crossAppContract.test.ts",
+    "apps/dashboard/lib/reusable/lovat_api/**",
+    "apps/dashboard/lib/pages/picklist/picklist_models.dart",
+    "apps/dashboard/test/cross_app_contract_test.dart",
+    "apps/dashboard/test/helpers/contract_fixtures.dart",
+    ".github/workflows/ci.yml",
+    ".github/ci-filters.json",
+    "scripts/check-contracts.sh",
+    "scripts/prepare-contract-report.mjs",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ]
+}

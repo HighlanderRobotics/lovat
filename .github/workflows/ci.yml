@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
   pull-requests: read
+defaults:
+  run:
+    shell: bash
 
 jobs:
   changes:
@@ -21,40 +24,13 @@ jobs:
       website: ${{ steps.filter.outputs.website }}
       learn: ${{ steps.filter.outputs.learn }}
       reviewer: ${{ steps.filter.outputs.reviewer }}
+      contracts: ${{ steps.filter.outputs.contracts }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
         with:
-          filters: |
-            worker:
-              - 'apps/worker/**'
-              - 'packages/db/**'
-              - '.github/workflows/ci.yml'
-            server:
-              - 'apps/server/**'
-              - 'packages/db/**'
-              - '.github/workflows/ci.yml'
-            dashboard:
-              - 'apps/dashboard/**'
-              - '.github/workflows/dashboard-native-tests.yml'
-              - '.github/workflows/dashboard-deploy.yml'
-              - '.github/workflows/ci.yml'
-            collection:
-              - 'apps/collection/**'
-              - '.github/workflows/collection-native-tests.yml'
-              - '.github/workflows/ci.yml'
-            learn:
-              - 'apps/learn/**'
-              - '.github/workflows/ci.yml'
-            website:
-              - 'apps/website/**'
-              - 'CHANGELOG.md'
-              - '.github/workflows/ci.yml'
-            reviewer:
-              - 'tools/pr-reviewer/**'
-              - '.github/workflows/ai-review.yml'
-              - '.github/workflows/ci.yml'
+          filters: .github/ci-filters.json
 
   structure:
     name: Structure
@@ -62,6 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/check-structure.sh
+      - run: node --test scripts/ci-selection.test.mjs scripts/ci-results.test.mjs scripts/prepare-contract-report.test.mjs
       - run: node --test scripts/prepare-pages-reports.test.mjs
       - run: python3 -m unittest discover -s scripts -p railway_preview_qr_test.py
 
@@ -241,9 +218,94 @@ jobs:
         working-directory: .
         run: docker build -f apps/worker/Dockerfile -t lovat-worker:ci .
 
+  contracts:
+    name: Cross-app contracts
+    needs: changes
+    if: ${{ needs.changes.outputs.contracts == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lovat_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+      REDIS_URL: redis://127.0.0.1:6379/15
+      LOVAT_DB_TEST: "1"
+      DOTENV_CONFIG_PATH: /dev/null
+      LOVAT_CONTRACT_OUTPUT_DIR: ${{ github.workspace }}/contract-report
+      LOVAT_CONTRACT_COLLECTION_DIR: ${{ github.workspace }}/contract-report
+      LOVAT_CONTRACT_SERVER_RESPONSE: ${{ github.workspace }}/contract-report/analysis.actual.json
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p "$LOVAT_CONTRACT_OUTPUT_DIR"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.6.0
+      - name: Serialize Collection's retained reports
+        id: collection
+        working-directory: apps/collection
+        run: |
+          npm ci
+          npm run test:unit -- --testPathPatterns crossAppContract 2>&1 | tee "$LOVAT_CONTRACT_OUTPUT_DIR/collection.log"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Upload and analyze through the real Server
+        id: server
+        working-directory: apps/server
+        run: |
+          npm ci
+          npm --prefix ../../packages/db run db:deploy
+          npm run test:integration -- test/crossAppContract.integration.test.ts 2>&1 | tee "$LOVAT_CONTRACT_OUTPUT_DIR/server.log"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.0
+          channel: stable
+      - name: Decode the actual Server response in Dashboard
+        id: dashboard
+        working-directory: apps/dashboard
+        run: |
+          flutter pub get
+          flutter test test/cross_app_contract_test.dart 2>&1 | tee "$LOVAT_CONTRACT_OUTPUT_DIR/dashboard.log"
+      - name: Retain stage outcomes and diagnostics
+        if: always()
+        env:
+          CONTRACT_STEPS: ${{ toJSON(steps) }}
+        run: node scripts/prepare-contract-report.mjs "$LOVAT_CONTRACT_OUTPUT_DIR"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contracts-test-report
+          path: ${{ github.workspace }}/contract-report/
+          if-no-files-found: error
+          retention-days: 14
+
   test-report:
     name: Publish test reports
-    needs: [server, website, website-browser, learn, dashboard, dashboard-browser, gate]
+    needs:
+      [
+        server,
+        website,
+        website-browser,
+        learn,
+        dashboard,
+        dashboard-browser,
+        gate,
+      ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -350,7 +412,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.4
+          flutter-version: 3.41.0
       - run: flutter --version
       - run: flutter pub get
       - run: python3 tool/run_tests.py
@@ -380,11 +442,11 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.4
+          flutter-version: 3.41.0
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
-          chrome-version: '141.0.7390.37'
+          chrome-version: "141.0.7390.37"
           install-chromedriver: true
           install-dependencies: true
       - run: flutter pub get
@@ -523,6 +585,8 @@ jobs:
       [
         changes,
         structure,
+        railway-config,
+        contracts,
         reviewer,
         server,
         worker,
@@ -536,36 +600,12 @@ jobs:
       ]
     runs-on: ubuntu-latest
     env:
-      CHANGES_RESULT: ${{ needs.changes.result }}
-      STRUCTURE_RESULT: ${{ needs.structure.result }}
-      REVIEWER_RESULT: ${{ needs.reviewer.result }}
-      SERVER_RESULT: ${{ needs.server.result }}
-      WORKER_RESULT: ${{ needs.worker.result }}
-      COLLECTION_RESULT: ${{ needs.collection.result }}
-      WEBSITE_BROWSER_RESULT: ${{ needs.website-browser.result }}
-      WEBSITE_RESULT: ${{ needs.website.result }}
-      LEARN_RESULT: ${{ needs.learn.result }}
-      DASHBOARD_FORMAT_RESULT: ${{ needs.dashboard-format.result }}
-      DASHBOARD_BROWSER_RESULT: ${{ needs.dashboard-browser.result }}
-      DASHBOARD_RESULT: ${{ needs.dashboard.result }}
+      NEEDS_JSON: ${{ toJSON(needs) }}
+      PUBLISH_REPORTS: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true' }}
     steps:
-      - name: Require applicable jobs
-        run: |
-          for result in \
-            "$CHANGES_RESULT" \
-            "$STRUCTURE_RESULT" \
-            "$REVIEWER_RESULT" \
-            "$SERVER_RESULT" \
-            "$WORKER_RESULT" \
-            "$COLLECTION_RESULT" \
-            "$DASHBOARD_FORMAT_RESULT" \
-            "$DASHBOARD_RESULT" \
-            "$DASHBOARD_BROWSER_RESULT" \
-            "$WEBSITE_RESULT" \
-            "$WEBSITE_BROWSER_RESULT" \
-            "$LEARN_RESULT"; do
-            case "$result" in
-              success|skipped) ;;
-              *) echo "Required job result: $result" >&2; exit 1 ;;
-            esac
-          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+      - name: Require every applicable job
+        run: node scripts/ci-results.mjs
