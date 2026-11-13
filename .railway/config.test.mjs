@@ -20,19 +20,20 @@ for (const environment of ["production", "staging"]) {
     for (const resource of graph.resources) {
       assert.equal(resource.build.builder, "DOCKERFILE");
       assert(resource.build.watchPatterns.includes("/.railway/**"));
-      assert.notEqual(resource.deploy.sleepApplication, true);
+      assert.equal(
+        resource.deploy.sleepApplication,
+        resource.name === "worker" ||
+          (resource.name === "api" && environment === "production")
+          ? undefined
+          : true,
+      );
       assert.equal(
         resource.deploy.restartPolicyType ?? "ON_FAILURE",
         "ON_FAILURE",
       );
       // Keep source connections and credential values during adoption.
       assert.equal(resource.source.repo, "HighlanderRobotics/lovat");
-      assert.equal(
-        resource.source.branch,
-        environment === "production"
-          ? "main"
-          : "offseason/mock-game-charged-up",
-      );
+      assert.equal(resource.source.branch, "main");
       assert(Object.keys(resource.variables).length > 0);
       for (const value of Object.values(resource.variables)) {
         assert.deepEqual(value, { type: "preserve" });
@@ -88,4 +89,32 @@ test("refuses preview plans without an explicit source branch", () => {
     if (previous === undefined) delete process.env.RAILWAY_CONFIG_BRANCH;
     else process.env.RAILWAY_CONFIG_BRANCH = previous;
   }
+});
+
+test("preview retains inherited sleeping and API limits without owning databases", (t) => {
+  const previous = process.env.RAILWAY_CONFIG_BRANCH;
+  process.env.RAILWAY_CONFIG_BRANCH =
+    "jackshim415/lvt-334-server-redact-request-analytics-and";
+  t.after(() => {
+    if (previous === undefined) {
+      delete process.env.RAILWAY_CONFIG_BRANCH;
+    } else {
+      process.env.RAILWAY_CONFIG_BRANCH = previous;
+    }
+  });
+  const graph = config(
+    createRailwayContext({ environment: "lovat-pr-128", projectName: "lovat" }),
+  );
+  assert.equal(graph.resources.length, 5);
+  for (const resource of graph.resources) {
+    assert.equal(resource.source.branch, process.env.RAILWAY_CONFIG_BRANCH);
+    assert.equal(
+      resource.deploy.sleepApplication,
+      resource.name === "worker" ? undefined : true,
+    );
+  }
+  const api = graph.resources.find((r) => r.name === "api");
+  assert.deepEqual(api.deploy.limitOverride, {
+    containers: { cpu: 2, memoryBytes: 2147483648 },
+  });
 });

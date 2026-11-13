@@ -1,0 +1,46 @@
+{
+  "observedDate": "2026-11-12",
+  "context": {
+    "projectId": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+    "projectName": "lovat",
+    "environmentId": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+    "environmentName": "lovat-pr-128",
+    "configEtag": "4d1991890e68aaefcbeb49148d9f55bf325ae85ac5513d488f2a1ed22ac3392a"
+  },
+  "ownership": {},
+  "baselineChanges": [
+    {
+      "summary": "Update api deploy.limitOverride.containers.cpu, deploy.limitOverride.containers.memoryBytes, deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": [
+        "deploy.limitOverride.containers.cpu (2 \u2192 null)",
+        "deploy.limitOverride.containers.memoryBytes (2147483648 \u2192 null)",
+        "deploy.sleepApplication (true \u2192 null)"
+      ]
+    },
+    {
+      "summary": "Update dashboard deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    },
+    {
+      "summary": "Update website deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    },
+    {
+      "summary": "Update learn deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    }
+  ],
+  "baselineDiagnostics": [],
+  "note": "Read-only plan; no apply, staged patch or deployment was requested.",
+  "alignedChanges": [],
+  "alignedDiagnostics": [],
+  "alignedConfigEtag": "4d1991890e68aaefcbeb49148d9f55bf325ae85ac5513d488f2a1ed22ac3392a"
+}

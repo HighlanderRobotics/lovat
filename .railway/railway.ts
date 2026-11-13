@@ -5,7 +5,8 @@ export const partial = "lovat-apps";
 
 // Railway omits platform defaults from stored config: sleeping defaults to false,
 // restart policy to ON_FAILURE, and retry count to 10. Do not re-declare those
-// defaults, which otherwise produce a perpetual no-op plan.
+// defaults, which otherwise produce a perpetual no-op plan. Explicit sleeping
+// settings below preserve the non-default live production/staging/preview policy.
 export default defineRailway((ctx) => {
   if (!ctx.environment?.trim()) {
     throw new Error(
@@ -17,9 +18,7 @@ export default defineRailway((ctx) => {
   const branch = production
     ? "main"
     : (process.env.RAILWAY_CONFIG_BRANCH ??
-      (ctx.environment === "staging"
-        ? "offseason/mock-game-charged-up"
-        : undefined));
+      (ctx.environment === "staging" ? "main" : undefined));
 
   if (!branch?.trim()) {
     throw new Error(
@@ -46,6 +45,7 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
@@ -61,6 +61,7 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
@@ -109,9 +110,10 @@ export default defineRailway((ctx) => {
         },
       },
       restartPolicyMaxRetries: 20,
+      ...(!production ? { sleepApplication: true } : {}),
       healthcheckPath: "/status",
       healthcheckTimeout: 1200,
-      ...(ctx.environment === "staging"
+      ...(!production
         ? { limitOverride: { containers: { cpu: 2, memoryBytes: 2147483648 } } }
         : {}),
     },
@@ -136,6 +138,7 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
