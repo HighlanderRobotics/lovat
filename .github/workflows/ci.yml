@@ -412,7 +412,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.4
+          flutter-version: 3.41.0
       - run: flutter --version
       - run: flutter pub get
       - run: python3 tool/run_tests.py
@@ -442,7 +442,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.4
+          flutter-version: 3.41.0
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
