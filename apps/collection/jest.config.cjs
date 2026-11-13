@@ -5,6 +5,11 @@ module.exports = {
     "<rootDir>/test/jest/**/*.test.tsx",
   ],
   setupFilesAfterEnv: ["<rootDir>/test/jest/setup.ts"],
+  // Jest transforms tests to CommonJS; map the package's real ESM entry explicitly.
+  moduleNameMapper: {
+    "^@highlanderrobotics/magnolia-tokens$":
+      "<rootDir>/node_modules/@highlanderrobotics/magnolia-tokens/dist/index.js",
+  },
   clearMocks: true,
   restoreMocks: true,
   coverageDirectory: "test-report/coverage",
@@ -27,6 +32,6 @@ module.exports = {
     ["jest-junit", { outputDirectory: "test-report", outputName: "junit.xml" }],
   ],
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|expo-router|@react-navigation/.*|react-native-svg|react-native-safe-area-context|uuid|jotai|zustand))",
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?|@highlanderrobotics/.*|expo(nent)?|@expo(nent)?/.*|expo-router|@react-navigation/.*|react-native-svg|react-native-safe-area-context|uuid|jotai|zustand))",
   ],
 };

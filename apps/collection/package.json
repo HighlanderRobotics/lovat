@@ -69,7 +69,9 @@
     "typescript": "~6.0.3",
     "uuid": "^14.0.3",
     "zod": "^4.6.7",
-    "zustand": "^5.0.16"
+    "zustand": "^5.0.16",
+    "@highlanderrobotics/magnolia-react-native": "0.2.0",
+    "@highlanderrobotics/magnolia-tokens": "0.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
