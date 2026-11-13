@@ -1,14 +1,5 @@
 appId: com.frc8033.lovatcollection
 ---
-- tapOn: "Scout this match"
-- extendedWaitUntil:
-    visible: "Start position Hub"
-    timeout: 20000
-- tapOn: "Start position Hub"
-- tapOn: "Start match"
-- tapOn: "Undo"
-- tapOn: "End match"
-- tapOn: "End match"
 - scrollUntilVisible:
     element:
       text: "Submit"

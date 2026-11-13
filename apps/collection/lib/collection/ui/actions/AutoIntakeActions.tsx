@@ -18,6 +18,7 @@ export function DepotIntakeAction() {
       })}
     >
       <GameAction
+        label="Intake from depot"
         onPress={() =>
           reportState.addEvent({
             type: MatchEventType.Intake,
@@ -45,6 +46,7 @@ export function NeutralZoneAutoIntakeAction() {
       })}
     >
       <GameAction
+        label="Intake in neutral zone"
         onPress={() =>
           reportState.addEvent({
             type: MatchEventType.Intake,

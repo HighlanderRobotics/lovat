@@ -6,6 +6,7 @@ import { useFieldRelativeDimensions } from "../useFieldRelativeDimensions";
 
 export const GameAction = ({
   onPress,
+  label,
   children,
   icon,
   color,
@@ -16,6 +17,7 @@ export const GameAction = ({
   iconSize,
 }: {
   onPress: () => void;
+  label?: string;
   children?: React.ReactNode;
   backgroundViewReplacement?: React.ReactNode;
   color: string;
@@ -35,6 +37,8 @@ export const GameAction = ({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
