@@ -7,4 +7,4 @@ COPY apps/server ./apps/server
 WORKDIR /app/apps/server
 RUN npm ci --include=dev && npm run build
 ENV NODE_ENV=production
-CMD ["npm", "start"]
+CMD ["node", "dist/src/server.js"]

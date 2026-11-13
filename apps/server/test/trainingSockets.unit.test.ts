@@ -67,6 +67,7 @@ const credentials = {
   token: "s".repeat(43),
 };
 let server: EventEmitter;
+let control: ReturnType<typeof attachTrainingSockets>;
 function connect(options: { url?: string; ip?: string | null } = {}) {
   const client = new Client();
   const transport = Object.assign(new EventEmitter(), {
@@ -106,7 +107,7 @@ beforeEach(() => {
   mocks.snapshot.mockResolvedValue({ status: "LOBBY" });
   mocks.heartbeat.mockResolvedValue({ count: 1 });
   server = new EventEmitter();
-  attachTrainingSockets(server as Server);
+  control = attachTrainingSockets(server as Server);
 });
 afterEach(() => {
   vi.clearAllTimers();
@@ -328,3 +329,55 @@ it.each([
     }
   },
 );
+
+it("drains training clients and rejects new upgrades during shutdown", async () => {
+  mocks.servers[0].close.mockImplementation((callback) => callback?.());
+  const { client } = connect();
+  await authenticate(client);
+  await control.close();
+  expect(client.close).toHaveBeenCalledWith(1001, "Server restarting");
+  expect(connect().transport.destroy).toHaveBeenCalledOnce();
+  const calls = mocks.snapshot.mock.calls.length;
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(mocks.snapshot).toHaveBeenCalledTimes(calls);
+});
+
+it("waits for an active snapshot before completing the training drain", async () => {
+  mocks.servers[0].close.mockImplementation((callback) => callback?.());
+  let release!: () => void;
+  mocks.snapshot.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+  );
+  const { client } = connect();
+  const authenticated = authenticate(client);
+  let finished = false;
+  const closed = control.close().then(() => {
+    finished = true;
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(finished).toBe(false);
+  release();
+  await authenticated;
+  await closed;
+  expect(finished).toBe(true);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it("terminates unresponsive training clients at the process deadline", () => {
+  const { client } = connect();
+  control.terminate();
+  expect(client.terminate).toHaveBeenCalledOnce();
+  expect(connect().transport.destroy).toHaveBeenCalledOnce();
+});
+
+it("lets the controller finish WebSocket handshakes after the HTTP server closes", async () => {
+  mocks.servers[0].close.mockImplementation((callback) => callback?.());
+  const { client } = connect();
+  await control.close();
+  server.emit("close");
+  expect(client.close).toHaveBeenCalledWith(1001, "Server restarting");
+  expect(client.terminate).not.toHaveBeenCalled();
+});

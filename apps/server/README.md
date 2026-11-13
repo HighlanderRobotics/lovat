@@ -23,6 +23,12 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+## Health and shutdown
+
+Use `/live` for process liveness and `/ready` for bounded PostgreSQL/Redis readiness.
+`/status` retains its legacy response. See [health and shutdown](docs/health-and-shutdown.md)
+for probe limits, termination behavior and the preview/rollback verification procedure.
+
 ## Redis cache maintenance
 
 Every Redis key uses `REDIS_KEY_PREFIX` (default `lovat:`). The example local
@@ -148,7 +154,7 @@ Railway must use the repository root and `apps/server/Dockerfile` so the shared 
 Keep **Root Directory** set to `/` so Docker can copy `packages/db`.
 The `api` service in [Railway IaC](../../.railway/railway.ts) selects
 `apps/server/Dockerfile`, the private database migration/start command, and
-`/status` healthcheck. Clear the legacy **Config File** path during the
+`/ready` healthcheck and 15-second drain window. Node runs directly to receive termination signals. Clear the legacy **Config File** path during the
 [one-time cutover](../../.railway/README.md), then plan and apply the IaC file.
 Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
 

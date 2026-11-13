@@ -50,7 +50,7 @@ deployment. Do not put its path in the dashboard's legacy **Config File** field.
    with `railway config partials list` if the environment already has IaC owners.
 6. Run `railway config apply` after reviewing the plan, using the same
    `RAILWAY_CONFIG_BRANCH` for previews. Deploy the preview images,
-   verify `/status`, `/health`, and `/healthz`, and check the worker logs for a
+   verify API `/live` and `/ready`, Worker `/health`, and web `/healthz`, and check the worker logs for a
    successful current-year tournament import. The server no longer imports the
    tournament catalog; a healthy worker with `TBA_KEY` is required.
 7. Repeat the link, config-path clearing, plan, apply, and health checks in the
@@ -75,3 +75,15 @@ API retains the private database migration/start command and staging's 2 CPU /
 `bun run enqueue tournaments 2025` or `bun run backfill 1992 2025`.
 
 See [Railway's IaC migration guide](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
+
+## API readiness adoption (LVT-339)
+
+The API proposal now uses `/ready` and a 15-second drain window. Deploy the
+Server version containing `/ready` before applying that setting. Plan against
+the actual production/preview environment and preserve unrelated staged changes.
+The Server exits after at most ten seconds of draining/cleanup and runs Node
+directly so SIGTERM reaches the application. See the
+[health and rollback procedure](../apps/server/docs/health-and-shutdown.md).
+When rolling back to an older image without `/ready`, restore the saved `/status`
+healthcheck setting before deploying it. The current live API settings still use `/status`; readiness adoption and
+rollback testing remain to be completed against the new image.

@@ -5,7 +5,12 @@ import expireReportsInProgress from "./expireReportsInProgress.js";
 import deleteOldRequests from "./deleteOldRequests.js";
 import { runBackgroundTask } from "./errors.js";
 
-export default async function scheduleJobs(): Promise<void> {
+export default async function scheduleJobs(): Promise<() => void> {
+  const timers: ReturnType<typeof setInterval>[] = [];
+  const repeat = (task: () => void, milliseconds: number) => {
+    timers.push(setInterval(task, milliseconds));
+  };
+
   const skipTba =
     process.env.NODE_ENV === "development" && !process.env.TBA_KEY?.trim();
 
@@ -26,7 +31,7 @@ export default async function scheduleJobs(): Promise<void> {
     }
 
     // repeat every 24 hours
-    setInterval(
+    repeat(
       () =>
         runBackgroundTask(async () => {
           console.log("Fetching teams from TBA...");
@@ -37,7 +42,7 @@ export default async function scheduleJobs(): Promise<void> {
     );
 
     //repeat hourly
-    setInterval(
+    repeat(
       () =>
         runBackgroundTask(async () => {
           await fetchMatches();
@@ -48,7 +53,7 @@ export default async function scheduleJobs(): Promise<void> {
   }
 
   // repeat every 12 hours
-  setInterval(
+  repeat(
     async () => {
       await runBackgroundTask(async () => {
         await deleteOldRequests();
@@ -61,4 +66,9 @@ export default async function scheduleJobs(): Promise<void> {
     },
     1000 * 60 * 60 * 12,
   );
+  return () => {
+    for (const timer of timers) {
+      clearInterval(timer);
+    }
+  };
 }

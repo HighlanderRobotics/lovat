@@ -147,3 +147,21 @@ it.each([true, false])(
     }
   },
 );
+
+it("cancels all recurring jobs before shutdown drains requests", async () => {
+  vi.useFakeTimers();
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("TBA_KEY", "");
+  try {
+    vi.clearAllMocks();
+    const stop = await scheduleJobs();
+    stop();
+    await vi.advanceTimersByTimeAsync(24 * 60 * 60 * 1000);
+    expect(deleteOldRequests).not.toHaveBeenCalled();
+    expect(expireReportsInProgress).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  }
+});
