@@ -28,7 +28,8 @@
     "remark-math": "^6.0.0",
     "sharp": "^0.35.5",
     "svelte": "^5.57.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@highlanderrobotics/magnolia-starlight": "0.1.0"
   },
   "overrides": {
     "@xmldom/xmldom": "0.9.12"
