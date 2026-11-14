@@ -151,12 +151,16 @@ private struct ScoutingMascot: View {
   var body: some View {
     GeometryReader { geometry in
       if faceOnly {
+        // Leave room around Style 3's white stroke so the circular clip and
+        // the compact island's edges don't trim it at the larger size.
+        let inset: CGFloat = mascotStyle == "outlined" ? 1 : 0
+        let faceSize = max(0, min(geometry.size.width, geometry.size.height) - 2 * inset)
+        let scale = faceSize / 27
         Image(mascotStyle == "plain" ? "ScoutingFace" : "ScoutingFaceOutlined")
           .resizable()
-          .frame(width: geometry.size.width * 35.294 / 27,
-                 height: geometry.size.height * 45.882 / 27)
-          .offset(x: geometry.size.width * -4.15 / 27,
-                  y: geometry.size.height * -2.03 / 27)
+          .frame(width: 35.294 * scale, height: 45.882 * scale)
+          .offset(x: (geometry.size.width - faceSize) / 2 - 4.15 * scale,
+                  y: (geometry.size.height - faceSize) / 2 - 2.03 * scale)
       } else {
         VStack(spacing: 0) {
           Spacer(minLength: 0)
