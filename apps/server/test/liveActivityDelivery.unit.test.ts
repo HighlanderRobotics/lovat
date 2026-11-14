@@ -92,7 +92,7 @@ it("starts an activity once using the push-to-start token", async () => {
       ...record(),
       updateToken: undefined,
       startToken: "start-token",
-      mascotStyle: "outlined",
+      mascotStyle: "holding",
     }),
   );
   await refreshLiveActivities();
@@ -101,7 +101,7 @@ it("starts an activity once using the push-to-start token", async () => {
   expect(mocks.send.mock.calls[0][0]).toBe("start-token");
   expect(mocks.send.mock.calls[0][2].aps.event).toBe("start");
   expect(mocks.send.mock.calls[0][2].aps.attributes.mascotStyle).toBe(
-    "outlined",
+    "holding",
   );
 });
 

@@ -38,7 +38,7 @@ export function activityPushPayload(
   attributes?: {
     tournamentKey: string;
     scouterUuid: string;
-    mascotStyle?: "original" | "plain" | "outlined";
+    mascotStyle?: "original" | "plain" | "outlined" | "holding";
   },
 ): {
   aps: {
@@ -52,7 +52,7 @@ export function activityPushPayload(
       tournamentKey?: string;
       scouterUuid?: string;
       preview: boolean;
-      mascotStyle?: "original" | "plain" | "outlined";
+      mascotStyle?: "original" | "plain" | "outlined" | "holding";
     };
     alert?: { title: string; body: string };
   };

@@ -30,7 +30,7 @@ it("provides valid waiting and on-shift previews without changing match types", 
   expect(active.assignments[0].teamNumber).toBe(8433);
 });
 
-it("lets every scout select and save all three Dynamic Island styles", async () => {
+it("lets every scout select and save all four Dynamic Island styles", async () => {
   useLiveActivitySettings.setState({ mascotStyle: "plain" });
   await render(
     <SafeAreaProvider
@@ -59,6 +59,10 @@ it("lets every scout select and save all three Dynamic Island styles", async () 
       checked: true,
     }),
   ).toBeTruthy();
+  await fireEvent.press(
+    screen.getByRole("radio", { name: "Style 4 · Holding binoculars" }),
+  );
+  expect(useLiveActivitySettings.getState().mascotStyle).toBe("holding");
   await useLiveActivitySettings.persist.rehydrate();
-  expect(useLiveActivitySettings.getState().mascotStyle).toBe("outlined");
+  expect(useLiveActivitySettings.getState().mascotStyle).toBe("holding");
 });

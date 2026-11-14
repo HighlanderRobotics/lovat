@@ -214,6 +214,17 @@ describe("device ownership and assignment selection", () => {
     );
   });
 
+  it("accepts the uploaded-character style for background starts", async () => {
+    await request(app)
+      .post("/live-activities")
+      .set(headers)
+      .send({ ...body, mascotStyle: "holding" })
+      .expect(200);
+    expect(JSON.parse([...mocks.values.values()][0]).mascotStyle).toBe(
+      "holding",
+    );
+  });
+
   it("selects the team at the scout's assigned station, never the scout's source team", async () => {
     mocks.scouterScheduleShift.findMany.mockResolvedValue([
       {

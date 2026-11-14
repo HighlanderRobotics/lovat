@@ -59,4 +59,11 @@ it("updates the same native activity when switching preview layouts", async () =
     mascotStyle: "outlined",
   });
   expect(liveActivities?.stop).toHaveBeenCalledTimes(stopped);
+  await act(() => {
+    useLiveActivitySettings.setState({ mascotStyle: "holding" });
+  });
+  await waitFor(() => expect(liveActivities?.sync).toHaveBeenCalledTimes(5));
+  expect(jest.mocked(liveActivities!.sync).mock.calls[4][0]).toEqual({
+    mascotStyle: "holding",
+  });
 });

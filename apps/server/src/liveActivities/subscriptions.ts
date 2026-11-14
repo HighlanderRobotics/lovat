@@ -15,7 +15,9 @@ export const subscriptionInput = z.object({
   token: z.string().regex(/^[a-f0-9]{32,512}$/),
   kind: z.enum(["start", "update"]),
   activityId: z.string().max(128).optional(),
-  mascotStyle: z.enum(["original", "plain", "outlined"]).default("plain"),
+  mascotStyle: z
+    .enum(["original", "plain", "outlined", "holding"])
+    .default("plain"),
 });
 
 export type Subscription = {
@@ -27,7 +29,7 @@ export type Subscription = {
   startToken?: string;
   updateToken?: string;
   activityId?: string;
-  mascotStyle?: "original" | "plain" | "outlined";
+  mascotStyle?: "original" | "plain" | "outlined" | "holding";
   expiresAt: number;
   lastState?: ScoutingActivityState;
   fingerprint?: string;

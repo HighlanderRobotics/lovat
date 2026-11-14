@@ -81,9 +81,11 @@ and previews work, but continuous locked/background updates do not.
 
 ## Verification on a signed iPhone
 
-Debug offers three saved on-shift mascot styles: Original (purple background and
+Debug offers four saved on-shift mascot styles: Original (purple background and
 white circle), Plain (no background or compact head circle), and Outline
-(no background, white circle, original 27-point compact icon). Style
+(no background, white circle, original 27-point compact icon), and Holding
+binoculars (the uploaded character in the expanded view, with the same compact
+icon as Outline). Style
 changes replace the activity because the choice lives in ActivityKit attributes,
 so normal background updates cannot reset it. Server registrations carry the same
 choice for activities started through Apple push notifications. Before-shift

@@ -156,23 +156,45 @@ private struct ScoutingMascot: View {
                  height: geometry.size.height * 45.882 / 27)
           .offset(x: geometry.size.width * -4.15 / 27,
                   y: geometry.size.height * -2.03 / 27)
+      } else if mascotStyle == "holding" {
+        HoldingScoutingMascot()
       } else {
         VStack(spacing: 0) {
           Spacer(minLength: 0)
           Image("ScoutingMascot")
             .resizable()
-            .aspectRatio(80.0 / 104.0, contentMode: .fit)
+            .aspectRatio(contentMode: .fit)
         }
       }
     }
     .background(mascotStyle == "original" ? lovatPurple : .clear)
-    .clipShape(MascotBadge(faceOnly: faceOnly))
+    .clipShape(MascotBadge(faceOnly: faceOnly, rectangular: mascotStyle == "holding" && !faceOnly))
+  }
+}
+
+private struct HoldingScoutingMascot: View {
+  var body: some View {
+    GeometryReader { geometry in
+      // Fit the visible character rather than the PNG's transparent canvas.
+      // Keep a small inset around its outer stroke, including the head and base.
+      let artwork = CGRect(x: 234, y: 51, width: 721, height: 1220)
+      let scale = min(geometry.size.width / artwork.width, geometry.size.height / artwork.height)
+      Image("ScoutingMascotHolding")
+        .renderingMode(.template)
+        .resizable()
+        .frame(width: 1199 * scale, height: 1312 * scale)
+        .foregroundStyle(.white)
+        .offset(x: (geometry.size.width - artwork.width * scale) / 2 - artwork.minX * scale,
+                y: geometry.size.height - artwork.height * scale - artwork.minY * scale)
+    }
   }
 }
 
 private struct MascotBadge: Shape {
   let faceOnly: Bool
+  let rectangular: Bool
   func path(in rect: CGRect) -> Path {
+    if rectangular { return Path(rect) }
     if faceOnly { return Path(ellipseIn: rect) }
     let radius = rect.width / 2
     var path = Path()

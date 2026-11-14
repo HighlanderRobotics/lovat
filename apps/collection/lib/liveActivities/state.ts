@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type MascotStyle = "original" | "plain" | "outlined";
+export type MascotStyle = "original" | "plain" | "outlined" | "holding";
 
 export const mascotStyles: {
   value: MascotStyle;
@@ -22,6 +22,12 @@ export const mascotStyles: {
     label: "Style 3 · Outline",
     description:
       "No purple background, with a white circle and the original collapsed size.",
+  },
+  {
+    value: "holding",
+    label: "Style 4 · Holding binoculars",
+    description:
+      "Your new character holding binoculars in the expanded on-shift view.",
   },
 ];
 
