@@ -101,8 +101,10 @@ private final class ScoutingActivityCoordinator {
           UIDevice.current.userInterfaceIdiom == .phone else { return status() }
 
     let content = ActivityContent(state: state, staleDate: Date().addingTimeInterval(300))
+    let mascotStyle = newConfig["mascotStyle", default: "plain"]
     let existing = Activity<ScoutingActivityAttributes>.activities.first {
       ($0.activityState == .active || $0.activityState == .stale) &&
+      ($0.attributes.mascotStyle ?? "plain") == mascotStyle &&
       $0.attributes.preview == preview &&
       (preview || ($0.attributes.scouterUuid == config["scouterUuid"] &&
                    $0.attributes.tournamentKey == config["tournamentKey"]))
@@ -115,7 +117,8 @@ private final class ScoutingActivityCoordinator {
       let attributes = ScoutingActivityAttributes(
         tournamentKey: preview ? "preview" : config["tournamentKey", default: ""],
         scouterUuid: preview ? "preview" : config["scouterUuid", default: ""],
-        preview: preview
+        preview: preview,
+        mascotStyle: mascotStyle
       )
       #if targetEnvironment(simulator)
       let pushType: PushType? = nil
@@ -163,6 +166,7 @@ private final class ScoutingActivityCoordinator {
       "environment": environment,
       "kind": kind,
       "token": token.map { String(format: "%02x", $0) }.joined(),
+      "mascotStyle": config["mascotStyle", default: "plain"],
     ]
     if let activityId { body["activityId"] = activityId }
     do {

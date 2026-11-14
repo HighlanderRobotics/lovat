@@ -79,6 +79,7 @@ liveActivityRoutes.post("/live-activities", async (req, res) => {
     installationId: input.installationId,
     tournamentKey: input.tournamentKey,
     environment: input.environment,
+    mascotStyle: input.mascotStyle,
     expiresAt: Date.now() + 8 * 60 * 60 * 1000,
     ...(input.kind === "start"
       ? { startToken: input.token }

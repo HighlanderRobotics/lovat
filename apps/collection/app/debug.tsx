@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, ScrollView, Switch, View } from "react-native";
+import { Platform, Pressable, ScrollView, Switch, View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { liveActivities } from "../modules/lovat-live-activities";
@@ -9,6 +9,7 @@ import Button from "../lib/components/Button";
 import BodyMedium from "../lib/components/text/BodyMedium";
 import TitleMedium from "../lib/components/text/TitleMedium";
 import { colors } from "../lib/colors";
+import { mascotStyles } from "../lib/liveActivities/state";
 import {
   stopLiveActivities,
   useLiveActivityDebug,
@@ -17,6 +18,7 @@ import {
 
 export default function Debug() {
   const enabled = useLiveActivitySettings((state) => state.enabled);
+  const mascotStyle = useLiveActivitySettings((state) => state.mascotStyle);
   const debug = useLiveActivityDebug();
   const preview = (mode: "live" | "waiting" | "onShift") => {
     useLiveActivitySettings.setState({ enabled: true });
@@ -107,6 +109,43 @@ export default function Debug() {
           {debug.status?.registrationError && (
             <BodyMedium>{debug.status.registrationError}</BodyMedium>
           )}
+          <TitleMedium>Dynamic Island style</TitleMedium>
+          <View accessibilityRole="radiogroup" style={{ gap: 8 }}>
+            {mascotStyles.map((style) => (
+              <Pressable
+                key={style.value}
+                accessibilityRole="radio"
+                accessibilityLabel={style.label}
+                accessibilityState={{ checked: mascotStyle === style.value }}
+                onPress={() =>
+                  useLiveActivitySettings.setState({ mascotStyle: style.value })
+                }
+                style={{
+                  padding: 14,
+                  gap: 4,
+                  borderRadius: 8,
+                  borderWidth: 2,
+                  borderColor:
+                    mascotStyle === style.value
+                      ? colors.victoryPurple.default
+                      : colors.gray.default,
+                  backgroundColor: colors.secondaryContainer.default,
+                }}
+              >
+                <BodyMedium>
+                  {style.label}
+                  {mascotStyle === style.value ? " · Selected" : ""}
+                </BodyMedium>
+                <BodyMedium color={colors.body.default}>
+                  {style.description}
+                </BodyMedium>
+              </Pressable>
+            ))}
+          </View>
+          <BodyMedium>
+            Applies to the on-shift mascot. Choose a style, then preview on
+            shift to compare. Your selection is saved on this phone.
+          </BodyMedium>
           <Button disabled={!liveActivities} onPress={() => preview("waiting")}>
             Preview before shift
           </Button>

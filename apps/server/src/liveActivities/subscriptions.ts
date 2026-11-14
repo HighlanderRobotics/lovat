@@ -15,6 +15,7 @@ export const subscriptionInput = z.object({
   token: z.string().regex(/^[a-f0-9]{32,512}$/),
   kind: z.enum(["start", "update"]),
   activityId: z.string().max(128).optional(),
+  mascotStyle: z.enum(["original", "plain", "outlined"]).default("plain"),
 });
 
 export type Subscription = {
@@ -26,6 +27,7 @@ export type Subscription = {
   startToken?: string;
   updateToken?: string;
   activityId?: string;
+  mascotStyle?: "original" | "plain" | "outlined";
   expiresAt: number;
   lastState?: ScoutingActivityState;
   fingerprint?: string;
@@ -120,6 +122,7 @@ export async function refreshLiveActivities(): Promise<void> {
           activityPushPayload(event, finalState, {
             tournamentKey: record.tournamentKey,
             scouterUuid: record.scouterUuid,
+            mascotStyle: record.mascotStyle ?? "plain",
           }),
         );
 

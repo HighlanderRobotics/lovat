@@ -35,7 +35,11 @@ async function authorization(): Promise<string> {
 export function activityPushPayload(
   event: "start" | "update" | "end",
   state: ScoutingActivityState,
-  attributes?: { tournamentKey: string; scouterUuid: string },
+  attributes?: {
+    tournamentKey: string;
+    scouterUuid: string;
+    mascotStyle?: "original" | "plain" | "outlined";
+  },
 ): {
   aps: {
     timestamp: number;
@@ -48,6 +52,7 @@ export function activityPushPayload(
       tournamentKey?: string;
       scouterUuid?: string;
       preview: boolean;
+      mascotStyle?: "original" | "plain" | "outlined";
     };
     alert?: { title: string; body: string };
   };

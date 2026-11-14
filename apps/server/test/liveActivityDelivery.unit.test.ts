@@ -92,6 +92,7 @@ it("starts an activity once using the push-to-start token", async () => {
       ...record(),
       updateToken: undefined,
       startToken: "start-token",
+      mascotStyle: "outlined",
     }),
   );
   await refreshLiveActivities();
@@ -99,6 +100,9 @@ it("starts an activity once using the push-to-start token", async () => {
   expect(mocks.send).toHaveBeenCalledTimes(1);
   expect(mocks.send.mock.calls[0][0]).toBe("start-token");
   expect(mocks.send.mock.calls[0][2].aps.event).toBe("start");
+  expect(mocks.send.mock.calls[0][2].aps.attributes.mascotStyle).toBe(
+    "outlined",
+  );
 });
 
 it("does not repeatedly push an unchanged state before the heartbeat", async () => {

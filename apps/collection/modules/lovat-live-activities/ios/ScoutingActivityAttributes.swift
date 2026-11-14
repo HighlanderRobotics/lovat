@@ -21,4 +21,6 @@ struct ScoutingActivityAttributes: ActivityAttributes {
   var tournamentKey: String
   var scouterUuid: String
   var preview: Bool
+  // Optional so activities started by older servers remain decodable.
+  var mascotStyle: String? = nil
 }

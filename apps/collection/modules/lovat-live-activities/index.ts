@@ -1,5 +1,6 @@
 import { requireOptionalNativeModule } from "expo";
 import { Platform } from "react-native";
+import type { MascotStyle } from "../../lib/liveActivities/state";
 
 export type NativeActivityStatus = {
   supported: boolean;
@@ -14,12 +15,13 @@ export type ActivityConfiguration = {
   scouterUuid: string;
   teamCode: string;
   baseUrl: string;
+  mascotStyle: MascotStyle;
 };
 
 type LiveActivitiesModule = {
   status(): Promise<NativeActivityStatus>;
   sync(
-    config: ActivityConfiguration | Record<string, never>,
+    config: ActivityConfiguration | Pick<ActivityConfiguration, "mascotStyle">,
     json: string | null,
     preview: boolean,
   ): Promise<NativeActivityStatus>;

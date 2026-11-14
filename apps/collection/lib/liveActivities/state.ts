@@ -1,5 +1,30 @@
 import { z } from "zod";
 
+export type MascotStyle = "original" | "plain" | "outlined";
+
+export const mascotStyles: {
+  value: MascotStyle;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "original",
+    label: "Style 1 · Original",
+    description: "Purple background and white head circle.",
+  },
+  {
+    value: "plain",
+    label: "Style 2 · Plain",
+    description: "No purple background or collapsed head circle.",
+  },
+  {
+    value: "outlined",
+    label: "Style 3 · Larger outline",
+    description:
+      "No purple background, with a white circle and larger collapsed mascot.",
+  },
+];
+
 export const activityStateSchema = z.object({
   phase: z.enum(["waiting", "onShift"]),
   nowMatch: z.string(),

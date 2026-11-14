@@ -16,13 +16,19 @@ import {
   useTrainingModeStore,
 } from "../storage/userStores";
 import { storage, waitForStoreHydration } from "../storage/zustandStorage";
-import { ActivityState, activityPreview, activityStateSchema } from "./state";
+import {
+  ActivityState,
+  activityPreview,
+  activityStateSchema,
+  MascotStyle,
+} from "./state";
 
 export const useLiveActivitySettings = create(
   persist<{
     enabled: boolean;
     installationId: string;
-  }>(() => ({ enabled: true, installationId: uuid() }), {
+    mascotStyle: MascotStyle;
+  }>(() => ({ enabled: true, installationId: uuid(), mascotStyle: "plain" }), {
     name: "liveActivitySettings",
     storage,
   }),
@@ -64,6 +70,7 @@ export function LiveActivityConnection() {
   const training = useTrainingModeStore((state) => state.value);
   const customUrl = useUrlPrefix((state) => state.urlPrefix);
   const enabled = useLiveActivitySettings((state) => state.enabled);
+  const mascotStyle = useLiveActivitySettings((state) => state.mascotStyle);
   const installationId = useLiveActivitySettings(
     (state) => state.installationId,
   );
@@ -101,7 +108,11 @@ export function LiveActivityConnection() {
 
           if (mode !== "live") {
             const state = activityPreview(mode);
-            const status = await native.sync({}, JSON.stringify(state), true);
+            const status = await native.sync(
+              { mascotStyle },
+              JSON.stringify(state),
+              true,
+            );
             if (isCurrent())
               useLiveActivityDebug.setState({
                 state,
@@ -136,6 +147,7 @@ export function LiveActivityConnection() {
             tournamentKey: tournament!,
             teamCode: code,
             baseUrl: useUrlPrefix.getState().getUrlPrefix().replace(/\/$/, ""),
+            mascotStyle,
           };
           const status = await native.sync(
             config,
@@ -189,6 +201,7 @@ export function LiveActivityConnection() {
     training,
     customUrl,
     enabled,
+    mascotStyle,
     installationId,
     mode,
     revision,

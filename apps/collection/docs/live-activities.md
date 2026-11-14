@@ -81,6 +81,14 @@ and previews work, but continuous locked/background updates do not.
 
 ## Verification on a signed iPhone
 
+Debug offers three saved on-shift mascot styles: Original (purple background and
+white circle), Plain (no background or compact head circle), and Larger outline
+(no background, white circle, 31-point compact icon instead of 27 points). Style
+changes replace the activity because the choice lives in ActivityKit attributes,
+so normal background updates cannot reset it. Server registrations carry the same
+choice for activities started through Apple push notifications. Before-shift
+binocular artwork stays the same across styles.
+
 1. Open Debug, preview both states, and inspect compact, expanded, and Lock Screen
    layouts. Check that Q/P/F labels and the assigned team's number are readable.
 2. Switch to real assignments. Verify the selected scout's next match/team,

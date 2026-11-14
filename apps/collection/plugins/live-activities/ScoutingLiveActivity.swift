@@ -12,20 +12,22 @@ struct CollectionLiveActivityBundle: WidgetBundle {
 struct ScoutingLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: ScoutingActivityAttributes.self) { context in
-      ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview)
+      ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview, mascotStyle: context.attributes.mascotStyle ?? "plain")
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .activityBackgroundTint(.black)
         .activitySystemActionForegroundColor(.white)
         .widgetURL(URL(string: "lovat-collection://home"))
     } dynamicIsland: { context in
-      DynamicIsland {
+      let mascotStyle = context.attributes.mascotStyle ?? "plain"
+      let iconSize: CGFloat = mascotStyle == "outlined" && context.state.phase != "waiting" ? 31 : 27
+      return DynamicIsland {
         DynamicIslandExpandedRegion(.bottom) {
-          ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview)
+          ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview, mascotStyle: mascotStyle)
         }
       } compactLeading: {
-        CompactScoutingIcon(waiting: context.state.phase == "waiting")
-          .frame(width: 27, height: 27)
+        CompactScoutingIcon(waiting: context.state.phase == "waiting", mascotStyle: mascotStyle)
+          .frame(width: iconSize, height: iconSize)
           .accessibilityLabel("Lovat scouting")
       } compactTrailing: {
         Text(context.isStale ? "…" : context.state.assignments.first?.matchLabel ?? "—")
@@ -35,7 +37,7 @@ struct ScoutingLiveActivity: Widget {
           .monospacedDigit()
           .accessibilityLabel(context.isStale ? "Open Collection to refresh" : "Next match " + (context.state.assignments.first?.matchLabel ?? ""))
       } minimal: {
-        CompactScoutingIcon(waiting: context.state.phase == "waiting").padding(2)
+        CompactScoutingIcon(waiting: context.state.phase == "waiting", mascotStyle: mascotStyle).padding(2)
       }
       // The before-shift row needs clearance from the island's rounded bottom.
       // Only the on-shift mascot is designed to sit flush with that edge.
@@ -50,6 +52,7 @@ private struct ActivityContents: View {
   let state: ScoutingActivityAttributes.ContentState
   let stale: Bool
   let preview: Bool
+  let mascotStyle: String
 
   var body: some View {
     VStack(spacing: 4) {
@@ -66,7 +69,7 @@ private struct ActivityContents: View {
             .frame(width: 50, height: 50)
             .accessibilityHidden(true)
         } else {
-          ScoutingMascot(faceOnly: false)
+          ScoutingMascot(faceOnly: false, mascotStyle: mascotStyle)
             .frame(width: 80, height: 108)
             .accessibilityHidden(true)
         }
@@ -111,12 +114,13 @@ private struct ActivityContents: View {
 
 private struct CompactScoutingIcon: View {
   let waiting: Bool
+  let mascotStyle: String
 
   var body: some View {
     if waiting {
       Image("ScoutingBinoculars").resizable().frame(width: 27, height: 27)
     } else {
-      ScoutingMascot(faceOnly: true)
+      ScoutingMascot(faceOnly: true, mascotStyle: mascotStyle)
     }
   }
 }
@@ -142,11 +146,12 @@ private struct AssignmentRow: View {
 // Original vector artwork exported from the approved Figma designs.
 private struct ScoutingMascot: View {
   let faceOnly: Bool
+  let mascotStyle: String
 
   var body: some View {
     GeometryReader { geometry in
       if faceOnly {
-        Image("ScoutingFace")
+        Image(mascotStyle == "plain" ? "ScoutingFace" : "ScoutingFaceOutlined")
           .resizable()
           .frame(width: geometry.size.width * 35.294 / 27,
                  height: geometry.size.height * 45.882 / 27)
@@ -161,6 +166,7 @@ private struct ScoutingMascot: View {
         }
       }
     }
+    .background(mascotStyle == "original" ? lovatPurple : .clear)
     .clipShape(MascotBadge(faceOnly: faceOnly))
   }
 }

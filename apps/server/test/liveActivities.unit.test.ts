@@ -189,6 +189,31 @@ describe("device ownership and assignment selection", () => {
     expect(mocks.values.size).toBe(0);
   });
 
+  it("saves the selected mascot style and supports registrations from older clients", async () => {
+    await request(app)
+      .post("/live-activities")
+      .set(headers)
+      .send(body)
+      .expect(200);
+    expect(JSON.parse([...mocks.values.values()][0]).mascotStyle).toBe("plain");
+    await request(app)
+      .post("/live-activities")
+      .set(headers)
+      .send({ ...body, mascotStyle: "original" })
+      .expect(200);
+    expect(JSON.parse([...mocks.values.values()][0]).mascotStyle).toBe(
+      "original",
+    );
+    await request(app)
+      .post("/live-activities")
+      .set(headers)
+      .send({ ...body, mascotStyle: "unknown-style" })
+      .expect(400);
+    expect(JSON.parse([...mocks.values.values()][0]).mascotStyle).toBe(
+      "original",
+    );
+  });
+
   it("selects the team at the scout's assigned station, never the scout's source team", async () => {
     mocks.scouterScheduleShift.findMany.mockResolvedValue([
       {
