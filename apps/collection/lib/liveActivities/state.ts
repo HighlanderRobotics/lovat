@@ -19,9 +19,9 @@ export const mascotStyles: {
   },
   {
     value: "outlined",
-    label: "Style 3 · Larger outline",
+    label: "Style 3 · Outline",
     description:
-      "No purple background, with a white circle and larger collapsed mascot.",
+      "No purple background, with a white circle and the original collapsed size.",
   },
 ];
 

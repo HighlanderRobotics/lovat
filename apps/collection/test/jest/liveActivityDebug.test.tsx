@@ -50,12 +50,12 @@ it("lets every scout select and save all three Dynamic Island styles", async () 
   );
   expect(useLiveActivitySettings.getState().mascotStyle).toBe("original");
   await fireEvent.press(
-    screen.getByRole("radio", { name: "Style 3 · Larger outline" }),
+    screen.getByRole("radio", { name: "Style 3 · Outline" }),
   );
   expect(useLiveActivitySettings.getState().mascotStyle).toBe("outlined");
   expect(
     screen.getByRole("radio", {
-      name: "Style 3 · Larger outline",
+      name: "Style 3 · Outline",
       checked: true,
     }),
   ).toBeTruthy();

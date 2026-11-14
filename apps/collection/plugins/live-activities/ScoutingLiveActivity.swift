@@ -20,14 +20,13 @@ struct ScoutingLiveActivity: Widget {
         .widgetURL(URL(string: "lovat-collection://home"))
     } dynamicIsland: { context in
       let mascotStyle = context.attributes.mascotStyle ?? "plain"
-      let iconSize: CGFloat = mascotStyle == "outlined" && context.state.phase != "waiting" ? 31 : 27
       return DynamicIsland {
         DynamicIslandExpandedRegion(.bottom) {
           ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview, mascotStyle: mascotStyle)
         }
       } compactLeading: {
         CompactScoutingIcon(waiting: context.state.phase == "waiting", mascotStyle: mascotStyle)
-          .frame(width: iconSize, height: iconSize)
+          .frame(width: 27, height: 27)
           .accessibilityLabel("Lovat scouting")
       } compactTrailing: {
         Text(context.isStale ? "…" : context.state.assignments.first?.matchLabel ?? "—")
@@ -151,16 +150,12 @@ private struct ScoutingMascot: View {
   var body: some View {
     GeometryReader { geometry in
       if faceOnly {
-        // Leave room around Style 3's white stroke so the circular clip and
-        // the compact island's edges don't trim it at the larger size.
-        let inset: CGFloat = mascotStyle == "outlined" ? 1 : 0
-        let faceSize = max(0, min(geometry.size.width, geometry.size.height) - 2 * inset)
-        let scale = faceSize / 27
         Image(mascotStyle == "plain" ? "ScoutingFace" : "ScoutingFaceOutlined")
           .resizable()
-          .frame(width: 35.294 * scale, height: 45.882 * scale)
-          .offset(x: (geometry.size.width - faceSize) / 2 - 4.15 * scale,
-                  y: (geometry.size.height - faceSize) / 2 - 2.03 * scale)
+          .frame(width: geometry.size.width * 35.294 / 27,
+                 height: geometry.size.height * 45.882 / 27)
+          .offset(x: geometry.size.width * -4.15 / 27,
+                  y: geometry.size.height * -2.03 / 27)
       } else {
         VStack(spacing: 0) {
           Spacer(minLength: 0)
