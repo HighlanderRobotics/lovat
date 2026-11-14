@@ -1,5 +1,6 @@
 import ActivityKit
 import SwiftUI
+import UIKit
 import WidgetKit
 
 private let lovatPurple = Color(red: 53.0 / 255, green: 8.0 / 255, blue: 104.0 / 255)
@@ -173,19 +174,26 @@ private struct ScoutingMascot: View {
 }
 
 private struct HoldingScoutingMascot: View {
+  // WidgetKit checks the backing image's pixels, even when SwiftUI displays it
+  // at a small size. Keep the decoded canvas below its archiving size limit.
+  private static let image = UIImage(named: "ScoutingMascotHolding")?
+    .preparingThumbnail(of: CGSize(width: 420, height: 460))
+
   var body: some View {
     GeometryReader { geometry in
       // Fit the visible character rather than the PNG's transparent canvas.
       // Keep a small inset around its outer stroke, including the head and base.
       let artwork = CGRect(x: 234, y: 51, width: 721, height: 1220)
       let scale = min(geometry.size.width / artwork.width, geometry.size.height / artwork.height)
-      Image("ScoutingMascotHolding")
-        .renderingMode(.template)
-        .resizable()
-        .frame(width: 1199 * scale, height: 1312 * scale)
-        .foregroundStyle(.white)
-        .offset(x: (geometry.size.width - artwork.width * scale) / 2 - artwork.minX * scale,
-                y: geometry.size.height - artwork.height * scale - artwork.minY * scale)
+      if let image = Self.image {
+        Image(uiImage: image)
+          .renderingMode(.template)
+          .resizable()
+          .frame(width: 1199 * scale, height: 1312 * scale)
+          .foregroundStyle(.white)
+          .offset(x: (geometry.size.width - artwork.width * scale) / 2 - artwork.minX * scale,
+                  y: geometry.size.height - artwork.height * scale - artwork.minY * scale)
+      }
     }
   }
 }
