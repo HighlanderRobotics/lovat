@@ -24,7 +24,7 @@ struct ScoutingLiveActivity: Widget {
           ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview)
         }
       } compactLeading: {
-        ScoutingMascot(faceOnly: true)
+        CompactScoutingIcon(waiting: context.state.phase == "waiting")
           .frame(width: 27, height: 27)
           .accessibilityLabel("Lovat scouting")
       } compactTrailing: {
@@ -35,7 +35,7 @@ struct ScoutingLiveActivity: Widget {
           .monospacedDigit()
           .accessibilityLabel(context.isStale ? "Open Collection to refresh" : "Next match " + (context.state.assignments.first?.matchLabel ?? ""))
       } minimal: {
-        ScoutingMascot(faceOnly: true).padding(2)
+        CompactScoutingIcon(waiting: context.state.phase == "waiting").padding(2)
       }
       .contentMargins(.bottom, 0, for: .expanded)
       .keylineTint(lovatPurple)
@@ -58,23 +58,33 @@ private struct ActivityContents: View {
           .foregroundStyle(.secondary)
       }
       HStack(alignment: .center, spacing: 12) {
-        ScoutingMascot(faceOnly: false)
-          .frame(width: 80, height: 108)
-          .accessibilityHidden(true)
+        if state.phase == "waiting" {
+          Image("ScoutingBinocularsExpanded")
+            .resizable()
+            .frame(width: 50, height: 50)
+            .accessibilityHidden(true)
+        } else {
+          ScoutingMascot(faceOnly: false)
+            .frame(width: 80, height: 108)
+            .accessibilityHidden(true)
+        }
 
         if let next = state.assignments.first {
           if state.phase == "waiting" {
             VStack(alignment: .leading, spacing: 6) {
-              Text("Now").font(.caption).foregroundStyle(.secondary)
+              Text("Now").font(.system(size: 16))
               Text(state.nowMatch).font(.system(size: 20, weight: .medium))
             }
             Rectangle().fill(Color.white.opacity(0.25)).frame(width: 1, height: 40)
             VStack(alignment: .leading, spacing: 6) {
-              Text("Next shift").font(.caption).foregroundStyle(.secondary)
-              Text(next.matchLabel).font(.system(size: 20, weight: .medium))
-              if let time = state.nextStartTime {
-                Text(Date(timeIntervalSince1970: time), style: .time)
-                  .font(.caption).foregroundStyle(.secondary)
+              Text("Next Shift").font(.system(size: 16))
+              HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(next.matchLabel).font(.system(size: 20, weight: .medium))
+                if let time = state.nextStartTime {
+                  Text(Date(timeIntervalSince1970: time), style: .time)
+                    .font(.system(size: 16)).foregroundStyle(.secondary)
+                    .lineLimit(1).minimumScaleFactor(0.75)
+                }
               }
             }.frame(maxWidth: .infinity, alignment: .leading)
           } else {
@@ -93,6 +103,18 @@ private struct ActivityContents: View {
       }
       .foregroundStyle(.white)
       .monospacedDigit()
+    }
+  }
+}
+
+private struct CompactScoutingIcon: View {
+  let waiting: Bool
+
+  var body: some View {
+    if waiting {
+      Image("ScoutingBinoculars").resizable().frame(width: 27, height: 27)
+    } else {
+      ScoutingMascot(faceOnly: true)
     }
   }
 }

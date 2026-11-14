@@ -72,7 +72,9 @@ private final class ScoutingActivityCoordinator {
     var result: [String: Any] = [
       "supported": UIDevice.current.userInterfaceIdiom == .phone,
       "enabled": ActivityAuthorizationInfo().areActivitiesEnabled,
-      "active": !Activity<ScoutingActivityAttributes>.activities.isEmpty,
+      "active": Activity<ScoutingActivityAttributes>.activities.contains {
+        $0.activityState == .active || $0.activityState == .stale
+      },
     ]
     if let error = lastRegistrationError { result["registrationError"] = error }
     return result
@@ -100,6 +102,7 @@ private final class ScoutingActivityCoordinator {
 
     let content = ActivityContent(state: state, staleDate: Date().addingTimeInterval(300))
     let existing = Activity<ScoutingActivityAttributes>.activities.first {
+      ($0.activityState == .active || $0.activityState == .stale) &&
       $0.attributes.preview == preview &&
       (preview || ($0.attributes.scouterUuid == config["scouterUuid"] &&
                    $0.attributes.tournamentKey == config["tournamentKey"]))

@@ -70,6 +70,7 @@ export function LiveActivityConnection() {
   const mode = useLiveActivityDebug((state) => state.mode);
   const revision = useLiveActivityDebug((state) => state.revision);
   const generation = useRef(0);
+  const previousMode = useRef(mode);
 
   useEffect(() => {
     if (!liveActivities) return;
@@ -161,9 +162,12 @@ export function LiveActivityConnection() {
       });
     };
 
-    // Identity changes and previews must retire their previous push registration.
-    // Serialize this with updates so a late response cannot revive another scout.
-    if (mode !== "live" || revision > 0) {
+    // Retire the real push registration when entering previews, but update the
+    // same preview activity when switching layouts. Ending then immediately
+    // requesting another can leave ActivityKit displaying the old layout.
+    const enteringPreview = mode !== "live" && previousMode.current === "live";
+    previousMode.current = mode;
+    if (enteringPreview || (mode === "live" && revision > 0)) {
       void serialize(async () => {
         if (isCurrent()) await native.stop();
       });
