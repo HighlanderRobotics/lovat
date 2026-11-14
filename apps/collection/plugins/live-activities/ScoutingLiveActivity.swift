@@ -161,7 +161,7 @@ private struct ScoutingMascot: View {
         }
       }
     }
-    .background(lovatPurple)
+    .background(faceOnly ? lovatPurple : .clear)
     .clipShape(MascotBadge(faceOnly: faceOnly))
   }
 }
