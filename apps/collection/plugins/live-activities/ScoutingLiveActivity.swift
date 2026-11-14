@@ -37,7 +37,9 @@ struct ScoutingLiveActivity: Widget {
       } minimal: {
         CompactScoutingIcon(waiting: context.state.phase == "waiting").padding(2)
       }
-      .contentMargins(.bottom, 0, for: .expanded)
+      // The before-shift row needs clearance from the island's rounded bottom.
+      // Only the on-shift mascot is designed to sit flush with that edge.
+      .contentMargins(.bottom, context.state.phase == "waiting" ? 16 : 0, for: .expanded)
       .keylineTint(lovatPurple)
       .widgetURL(URL(string: "lovat-collection://home"))
     }
