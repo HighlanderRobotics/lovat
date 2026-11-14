@@ -13,10 +13,12 @@ import { submitReport } from "../../handler/collection/submitReport.js";
 import { addScoutReport } from "../../handler/collection/addScoutReport.js";
 
 import { trainingRoutes } from "../../handler/training/training.routes.js";
+import { liveActivityRoutes } from "../../liveActivities/routes.js";
 
 const router = Router();
 
 router.use(trainingRoutes);
+router.use(liveActivityRoutes);
 
 router.get("/checkcode", checkCodeScouter);
 

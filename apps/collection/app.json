@@ -51,6 +51,7 @@
         }
       ],
       "./plugins/with-ios-resource-targets.cjs",
+      "./plugins/with-live-activities.cjs",
       [
         "expo-splash-screen",
         {

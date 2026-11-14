@@ -4,8 +4,16 @@ import prisma from "../prismaClient.js";
 import expireReportsInProgress from "./expireReportsInProgress.js";
 import deleteOldRequests from "./deleteOldRequests.js";
 import { runBackgroundTask } from "./errors.js";
+import { refreshLiveActivities } from "../liveActivities/subscriptions.js";
 
 export default async function scheduleJobs(): Promise<void> {
+  setInterval(() => {
+    void runBackgroundTask(
+      refreshLiveActivities,
+      "Live Activity refresh failed",
+    );
+  }, 30_000);
+
   const skipTba =
     process.env.NODE_ENV === "development" && !process.env.TBA_KEY?.trim();
 
