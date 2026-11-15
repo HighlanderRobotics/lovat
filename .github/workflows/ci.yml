@@ -29,6 +29,7 @@ jobs:
           filters: |
             worker:
               - 'apps/worker/**'
+              - 'packages/api/**'
               - 'packages/db/**'
               - '.github/workflows/ci.yml'
             server:
@@ -230,6 +231,8 @@ jobs:
           bun-version: 1.3.14
       - run: npm --prefix ../../packages/db ci --include=dev
       - run: npm --prefix ../../packages/db run build
+      - run: npm --prefix ../../packages/api ci --include=dev
+      - run: npm --prefix ../../packages/api run build
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run typecheck
       - name: Test worker against disposable PostgreSQL

@@ -298,3 +298,11 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 ### Historical seasons
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
+
+## Replacement API effects
+
+Set `API_EFFECTS_ENABLED=true` only when running the replacement API with the two additive outbox migrations applied. Set `REDIS_URL` and `REDIS_KEY_PREFIX` to the API's values (default prefix `lovat:rewrite:`), and `RESEND_KEY` / `EMAIL_FROM` for onboarding email delivery. This loop shares the worker process but has one consumer; it does not run in the API request path.
+
+Reports and analysis revisions commit with durable outbox records. Consumers claim records with a 60-second lease and retry failures with exponential backoff, up to ten attempts. Slack warning fan-out creates one durable child per subscribed channel so a failed channel does not resend every successful channel. External delivery is at least once; email idempotency keys and Slack client message IDs reduce duplicates, but cannot guarantee exactly-once delivery after a remote timeout. Failed records retain a sanitized error and can be inspected by an operator before replay. Cache revisions increase monotonically; the API's 15-second cache lifetime also bounds staleness if Redis delivery is unavailable.
+
+The loop abandons expired drafts, scrubs old abandoned payloads, and removes expired verification requests and delivered outbox records. Training reports never create competition cache revisions or warnings. Keep this flag disabled for the existing Server deployment until cutover qualification is complete.

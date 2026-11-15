@@ -564,6 +564,7 @@ model SlackSubscription {
 }
 
 model SlackNotificationThread {
+  tournamentKey String?
   messageId      String            @id
   matchNumber    Int
   teamNumber     Int
@@ -717,4 +718,26 @@ enum ReportReliability {
   FLAGGED_USER
   FLAGGED_SYSTEM
   BAD_REPORT
+}
+
+model AnalysisRevision {
+  teamNumber Int      @id
+  revision   BigInt   @default(0)
+  updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model ApiOutbox {
+  id          String    @id @default(uuid())
+  dedupeKey   String    @unique
+  kind        String
+  payload     Json
+  availableAt DateTime  @default(now())
+  attempts    Int       @default(0)
+  leaseToken  String?
+  leaseUntil  DateTime?
+  completedAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([completedAt, availableAt])
 }

@@ -1,3 +1,4 @@
+import { recordRevision } from "../outbox";
 import type { PrismaClient } from "@lovat/db";
 import type { createTbaClient } from "../providers/tba";
 
@@ -107,6 +108,7 @@ export const importTournaments = async (
           });
         }
 
+        await recordRevision(tx, 0);
         // All tournament parents must exist before linking divisions.
         for (const tournament of fetched.data) {
           await tx.tournament.update({

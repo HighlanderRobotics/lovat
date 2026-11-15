@@ -11,6 +11,10 @@
     "./legacy": {
       "types": "./dist/legacy/index.d.ts",
       "import": "./dist/legacy/index.js"
+    },
+    "./effects": {
+      "import": "./dist/effects.js",
+      "types": "./dist/effects.d.ts"
     }
   },
   "files": [

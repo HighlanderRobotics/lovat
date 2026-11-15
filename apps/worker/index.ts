@@ -1,3 +1,4 @@
+import { createOutboxDelivery, runOutbox } from "./src/outbox";
 import { db } from "./src/db";
 import { tba } from "./src/tba";
 import { runWorker } from "./src/worker";
@@ -33,13 +34,27 @@ console.info(
 process.once("SIGINT", stop);
 process.once("SIGTERM", stop);
 
+const effects =
+  process.env.API_EFFECTS_ENABLED === "true"
+    ? createOutboxDelivery(db, {
+        redisUrl: process.env.REDIS_URL ?? "redis://127.0.0.1:6379",
+        prefix: process.env.REDIS_KEY_PREFIX ?? "lovat:rewrite:",
+        resendKey: process.env.RESEND_KEY,
+        emailFrom: process.env.EMAIL_FROM,
+      })
+    : undefined;
 try {
+  const effectsLoop = effects
+    ? runOutbox(db, effects, shutdown.signal)
+    : Promise.resolve();
   await runWorker(db, shutdown.signal, concurrency, () => {
     lastReconciledAt = Date.now();
   });
+  await effectsLoop;
 } finally {
   process.removeListener("SIGINT", stop);
   process.removeListener("SIGTERM", stop);
+  effects?.close();
   await server.stop(true);
   await db.$disconnect();
 }

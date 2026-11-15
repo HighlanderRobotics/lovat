@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 WORKDIR /app
+COPY packages/api ./packages/api
+RUN npm --prefix packages/api ci --include=dev && npm --prefix packages/api run build
 COPY packages/db ./packages/db
 RUN npm --prefix packages/db ci --include=dev && npm --prefix packages/db run build
 
