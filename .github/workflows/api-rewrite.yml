@@ -2,29 +2,45 @@ name: API rewrite
 on:
   pull_request:
     paths:
-      [
-        "apps/api/**",
-        "apps/server/src/routes/**",
-        "apps/server/src/app.ts",
-        "apps/server/src/handler/training/training.routes.ts",
-        "packages/api/**",
-        "packages/db/**",
-        ".github/workflows/api-rewrite.yml",
-      ]
+      - "apps/api/**"
+      - "apps/server/src/routes/**"
+      - "apps/server/src/app.ts"
+      - "apps/server/src/handler/training/training.routes.ts"
+      - "packages/api/**"
+      - "packages/db/**"
+      - ".github/workflows/api-rewrite.yml"
   push:
     branches: [main]
     paths:
-      [
-        "apps/api/**",
-        "packages/api/**",
-        "packages/db/**",
-        ".github/workflows/api-rewrite.yml",
-      ]
+      - "apps/api/**"
+      - "packages/api/**"
+      - "packages/db/**"
+      - ".github/workflows/api-rewrite.yml"
 permissions:
   contents: read
 jobs:
   contracts-and-api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lovat_test" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+      REDIS_URL: redis://127.0.0.1:6379
+      LOVAT_DB_TEST: "1"
+      LOVAT_REDIS_TEST: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,11 +55,13 @@ jobs:
         working-directory: packages/db
       - run: npm run build
         working-directory: packages/db
+      - run: npm run db:deploy
+        working-directory: packages/db
       - run: npm ci
         working-directory: packages/api
       - run: npm test && npm run generate:check && npm run lint && npm run format:check
         working-directory: packages/api
       - run: npm ci
         working-directory: apps/api
-      - run: npm test && npm run lint && npm run format:check && npm run inventory:check
+      - run: npm test && npm run test:integration && npm run lint && npm run format:check && npm run inventory:check
         working-directory: apps/api

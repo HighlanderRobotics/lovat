@@ -2,6 +2,12 @@ import { z } from "zod";
 export const effectSchema = z.discriminatedUnion("kind", [
   z
     .object({
+      kind: z.literal("slack.registration"),
+      teamNumber: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
       kind: z.literal("cache.revision"),
       teamNumber: z.number().int(),
       revision: z.string().regex(/^(0|[1-9]\d*)$/),

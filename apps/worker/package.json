@@ -21,6 +21,6 @@
     "@lovat/api": "file:../../packages/api",
     "@lovat/db": "file:../../packages/db",
     "hono": "^4.13.13",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   }
 }

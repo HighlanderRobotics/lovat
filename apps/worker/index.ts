@@ -41,6 +41,7 @@ const effects =
         prefix: process.env.REDIS_KEY_PREFIX ?? "lovat:rewrite:",
         resendKey: process.env.RESEND_KEY,
         emailFrom: process.env.EMAIL_FROM,
+        slackWebhook: process.env.SLACK_WEBHOOK,
       })
     : undefined;
 try {

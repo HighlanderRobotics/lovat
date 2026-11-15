@@ -106,6 +106,27 @@ visit(resolve(root, "apps/server/src/app.ts"));
 inventory.sort(
   (a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method),
 );
+const { createServices } = await import("../dist/services/index.js");
+const replacement = createServices({
+  baseUrl: "https://api.lovat.app",
+  commit: "inventory",
+  analyze: async () => {
+    throw new Error("Inventory must not invoke handlers");
+  },
+});
+for (const entry of inventory) {
+  const handler = replacement.endpoints.find(
+    (endpoint) =>
+      endpoint.method === entry.method && endpoint.path === entry.path,
+  );
+  entry.replacement = handler
+    ? {
+        source: handler.module,
+        policy: handler.policy,
+        coverage: "registration",
+      }
+    : null;
+}
 const content = JSON.stringify(inventory, null, 2) + "\n";
 const destination = resolve(import.meta.dirname, "../legacy-routes.json");
 if (process.argv.includes("--check")) {
@@ -114,5 +135,7 @@ if (process.argv.includes("--check")) {
 } else writeFileSync(destination, content);
 console.log(
   inventory.length +
-    " legacy HTTP routes inventoried; null replacement means not migrated.",
+    " legacy HTTP routes inventoried; " +
+    inventory.filter((entry) => entry.replacement).length +
+    " replacement handlers registered. Registration does not establish behavioral parity.",
 );

@@ -14,7 +14,8 @@
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "format:check": "prettier --check .",
     "inventory": "node tools/inventory.mjs",
-    "inventory:check": "node tools/inventory.mjs --check"
+    "inventory:check": "node tools/inventory.mjs --check",
+    "test:integration": "npm run build && node --test test/*.integration.mjs"
   },
   "engines": {
     "node": ">=22.20.0 <23 || >=24"
@@ -23,11 +24,14 @@
     "@lovat/api": "file:../../packages/api",
     "@lovat/db": "file:../../packages/db",
     "jose": "6.2.12",
-    "zod": "4.6.5"
+    "redis": "6.2.1",
+    "ws": "8.22.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "22.20.4",
-    "typescript": "5.9.3",
-    "prettier": "3.9.9"
+    "@types/ws": "8.18.2",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3"
   }
 }

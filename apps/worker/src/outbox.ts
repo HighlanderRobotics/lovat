@@ -15,6 +15,7 @@ export function createOutboxDelivery(
     prefix: string;
     resendKey?: string;
     emailFrom?: string;
+    slackWebhook?: string;
     fetcher?: typeof fetch;
   },
 ): OutboxDelivery & { close(): void } {
@@ -25,6 +26,15 @@ export function createOutboxDelivery(
     enableOfflineQueue: false,
     maxRetries: 1,
   });
+  let connecting: Promise<void> | undefined;
+  const connect = async () => {
+    if (!redis.connected) {
+      connecting ??= redis.connect().finally(() => {
+        connecting = undefined;
+      });
+      await connecting;
+    }
+  };
   const fetcher = options.fetcher ?? fetch;
   const slack = async (token: string, body: Record<string, unknown>) => {
     const response = await fetcher("https://slack.com/api/chat.postMessage", {
@@ -56,6 +66,7 @@ export function createOutboxDelivery(
     close: () => redis.close(),
     async deliver(effect, id) {
       if (effect.kind === "cache.revision") {
+        await connect();
         await redis.send("EVAL", [
           publishRevisionScript,
           "1",
@@ -81,6 +92,60 @@ export function createOutboxDelivery(
           signal: AbortSignal.timeout(10000),
         });
         if (!response.ok) throw new Error("Email delivery failed");
+      } else if (effect.kind === "slack.registration") {
+        if (!options.slackWebhook)
+          throw new Error("Registration notification is not configured");
+        const row = await db.registeredTeam.findUnique({
+          where: { number: effect.teamNumber },
+        });
+        if (!row || row.teamApproved) return;
+        const response = await fetcher(options.slackWebhook, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: "Received a new team wanting to register",
+                },
+              },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text:
+                    "*Number*\n" +
+                    row.number +
+                    "\n*Website*\n" +
+                    escape(row.website ?? "None") +
+                    "\n*Team Email*\n" +
+                    escape(row.email),
+                },
+              },
+              {
+                type: "actions",
+                elements: [
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "Approve" },
+                    value: "approve_" + row.number,
+                    action_id: "verify_action",
+                  },
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "Reject" },
+                    value: "reject_" + row.number,
+                    action_id: "reject_action",
+                  },
+                ],
+              },
+            ],
+          }),
+        });
+        if (!response.ok) throw new Error("Registration notification failed");
       } else if (effect.kind === "slack.message") {
         const workspace = await db.slackWorkspace.findUnique({
           where: { workspaceId: effect.workspaceId },

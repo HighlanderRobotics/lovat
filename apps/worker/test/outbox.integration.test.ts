@@ -142,3 +142,32 @@ test.skipIf(!enabled)(
     ).toBe("DELIVERY_FAILED");
   },
 );
+
+test.skipIf(!enabled || process.env.LOVAT_REDIS_TEST !== "1")(
+  "published Redis revisions remain monotonic beyond JavaScript integer precision",
+  async () => {
+    const url = new URL(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+    if (!["localhost", "127.0.0.1"].includes(url.hostname))
+      throw Error("Use loopback Redis");
+    const { createOutboxDelivery } = await import("../src/outbox");
+    const { RedisClient } = await import("bun");
+    const prefix = "lovat:outbox-test:" + crypto.randomUUID() + ":",
+      redis = new RedisClient(url.href);
+    const delivery = createOutboxDelivery(db, { redisUrl: url.href, prefix });
+    try {
+      await delivery.deliver(
+        { kind: "cache.revision", teamNumber: 1, revision: "9007199254740993" },
+        crypto.randomUUID(),
+      );
+      await delivery.deliver(
+        { kind: "cache.revision", teamNumber: 1, revision: "9007199254740992" },
+        crypto.randomUUID(),
+      );
+      expect(await redis.get(prefix + "revision:1")).toBe("9007199254740993");
+    } finally {
+      await redis.del(prefix + "revision:1");
+      redis.close();
+      delivery.close();
+    }
+  },
+);

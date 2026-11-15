@@ -9,7 +9,7 @@ Shared API definitions for Lovat. This package has its own npm lockfile and is c
 - Other TypeScript services can add a file dependency on this package and use createApiClient or inferred request/response types.
 - Dashboard client generation and consumer migration are tracked by LVT-377. Existing Flutter bindings remain in use.
 
-The root export contains report/event schemas, error schemas, metric metadata/results, v3 routes and createApiClient. The optional @lovat/api/legacy export contains the existing model-shaped wire schemas and createLegacyOpenApiDocument. Those legacy schemas describe the existing API; they are not a database model API. Some existing endpoints still have broad or incomplete documentation.
+The root export contains report/event schemas, Collection lifecycle and training schemas, error schemas, metric metadata/results, v3 routes and createApiClient. The optional @lovat/api/effects export defines the durable API-to-worker protocol. The optional @lovat/api/legacy export contains the existing model-shaped wire schemas and createLegacyOpenApiDocument. Those legacy schemas describe the existing API; they are not a database model API. Some existing endpoints still have broad or incomplete documentation.
 
 ## Commands
 

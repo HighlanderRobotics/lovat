@@ -10,7 +10,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -23,7 +27,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -36,7 +44,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -49,7 +61,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -62,7 +78,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -75,7 +95,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -88,7 +112,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -101,7 +129,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -114,7 +146,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -127,7 +163,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -140,7 +180,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -151,7 +195,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -162,7 +210,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -173,7 +225,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -184,7 +240,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -195,7 +255,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -206,7 +270,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -217,7 +285,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -228,7 +300,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -239,7 +315,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -250,7 +330,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/index.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -264,7 +348,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -278,7 +366,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -292,7 +384,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -306,7 +402,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -321,7 +421,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -335,7 +439,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -349,7 +457,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -363,7 +475,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -378,7 +494,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -392,7 +512,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -406,7 +530,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -419,7 +547,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -433,7 +565,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -448,7 +584,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/predictions.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -463,7 +603,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -478,7 +622,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/analysis.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -489,7 +637,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/index.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -504,7 +656,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -519,7 +675,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/apiKeys.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -534,7 +694,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/apiKeys.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PATCH",
@@ -549,7 +713,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/apiKeys.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -564,7 +732,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/apiKeys.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -579,7 +751,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -592,7 +768,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/catalog.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -607,7 +787,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -622,7 +806,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -635,7 +823,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -650,7 +842,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -665,7 +861,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -678,7 +878,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -693,7 +897,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -708,7 +916,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -723,7 +935,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -738,7 +954,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -753,7 +973,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -766,7 +990,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -780,7 +1008,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -795,7 +1027,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -810,7 +1046,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -824,7 +1064,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -838,7 +1082,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -852,7 +1100,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -866,7 +1118,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "jwt",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -880,7 +1136,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "signed",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -895,7 +1155,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -910,7 +1174,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -925,7 +1193,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -940,7 +1212,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -955,7 +1231,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/picklists.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -969,7 +1249,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -983,7 +1267,11 @@
       "posthogReporter",
       "requireLovatSignature"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "signed",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -997,7 +1285,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1011,7 +1303,11 @@
       "posthogReporter",
       "requireLovatSignature"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/onboarding.ts",
+      "policy": "signed",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1024,7 +1320,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1037,7 +1337,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1050,7 +1354,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -1065,7 +1373,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1080,7 +1392,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -1095,7 +1411,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1110,7 +1430,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1123,7 +1447,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1136,7 +1464,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1149,7 +1481,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1164,7 +1500,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -1179,7 +1519,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1194,7 +1538,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1207,7 +1555,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1222,7 +1574,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1235,7 +1591,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -1250,7 +1610,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1265,7 +1629,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1280,7 +1648,11 @@
       "requireAuth",
       "requireVerifiedTeam"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -1294,7 +1666,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1309,7 +1685,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "PUT",
@@ -1324,7 +1704,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1338,7 +1722,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1352,7 +1740,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1366,7 +1758,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1380,7 +1776,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/settings.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1395,7 +1795,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1409,7 +1813,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/catalog.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1423,7 +1831,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1438,7 +1850,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1453,7 +1869,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/shifts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1467,7 +1887,11 @@
       "posthogReporter",
       "requireAuth"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/catalog.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1481,7 +1905,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/catalog.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1496,7 +1924,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1510,7 +1942,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/events.ts",
+      "policy": "session",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1525,7 +1961,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "lead",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -1540,7 +1980,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1555,7 +1999,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/accounts.ts",
+      "policy": "verified",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1568,7 +2016,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/slack.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1581,7 +2033,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/slack.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1595,7 +2051,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/slack.ts",
+      "policy": "slack",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1609,7 +2069,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/slack.ts",
+      "policy": "slack",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1622,7 +2086,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1635,7 +2103,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1648,7 +2120,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1661,7 +2137,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1674,7 +2154,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1687,7 +2171,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1700,7 +2188,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1713,7 +2205,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1726,7 +2222,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1739,7 +2239,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/reports.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1752,7 +2256,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/collection.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1763,7 +2271,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1774,7 +2286,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "collection",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1785,7 +2301,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1796,7 +2316,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1807,7 +2331,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1818,7 +2346,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "DELETE",
@@ -1829,7 +2361,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "POST",
@@ -1840,7 +2376,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1851,7 +2391,11 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/training.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   },
   {
     "method": "GET",
@@ -1864,6 +2408,10 @@
       "errorResponses",
       "posthogReporter"
     ],
-    "replacement": null
+    "replacement": {
+      "source": "apps/api/src/services/index.ts",
+      "policy": "public",
+      "coverage": "registration"
+    }
   }
 ]

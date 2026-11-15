@@ -1,17 +1,29 @@
+import { dispatch, type ServiceDependencies } from "./http/dispatch.js";
+import { readServicePayload } from "./http/payload.js";
+import { Reply } from "./http/router.js";
 import {
   createServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
 import { randomUUID } from "node:crypto";
-import { routes } from "@lovat/api";
-import type { Authenticate } from "./auth.js";
+import {
+  routes,
+  type AnalysisRequest,
+  type AnalysisResponse,
+} from "@lovat/api";
+import type { AccessScope, Authenticate } from "./auth.js";
 import type { AnalysisRepository } from "./repository.js";
-import { HttpError } from "./errors.js";
+import { HttpError, publicError } from "./errors.js";
 import { analyzeReports } from "./metrics/engine.js";
 import { season2026 } from "./metrics/season2026.js";
 
 interface Dependencies {
+  analyze?: (
+    scope: AccessScope,
+    request: AnalysisRequest,
+  ) => Promise<AnalysisResponse>;
+  services?: ServiceDependencies;
   authenticate: Authenticate;
   repository: AnalysisRepository;
   ready: () => Promise<boolean>;
@@ -111,10 +123,13 @@ export function createApi(deps: Dependencies) {
           res.setHeader("Vary", "Origin");
         }
         if (req.method === "OPTIONS") {
-          res.setHeader("Access-Control-Allow-Methods", "GET, POST");
+          res.setHeader(
+            "Access-Control-Allow-Methods",
+            "GET, POST, PUT, PATCH, DELETE",
+          );
           res.setHeader(
             "Access-Control-Allow-Headers",
-            "Authorization, Content-Type",
+            "Authorization, Content-Type, X-Team-Code, X-Scouter-Uuid, X-Device-Id, X-Timestamp, X-Signature",
           );
           res.writeHead(204).end();
           return;
@@ -141,6 +156,34 @@ export function createApi(deps: Dependencies) {
           });
           return;
         }
+
+        const serviceMatch = deps.services?.router.match(
+          req.method ?? "",
+          url.pathname,
+        );
+        if (serviceMatch && deps.services) {
+          route = serviceMatch.endpoint.path;
+          const payload = await readServicePayload(req);
+          const value = await dispatch(deps.services, serviceMatch, {
+            ...payload,
+            headers: req.headers,
+            query: Object.fromEntries(url.searchParams),
+            remoteAddress: req.socket.remoteAddress,
+            method: req.method ?? "GET",
+            path: req.url ?? "/",
+          });
+          const reply = value instanceof Reply ? value : new Reply(value);
+          const isText = typeof reply.body === "string";
+          res.writeHead(reply.status, {
+            "Content-Type": isText
+              ? "text/plain; charset=utf-8"
+              : "application/json; charset=utf-8",
+            ...reply.headers,
+          });
+          res.end(isText ? (reply.body as string) : JSON.stringify(reply.body));
+          return;
+        }
+
         const operation = Object.entries(routes).find(
           ([, definition]) =>
             definition.path === url.pathname &&
@@ -184,12 +227,12 @@ export function createApi(deps: Dependencies) {
         const requires = new Set(
           definitions.flatMap((definition) => definition.metadata.requires),
         );
-        const reports = await deps.repository.loadReports(
-          scope,
-          input,
-          requires,
-        );
-        const output = analyzeReports(reports, input, season2026);
+        const reports = deps.analyze
+          ? []
+          : await deps.repository.loadReports(scope, input, requires);
+        const output = deps.analyze
+          ? await deps.analyze(scope, input)
+          : analyzeReports(reports, input, season2026);
         // Precision stays intact inside the engine; serialize using each metric's precision.
         for (const team of Object.values(output.teams)) {
           const results = [
@@ -218,14 +261,7 @@ export function createApi(deps: Dependencies) {
         }
         send(res, 200, routes.analyze.output.parse(output));
       } catch (error) {
-        const failure =
-          error instanceof HttpError
-            ? error
-            : new HttpError(
-                500,
-                "INTERNAL_SERVER_ERROR",
-                "Internal server error",
-              );
+        const failure = publicError(error);
         if (!res.headersSent) {
           send(res, failure.status, {
             code: failure.code,

@@ -9,4 +9,5 @@ RUN npm --prefix packages/db ci --include=dev && npm --prefix packages/db run bu
 RUN npm --prefix apps/api ci --include=dev && npm --prefix apps/api run build
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=256
 CMD ["npm", "start"]

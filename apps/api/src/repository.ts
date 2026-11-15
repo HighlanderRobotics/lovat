@@ -121,3 +121,89 @@ export function createRepository(
     },
   };
 }
+
+/** Bounded, source-scoped report data for exports and legacy analysis views. */
+export async function loadDetailedReports(
+  db: PrismaClient,
+  scope: AccessScope,
+  where: import("@lovat/db").Prisma.ScoutReportWhereInput = {},
+  options: { text?: boolean; events?: boolean } = {},
+) {
+  const rows = await db.scoutReport.findMany({
+    where: {
+      AND: [
+        where,
+        {
+          training: false,
+          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
+          scouter: { sourceTeamNumber: filter(scope.sources.teams) },
+          teamMatchData: {
+            matchType: { not: "PRACTICE" },
+            tournamentKey: filter(scope.sources.tournaments),
+            tournament: { seasonYear: 2026 },
+          },
+        },
+      ],
+    },
+    omit: { notes: true, robotBrokeDescription: true },
+    include: {
+      scouter: { select: { name: true, sourceTeamNumber: true } },
+      teamMatchData: { include: { tournament: true } },
+    },
+    orderBy: { uuid: "asc" },
+    take: 5001,
+  });
+  if (rows.length > 5000)
+    throw new HttpError(
+      413,
+      "ANALYSIS_TOO_LARGE",
+      "Narrow your team or tournament selection",
+    );
+  const sizes =
+    options.text && rows.length
+      ? await db.$queryRaw<
+          { bytes: bigint }[]
+        >`SELECT COALESCE(sum(octet_length("notes")+COALESCE(octet_length("robotBrokeDescription"),0)),0) AS bytes FROM "ScoutReport" WHERE uuid=ANY(${rows.map((r) => r.uuid)}::text[])`
+      : [];
+  if (Number(sizes[0]?.bytes ?? 0) > 4 * 1024 * 1024)
+    throw new HttpError(
+      413,
+      "ANALYSIS_TOO_LARGE",
+      "Narrow your team or tournament selection",
+    );
+  const notes =
+    options.text && rows.length
+      ? await db.scoutReport.findMany({
+          where: { uuid: { in: rows.map((r) => r.uuid) } },
+          select: { uuid: true, notes: true, robotBrokeDescription: true },
+        })
+      : [];
+  const textById = new Map(notes.map((r) => [r.uuid, r]));
+  const events =
+    options.events !== false && rows.length
+      ? await db.event.findMany({
+          where: { scoutReportUuid: { in: rows.map((r) => r.uuid) } },
+          orderBy: [{ time: "asc" }, { eventUuid: "asc" }],
+          take: 100001,
+        })
+      : [];
+  if (events.length > 100000)
+    throw new HttpError(
+      413,
+      "ANALYSIS_TOO_LARGE",
+      "Narrow your team or tournament selection",
+    );
+  const byReport = new Map<string, typeof events>();
+  for (const event of events) {
+    if (!byReport.has(event.scoutReportUuid))
+      byReport.set(event.scoutReportUuid, []);
+    byReport.get(event.scoutReportUuid)!.push(event);
+  }
+  return rows.map((row) => ({
+    ...row,
+    notes: textById.get(row.uuid)?.notes ?? "",
+    robotBrokeDescription:
+      textById.get(row.uuid)?.robotBrokeDescription ?? null,
+    events: byReport.get(row.uuid) ?? [],
+  }));
+}

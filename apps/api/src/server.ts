@@ -1,5 +1,13 @@
+import { createProvisioner } from "./provision.js";
+import { attachTrainingSockets } from "./sockets.js";
+import { createOfficialReader } from "./official.js";
+import { createAnalysisService } from "./analysis.js";
 import { createApi } from "./app.js";
-import { createAuthenticator } from "./auth.js";
+import { accessScope } from "./auth.js";
+import { createIdentityService } from "./identity.js";
+import { createState } from "./state.js";
+import { createSignatureVerifier } from "./signatures.js";
+import { createServices } from "./services/index.js";
 import { createRepository } from "./repository.js";
 
 const issuer = process.env.AUTH0_ISSUER;
@@ -20,13 +28,49 @@ const db = createDb(process.env.DATABASE_URL, {
   statementTimeoutMs: 8_000,
 });
 const repository = createRepository(db);
+const state = createState(
+  process.env.REDIS_URL ?? "redis://127.0.0.1:6379",
+  process.env.REDIS_KEY_PREFIX ?? "lovat:rewrite:",
+);
+const identity = createIdentityService(db, {
+  issuer,
+  audience,
+  limiter: state.limiter,
+  provision: createProvisioner(db, issuer),
+});
+const analyze = createAnalysisService(repository, state.cache);
+const services = createServices({
+  slack: {
+    baseUrl: process.env.BASE_URL ?? "https://api.lovat.app",
+    state: state.oauth,
+    clientId: process.env.SLACK_CLIENT_ID,
+    clientSecret: process.env.SLACK_CLIENT_SECRET,
+  },
+  analyze,
+  official: createOfficialReader(process.env.TBA_KEY),
+  website: process.env.LOVAT_WEBSITE ?? "https://lovat.app",
+  baseUrl: process.env.BASE_URL ?? "https://api.lovat.app",
+  commit: process.env.RAILWAY_GIT_COMMIT_SHA ?? "no commit id",
+});
 const api = createApi({
+  analyze,
   repository,
-  authenticate: createAuthenticator(repository, { issuer, audience }),
+  authenticate: async (authorization) =>
+    accessScope((await identity(authorization)).user),
+  services: {
+    limiter: state.limiter,
+    router: services,
+    db,
+    authenticate: identity,
+    verifySignature: createSignatureVerifier({
+      lovatKey: process.env.LOVAT_SIGNING_KEY,
+      slackSecret: process.env.SLACK_SIGNING_SECRET,
+    }),
+  },
   ready: async () => {
     try {
       await db.$queryRaw`SELECT 1`;
-      return true;
+      return await state.ready();
     } catch {
       return false;
     }
@@ -37,6 +81,14 @@ const api = createApi({
     .filter(Boolean),
   log: (event) => console.log(JSON.stringify(event)),
 });
+const sockets = attachTrainingSockets(
+  api.server,
+  db,
+  (process.env.CORS_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
 api.server.listen(port, () =>
   console.log(JSON.stringify({ event: "listening", port })),
 );
@@ -47,13 +99,14 @@ function shutdown() {
   }
   stopping = true;
   api.drain();
+  sockets.close();
   const deadline = setTimeout(() => {
     api.server.closeAllConnections();
     process.exit(1);
   }, 15_000);
   deadline.unref();
   api.server.close(() => {
-    void db.$disconnect().then(
+    void Promise.all([db.$disconnect(), state.close()]).then(
       () => {
         clearTimeout(deadline);
       },
