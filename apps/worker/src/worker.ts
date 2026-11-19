@@ -20,7 +20,7 @@ export async function runWorker(
   db: PrismaClient,
   signal: AbortSignal,
   concurrency = 2,
-  onReconciled: () => void = () => {},
+  onReconciled: () => void | Promise<void> = () => {},
 ) {
   if (
     !Number.isSafeInteger(concurrency) ||
@@ -34,7 +34,7 @@ export async function runWorker(
     while (!signal.aborted) {
       try {
         await reconcileSchedule(db);
-        onReconciled();
+        await onReconciled();
       } catch {
         console.error("Schedule reconciliation failed; retrying in 30 seconds");
       }
@@ -67,6 +67,7 @@ export async function runBatch(
   signal: AbortSignal,
   concurrency = 2,
   dependencies = { reconcileSchedule, runNextJob },
+  onJobSettled: () => Promise<void> = async () => {},
 ) {
   const startedAt = Date.now();
   try {
@@ -100,6 +101,7 @@ export async function runBatch(
             await dependencies.runNextJob(db, undefined, { cutoff, id: job.id })
           )
             processed++;
+          await onJobSettled();
         }
       }),
     );

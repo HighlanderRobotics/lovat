@@ -1,6 +1,7 @@
 import { db } from "./src/db";
 import { tba } from "./src/tba";
 import { runBatch, runWorker } from "./src/worker";
+import { runScheduledWindow } from "./src/scheduled-window";
 import { createHealthApp, healthPort } from "./src/server";
 
 // Validate the provider configuration before starting any background work.
@@ -11,8 +12,8 @@ const stop = () => shutdown.abort();
 let lastReconciledAt = 0;
 
 const mode = process.env.WORKER_MODE ?? "continuous";
-if (!["batch", "continuous"].includes(mode))
-  throw new Error("WORKER_MODE must be batch or continuous");
+if (!["batch", "continuous", "scheduled"].includes(mode))
+  throw new Error("WORKER_MODE must be batch, scheduled or continuous");
 
 const port = healthPort();
 const concurrency = Number(process.env.WORKER_CONCURRENCY ?? 2);
@@ -34,6 +35,8 @@ try {
   // Batch has no listener or readiness queries between windows.
   if (mode === "batch") {
     await runBatch(db, shutdown.signal, concurrency);
+  } else if (mode === "scheduled") {
+    await runScheduledWindow(db, shutdown.signal, concurrency);
   } else {
     // Migrations are owned by the release/API service.
     await db.$queryRaw`SELECT 1 FROM "ImportJob", "FetchState", "TournamentGap" LIMIT 0`;
