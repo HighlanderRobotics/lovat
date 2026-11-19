@@ -107,3 +107,21 @@ test("a catalog batch discovering today's event immediately enters continuous mo
   });
   expect(continuous).toBe(true);
 });
+
+test("catalog discovery stops new batch claims before draining the snapshot backlog", async () => {
+  let active = false;
+  let entered = false;
+  const db = { $disconnect: async () => {} } as unknown as PrismaClient;
+  await runScheduledWindow(db, new AbortController().signal, 2, {
+    hasCompetitionDates: async () => active,
+    runBatch: async (_db, signal, _concurrency, _deps, settled) => {
+      active = true;
+      await settled?.();
+      expect(signal.aborted).toBe(true);
+    },
+    runWorker: async () => {
+      entered = true;
+    },
+  });
+  expect(entered).toBe(true);
+});

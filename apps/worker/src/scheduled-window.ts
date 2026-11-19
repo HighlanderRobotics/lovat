@@ -26,7 +26,16 @@ export async function runScheduledWindow(
   try {
     if (signal.aborted) return;
     if (!(await dependencies.hasCompetitionDates(db))) {
-      await dependencies.runBatch(db, signal, concurrency);
+      const discovered = new AbortController();
+      await dependencies.runBatch(
+        db,
+        AbortSignal.any([signal, discovered.signal]),
+        concurrency,
+        undefined,
+        async () => {
+          if (await dependencies.hasCompetitionDates(db)) discovered.abort();
+        },
+      );
       // Catalog imports can discover an event which is already in progress.
       if (signal.aborted || !(await dependencies.hasCompetitionDates(db)))
         return;

@@ -67,6 +67,7 @@ export async function runBatch(
   signal: AbortSignal,
   concurrency = 2,
   dependencies = { reconcileSchedule, runNextJob },
+  onJobSettled: () => Promise<void> = async () => {},
 ) {
   const startedAt = Date.now();
   try {
@@ -100,6 +101,7 @@ export async function runBatch(
             await dependencies.runNextJob(db, undefined, { cutoff, id: job.id })
           )
             processed++;
+          await onJobSettled();
         }
       }),
     );
