@@ -141,9 +141,14 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Opt in only after preview validation; merging keeps the current service running.
+  const workerCron = process.env.RAILWAY_WORKER_CRON?.trim();
   const worker = service("worker", {
     source: source("/"),
-    env: keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+    env: {
+      ...keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+      WORKER_MODE: workerCron ? "batch" : "continuous",
+    },
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/worker/Dockerfile",
@@ -152,8 +157,13 @@ export default defineRailway((ctx) => {
     deploy: {
       runtime: "V2",
       startCommand: "bun index.ts",
-      healthcheckPath: "/health",
-      healthcheckTimeout: 120,
+      ...(workerCron
+        ? { cronSchedule: workerCron, restartPolicyType: "NEVER" as const }
+        : {
+            cronSchedule: null,
+            healthcheckPath: "/health",
+            healthcheckTimeout: 120,
+          }),
       drainingSeconds: 60,
       multiRegionConfig: {
         "us-west2": {

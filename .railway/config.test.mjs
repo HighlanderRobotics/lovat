@@ -34,8 +34,13 @@ for (const environment of ["production", "staging"]) {
           : "offseason/mock-game-charged-up",
       );
       assert(Object.keys(resource.variables).length > 0);
-      for (const value of Object.values(resource.variables)) {
-        assert.deepEqual(value, { type: "preserve" });
+      for (const [name, value] of Object.entries(resource.variables)) {
+        assert.deepEqual(
+          value,
+          resource.name === "worker" && name === "WORKER_MODE"
+            ? { type: "literal", value: "continuous" }
+            : { type: "preserve" },
+        );
       }
     }
     const api = service("api");
@@ -88,4 +93,28 @@ test("refuses preview plans without an explicit source branch", () => {
     if (previous === undefined) delete process.env.RAILWAY_CONFIG_BRANCH;
     else process.env.RAILWAY_CONFIG_BRANCH = previous;
   }
+});
+
+test("offseason cron uses a finite batch without a health listener or restarts", () => {
+  const previous = process.env.RAILWAY_WORKER_CRON;
+  process.env.RAILWAY_WORKER_CRON = "0 18 * * *";
+  try {
+    const graph = config(createRailwayContext({ environment: "production" }));
+    const worker = graph.resources.find((r) => r.name === "worker");
+    assert.deepEqual(worker.variables.WORKER_MODE, {
+      type: "literal",
+      value: "batch",
+    });
+    assert.equal(worker.deploy.cronSchedule, "0 18 * * *");
+    assert.equal(worker.deploy.restartPolicyType, "NEVER");
+    assert.equal(worker.deploy.healthcheckPath, undefined);
+  } finally {
+    if (previous === undefined) delete process.env.RAILWAY_WORKER_CRON;
+    else process.env.RAILWAY_WORKER_CRON = previous;
+  }
+  const worker = config(
+    createRailwayContext({ environment: "production" }),
+  ).resources.find((r) => r.name === "worker");
+  assert.equal(worker.deploy.cronSchedule, undefined);
+  assert.equal(worker.deploy.healthcheckPath, "/health");
 });
