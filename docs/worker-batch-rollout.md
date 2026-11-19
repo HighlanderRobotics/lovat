@@ -112,7 +112,9 @@ cover bounded consumers, stopping claims on abort, draining before disconnect
 and disconnect on planner/claim failure. Deployment graph tests cover Cron and
 continuous configurations.
 
-As of 2026-11-19, the connected Railway account lists only `crux`, not Lovat.
-No Lovat preview or production settings were changed. Actual sleep windows,
-billing impact, cold-start measurements, demand-selected timing and production
-cutover remain unverified; LVT-382 must remain open until those gates are met.
+As of 2026-11-19, the Railway plugin connection lists only `crux`; the local
+CLI independently has Lovat access and PR #132 provisions a preview automatically.
+No sleep or Cron settings were applied by this change. Actual sleep windows,
+billing impact, cold-start measurements, demand-selected timing and scheduled
+production cutovers remain unverified; LVT-382 must remain open until those
+operational gates are met.
