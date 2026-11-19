@@ -141,9 +141,13 @@ export default defineRailway((ctx) => {
     },
   });
 
-  // Opt in only after preview validation; merging keeps the current service running.
-  const workerCron = process.env.RAILWAY_WORKER_CRON?.trim();
-  const cronMode = process.env.RAILWAY_WORKER_MODE ?? "batch";
+  // Production uses event-aware windows. An explicit empty Cron restores continuous mode.
+  const configuredCron = process.env.RAILWAY_WORKER_CRON;
+  const workerCron =
+    configuredCron?.trim() ?? (production ? "0 */6 * * *" : undefined);
+  const cronMode =
+    process.env.RAILWAY_WORKER_MODE ??
+    (production && configuredCron === undefined ? "scheduled" : "batch");
   if (workerCron && !["batch", "scheduled"].includes(cronMode)) {
     throw new Error("RAILWAY_WORKER_MODE must be batch or scheduled");
   }

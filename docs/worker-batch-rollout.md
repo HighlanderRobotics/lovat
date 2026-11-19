@@ -3,8 +3,9 @@
 ## Implemented behavior
 
 LVT-382 adds finite batch execution, durable maintenance, structured job logs and
-an opt-in Railway Cron configuration. No schema migration is required. Merging
-does not enable database sleeping or change the running worker to Cron. API-owned
+an opt-in Railway Cron configuration. No schema migration is required. The production IaC graph defaults to six-hour
+scheduled mode; applying the reviewed graph activates Cron. Merging alone does
+not apply infrastructure or enable database sleeping. API-owned
 TBA imports and periodic maintenance are removed; deploy the worker first and
 verify its maintenance job before deploying the API.
 
@@ -13,8 +14,9 @@ verify its maintenance job before deploying the API.
 Use the existing `.railway/railway.ts` named partial and authenticated CLI linked
 to the intended environment. `RAILWAY_WORKER_CRON` is a **local IaC input** which
 sets Worker `WORKER_MODE=batch`, Cron, and restart policy NEVER, and removes the
-continuous health check. Supply the same input for every plan/apply; otherwise
-the graph returns the worker to continuous mode and clears Cron. Confirm that the
+continuous health check. Production defaults to six-hour scheduled mode. Set `RAILWAY_WORKER_CRON` to an
+explicit empty string to restore continuous mode. Other environments retain
+continuous mode unless a Cron input is supplied. Confirm that the
 plan clears the old health check/Cron/restart settings before applying. Never run
 both a second polling worker and the Cron worker when trying to measure sleep.
 
@@ -104,7 +106,7 @@ Use DB/platform metrics for actual activity, sleep, connection and cost evidence
 Alert on missing scheduled completion, repeated retries, overdue jobs and active
 matches older than their event cadence. Logs contain no scouting payloads.
 
-Rollback scheduling by unsetting `RAILWAY_WORKER_CRON`, reviewing/applying the
+Rollback scheduling by setting `RAILWAY_WORKER_CRON=''`, reviewing/applying the
 continuous graph and verifying `/health` plus fresh matches. Disable database
 sleep if cold-start correctness regresses. Keep the new API import ownership;
 restoring old API timers alongside Worker duplicates ingestion. Queue explicit
