@@ -118,3 +118,30 @@ test("offseason cron uses a finite batch without a health listener or restarts",
   assert.equal(worker.deploy.cronSchedule, undefined);
   assert.equal(worker.deploy.healthcheckPath, "/health");
 });
+
+test("scheduled event mode requires six-hour starts and retains automatic competition windows", () => {
+  const previousCron = process.env.RAILWAY_WORKER_CRON;
+  const previousMode = process.env.RAILWAY_WORKER_MODE;
+  try {
+    process.env.RAILWAY_WORKER_MODE = "scheduled";
+    process.env.RAILWAY_WORKER_CRON = "0 18 * * *";
+    assert.throws(
+      () => config(createRailwayContext({ environment: "production" })),
+      /six-hour Cron/,
+    );
+    process.env.RAILWAY_WORKER_CRON = "0 */6 * * *";
+    const worker = config(
+      createRailwayContext({ environment: "production" }),
+    ).resources.find((r) => r.name === "worker");
+    assert.deepEqual(worker.variables.WORKER_MODE, {
+      type: "literal",
+      value: "scheduled",
+    });
+    assert.equal(worker.deploy.cronSchedule, "0 */6 * * *");
+  } finally {
+    if (previousCron === undefined) delete process.env.RAILWAY_WORKER_CRON;
+    else process.env.RAILWAY_WORKER_CRON = previousCron;
+    if (previousMode === undefined) delete process.env.RAILWAY_WORKER_MODE;
+    else process.env.RAILWAY_WORKER_MODE = previousMode;
+  }
+});

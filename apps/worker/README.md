@@ -330,3 +330,12 @@ scrubs their payloads at day thirty. API startup creates no import or cleanup
 timers and needs no TBA key. Read-time report and verification expiry checks stay
 in the API. Import ownership overlaps LVT-335; resource/pool tuning remains with
 LVT-376. See [batch rollout](../../docs/worker-batch-rollout.md) before cutover.
+
+
+`WORKER_MODE=scheduled` combines six-hour external Cron with automatic event-day
+continuous runs. Outside competition dates it exits after the batch. On an event's
+local dates it keeps the minute-level loop until all current events finish, then
+exits so later Cron executions return to batches. Use only with six-hour Cron;
+daily starts cannot guarantee a start before the local morning. IaC selects this
+mode with the local input `RAILWAY_WORKER_MODE=scheduled` alongside
+`RAILWAY_WORKER_CRON='0 */6 * * *'`. No Railway credential is needed by Worker.
