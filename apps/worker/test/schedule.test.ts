@@ -17,7 +17,7 @@ test("uses local event dates, including the last day after UTC midnight", () => 
   });
   expect(tournamentCadence(event, new Date("2026-03-05T03:00:00Z"))).toEqual({
     phase: "upcoming",
-    matches: 30 * minute,
+    matches: 6 * hour,
     roster: 6 * hour,
   });
   expect(tournamentCadence(event, new Date("2026-03-06T10:00:00Z"))).toEqual({
