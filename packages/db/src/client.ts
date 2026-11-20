@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { ConnectionRetryAdapter } from "./connection-retry.js";
 import { PrismaClient } from "./generated/prisma/client.js";
 
 export function createDb(connectionString = process.env.DATABASE_URL) {
@@ -9,7 +9,7 @@ export function createDb(connectionString = process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL must be a PostgreSQL connection URL");
   }
 
-  const adapter = new PrismaPg({
+  const adapter = new ConnectionRetryAdapter({
     connectionString,
     max: 10,
     connectionTimeoutMillis: 5_000,

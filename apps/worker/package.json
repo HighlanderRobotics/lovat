@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun run index.ts",
+    "batch": "WORKER_MODE=batch bun run index.ts",
     "enqueue": "bun run src/enqueue.ts",
     "backfill": "bun run src/backfill.ts",
     "postinstall": "npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
