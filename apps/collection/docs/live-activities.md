@@ -1,9 +1,10 @@
 # Scouting Live Activities
 
 Collection's iPhone build includes a native ActivityKit module and WidgetKit
-extension. They implement the approved compact face/binoculars design and the
-expanded purple mascot, next assignment, and three following assignments. The
-artwork is exported from the Figma file and bundled locally as vector assets.
+extension. Both phases use the same binoculars logo: 27 points in the compact
+island and 50 points in expanded and Lock Screen layouts. On shift, the layout
+shows the next assignment and three following assignments alongside the logo.
+The logo artwork is exported from Figma and bundled locally.
 
 Live Activities are enabled by default. After onboarding, opening Collection
 starts one automatically when the selected scout has pending assignments at
@@ -81,15 +82,9 @@ and previews work, but continuous locked/background updates do not.
 
 ## Verification on a signed iPhone
 
-Debug offers four saved on-shift mascot styles: Original (purple background and
-white circle), Plain (no background or compact head circle), and Outline
-(no background, white circle, original 27-point compact icon), and Holding
-binoculars (the uploaded character in the expanded view, with the same compact
-icon as Outline). Style
-changes replace the activity because the choice lives in ActivityKit attributes,
-so normal background updates cannot reset it. Server registrations carry the same
-choice for activities started through Apple push notifications. Before-shift
-binocular artwork stays the same across styles.
+Before-shift and on-shift layouts share the same binoculars logo. Older saved
+mascot-style values and push attributes remain compatible but no longer change
+the artwork. The Debug menu retains both phase previews without mascot options.
 
 1. Open Debug, preview both states, and inspect compact, expanded, and Lock Screen
    layouts. Check that Q/P/F labels and the assigned team's number are readable.

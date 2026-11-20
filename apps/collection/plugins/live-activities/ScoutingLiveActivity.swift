@@ -1,6 +1,5 @@
 import ActivityKit
 import SwiftUI
-import UIKit
 import WidgetKit
 
 private let lovatPurple = Color(red: 53.0 / 255, green: 8.0 / 255, blue: 104.0 / 255)
@@ -13,20 +12,19 @@ struct CollectionLiveActivityBundle: WidgetBundle {
 struct ScoutingLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: ScoutingActivityAttributes.self) { context in
-      ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview, mascotStyle: context.attributes.mascotStyle ?? "plain")
+      ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview)
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .activityBackgroundTint(.black)
         .activitySystemActionForegroundColor(.white)
         .widgetURL(URL(string: "lovat-collection://home"))
     } dynamicIsland: { context in
-      let mascotStyle = context.attributes.mascotStyle ?? "plain"
-      return DynamicIsland {
+      DynamicIsland {
         DynamicIslandExpandedRegion(.bottom) {
-          ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview, mascotStyle: mascotStyle)
+          ActivityContents(state: context.state, stale: context.isStale, preview: context.attributes.preview)
         }
       } compactLeading: {
-        CompactScoutingIcon(waiting: context.state.phase == "waiting", mascotStyle: mascotStyle)
+        ScoutingLogo(size: 27)
           .frame(width: 27, height: 27)
           .accessibilityLabel("Lovat scouting")
       } compactTrailing: {
@@ -37,11 +35,9 @@ struct ScoutingLiveActivity: Widget {
           .monospacedDigit()
           .accessibilityLabel(context.isStale ? "Open Collection to refresh" : "Next match " + (context.state.assignments.first?.matchLabel ?? ""))
       } minimal: {
-        CompactScoutingIcon(waiting: context.state.phase == "waiting", mascotStyle: mascotStyle).padding(2)
+        ScoutingLogo(size: 27).padding(2)
       }
-      // The before-shift row needs clearance from the island's rounded bottom.
-      // Only the on-shift mascot is designed to sit flush with that edge.
-      .contentMargins(.bottom, context.state.phase == "waiting" ? 16 : 0, for: .expanded)
+      .contentMargins(.bottom, 16, for: .expanded)
       .keylineTint(lovatPurple)
       .widgetURL(URL(string: "lovat-collection://home"))
     }
@@ -52,7 +48,6 @@ private struct ActivityContents: View {
   let state: ScoutingActivityAttributes.ContentState
   let stale: Bool
   let preview: Bool
-  let mascotStyle: String
 
   var body: some View {
     VStack(spacing: 4) {
@@ -63,16 +58,8 @@ private struct ActivityContents: View {
           .foregroundStyle(.secondary)
       }
       HStack(alignment: .center, spacing: 12) {
-        if state.phase == "waiting" {
-          Image("ScoutingBinocularsExpanded")
-            .resizable()
-            .frame(width: 50, height: 50)
-            .accessibilityHidden(true)
-        } else {
-          ScoutingMascot(faceOnly: false, mascotStyle: mascotStyle)
-            .frame(width: 80, height: 108)
-            .accessibilityHidden(true)
-        }
+        ScoutingLogo(size: 50)
+          .accessibilityHidden(true)
 
         if let next = state.assignments.first {
           if state.phase == "waiting" {
@@ -112,16 +99,13 @@ private struct ActivityContents: View {
   }
 }
 
-private struct CompactScoutingIcon: View {
-  let waiting: Bool
-  let mascotStyle: String
+private struct ScoutingLogo: View {
+  let size: CGFloat
 
   var body: some View {
-    if waiting {
-      Image("ScoutingBinoculars").resizable().frame(width: 27, height: 27)
-    } else {
-      ScoutingMascot(faceOnly: true, mascotStyle: mascotStyle)
-    }
+    Image(size <= 27 ? "ScoutingBinoculars" : "ScoutingBinocularsExpanded")
+      .resizable()
+      .frame(width: size, height: size)
   }
 }
 
@@ -140,77 +124,5 @@ private struct AssignmentRow: View {
     .minimumScaleFactor(0.75)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(assignment.matchLabel), scout team \(assignment.teamNumber)")
-  }
-}
-
-// Original vector artwork exported from the approved Figma designs.
-private struct ScoutingMascot: View {
-  let faceOnly: Bool
-  let mascotStyle: String
-
-  var body: some View {
-    GeometryReader { geometry in
-      if faceOnly {
-        Image(mascotStyle == "plain" ? "ScoutingFace" : "ScoutingFaceOutlined")
-          .resizable()
-          .frame(width: geometry.size.width * 35.294 / 27,
-                 height: geometry.size.height * 45.882 / 27)
-          .offset(x: geometry.size.width * -4.15 / 27,
-                  y: geometry.size.height * -2.03 / 27)
-      } else if mascotStyle == "holding" {
-        HoldingScoutingMascot()
-      } else {
-        VStack(spacing: 0) {
-          Spacer(minLength: 0)
-          Image("ScoutingMascot")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-        }
-      }
-    }
-    .background(mascotStyle == "original" ? lovatPurple : .clear)
-    .clipShape(MascotBadge(faceOnly: faceOnly, rectangular: mascotStyle == "holding" && !faceOnly))
-  }
-}
-
-private struct HoldingScoutingMascot: View {
-  // WidgetKit checks the backing image's pixels, even when SwiftUI displays it
-  // at a small size. Keep the decoded canvas below its archiving size limit.
-  private static let image = UIImage(named: "ScoutingMascotHolding")?
-    .preparingThumbnail(of: CGSize(width: 420, height: 460))
-
-  var body: some View {
-    GeometryReader { geometry in
-      // Fit the visible character rather than the PNG's transparent canvas.
-      // Keep a small inset around its outer stroke, including the head and base.
-      let artwork = CGRect(x: 234, y: 51, width: 721, height: 1220)
-      let scale = min(geometry.size.width / artwork.width, geometry.size.height / artwork.height)
-      if let image = Self.image {
-        Image(uiImage: image)
-          .renderingMode(.template)
-          .resizable()
-          .frame(width: 1199 * scale, height: 1312 * scale)
-          .foregroundStyle(.white)
-          .offset(x: (geometry.size.width - artwork.width * scale) / 2 - artwork.minX * scale,
-                  y: geometry.size.height - artwork.height * scale - artwork.minY * scale)
-      }
-    }
-  }
-}
-
-private struct MascotBadge: Shape {
-  let faceOnly: Bool
-  let rectangular: Bool
-  func path(in rect: CGRect) -> Path {
-    if rectangular { return Path(rect) }
-    if faceOnly { return Path(ellipseIn: rect) }
-    let radius = rect.width / 2
-    var path = Path()
-    path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
-    path.addArc(center: CGPoint(x: rect.midX, y: rect.minY + radius), radius: radius, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
-    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-    path.closeSubpath()
-    return path
   }
 }

@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Sidebar } from "../../lib/components/Sidebar";
 import Debug from "../../app/debug";
-import { useLiveActivitySettings } from "../../lib/liveActivities/LiveActivityConnection";
 import {
   activityPreview,
   activityStateSchema,
@@ -30,8 +29,7 @@ it("provides valid waiting and on-shift previews without changing match types", 
   expect(active.assignments[0].teamNumber).toBe(8433);
 });
 
-it("lets every scout select and save all four Dynamic Island styles", async () => {
-  useLiveActivitySettings.setState({ mascotStyle: "plain" });
+it("keeps both previews available without obsolete mascot style controls", async () => {
   await render(
     <SafeAreaProvider
       initialMetrics={{
@@ -42,27 +40,7 @@ it("lets every scout select and save all four Dynamic Island styles", async () =
       <Debug />
     </SafeAreaProvider>,
   );
-  expect(
-    screen.getByRole("radio", { name: "Style 2 · Plain", checked: true }),
-  ).toBeTruthy();
-  await fireEvent.press(
-    screen.getByRole("radio", { name: "Style 1 · Original" }),
-  );
-  expect(useLiveActivitySettings.getState().mascotStyle).toBe("original");
-  await fireEvent.press(
-    screen.getByRole("radio", { name: "Style 3 · Outline" }),
-  );
-  expect(useLiveActivitySettings.getState().mascotStyle).toBe("outlined");
-  expect(
-    screen.getByRole("radio", {
-      name: "Style 3 · Outline",
-      checked: true,
-    }),
-  ).toBeTruthy();
-  await fireEvent.press(
-    screen.getByRole("radio", { name: "Style 4 · Holding binoculars" }),
-  );
-  expect(useLiveActivitySettings.getState().mascotStyle).toBe("holding");
-  await useLiveActivitySettings.persist.rehydrate();
-  expect(useLiveActivitySettings.getState().mascotStyle).toBe("holding");
+  expect(screen.queryAllByRole("radio")).toHaveLength(0);
+  expect(screen.getByText("Preview before shift")).toBeTruthy();
+  expect(screen.getByText("Preview on shift")).toBeTruthy();
 });
