@@ -1,0 +1,38 @@
+{
+  "name": "@lovat/games",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./2026": {
+      "types": "./dist/2026/index.d.ts",
+      "import": "./dist/2026/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "format:check": "prettier --check .",
+    "prebuild": "npm --prefix ../api run build",
+    "postinstall": "npm --prefix ../api ci --include=dev && npm --prefix ../api run build"
+  },
+  "dependencies": {
+    "@lovat/api": "file:../api",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "prettier": "3.9.9"
+  },
+  "engines": {
+    "node": ">=22.20.0 <23 || >=24"
+  }
+}

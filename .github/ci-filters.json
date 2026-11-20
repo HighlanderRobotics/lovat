@@ -1,6 +1,7 @@
 {
   "worker": [
     "apps/worker/**",
+    "packages/api/**",
     "packages/db/**",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
@@ -10,6 +11,7 @@
   ],
   "server": [
     "apps/server/**",
+    "packages/api/**",
     "packages/db/**",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
@@ -64,6 +66,7 @@
   ],
   "contracts": [
     "docs/testing/fixtures/**",
+    "packages/api/**",
     "apps/server/**",
     "packages/db/**",
     "apps/collection/lib/collection/**",

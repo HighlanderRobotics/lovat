@@ -17,6 +17,7 @@ test("Server and database changes run consumer contracts while isolated web edit
   for (const path of [
     "apps/server/src/handler/collection/reportSchema.ts",
     "packages/db/prisma/schema.prisma",
+    "packages/api/src/games.ts",
   ]) {
     const jobs = selectJobs([path]);
     assert.equal(jobs.server, true);

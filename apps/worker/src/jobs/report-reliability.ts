@@ -1,16 +1,15 @@
 import type { Prisma } from "@lovat/db";
-
+import { recordRevision } from "../outbox";
 export async function flagReportsAboveAllianceScore(
   tx: Prisma.TransactionClient,
   eventKey: string,
 ) {
-  const flagged = await tx.$executeRaw`
+  const flagged = await tx.$queryRaw<{ teamNumber: number }[]>`
     UPDATE "ScoutReport" report
     SET "reliability" = 'FLAGGED_SYSTEM'
     FROM "TeamMatchData" slot
     JOIN "Match" match ON match."key" = slot."matchKey"
-    JOIN "MatchAlliance" alliance
-      ON alliance."matchKey" = slot."matchKey" AND alliance."color" = slot."alliance"
+    JOIN "MatchAlliance" alliance ON alliance."matchKey" = slot."matchKey" AND alliance."color" = slot."alliance"
     WHERE report."teamMatchKey" = slot."key"
       AND slot."tournamentKey" = ${eventKey}
       AND match."status" = 'COMPLETED'
@@ -19,12 +18,14 @@ export async function flagReportsAboveAllianceScore(
       AND report."reliability" = 'UNVERIFIED'
       AND (
         SELECT COALESCE(SUM(COALESCE(event."quantity", event."points")), 0)
-        FROM "Event" event
-        WHERE event."scoutReportUuid" = report."uuid"
-          AND event."action" = 'STOP_SCORING'
+        FROM "Event" event WHERE event."scoutReportUuid" = report."uuid" AND event."action" = 'STOP_SCORING'
       ) > alliance."score"
+    RETURNING slot."teamNumber"
   `;
-
-  // Server cache reads check these registrations, so workers need no Redis access.
-  if (flagged > 0) await tx.cachedAnalysis.deleteMany();
+  if (flagged.length) {
+    // Keep the old server coherent while replacement traffic is introduced.
+    await tx.cachedAnalysis.deleteMany();
+    for (const number of new Set(flagged.map((row) => row.teamNumber)))
+      await recordRevision(tx, number);
+  }
 }

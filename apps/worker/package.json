@@ -8,7 +8,7 @@
     "batch": "WORKER_MODE=batch bun run index.ts",
     "enqueue": "bun run src/enqueue.ts",
     "backfill": "bun run src/backfill.ts",
-    "postinstall": "npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
+    "postinstall": "npm --prefix ../../packages/api ci --include=dev && npm --prefix ../../packages/api run build && npm --prefix ../../packages/db ci --include=dev && npm --prefix ../../packages/db run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -19,8 +19,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@lovat/api": "file:../../packages/api",
     "@lovat/db": "file:../../packages/db",
     "hono": "^4.13.13",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   }
 }

@@ -1,0 +1,297 @@
+import { rules2026 } from "./rules.js";
+import { z } from "zod";
+import type { MetricMetadata } from "@lovat/api";
+import type { Facts } from "./facts.js";
+import {
+  defineDerivedMetricFor,
+  defineMetricFor,
+  mean,
+  meanReducer,
+  MetricRegistry,
+  recencyWeightedMean,
+} from "../registry.js";
+const defineMetric = defineMetricFor<Facts>();
+const defineDerivedMetric = defineDerivedMetricFor<Facts>();
+
+function metadata(
+  id: string,
+  unit: string,
+  requires: string[],
+  aliases: string[] = [],
+): MetricMetadata {
+  return {
+    id,
+    label: id,
+    unit,
+    season: rules2026.season,
+    version: 1,
+    aliases,
+    kind: "number",
+    precision: 2,
+    missing: "exclude",
+    dependencies: [],
+    requires,
+  };
+}
+function numberMetric(
+  id: string,
+  unit: string,
+  requires: string[],
+  calculate: (facts: Facts) => number | null,
+  aliases: string[] = [],
+) {
+  return defineMetric({
+    metadata: metadata(id, unit, requires, aliases),
+    output: z.number(),
+    calculate,
+    reports: mean,
+    reducer: meanReducer,
+    aggregate: (values, level) =>
+      level === "team" ? recencyWeightedMean(values) : mean(values),
+  });
+}
+function rateMetric(
+  id: string,
+  action: string,
+  start: string,
+  aliases: string[] = [],
+) {
+  return defineMetric({
+    metadata: metadata(id, "balls/second", ["events"], aliases),
+    output: z.number(),
+    calculate: (f: Facts) => ({
+      quantity: f.quantity[action] ?? 0,
+      seconds: f.durations[start] ?? 0,
+    }),
+    reducer() {
+      let quantity = 0,
+        seconds = 0;
+      return {
+        add(state) {
+          quantity += state.quantity;
+          seconds += state.seconds;
+        },
+        finish: () => (seconds > 0 ? quantity / seconds : null),
+      };
+    },
+    reports: (states) => {
+      const seconds = states.reduce((sum, state) => sum + state.seconds, 0);
+      return seconds > 0
+        ? states.reduce((sum, state) => sum + state.quantity, 0) / seconds
+        : null;
+    },
+    aggregate: (values, level) =>
+      level === "team" ? recencyWeightedMean(values) : mean(values),
+  });
+}
+const accuracyPercent = (value: number | null): number | null => {
+  const percentages = rules2026.accuracyPercent;
+  return value !== null && Number.isInteger(value)
+    ? (percentages[value] ?? null)
+    : null;
+};
+const autoPoints = (f: Facts) =>
+  f.autoPoints * ((accuracyPercent(f.report.accuracy) ?? 100) / 100) +
+  (f.report.autoClimb === "SUCCEEDED" ? rules2026.autoClimbPoints : 0);
+const teleopPoints = (f: Facts) =>
+  f.teleopPoints * ((accuracyPercent(f.report.accuracy) ?? 100) / 100);
+const endgamePoints = rules2026.endgamePoints;
+const eventCount = (id: string, action: string) =>
+  numberMetric(id, "count", ["events"], (f) => f.counts[action] ?? 0);
+const duration = (id: string, action: string) =>
+  numberMetric(id, "seconds", ["events"], (f) => f.durations[action] ?? 0);
+const fuelOutput = (f: Facts) =>
+  (f.quantity.STOP_SCORING ?? 0) + (f.quantity.STOP_FEEDING ?? 0);
+
+function distribution(
+  id: string,
+  options: readonly string[],
+  calculate: (f: Facts) => readonly string[],
+  requires: string[],
+) {
+  const aggregate = (
+    values: readonly Record<string, number>[],
+    level: "tournament" | "team",
+  ) =>
+    Object.fromEntries(
+      options.map((option) => [
+        option,
+        (level === "team" ? recencyWeightedMean : mean)(
+          values.map((value) => value[option] ?? 0),
+        ) ?? 0,
+      ]),
+    );
+  return defineMetric({
+    metadata: { ...metadata(id, "proportion", requires), kind: "distribution" },
+    output: z.record(z.string(), z.number()),
+    calculate: (f: Facts) =>
+      Object.fromEntries(
+        options.map((option) => [
+          option,
+          calculate(f).includes(option) ? 1 : 0,
+        ]),
+      ),
+    reducer() {
+      const totals = Object.fromEntries(options.map((option) => [option, 0]));
+      let count = 0;
+      return {
+        add(state) {
+          count++;
+          for (const option of options) totals[option] += state[option] ?? 0;
+        },
+        finish: () =>
+          count
+            ? Object.fromEntries(
+                options.map((option) => [option, totals[option] / count]),
+              )
+            : null,
+      };
+    },
+    reports: (values) => aggregate(values, "tournament"),
+    aggregate,
+  });
+}
+export const season2026 = new MetricRegistry<Facts>([
+  numberMetric(
+    "autoPoints",
+    "points",
+    ["events", "accuracy", "autoClimb"],
+    autoPoints,
+  ),
+  numberMetric("teleopPoints", "points", ["events", "accuracy"], teleopPoints),
+  numberMetric(
+    "totalPoints",
+    "points",
+    ["events", "accuracy", "autoClimb", "endgameClimb"],
+    (f) =>
+      autoPoints(f) +
+      teleopPoints(f) +
+      (endgamePoints[f.report.endgameClimb] ?? 0),
+  ),
+  rateMetric("fuelPerSecond", "STOP_SCORING", "START_SCORING", ["scoringRate"]),
+  rateMetric("feedingRate", "STOP_FEEDING", "START_FEEDING"),
+  numberMetric("accuracy", "percent", ["accuracy"], (f) =>
+    accuracyPercent(f.report.accuracy),
+  ),
+  numberMetric(
+    "driverAbility",
+    "rating",
+    ["driverAbility"],
+    (f) => f.report.driverAbility,
+  ),
+  numberMetric(
+    "defenseEffectiveness",
+    "rating",
+    ["defenseEffectiveness"],
+    (f) => f.report.defenseEffectiveness,
+  ),
+  eventCount("volleysPerMatch", "START_SCORING"),
+  eventCount("feedsPerMatch", "STOP_FEEDING"),
+  duration("contactDefenseTime", "START_DEFENDING"),
+  duration("campingDefenseTime", "START_CAMPING"),
+  duration("timeFeeding", "START_FEEDING"),
+  defineDerivedMetric({
+    metadata: {
+      ...metadata("totalDefenseTime", "seconds", []),
+      dependencies: ["contactDefenseTime", "campingDefenseTime"],
+    },
+    output: z.number(),
+    calculate: (dependencies) => {
+      const a = dependencies.get("contactDefenseTime");
+      const b = dependencies.get("campingDefenseTime");
+      return typeof a === "number" && typeof b === "number" ? a + b : null;
+    },
+    aggregate: (values, level) =>
+      level === "team" ? recencyWeightedMean(values) : mean(values),
+  }),
+  numberMetric("totalFuelOutputted", "balls", ["events"], fuelOutput, [
+    "totalFuelThroughput",
+  ]),
+  numberMetric("totalBallThroughput", "balls", ["events"], fuelOutput, [
+    "totalBallThroughPut",
+  ]),
+  numberMetric(
+    "totalBallsFed",
+    "balls",
+    ["events"],
+    (f) => f.quantity.STOP_FEEDING ?? 0,
+    ["totalFuelFed"],
+  ),
+  numberMetric("outpostIntakes", "count", ["events"], (f) => f.outpostIntakes),
+  numberMetric(
+    "autoClimbStartTime",
+    "secondsRemaining",
+    ["events", "autoClimb"],
+    (f) =>
+      f.report.autoClimb === "SUCCEEDED" && f.firstClimbAuto !== null
+        ? rules2026.autoEnd - f.firstClimbAuto
+        : null,
+  ),
+  ...["L1", "L2", "L3"].map((level) =>
+    numberMetric(
+      level.toLowerCase() + "StartTime",
+      "secondsRemaining",
+      ["events", "endgameClimb"],
+      (f) =>
+        f.report.endgameClimb === level &&
+        f.firstClimbTeleop !== null &&
+        f.firstClimbTeleop <= rules2026.climbClockEnd
+          ? rules2026.climbClockEnd - f.firstClimbTeleop
+          : null,
+    ),
+  ),
+  distribution(
+    "robotRole",
+    ["CYCLING", "SCORING", "FEEDING", "DEFENDING", "IMMOBILE"],
+    (f) => f.report.robotRoles,
+    ["robotRoles"],
+  ),
+  distribution(
+    "feederType",
+    ["CONTINUOUS", "STOP_TO_SHOOT", "DUMP"],
+    (f) => f.report.feederTypes,
+    ["feederTypes"],
+  ),
+  distribution(
+    "fieldTraversal",
+    ["TRENCH", "BUMP", "BOTH", "NONE"],
+    (f) => [f.report.fieldTraversal],
+    ["fieldTraversal"],
+  ),
+  distribution(
+    "climbResult",
+    Object.keys(endgamePoints),
+    (f) => [f.report.endgameClimb],
+    ["endgameClimb"],
+  ),
+  distribution(
+    "beached",
+    ["ON_FUEL", "ON_BUMP", "BOTH", "NEITHER"],
+    (f) => [f.report.beached],
+    ["beached"],
+  ),
+  distribution(
+    "scoresWhileMoving",
+    ["TRUE", "FALSE"],
+    (f) => [String(f.report.scoresWhileMoving).toUpperCase()],
+    ["scoresWhileMoving"],
+  ),
+  distribution(
+    "disrupts",
+    ["TRUE", "FALSE"],
+    (f) => [String(f.report.disrupts).toUpperCase()],
+    ["disrupts"],
+  ),
+  distribution(
+    "autoClimb",
+    ["NOT_ATTEMPTED", "FAILED", "SUCCEEDED"],
+    (f) => [f.report.autoClimb],
+    ["autoClimb"],
+  ),
+  distribution(
+    "intakeType",
+    ["GROUND", "OUTPOST", "BOTH", "NEITHER"],
+    (f) => [f.report.intakeType],
+    ["intakeType"],
+  ),
+]);
