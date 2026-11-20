@@ -7,7 +7,6 @@ import { ENVIRONMENT } from "../environment.js";
 // Express baseUrl contains actual values for parameterized mounts, so new or
 // dynamic mounts fall back to an aggregate instead of exposing those values.
 const telemetryMounts = new Set([
-  "",
   "/v1",
   "/v1/slack",
   "/v1/manager",
@@ -26,11 +25,6 @@ const telemetryMounts = new Set([
   "/collection",
   "/v2/collection",
 ]);
-// Error propagation can unwind routers before finish and clear baseUrl. In that
-// case select a source-code mount constant; never copy a URL substring.
-const orderedMounts = [...telemetryMounts]
-  .filter(Boolean)
-  .sort((a, b) => b.length - a.length);
 const methods = new Set([
   "GET",
   "POST",
@@ -52,18 +46,13 @@ const posthogReporter = (
 
   res.once("finish", () => {
     const routePath: unknown = req.route?.path;
-    const mount =
-      req.baseUrl ||
-      orderedMounts.find(
-        (candidate) =>
-          req.originalUrl === candidate ||
-          req.originalUrl.startsWith(`${candidate}/`) ||
-          req.originalUrl.startsWith(`${candidate}?`),
-      ) ||
-      "";
+    // Express can clear baseUrl when an error unwinds a router. Count those
+    // responses as unmatched unless the request matches a literal root route.
     const route =
-      typeof routePath === "string" && telemetryMounts.has(req.baseUrl)
-        ? `${mount}${routePath}`
+      typeof routePath === "string" &&
+      (telemetryMounts.has(req.baseUrl) ||
+        (req.baseUrl === "" && req.path === routePath))
+        ? `${req.baseUrl}${routePath}`
         : "unmatched";
     const cache = res.getHeader("X-Lovat-Cache");
 

@@ -35,6 +35,7 @@ app.use((req, _res, next) => {
   next();
 });
 app.use(reporter);
+app.get("/status", (_req, res) => res.send("ok"));
 const manager = Router();
 manager.all("/reports/:uuid", (req, res) => {
   res.set("X-Lovat-Cache", "miss");
@@ -49,6 +50,10 @@ manager.get("/cache/:value", (req, res) => {
 app.use("/v1/manager", manager);
 const dynamic = Router();
 dynamic.get("/reports/:uuid", (_req, res) => res.send("ok"));
+dynamic.get("/failure/:uuid", () => {
+  throw new Error(secret);
+});
+manager.use("/private/:tenant", dynamic);
 app.use("/private/:tenant", dynamic);
 app.use((_req, res) => res.status(404).send(secret));
 const errors: ErrorRequestHandler = (_error, _req, res, _next) => {
@@ -166,13 +171,27 @@ it("keeps responses working and logs no SDK details when capture fails", async (
   expect(JSON.stringify(log.mock.calls)).not.toContain(secret);
 });
 
-it("preserves the endpoint group when Express unwinds a failed router", async () => {
-  const response = await request(app).get(`/v1/manager/failure/${secret}`);
+it("counts literal root routes without query values", async () => {
+  await request(app).get(`/status?token=${secret}`);
+  expect(mocks.capture).toHaveBeenCalledWith(
+    expect.objectContaining({
+      properties: expect.objectContaining({ route: "/status" }),
+    }),
+  );
+  expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
+});
+
+it.each([
+  `/v1/manager/failure/${secret}`,
+  `/private/${secret}/failure/${secret}`,
+  `/v1/manager/private/${secret}/failure/${secret}`,
+])("keeps an unwound router unmatched: %s", async (path) => {
+  const response = await request(app).get(path);
   expect(response.status).toBe(500);
   expect(mocks.capture).toHaveBeenCalledWith(
     expect.objectContaining({
       properties: expect.objectContaining({
-        route: "/v1/manager/failure/:uuid",
+        route: "unmatched",
         statusCode: 500,
       }),
     }),
