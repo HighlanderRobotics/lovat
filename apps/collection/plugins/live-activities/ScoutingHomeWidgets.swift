@@ -215,7 +215,7 @@ private struct ScoutingDemoWidgetView: View {
     VStack(spacing: 0) {
       HStack(spacing: 8) {
         Text(data.nextMatch).font(ScoutingWidgetFont.match(14))
-        Text("Next · Scouting \(data.nextTeam)")
+        Text("Next · Scouting \(String(data.nextTeam))")
           .font(ScoutingWidgetFont.match(10))
           .tracking(0.4)
           .foregroundStyle(Color("WidgetAccent"))
