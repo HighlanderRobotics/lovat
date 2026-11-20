@@ -10,15 +10,20 @@ test("Wait for CI requires an explicit setting when rendering a plan", (t) => {
     else process.env.RAILWAY_WAIT_FOR_CI = previous;
   });
   const context = createRailwayContext({ environment: "production" });
+  const sourceSettings = () =>
+    config(context).resources.map((app) => app.source.checkSuites);
 
   delete process.env.RAILWAY_WAIT_FOR_CI;
-  assert(config(context).resources.every((app) => app.source.checkSuites === false));
+  assert(sourceSettings().every((enabled) => enabled === false));
   process.env.RAILWAY_WAIT_FOR_CI = "true";
-  assert(config(context).resources.every((app) => app.source.checkSuites === true));
+  assert(sourceSettings().every((enabled) => enabled === true));
   process.env.RAILWAY_WAIT_FOR_CI = "false";
-  assert(config(context).resources.every((app) => app.source.checkSuites === false));
+  assert(sourceSettings().every((enabled) => enabled === false));
   process.env.RAILWAY_WAIT_FOR_CI = "yes";
-  assert.throws(() => config(context), /RAILWAY_WAIT_FOR_CI must be true or false/);
+  assert.throws(
+    () => config(context),
+    /RAILWAY_WAIT_FOR_CI must be true or false/,
+  );
 });
 
 for (const environment of ["production", "staging"]) {
@@ -40,10 +45,7 @@ for (const environment of ["production", "staging"]) {
       assert(resource.build.watchPatterns.includes("/.railway/**"));
       assert.equal(
         resource.deploy.sleepApplication,
-        resource.name === "worker" ||
-          (resource.name === "api" && environment === "production")
-          ? undefined
-          : true,
+        resource.name === "worker" ? undefined : true,
       );
       assert.equal(
         resource.deploy.restartPolicyType ?? "ON_FAILURE",

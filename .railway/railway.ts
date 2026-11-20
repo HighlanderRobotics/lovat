@@ -114,7 +114,7 @@ export default defineRailway((ctx) => {
         },
       },
       restartPolicyMaxRetries: 20,
-      ...(!production ? { sleepApplication: true } : {}),
+      sleepApplication: true,
       healthcheckPath: "/status",
       healthcheckTimeout: 1200,
       ...(!production

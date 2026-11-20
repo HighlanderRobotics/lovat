@@ -110,6 +110,14 @@ Railway evaluates workflow conclusions and can ignore a cancelled workflow when
 another workflow passed. Keep the `main` CI workflow free of superseding-run
 cancellation. Verify the aggregate outcome and deployed SHA for each promotion.
 
+The November 20 read-only production audit found the API already had sleeping
+enabled. The graph now preserves that setting alongside the Worker's existing
+six-hour schedule. The refreshed production plan proposed only the five
+`source.checkSuites` updates and reported zero diagnostics. The PR #128 preview
+plan also proposes explicitly writing
+`WORKER_MODE=continuous` where the Worker previously used its default. Review
+that reconciliation independently before using the preview to test Wait for CI.
+
 ## Verified live state (November 12, 2026)
 
 The Lovat project is `c210dce8-37af-4bf0-b1e0-7e28b30597c6` in **8033 Admin's
