@@ -76,6 +76,40 @@ API retains the private database migration/start command and staging's 2 CPU /
 
 See [Railway's IaC migration guide](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
 
+For finite offseason batches, see [Worker batch rollout](../docs/worker-batch-rollout.md).
+`RAILWAY_WORKER_CRON='0 18 * * *'` is an opt-in local plan/apply input; production defaults to six-hour event-aware windows after the rollout. An
+explicit empty `RAILWAY_WORKER_CRON` restores continuous mode. Merging this configuration does not enable
+Cron or PostgreSQL Serverless.
+
+## Tested-commit deployment gate (LVT-337)
+
+GitHub requires `Monorepo CI` on `main`. That job requires Railway IaC checks,
+app tests, applicable production web image HTTP checks, and the CodeQL result.
+CodeQL selects analyses by changed files. A successful selection with zero
+applicable analyses passes, while a failed or cancelled selected analysis
+fails the aggregate. CI runs on every push to `main`.
+
+`RAILWAY_WAIT_FOR_CI=true` opts all five GitHub sources in the linked environment
+into Railway's [Wait for CI](https://docs.railway.com/deployments/github-autodeploys).
+Keep that input in subsequent plans for an environment after enabling it. An
+explicit `false` restores the prior setting. Pass the current live Worker mode
+to the plan as well. For a continuously running Worker, use
+`RAILWAY_WORKER_CRON=''` so the same apply does not switch it to scheduled mode.
+
+1. Link to an isolated environment with GitHub autodeploy enabled. Generate a
+   read-only plan and confirm the only intended change is `checkSuites` on app
+   sources. Review the plan and keep the IDs of the currently healthy deployments.
+2. After applying the reviewed test plan, verify a commit with an applicable
+   failing check does not deploy. Verify a later passing commit does deploy.
+   Match the GitHub workflow SHA to the Railway deployment SHA and record both.
+3. Review the production plan separately. Services with autodeploy disabled
+   still need their approved promotion path. For manual rollback, identify the
+   last healthy deployment by ID and verify service health after redeployment.
+
+Railway evaluates workflow conclusions and can ignore a cancelled workflow when
+another workflow passed. Keep the `main` CI workflow free of superseding-run
+cancellation. Verify the aggregate outcome and deployed SHA for each promotion.
+
 ## Verified live state (November 12, 2026)
 
 The Lovat project is `c210dce8-37af-4bf0-b1e0-7e28b30597c6` in **8033 Admin's
@@ -89,7 +123,7 @@ settings but has no explicit partial ownership; preview adoption remains open.
 The audit found source/sleeping/preview-limit drift in the authored file. The
 updated definitions preserve the observed live settings rather than changing
 service availability, cost or staging source on the next apply. Healthcheck
-readiness (LVT-339), required deployment checks (LVT-337), and release migrations
-(LVT-338) remain separate proposed changes. No live settings were applied by
+readiness (LVT-339) and release migrations (LVT-338) remain separate proposed
+changes. No live settings were applied by
 this audit. Secret-value isolation and a restore/rollback exercise still need
 independent evidence.

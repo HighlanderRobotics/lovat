@@ -3,6 +3,24 @@ import { test } from "node:test";
 import { createRailwayContext } from "railway/iac";
 import config, { partial } from "./railway.ts";
 
+test("Wait for CI requires an explicit setting when rendering a plan", (t) => {
+  const previous = process.env.RAILWAY_WAIT_FOR_CI;
+  t.after(() => {
+    if (previous === undefined) delete process.env.RAILWAY_WAIT_FOR_CI;
+    else process.env.RAILWAY_WAIT_FOR_CI = previous;
+  });
+  const context = createRailwayContext({ environment: "production" });
+
+  delete process.env.RAILWAY_WAIT_FOR_CI;
+  assert(config(context).resources.every((app) => app.source.checkSuites === false));
+  process.env.RAILWAY_WAIT_FOR_CI = "true";
+  assert(config(context).resources.every((app) => app.source.checkSuites === true));
+  process.env.RAILWAY_WAIT_FOR_CI = "false";
+  assert(config(context).resources.every((app) => app.source.checkSuites === false));
+  process.env.RAILWAY_WAIT_FOR_CI = "yes";
+  assert.throws(() => config(context), /RAILWAY_WAIT_FOR_CI must be true or false/);
+});
+
 for (const environment of ["production", "staging"]) {
   test(`${environment} retains deployment contracts`, () => {
     const graph = config(
@@ -29,14 +47,25 @@ for (const environment of ["production", "staging"]) {
       );
       assert.equal(
         resource.deploy.restartPolicyType ?? "ON_FAILURE",
-        "ON_FAILURE",
+        resource.name === "worker" && environment === "production"
+          ? "NEVER"
+          : "ON_FAILURE",
       );
       // Keep source connections and credential values during adoption.
       assert.equal(resource.source.repo, "HighlanderRobotics/lovat");
       assert.equal(resource.source.branch, "main");
       assert(Object.keys(resource.variables).length > 0);
-      for (const value of Object.values(resource.variables)) {
-        assert.deepEqual(value, { type: "preserve" });
+      for (const [name, value] of Object.entries(resource.variables)) {
+        assert.deepEqual(
+          value,
+          resource.name === "worker" && name === "WORKER_MODE"
+            ? {
+                type: "literal",
+                value:
+                  environment === "production" ? "scheduled" : "continuous",
+              }
+            : { type: "preserve" },
+        );
       }
     }
     const api = service("api");
@@ -52,7 +81,14 @@ for (const environment of ["production", "staging"]) {
         : undefined,
     );
     const worker = service("worker");
-    assert.equal(worker.deploy.healthcheckPath, "/health");
+    assert.equal(
+      worker.deploy.healthcheckPath,
+      environment === "production" ? undefined : "/health",
+    );
+    assert.equal(
+      worker.deploy.cronSchedule,
+      environment === "production" ? "0 */6 * * *" : undefined,
+    );
     assert.equal(worker.deploy.drainingSeconds, 60);
     assert.equal(worker.deploy.startCommand, "bun index.ts");
     assert.deepEqual(worker.deploy.multiRegionConfig, {
@@ -117,4 +153,74 @@ test("preview retains inherited sleeping and API limits without owning databases
   assert.deepEqual(api.deploy.limitOverride, {
     containers: { cpu: 2, memoryBytes: 2147483648 },
   });
+});
+
+test("offseason cron uses a finite batch without a health listener or restarts", () => {
+  const previous = process.env.RAILWAY_WORKER_CRON;
+  process.env.RAILWAY_WORKER_CRON = "0 18 * * *";
+  try {
+    const graph = config(createRailwayContext({ environment: "production" }));
+    const worker = graph.resources.find((r) => r.name === "worker");
+    assert.deepEqual(worker.variables.WORKER_MODE, {
+      type: "literal",
+      value: "batch",
+    });
+    assert.equal(worker.deploy.cronSchedule, "0 18 * * *");
+    assert.equal(worker.deploy.restartPolicyType, "NEVER");
+    assert.equal(worker.deploy.healthcheckPath, undefined);
+  } finally {
+    if (previous === undefined) delete process.env.RAILWAY_WORKER_CRON;
+    else process.env.RAILWAY_WORKER_CRON = previous;
+  }
+  const worker = config(
+    createRailwayContext({ environment: "production" }),
+  ).resources.find((r) => r.name === "worker");
+  assert.equal(worker.deploy.cronSchedule, "0 */6 * * *");
+  assert.equal(worker.deploy.healthcheckPath, undefined);
+});
+
+test("scheduled event mode requires six-hour starts and retains automatic competition windows", () => {
+  const previousCron = process.env.RAILWAY_WORKER_CRON;
+  const previousMode = process.env.RAILWAY_WORKER_MODE;
+  try {
+    process.env.RAILWAY_WORKER_MODE = "scheduled";
+    process.env.RAILWAY_WORKER_CRON = "0 18 * * *";
+    assert.throws(
+      () => config(createRailwayContext({ environment: "production" })),
+      /six-hour Cron/,
+    );
+    process.env.RAILWAY_WORKER_CRON = "0 */6 * * *";
+    const worker = config(
+      createRailwayContext({ environment: "production" }),
+    ).resources.find((r) => r.name === "worker");
+    assert.deepEqual(worker.variables.WORKER_MODE, {
+      type: "literal",
+      value: "scheduled",
+    });
+    assert.equal(worker.deploy.cronSchedule, "0 */6 * * *");
+  } finally {
+    if (previousCron === undefined) delete process.env.RAILWAY_WORKER_CRON;
+    else process.env.RAILWAY_WORKER_CRON = previousCron;
+    if (previousMode === undefined) delete process.env.RAILWAY_WORKER_MODE;
+    else process.env.RAILWAY_WORKER_MODE = previousMode;
+  }
+});
+
+test("an explicit empty Cron safely restores continuous production mode", () => {
+  const previous = process.env.RAILWAY_WORKER_CRON;
+  process.env.RAILWAY_WORKER_CRON = "";
+  try {
+    const worker = config(
+      createRailwayContext({ environment: "production" }),
+    ).resources.find((r) => r.name === "worker");
+    assert.equal(worker.deploy.cronSchedule, undefined);
+    assert.equal(worker.deploy.healthcheckPath, "/health");
+    assert.deepEqual(worker.variables.WORKER_MODE, {
+      type: "literal",
+      value: "continuous",
+    });
+  } finally {
+    if (previous === undefined) delete process.env.RAILWAY_WORKER_CRON;
+    else process.env.RAILWAY_WORKER_CRON = previous;
+  }
 });

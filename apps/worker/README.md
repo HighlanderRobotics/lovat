@@ -171,10 +171,10 @@ Match refresh intervals use event-local dates and hours:
 | ------------------------------ | ------------- | -------------- |
 | Event dates, 07:00–21:00 local | 1 minute      | 1 hour         |
 | Event dates, overnight         | 15 minutes    | 1 hour         |
-| Starts within 7 days           | 30 minutes    | 6 hours        |
+| Starts within 7 days           | 6 hours       | 6 hours        |
 | Starts later, or dates unknown | 1 day         | 1 day          |
 | Ended within 7 days            | 6 hours       | 1 day          |
-| Older event                    | 7 days        | 7 days         |
+| Older event                    | Explicit only | Explicit only  |
 
 Missing or invalid timezones fall back to UTC. Activity is inferred from dates,
 not from a live event status feed. Due match jobs near the event's date window
@@ -238,8 +238,7 @@ import { refreshTournamentGaps } from "./src/jobs/gaps";
 await refreshTournamentGaps("2026casj");
 ```
 
-Or queue `bun run enqueue gaps 2026casj` for the worker. Explicit gap jobs repeat
-daily; normal match jobs already recalculate gaps on every refresh. Apply the
+Or queue `bun run enqueue gaps 2026casj` for the worker. Explicit gap jobs run once; normal match jobs already recalculate gaps on every refresh. Apply the
 shared database migration and rebuild the database package before running the
 updated worker.
 
@@ -298,3 +297,45 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 ### Historical seasons
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
+
+
+## Finite batches (LVT-382)
+
+`bun run batch` (`WORKER_MODE=batch bun index.ts`) reconciles once, snapshots
+eligible due job IDs, runs each at most once with `WORKER_CONCURRENCY` consumers,
+then disconnects Prisma and exits. It opens no health listener and has no polling
+between executions. The process owns its client; do not share a batch client with
+another service. The default `WORKER_MODE=continuous` retains the existing active
+event loop and `/health` readiness checks.
+
+Snapshot jobs are claimed atomically with fresh leases at execution time. Other
+replicas, changed schedules, and active leases can make an ID ineligible; it is
+left for the next window. Retry delays and TBA Retry-After remain durable. A
+failed job does not stop other jobs. Claim/planner/database errors fail the batch
+after other consumers drain. Shutdown stops new claims and waits for running
+imports and lease heartbeats before disconnecting.
+
+Jobs discovered by a catalog import wait until the next batch. For a new/empty
+database, run another batch after catalogs complete to import child events and
+districts before accepting traffic. Never promise active-event freshness with a
+daily batch. Archived events (more than seven event-local days after completion),
+old season catalogs and explicit gap jobs finalize after one successful run;
+failures remain queued. Existing archived recurring jobs get one final execution.
+Normal planning does not recreate archived events. Use `backfill` for historical
+years or explicitly enqueue individual archived event jobs when needed.
+
+Daily `maintenance global` work now removes expired verification requests,
+unverified registrations older than a day, abandons expired report drafts and
+scrubs their payloads at day thirty. API startup creates no import or cleanup
+timers and needs no TBA key. Read-time report and verification expiry checks stay
+in the API. Import ownership overlaps LVT-335; resource/pool tuning remains with
+LVT-376. See [batch rollout](../../docs/worker-batch-rollout.md) before cutover.
+
+
+`WORKER_MODE=scheduled` combines six-hour external Cron with automatic event-day
+continuous runs. Outside competition dates it exits after the batch. On an event's
+local dates it keeps the minute-level loop until all current events finish, then
+exits so later Cron executions return to batches. Use only with six-hour Cron;
+daily starts cannot guarantee a start before the local morning. IaC selects this
+mode with the local input `RAILWAY_WORKER_MODE=scheduled` alongside
+`RAILWAY_WORKER_CRON='0 */6 * * *'`. No Railway credential is needed by Worker.
