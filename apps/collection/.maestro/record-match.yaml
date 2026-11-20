@@ -14,6 +14,18 @@ appId: com.frc8033.lovatcollection
     text: "Start match"
     enabled: true
 - assertNotVisible: "Start position Hub"
+- assertVisible:
+    text: "Undo"
+    enabled: false
 - longPressOn: "Intake from depot"
+- assertVisible:
+    text: "Undo"
+    enabled: true
 - longPressOn: "Undo"
+- assertVisible:
+    text: "Undo"
+    enabled: false
 - longPressOn: "Intake from depot"
+- assertVisible:
+    text: "Undo"
+    enabled: true
