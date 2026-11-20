@@ -57,7 +57,7 @@ export function tournamentCadence(event: EventDates, now = new Date()) {
 
     return {
       phase: "upcoming",
-      matches: soon ? 30 * minute : day,
+      matches: soon ? 6 * hour : day,
       roster: soon ? 6 * hour : day,
     } as const;
   }
@@ -65,7 +65,7 @@ export function tournamentCadence(event: EventDates, now = new Date()) {
   const recent = today - event.endDate.getTime() <= 7 * day;
 
   return {
-    phase: "finished",
+    phase: recent ? "finished" : "archived",
     matches: recent ? 6 * hour : 7 * day,
     roster: recent ? day : 7 * day,
   } as const;
