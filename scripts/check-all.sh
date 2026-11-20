@@ -52,6 +52,7 @@ run_group "Collection" check_collection
 run_group "Dashboard" check_dashboard
 run_group "Website" check_website
 run_group "Learn" check_learn
+run_group "Cross-app contracts" "$repo_root/scripts/check-contracts.sh"
 run_group "PR reviewer" check_reviewer
 
 if (( failures > 0 )); then

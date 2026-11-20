@@ -146,19 +146,45 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Production uses event-aware windows. An explicit empty Cron restores continuous mode.
+  const configuredCron = process.env.RAILWAY_WORKER_CRON;
+  const workerCron =
+    configuredCron?.trim() ?? (production ? "0 */6 * * *" : undefined);
+  const cronMode =
+    process.env.RAILWAY_WORKER_MODE ??
+    (production && configuredCron === undefined ? "scheduled" : "batch");
+  if (workerCron && !["batch", "scheduled"].includes(cronMode)) {
+    throw new Error("RAILWAY_WORKER_MODE must be batch or scheduled");
+  }
+  if (workerCron && cronMode === "scheduled" && workerCron !== "0 */6 * * *") {
+    throw new Error("Scheduled event mode requires six-hour Cron: 0 */6 * * *");
+  }
   const worker = service("worker", {
     source: source("/"),
-    env: keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+    env: {
+      ...keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+      WORKER_MODE: workerCron ? cronMode : "continuous",
+    },
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/worker/Dockerfile",
-      watchPatterns: ["/apps/worker/**", "/packages/db/**", "/.railway/**"],
+      watchPatterns: [
+        "/apps/worker/**",
+        "/packages/api/**",
+        "/packages/db/**",
+        "/.railway/**",
+      ],
     },
     deploy: {
       runtime: "V2",
       startCommand: "bun index.ts",
-      healthcheckPath: "/health",
-      healthcheckTimeout: 120,
+      ...(workerCron
+        ? { cronSchedule: workerCron, restartPolicyType: "NEVER" as const }
+        : {
+            cronSchedule: null,
+            healthcheckPath: "/health",
+            healthcheckTimeout: 120,
+          }),
       drainingSeconds: 60,
       multiRegionConfig: {
         "us-west2": {

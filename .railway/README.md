@@ -75,3 +75,8 @@ API retains the private database migration/start command and staging's 2 CPU /
 `bun run enqueue tournaments 2025` or `bun run backfill 1992 2025`.
 
 See [Railway's IaC migration guide](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
+
+For finite offseason batches, see [Worker batch rollout](../docs/worker-batch-rollout.md).
+`RAILWAY_WORKER_CRON='0 18 * * *'` is an opt-in local plan/apply input; production defaults to six-hour event-aware windows after the rollout. An
+explicit empty `RAILWAY_WORKER_CRON` restores continuous mode. Merging this configuration does not enable
+Cron or PostgreSQL Serverless.

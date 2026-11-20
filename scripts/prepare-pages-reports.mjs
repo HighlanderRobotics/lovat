@@ -53,7 +53,7 @@ export async function preparePagesReports(directory, revision = "") {
 <tr><th>Server</th><td><a href="server/">Vitest results</a></td><td><a href="server/coverage/">Coverage</a></td><td>—</td></tr>
 <tr><th>Learn</th><td><a href="learn/">Node results</a></td><td><a href="learn/">Link-plugin coverage</a></td><td><a href="learn/browser/">Playwright results</a></td></tr>
 <tr><th>Website</th><td><a href="website/">Vitest results</a></td><td><a href="website/coverage/">Coverage</a></td><td><a href="website/browser/">Playwright results</a></td></tr>
-${extensions.map((section) => `<tr><th>${escape(section.label)}</th><td><a href="${section.slug}/">Test results</a></td><td><a href="${section.slug}/coverage/">Coverage</a></td><td>${section.browser ? `<a href="${section.slug}/browser/">Integration results</a>` : "Release checks run separately"}</td></tr>`).join("\n")}
+${extensions.map((section) => `<tr><th>${escape(section.label)}</th><td><a href="${section.slug}/">Test results</a></td><td>${section.required.includes("coverage/index.html") ? `<a href="${section.slug}/coverage/">Coverage</a>` : "—"}</td><td>${section.browser ? `<a href="${section.slug}/browser/">Integration results</a>` : "Release checks run separately"}</td></tr>`).join("\n")}
 </tbody></table><p><a href="revision.json">Build revision</a></p></body></html>`,
   );
 }

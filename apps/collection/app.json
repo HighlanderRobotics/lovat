@@ -62,7 +62,8 @@
             "enableFullScreenImage_legacy": true
           }
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "scheme": "lovat-collection"
   }

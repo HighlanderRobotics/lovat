@@ -171,10 +171,10 @@ Match refresh intervals use event-local dates and hours:
 | ------------------------------ | ------------- | -------------- |
 | Event dates, 07:00–21:00 local | 1 minute      | 1 hour         |
 | Event dates, overnight         | 15 minutes    | 1 hour         |
-| Starts within 7 days           | 30 minutes    | 6 hours        |
+| Starts within 7 days           | 6 hours       | 6 hours        |
 | Starts later, or dates unknown | 1 day         | 1 day          |
 | Ended within 7 days            | 6 hours       | 1 day          |
-| Older event                    | 7 days        | 7 days         |
+| Older event                    | Explicit only | Explicit only  |
 
 Missing or invalid timezones fall back to UTC. Activity is inferred from dates,
 not from a live event status feed. Due match jobs near the event's date window
@@ -238,8 +238,7 @@ import { refreshTournamentGaps } from "./src/jobs/gaps";
 await refreshTournamentGaps("2026casj");
 ```
 
-Or queue `bun run enqueue gaps 2026casj` for the worker. Explicit gap jobs repeat
-daily; normal match jobs already recalculate gaps on every refresh. Apply the
+Or queue `bun run enqueue gaps 2026casj` for the worker. Explicit gap jobs run once; normal match jobs already recalculate gaps on every refresh. Apply the
 shared database migration and rebuild the database package before running the
 updated worker.
 
@@ -301,8 +300,48 @@ Run `bun run backfill 1992 2025` with the target database and TBA credentials co
 
 ## Replacement API effects
 
-Set `API_EFFECTS_ENABLED=true` only when running the replacement API with the two additive outbox migrations applied. Set `REDIS_URL` and `REDIS_KEY_PREFIX` to the API's values (default prefix `lovat:rewrite:`), and `RESEND_KEY` / `EMAIL_FROM` for onboarding email delivery. This loop shares the worker process but has one consumer; it does not run in the API request path.
+Set `WORKER_MODE=continuous API_EFFECTS_ENABLED=true` only when running the replacement API with the two additive outbox migrations applied. Set `REDIS_URL` and `REDIS_KEY_PREFIX` to the API's values (default prefix `lovat:rewrite:`), and `RESEND_KEY` / `EMAIL_FROM` for onboarding email delivery. Finite batch/scheduled modes reject this flag to avoid disconnecting Prisma beneath the effect consumer or silently delaying delivery. Use a continuously running consumer when qualifying the replacement; for Railway-managed configuration, set the IaC input `RAILWAY_WORKER_CRON=""` to retain continuous mode. This loop shares the worker process but has one consumer; it does not run in the API request path.
 
 Reports and analysis revisions commit with durable outbox records. Consumers claim records with a 60-second lease and retry failures with exponential backoff, up to ten attempts. Slack warning fan-out creates one durable child per subscribed channel so a failed channel does not resend every successful channel. External delivery is at least once; email idempotency keys and Slack client message IDs reduce duplicates, but cannot guarantee exactly-once delivery after a remote timeout. Failed records retain a sanitized error and can be inspected by an operator before replay. Cache revisions increase monotonically; the API's 15-second cache lifetime also bounds staleness if Redis delivery is unavailable.
 
 The loop abandons expired drafts, scrubs old abandoned payloads, and removes expired verification requests and delivered outbox records. Training reports never create competition cache revisions or warnings. Keep this flag disabled for the existing Server deployment until cutover qualification is complete.
+
+## Finite batches (LVT-382)
+
+`bun run batch` (`WORKER_MODE=batch bun index.ts`) reconciles once, snapshots
+eligible due job IDs, runs each at most once with `WORKER_CONCURRENCY` consumers,
+then disconnects Prisma and exits. It opens no health listener and has no polling
+between executions. The process owns its client; do not share a batch client with
+another service. The default `WORKER_MODE=continuous` retains the existing active
+event loop and `/health` readiness checks.
+
+Snapshot jobs are claimed atomically with fresh leases at execution time. Other
+replicas, changed schedules, and active leases can make an ID ineligible; it is
+left for the next window. Retry delays and TBA Retry-After remain durable. A
+failed job does not stop other jobs. Claim/planner/database errors fail the batch
+after other consumers drain. Shutdown stops new claims and waits for running
+imports and lease heartbeats before disconnecting.
+
+Jobs discovered by a catalog import wait until the next batch. For a new/empty
+database, run another batch after catalogs complete to import child events and
+districts before accepting traffic. Never promise active-event freshness with a
+daily batch. Archived events (more than seven event-local days after completion),
+old season catalogs and explicit gap jobs finalize after one successful run;
+failures remain queued. Existing archived recurring jobs get one final execution.
+Normal planning does not recreate archived events. Use `backfill` for historical
+years or explicitly enqueue individual archived event jobs when needed.
+
+Daily `maintenance global` work now removes expired verification requests,
+unverified registrations older than a day, abandons expired report drafts and
+scrubs their payloads at day thirty. API startup creates no import or cleanup
+timers and needs no TBA key. Read-time report and verification expiry checks stay
+in the API. Import ownership overlaps LVT-335; resource/pool tuning remains with
+LVT-376. See [batch rollout](../../docs/worker-batch-rollout.md) before cutover.
+
+`WORKER_MODE=scheduled` combines six-hour external Cron with automatic event-day
+continuous runs. Outside competition dates it exits after the batch. On an event's
+local dates it keeps the minute-level loop until all current events finish, then
+exits so later Cron executions return to batches. Use only with six-hour Cron;
+daily starts cannot guarantee a start before the local morning. IaC selects this
+mode with the local input `RAILWAY_WORKER_MODE=scheduled` alongside
+`RAILWAY_WORKER_CRON='0 */6 * * *'`. No Railway credential is needed by Worker.

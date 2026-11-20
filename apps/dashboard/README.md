@@ -24,7 +24,7 @@ See [Railway web hosting](../../docs/railway-web-hosting.md) for app-local Docke
 
 ## Behavioral testing and reports
 
-Use Flutter **3.35.4** (the formatter job remains on **3.16.2**). Install
+Use Flutter **3.41.0** (the formatter job remains on **3.16.2**). Install
 app dependencies with `flutter pub get`, then run:
 
 ```sh
@@ -73,8 +73,10 @@ run and retains Server, Learn and Website paths.
 
 ### Native and release checks
 
-`Dashboard native integration` is a manual Android emulator workflow using the
-same integration target and fixture (`bash tool/run_native.sh`). This runs a
+`Dashboard native integration` is a manual Android and iOS simulator workflow using the
+same integration target and fixture (`bash tool/run_native.sh`, or
+`bash tool/run_native.sh ios <simulator-id>`). Android requires verified KVM
+access; both jobs retain native diagnostics even on failure. This runs a
 Flutter debug integration build on API 35 with `adb reverse`; it does not certify
 a signed release APK. Use a disposable emulator because the target clears its
 app preferences. iOS simulator developers can run the fixture with
@@ -86,8 +88,10 @@ policy, Auth0 configuration and signing assets are unchanged.
 The existing build/deploy workflow now runs both report suites after assigning
 the candidate build number and before building/deploying from that checkout.
 Artifacts record the source SHA and candidate version. Deployment is blocked if
-unit/package coverage or Chrome fails. Native integration is an additional manual
-check, not a required production job yet (LVT-266).
+unit/package coverage, Chrome or either native platform fails. The native jobs
+use the same source and assigned version as the release candidate. They exercise
+a debug integration build; signed APK/IPA acceptance remains a manual release
+check (LVT-266).
 
 Before a mobile release, verify the actual signed versioned APK/IPA on a disposable
 physical device: sandbox Auth0 login/logout and redirect, account/server changes,
@@ -96,3 +100,15 @@ and relaunch persistence, offline stale-data/recovery, narrow-screen navigation,
 and upgrade from the previous release. Record device/OS, source SHA, app version
 and outcome in LVT-266. Never use production scouting or strategy data in public
 artifacts. Native/sandbox Auth0 acceptance remains pending until these checks run.
+
+The owner, evidence template and platform-by-platform pending acceptance matrix
+are in [manual release checks](docs/manual-release-checks.md).
+
+Flutter 3.41.0 is pinned across app CI, native/release workflows, CodeQL and
+Docker because the iOS app already uses the UIScene lifecycle APIs. The SDK
+upgrade intentionally reconciles SDK-owned lockfile entries.
+
+The reusable native workflow also builds Linux and macOS release targets. Its
+Android/iOS journeys and desktop builds use the same resolved candidate version;
+release jobs wait for every platform result. Web compilation and the Chrome
+journey remain in app CI and build-only release validation.

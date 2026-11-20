@@ -32,3 +32,6 @@ dist/
 
 # Automated test reports
 coverage/
+
+# Cross-app contract evidence
+/contract-report/

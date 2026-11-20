@@ -43,6 +43,10 @@ test("indexes all three apps with relative links and preserves their nested repo
       `/lovat/${path}`,
     );
   }
+  assert.ok(html.includes('href="contracts/"'));
+  assert.ok(!html.includes('href="contracts/coverage/"'));
+  assert.ok(html.includes('href="collection/coverage/"'));
+  assert.ok(html.includes('href="dashboard/coverage/"'));
   assert.equal(
     await readFile(join(root, "server/index.html"), "utf8"),
     "synthetic server/index.html",
