@@ -8,7 +8,11 @@ import {
   type AnalysisResponse,
   type GamePredictionResult,
 } from "@lovat/api";
-import { analyzeGameReports, type ReportIdentity } from "./engine.js";
+import {
+  analyzeGameReports,
+  analyzeGameReportStream,
+  type ReportIdentity,
+} from "./engine.js";
 import type { MetricRegistry } from "./registry.js";
 import { GameError } from "./errors.js";
 export interface StoredGameReport extends ReportIdentity {
@@ -26,6 +30,10 @@ export interface GamePrediction {
   }) => GamePredictionResult;
 }
 export interface GamePack {
+  analyzeStream(
+    reports: AsyncIterable<StoredGameReport>,
+    request: AnalysisRequest,
+  ): Promise<AnalysisResponse>;
   prediction?: GamePrediction;
   readonly descriptor: GameDescriptor;
   readonly metrics: {
@@ -134,6 +142,45 @@ export function defineGame<
       );
     return normalized.data;
   };
+  function checkRequest(request: AnalysisRequest) {
+    if (request.season !== descriptor.season)
+      throw new GameError(
+        400,
+        "GAME_SEASON_MISMATCH",
+        "Report season does not match the selected game",
+      );
+  }
+  function checkReport(report: StoredGameReport) {
+    if (
+      report.gameId !== descriptor.id ||
+      report.gameVersion !== descriptor.version
+    )
+      throw new GameError(
+        409,
+        "GAME_VERSION_MISMATCH",
+        "Reports from different game contracts cannot be mixed",
+      );
+  }
+  function prepareReport(report: StoredGameReport): F {
+    const trusted = prepared.get(report);
+    if (trusted) return trusted();
+    let data: z.output<S>;
+    try {
+      data = decode(report.data, report.reportVersion);
+    } catch (error) {
+      if (error instanceof GameError && error.code === "INVALID_GAME_REPORT")
+        throw new Error("Stored game report is invalid");
+      throw error;
+    }
+    return options.prepare({
+      uuid: report.uuid,
+      teamNumber: report.teamNumber,
+      matchKey: report.matchKey,
+      tournamentKey: report.tournamentKey,
+      tournamentDate: report.tournamentDate,
+      data,
+    });
+  }
   return {
     fromFacts(identity, prepare) {
       const report = {
@@ -165,47 +212,28 @@ export function defineGame<
         }
       : undefined,
     analyze(reports, request) {
-      if (request.season !== descriptor.season)
-        throw new GameError(
-          400,
-          "GAME_SEASON_MISMATCH",
-          "Report season does not match the selected game",
-        );
-      for (const report of reports)
-        if (
-          report.gameId !== descriptor.id ||
-          report.gameVersion !== descriptor.version
-        )
-          throw new GameError(
-            409,
-            "GAME_VERSION_MISMATCH",
-            "Reports from different game contracts cannot be mixed",
-          );
+      checkRequest(request);
+      for (const report of reports) checkReport(report);
       return analyzeGameReports(
         reports,
         request,
         options.metrics,
-        (report) =>
-          prepared.get(report)?.() ??
-          options.prepare({
-            uuid: report.uuid,
-            teamNumber: report.teamNumber,
-            matchKey: report.matchKey,
-            tournamentKey: report.tournamentKey,
-            tournamentDate: report.tournamentDate,
-            data: (() => {
-              try {
-                return decode(report.data, report.reportVersion);
-              } catch (error) {
-                if (
-                  error instanceof GameError &&
-                  error.code === "INVALID_GAME_REPORT"
-                )
-                  throw new Error("Stored game report is invalid");
-                throw error;
-              }
-            })(),
-          }),
+        prepareReport,
+      );
+    },
+    async analyzeStream(reports, request) {
+      checkRequest(request);
+      async function* checked() {
+        for await (const report of reports) {
+          checkReport(report);
+          yield report;
+        }
+      }
+      return analyzeGameReportStream(
+        checked(),
+        request,
+        options.metrics,
+        prepareReport,
       );
     },
   };

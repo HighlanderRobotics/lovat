@@ -25,6 +25,19 @@ export function createAnalysisService(
     }
     const compute = () =>
       analysisBudget(async () => {
+        if (repository.streamReports)
+          return game.analyzeStream(
+            repository.streamReports(
+              scope,
+              request,
+              new Set(
+                definitions.flatMap(
+                  (definition) => definition.metadata.requires,
+                ),
+              ),
+            ),
+            request,
+          );
         const reports = await repository.loadReports(
           scope,
           request,

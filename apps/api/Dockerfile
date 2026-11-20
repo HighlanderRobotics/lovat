@@ -14,6 +14,8 @@ RUN npm --prefix packages/games ci --ignore-scripts && npm --prefix packages/gam
 RUN npm --prefix packages/db ci --include=dev && npm --prefix packages/db run build
 WORKDIR /app/apps/api
 RUN bun install --frozen-lockfile --ignore-scripts && bun run build
+# Remove compilers, Prisma tooling and test dependencies from the runtime image.
+RUN npm --prefix /app/packages/api prune --omit=dev --ignore-scripts && npm --prefix /app/packages/games prune --omit=dev --ignore-scripts && npm --prefix /app/packages/db prune --omit=dev --ignore-scripts && bun install --production --frozen-lockfile --ignore-scripts
 
 FROM oven/bun:1.4.4-debian AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*

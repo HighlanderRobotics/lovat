@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify, customFetch } from "jose";
 import { z } from "zod";
 import { HttpError } from "./errors.js";
 
@@ -63,6 +63,7 @@ export function legacyAnalysisScope(user: StoredIdentity): AccessScope {
   };
 }
 export function createJwtVerifier(options: {
+  fetch?: typeof fetch;
   issuer: string;
   audience: string;
 }) {
@@ -77,6 +78,7 @@ export function createJwtVerifier(options: {
     throw new Error("AUTH0_ISSUER must be an HTTPS issuer URL");
   const keys = createRemoteJWKSet(new URL(".well-known/jwks.json", issuer), {
     timeoutDuration: 3000,
+    [customFetch]: options.fetch,
   });
   return async (token: string) =>
     (

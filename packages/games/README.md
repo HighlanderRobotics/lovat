@@ -17,7 +17,9 @@ The fictional 2099 fixture in `test/fixtures.mjs` demonstrates different fields,
 
 Game versions select an immutable rules contract. Report versions select an input schema; explicit older codecs upgrade historical payloads. Preserve old game versions and codecs when rules change. Metric formula versions participate in cache keys and must change with calculations.
 
-The 2026 module retains current scoring and scouting-clock conventions. Its typed legacy adapter prepares facts directly from database columns, avoiding an extra wire-payload graph. Only trusted typed adapters use `fromFacts`; arbitrary client and stored JSON payloads pass through their report codec. The engine keeps compact metric states and prepares one report at a time.
+The 2026 module retains current scoring and scouting-clock conventions. Its typed legacy adapter prepares facts directly from database columns, avoiding an extra wire-payload graph. Only trusted typed adapters use `fromFacts`; arbitrary client and stored JSON payloads pass through their report codec. The engine streams ordered team/tournament/match groups and releases completed report payloads. A metric can supply an optional `reducer` with `add(state)` and `finish()` to avoid storing one state per report; built-in means, rates and distributions do this. Both direct evaluation and streaming use the same reducer. Array-based `reports` reducers remain available for calculations such as medians.
+
+`analyze` sorts array inputs stably. `analyzeStream` requires groups ordered by `compareReportGroups` and rejects out-of-order input rather than silently giving matches the wrong weight. Storage adapters own the ordered, bounded stream; game modules remain independent of database and transport code.
 
 ## Client and feature work
 

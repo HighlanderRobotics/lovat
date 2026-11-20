@@ -3,9 +3,7 @@ on:
   pull_request:
     paths:
       - "apps/api/**"
-      - "apps/server/src/routes/**"
-      - "apps/server/src/app.ts"
-      - "apps/server/src/handler/training/training.routes.ts"
+      - "apps/server/**"
       - "packages/api/**"
       - "packages/db/**"
       - "packages/games/**"
@@ -73,3 +71,28 @@ jobs:
         working-directory: packages/games
       - run: bun run test && bun run test:integration && bun run lint && bun run format:check && bun run inventory:check
         working-directory: apps/api
+
+      - name: Build legacy Server for local rollback rehearsal
+        run: npm ci && npm run build
+        working-directory: apps/server
+      - name: Rehearse traffic rollback without schema rollback
+        run: bun run test:rollout
+        working-directory: apps/api
+      - name: Build production Bun image
+        run: docker build -t lovat-api:qualification -f apps/api/Dockerfile .
+      - name: Smoke test bounded container and graceful shutdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'docker logs lovat-api-smoke; docker rm -f lovat-api-smoke' EXIT
+          docker run --detach --name lovat-api-smoke --network host --memory=512m --cpus=1 \
+            --env DATABASE_URL --env REDIS_URL \
+            --env AUTH0_ISSUER=https://auth.test.invalid/ \
+            --env AUTH0_AUDIENCE=https://api.lovat.app \
+            --env REDIS_KEY_PREFIX=lovat:container:${{ github.run_id }}: \
+            --env HOST=127.0.0.1 --env PORT=3001 lovat-api:qualification
+          node apps/api/tools/smoke-container.mjs http://127.0.0.1:3001
+          docker stats --no-stream lovat-api-smoke
+          docker image inspect --format '{{.Size}}' lovat-api:qualification
+          docker stop --time 20 lovat-api-smoke
+          test "$(docker inspect --format '{{.State.ExitCode}}' lovat-api-smoke)" = 0

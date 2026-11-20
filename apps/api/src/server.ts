@@ -16,7 +16,7 @@ if (!issuer || !audience) {
   throw new Error("AUTH0_ISSUER and AUTH0_AUDIENCE are required");
 }
 const port = Number(process.env.PORT ?? 3001);
-if (!Number.isInteger(port) || port < 1 || port > 65535) {
+if (!Number.isInteger(port) || port < 0 || port > 65535) {
   throw new Error("Invalid PORT");
 }
 
@@ -81,8 +81,9 @@ const api = createApi({
     .filter(Boolean),
   log: (event) => console.log(JSON.stringify(event)),
 });
-const runtime = startApi(api, {
+export const runtime = startApi(api, {
   port,
+  hostname: process.env.HOST ?? "0.0.0.0",
   db,
   origins: (process.env.CORS_ALLOWED_ORIGINS ?? "")
     .split(",")

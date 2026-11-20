@@ -1,10 +1,17 @@
-import type { PrismaClient } from "@lovat/db";
+import { compareReportGroups } from "@lovat/games";
+import { boundedBatches } from "../batches.js";
+import type { PrismaClient, Prisma } from "@lovat/db";
 import type { AnalysisRequest } from "@lovat/api";
 import type { AccessScope, AuthRepository } from "../auth.js";
 import type { ReportInput } from "../metrics/facts.js";
 import { HttpError } from "../errors.js";
 
 export interface AnalysisRepository {
+  streamReports(
+    scope: AccessScope,
+    request: AnalysisRequest,
+    requires: ReadonlySet<string>,
+  ): AsyncIterable<ReportInput>;
   loadReports(
     scope: AccessScope,
     request: AnalysisRequest,
@@ -20,7 +27,17 @@ const filter = <T extends string | number>(rule: {
 export function createLegacy2026Repository(
   db: PrismaClient,
 ): AnalysisRepository & AuthRepository {
-  return {
+  const repository: AnalysisRepository & AuthRepository = {
+    async loadReports(scope, request, requires) {
+      const reports: ReportInput[] = [];
+      for await (const report of repository.streamReports(
+        scope,
+        request,
+        requires,
+      ))
+        reports.push(report);
+      return reports;
+    },
     userById: (id) =>
       db.user.findUnique({
         where: { id },
@@ -33,19 +50,20 @@ export function createLegacy2026Repository(
           team: { select: { emailVerified: true } },
         },
       }),
-    async loadReports(scope, request, requires) {
-      const rows = await db.scoutReport.findMany({
-        where: {
-          training: false,
-          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
-          scouter: { sourceTeamNumber: filter(scope.sources.teams) },
-          teamMatchData: {
-            teamNumber: { in: [...new Set(request.teams)] },
-            matchType: { not: "PRACTICE" },
-            tournamentKey: filter(scope.sources.tournaments),
-            tournament: { seasonYear: request.season },
-          },
+    async *streamReports(scope, request, requires) {
+      const scopedWhere: Prisma.ScoutReportWhereInput = {
+        training: false,
+        reliability: { in: ["VERIFIED", "UNVERIFIED"] },
+        scouter: { sourceTeamNumber: filter(scope.sources.teams) },
+        teamMatchData: {
+          teamNumber: { in: [...new Set(request.teams)] },
+          matchType: { not: "PRACTICE" },
+          tournamentKey: filter(scope.sources.tournaments),
+          tournament: { seasonYear: request.season },
         },
+      };
+      const rows = await db.scoutReport.findMany({
+        where: scopedWhere,
         select: {
           uuid: true,
           driverAbility: true,
@@ -80,46 +98,113 @@ export function createLegacy2026Repository(
           "Request fewer teams or narrower source tournaments",
         );
       }
-      const events =
-        requires.has("events") && rows.length
-          ? await db.event.findMany({
-              where: { scoutReportUuid: { in: rows.map((row) => row.uuid) } },
-              select: {
-                scoutReportUuid: true,
-                action: true,
-                position: true,
-                time: true,
-                quantity: true,
-                points: true,
+      const reports = rows
+        .map((row) => ({
+          ...row,
+          teamNumber: row.teamMatchData.teamNumber,
+          matchKey: row.teamMatchData.key,
+          tournamentKey: row.teamMatchData.tournamentKey,
+          tournamentDate: row.teamMatchData.tournament.date ?? "0000-01-01",
+        }))
+        .sort(compareReportGroups);
+      const counts =
+        requires.has("events") && reports.length
+          ? await db.event.groupBy({
+              by: ["scoutReportUuid"],
+              where: {
+                scoutReportUuid: { in: reports.map((row) => row.uuid) },
               },
-              orderBy: [{ scoutReportUuid: "asc" }, { time: "asc" }],
-              take: 100001,
+              _count: { _all: true },
             })
           : [];
-      if (events.length > 100000) {
+      const countById = new Map(
+        counts.map((row) => [row.scoutReportUuid, row._count._all]),
+      );
+      if (
+        counts.reduce((sum, row) => sum + row._count._all, 0) > 100000 ||
+        counts.some((row) => row._count._all > 10000)
+      )
         throw new HttpError(
           413,
           "ANALYSIS_TOO_LARGE",
           "Request fewer teams or narrower source tournaments",
         );
-      }
-      const byReport = new Map<string, typeof events>();
-      for (const event of events) {
-        if (!byReport.has(event.scoutReportUuid)) {
-          byReport.set(event.scoutReportUuid, []);
+      for (const batch of boundedBatches(
+        reports,
+        (row) => countById.get(row.uuid) ?? 0,
+        1000,
+        20000,
+      )) {
+        const expected = batch.reduce(
+          (sum, row) => sum + (countById.get(row.uuid) ?? 0),
+          0,
+        );
+        // Recheck visibility and fetch events in one short snapshot. This avoids
+        // a costly relation join per event without racing tenant/reliability changes.
+        const { events, visible } = await db.$transaction(
+          async (tx) => {
+            const current = await tx.scoutReport.findMany({
+              where: {
+                AND: [
+                  scopedWhere,
+                  { uuid: { in: batch.map((row) => row.uuid) } },
+                ],
+              },
+              select: { uuid: true, teamMatchKey: true },
+            });
+            const expectedMatch = new Map(
+              batch.map((row) => [row.uuid, row.matchKey]),
+            );
+            if (
+              current.some(
+                (row) => expectedMatch.get(row.uuid) !== row.teamMatchKey,
+              )
+            )
+              throw new HttpError(
+                409,
+                "ANALYSIS_CHANGED",
+                "Reports changed during analysis; retry shortly",
+              );
+            const visible = new Set(current.map((row) => row.uuid));
+            const events =
+              requires.has("events") && expected && visible.size
+                ? await tx.event.findMany({
+                    where: { scoutReportUuid: { in: [...visible] } },
+                    select: {
+                      scoutReportUuid: true,
+                      action: true,
+                      position: true,
+                      time: true,
+                      quantity: true,
+                      points: true,
+                    },
+                    orderBy: [{ scoutReportUuid: "asc" }, { time: "asc" }],
+                    take: expected + 1,
+                  })
+                : [];
+            return { events, visible };
+          },
+          { isolationLevel: "RepeatableRead", timeout: 8000, maxWait: 5000 },
+        );
+        if (events.length > expected)
+          throw new HttpError(
+            409,
+            "ANALYSIS_CHANGED",
+            "Reports changed during analysis; retry shortly",
+          );
+        const byReport = new Map<string, typeof events>();
+        for (const event of events) {
+          if (!byReport.has(event.scoutReportUuid))
+            byReport.set(event.scoutReportUuid, []);
+          byReport.get(event.scoutReportUuid)!.push(event);
         }
-        byReport.get(event.scoutReportUuid)!.push(event);
+        for (const row of batch)
+          if (visible.has(row.uuid))
+            yield { ...row, events: byReport.get(row.uuid) ?? [] };
       }
-      return rows.map((row) => ({
-        ...row,
-        events: byReport.get(row.uuid) ?? [],
-        teamNumber: row.teamMatchData.teamNumber,
-        matchKey: row.teamMatchData.key,
-        tournamentKey: row.teamMatchData.tournamentKey,
-        tournamentDate: row.teamMatchData.tournament.date ?? "0000-01-01",
-      }));
     },
   };
+  return repository;
 }
 
 /** Bounded, source-scoped report data for exports and legacy analysis views. */

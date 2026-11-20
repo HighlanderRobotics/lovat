@@ -117,3 +117,25 @@ test("game selection and report versions fail closed without changing another se
   );
   assert.throws(() => new GameCatalog([fictionalGame, fictionalGame]));
 });
+
+test("incremental report reducers preserve missing values and validate their output", async () => {
+  const { meanReducer } = await import("../dist/index.js");
+  const metric = defineMetricFor()({
+    metadata: fictionalGame.descriptor.metrics[0],
+    output: z.number(),
+    calculate: (value) => value,
+    reports: () => {
+      throw Error("The incremental reducer must be used");
+    },
+    reducer: meanReducer,
+    aggregate: mean,
+  });
+  const accumulator = metric.start();
+  for (const value of [0, null, 4]) accumulator.add(value);
+  assert.equal(accumulator.finish(new Map()), 2);
+  assert.equal(metric.evaluate([0, null, 4], new Map()), 2);
+  assert.equal(metric.start().finish(new Map()), null);
+  const invalid = metric.start();
+  invalid.add(Infinity);
+  assert.throws(() => invalid.finish(new Map()));
+});

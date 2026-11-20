@@ -6,6 +6,7 @@ import {
   defineDerivedMetricFor,
   defineMetricFor,
   mean,
+  meanReducer,
   MetricRegistry,
   recencyWeightedMean,
 } from "../registry.js";
@@ -44,6 +45,7 @@ function numberMetric(
     output: z.number(),
     calculate,
     reports: mean,
+    reducer: meanReducer,
     aggregate: (values, level) =>
       level === "team" ? recencyWeightedMean(values) : mean(values),
   });
@@ -61,6 +63,17 @@ function rateMetric(
       quantity: f.quantity[action] ?? 0,
       seconds: f.durations[start] ?? 0,
     }),
+    reducer() {
+      let quantity = 0,
+        seconds = 0;
+      return {
+        add(state) {
+          quantity += state.quantity;
+          seconds += state.seconds;
+        },
+        finish: () => (seconds > 0 ? quantity / seconds : null),
+      };
+    },
     reports: (states) => {
       const seconds = states.reduce((sum, state) => sum + state.seconds, 0);
       return seconds > 0
@@ -118,6 +131,22 @@ function distribution(
           calculate(f).includes(option) ? 1 : 0,
         ]),
       ),
+    reducer() {
+      const totals = Object.fromEntries(options.map((option) => [option, 0]));
+      let count = 0;
+      return {
+        add(state) {
+          count++;
+          for (const option of options) totals[option] += state[option] ?? 0;
+        },
+        finish: () =>
+          count
+            ? Object.fromEntries(
+                options.map((option) => [option, totals[option] / count]),
+              )
+            : null,
+      };
+    },
     reports: (values) => aggregate(values, "tournament"),
     aggregate,
   });

@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "inventory": "bun tools/inventory.mjs",
     "inventory:check": "bun tools/inventory.mjs --check",
-    "test:integration": "bun run build && bun test --smol ./test/*.integration.mjs"
+    "test:integration": "bun run build && bun test --smol ./test/*.integration.mjs",
+    "test:rollout": "bun run build && bun test --smol ./test/*.qualification.mjs"
   },
   "engines": {
     "bun": "1.4.4"

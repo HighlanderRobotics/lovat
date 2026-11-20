@@ -5,6 +5,21 @@ import {
   type MetricValue,
 } from "@lovat/api";
 
+export interface ReportReducer<S, V> {
+  add(state: S): void;
+  finish(): V | null;
+}
+export function meanReducer(): ReportReducer<number, number> {
+  let count = 0,
+    total = 0;
+  return {
+    add(value) {
+      total += value;
+      count++;
+    },
+    finish: () => (count ? total / count : null),
+  };
+}
 export interface MetricAccumulator<F> {
   add: (facts: F) => void;
   finish: (
@@ -28,33 +43,44 @@ export function defineMetric<S, V extends MetricValue, F>(definition: {
   output: z.ZodType<V>;
   calculate: (facts: F) => S | null;
   reports: (states: readonly S[]) => V | null;
+  reducer?: () => ReportReducer<S, V>;
   aggregate: (values: readonly V[], level: "tournament" | "team") => V | null;
 }): MetricDefinition<F> {
   const metadata = metricMetadataSchema.parse({
     ...definition.metadata,
     outputSchema: z.toJSONSchema(definition.output),
   });
+  const start = (): MetricAccumulator<F> => {
+    const states: S[] = [];
+    const reducer = definition.reducer?.();
+    let samples = 0;
+    return {
+      add(facts: F) {
+        const value = definition.calculate(facts);
+        if (value !== null) {
+          samples++;
+          if (reducer) reducer.add(value);
+          else states.push(value);
+        }
+      },
+      finish() {
+        const value = samples
+          ? reducer
+            ? reducer.finish()
+            : definition.reports(states)
+          : null;
+        states.length = 0;
+        return value === null ? null : definition.output.parse(value);
+      },
+    };
+  };
   return {
     metadata,
-    start() {
-      const states: S[] = [];
-      return {
-        add(facts: F) {
-          const value = definition.calculate(facts);
-          if (value !== null) states.push(value);
-        },
-        finish() {
-          const value = states.length ? definition.reports(states) : null;
-          return value === null ? null : definition.output.parse(value);
-        },
-      };
-    },
+    start,
     evaluate(facts) {
-      const states = facts
-        .map(definition.calculate)
-        .filter((x): x is S => x !== null);
-      const value = states.length ? definition.reports(states) : null;
-      return value === null ? null : definition.output.parse(value);
+      const accumulator = start();
+      for (const fact of facts) accumulator.add(fact);
+      return accumulator.finish(new Map());
     },
     combine(values, level) {
       const typed = values.map((value) => definition.output.parse(value));

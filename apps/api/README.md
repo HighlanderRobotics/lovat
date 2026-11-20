@@ -28,7 +28,7 @@ Slack callbacks verify the raw request HMAC. OAuth states are random, expire aft
 
 The API admits four HTTP requests and uses a four-connection PostgreSQL pool with an eight-second statement timeout. Expensive cold analyses share one work slot and at most four queued calculations, with a five-second queue wait. Cache hits bypass that queue. The executable uses Bun `--smol` mode for slower heap growth and more frequent garbage collection. This is not a hard memory cap; qualify RSS and set deployment/container limits separately.
 
-Analysis reads at most 5,000 reports and 100,000 events. Detailed exports also check the combined note/description size before loading text, with a 4 MiB limit. Oversized requests return 413 rather than silently averaging a truncated dataset. v3 bodies are limited to 64 KiB; lifecycle/legacy bodies to 1 MiB. Catalog requests are paginated, with a maximum page of 500.
+Analysis reads at most 5,000 reports and 100,000 events, with at most 10,000 events per report. Legacy events are hydrated in batches of at most 1,000 reports / 20,000 events. Short repeatable-read snapshots recheck source visibility before payload reads, then release the SQL connection before calculating metrics. Generic JSON reports use 512 KiB payload batches (up to 2 MiB for an individual stored report) and a 16 MiB dataset preflight. Detailed exports also check the combined note/description size before loading text, with a 4 MiB limit. Oversized requests return 413 rather than silently averaging a truncated dataset. Analysis bodies are limited to 64 KiB; report/lifecycle/legacy bodies to 1 MiB. Catalog requests are paginated, with a maximum page of 500.
 
 Source, role, team, formula version and dataset revisions participate in analysis cache keys. Cache lifetime is 15 seconds, in-flight requests coalesce, and Redis cache failures fall back to current calculations. Report writes and invalidation revisions commit together in PostgreSQL. The worker publishes monotonic revisions and delivers durable email/Slack effects with retries. Training submissions create neither competition revisions nor robot warnings.
 
@@ -80,3 +80,11 @@ The database suite exercises native HTTP, lifecycle retries, tenant denial, anal
 `bun run inventory` records each legacy route's replacement module and policy. Its coverage field explicitly describes registration only. `bun run benchmark` measures the pure engine. `tools/benchmark-http.mjs` measures local HTTP, PostgreSQL and Redis with synthetic identity; use the same disposable-service guard above. Neither benchmark establishes production latency or an old/new comparison.
 
 Build the image from the repository root with `docker build -f apps/api/Dockerfile .`. External-provider staging, consumer compatibility, soak tests, rollback rehearsal and traffic cutover remain release gates.
+
+## Local rollout qualification
+
+Build the legacy Server with its Node 22.20.0 toolchain, then run `bun run test:rollout` here with the disposable-service flags above. Node 22.20.0 must be on PATH (or set LOVAT_NODE_EXECUTABLE). The test runs both real server compositions over loopback HTTP, checks report/key/tenant compatibility, stops the replacement gracefully and verifies the legacy server can continue without a schema rollback. Helpers use a clean scratch directory and explicit synthetic configuration; external HTTP is blocked.
+
+The API workflow also builds the pruned production image, starts it under a 512 MiB / one-CPU container limit, checks readiness/catalog/authentication and verifies clean shutdown. This is local/CI qualification; live Auth0, Slack, email and production traffic changes are separately deferred.
+
+The HTTP benchmark now measures a separate server process. BENCHMARK_MATCHES controls unique team/match groups; BENCHMARK_SOAK_SECONDS adds cold/warm soak and liveness checks. Fixture setup and the HTTP client are excluded from server RSS/CPU. See the qualification document for exact workloads and observed limits.
