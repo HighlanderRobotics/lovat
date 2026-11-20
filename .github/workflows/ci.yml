@@ -22,6 +22,7 @@ jobs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       collection: ${{ steps.filter.outputs.collection }}
       website: ${{ steps.filter.outputs.website }}
+      web-images: ${{ steps.filter.outputs.web-images }}
       learn: ${{ steps.filter.outputs.learn }}
       reviewer: ${{ steps.filter.outputs.reviewer }}
       contracts: ${{ steps.filter.outputs.contracts }}
@@ -31,6 +32,19 @@ jobs:
         id: filter
         with:
           filters: .github/ci-filters.json
+
+  codeql:
+    uses: ./.github/workflows/codeql.yml
+    permissions:
+      contents: read
+      pull-requests: read
+      packages: read
+      security-events: write
+
+  web-images:
+    needs: changes
+    if: ${{ needs.changes.outputs.web-images == 'true' }}
+    uses: ./.github/workflows/web-hosting.yml
 
   structure:
     name: Structure
@@ -586,6 +600,8 @@ jobs:
         changes,
         structure,
         railway-config,
+        codeql,
+        web-images,
         contracts,
         reviewer,
         server,

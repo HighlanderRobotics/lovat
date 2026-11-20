@@ -15,6 +15,10 @@ export default defineRailway((ctx) => {
   }
 
   const production = ctx.environment === "production";
+  const waitForCi = process.env.RAILWAY_WAIT_FOR_CI;
+  if (waitForCi !== undefined && waitForCi !== "true" && waitForCi !== "false") {
+    throw new Error("RAILWAY_WAIT_FOR_CI must be true or false");
+  }
   const branch = production
     ? "main"
     : (process.env.RAILWAY_CONFIG_BRANCH ??
@@ -30,7 +34,7 @@ export default defineRailway((ctx) => {
     github("HighlanderRobotics/lovat", {
       branch,
       rootDirectory,
-      checkSuites: false,
+      checkSuites: waitForCi === "true",
     });
   const keep = (...names: string[]) =>
     Object.fromEntries(names.map((name) => [name, preserve()]));

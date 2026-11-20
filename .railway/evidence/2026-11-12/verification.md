@@ -14,7 +14,7 @@ created Railway preview builds through the existing GitHub integration.
 | ------------ | -------------------------------------- | --------------------------------------------------------- | --------------------------- | ------------ |
 | production   | `9f0088a8-9fe7-4afa-b634-cd1db046f045` | `main`                                                    | `lovat-apps`, all five apps | No changes   |
 | staging      | `1902828c-65ae-455c-90c8-5a370b7cedab` | `main`                                                    | `lovat-apps`, all five apps | No changes   |
-| lovat-pr-128 | `d42d9835-c01a-48c4-bcd2-424fa61e93c3` | `jackshim415/lvt-334-server-redact-request-analytics-and` | `lovat-apps`, all five apps | No changes   |
+| lovat-pr-128 | `d42d9835-c01a-48c4-bcd2-424fa61e93c3` | `jackshim415/lvt-334-server-redact-request-analytics-and` | Pending adoption            | No changes   |
 
 All environments had no pending staged patch at inspection. Production/staging ownership maps
 contain exactly `service.api`, `service.worker`, `service.dashboard`,

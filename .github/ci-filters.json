@@ -53,6 +53,19 @@
     "scripts/ci-results.*",
     "scripts/ci-selection.*"
   ],
+  "web-images": [
+    "apps/dashboard/**",
+    "apps/learn/**",
+    "apps/website/**",
+    "CHANGELOG.md",
+    ".railway/**",
+    ".github/workflows/ci.yml",
+    ".github/workflows/web-hosting.yml",
+    ".github/ci-filters.json",
+    "scripts/test-web-hosting.mjs",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
   "reviewer": [
     "tools/pr-reviewer/**",
     ".github/workflows/ai-review.yml",
