@@ -6,7 +6,12 @@ private let lovatPurple = Color(red: 53.0 / 255, green: 8.0 / 255, blue: 104.0 /
 
 @main
 struct CollectionLiveActivityBundle: WidgetBundle {
-  var body: some Widget { ScoutingLiveActivity() }
+  var body: some Widget {
+    ScoutingLiveActivity()
+    if #available(iOS 17.0, *) {
+      ScoutingDemoWidget()
+    }
+  }
 }
 
 struct ScoutingLiveActivity: Widget {

@@ -123,6 +123,10 @@ export default function Debug() {
             Hold the compact Dynamic Island to see the expanded layout. Previews
             use sample data and never change your scouting schedule.
           </BodyMedium>
+          <TitleMedium>Home Screen widgets</TitleMedium>
+          <Button onPress={() => router.push("/widget-demo")}>
+            Widget demo
+          </Button>
         </SafeAreaView>
       </ScrollView>
     </>

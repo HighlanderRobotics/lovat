@@ -32,6 +32,25 @@ fetch errors, push-registration errors, and whether Server push credentials are
 configured. Expo Go and Android don't contain the iOS native module; the menu
 explains this instead of crashing.
 
+### Home Screen widget demo
+
+Open **Debug → Widget demo** to compare Small (170 × 170 points) and Medium
+(364 × 170 points) with Before shift and On scout sample states. The small
+layout omits the alliance table. These controls never start a Live Activity or
+change assignments. The shared `widget-demo.json` fixture supplies the same
+sample matches, assigned teams, alliances, time, and colors to both renderers.
+
+On iOS 17+, the native widget gallery also includes **Collection → Scouting
+demo** in both sizes. Add it from the Home Screen, then hold it and choose
+**Edit Widget** to select its shift state. Each installed widget keeps its own
+configuration, so both states can be compared side by side. Native widgets
+adapt to the size iOS provides rather than assuming one phone model.
+
+Both the gallery description and in-app demo identify the data as sample-only.
+The sample timeline is static; Home Screen widgets are not yet connected to real
+assignments or Server push delivery. The existing Live Activity controls are
+separate. A native rebuild is required to add the Home Screen widget provider.
+
 ## Native build and signing
 
 Use the pinned Node version, `npm ci`, then `npx expo prebuild --platform ios`.

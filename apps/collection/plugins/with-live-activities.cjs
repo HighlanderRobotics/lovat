@@ -42,10 +42,57 @@ module.exports = function withLiveActivities(config) {
       path.join(directory, "Assets.xcassets"),
       { recursive: true },
     );
+    const demo = require("./live-activities/widget-demo.json");
+    for (const [colorName, hex] of Object.entries(demo.colors)) {
+      const colorDirectory = path.join(
+        directory,
+        "Assets.xcassets",
+        `${colorName}.colorset`,
+      );
+      fs.mkdirSync(colorDirectory, { recursive: true });
+      const channel = (offset) =>
+        (parseInt(hex.slice(offset, offset + 2), 16) / 255).toFixed(6);
+      fs.writeFileSync(
+        path.join(colorDirectory, "Contents.json"),
+        JSON.stringify(
+          {
+            info: { author: "xcode", version: 1 },
+            colors: [
+              {
+                idiom: "universal",
+                color: {
+                  "color-space": "srgb",
+                  components: {
+                    red: channel(1),
+                    green: channel(3),
+                    blue: channel(5),
+                    alpha: "1.000000",
+                  },
+                },
+              },
+            ],
+          },
+          null,
+          2,
+        ),
+      );
+    }
     for (const [source, destination] of [
       [
         path.join(__dirname, "live-activities/ScoutingLiveActivity.swift"),
         "ScoutingLiveActivity.swift",
+      ],
+      [
+        path.join(__dirname, "live-activities/ScoutingHomeWidgets.swift"),
+        "ScoutingHomeWidgets.swift",
+      ],
+      [
+        path.join(__dirname, "live-activities/widget-demo.json"),
+        "widget-demo.json",
+      ],
+      [
+        path.join(__dirname, "../assets/fonts/Heebo-Medium.ttf"),
+        "Heebo-Medium.ttf",
       ],
       [
         path.join(
@@ -69,6 +116,7 @@ module.exports = function withLiveActivities(config) {
 <key>CFBundlePackageType</key><string>XPC!</string>
 <key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
 <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
+<key>UIAppFonts</key><array><string>Heebo-Medium.ttf</string></array>
 <key>NSExtension</key><dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
 </dict></plist>`,
     );
@@ -77,6 +125,20 @@ module.exports = function withLiveActivities(config) {
       ([, target]) =>
         typeof target === "object" && target.name?.replace(/"/g, "") === name,
     );
+    const addFiles = (targetId, groupId) => {
+      for (const filename of [
+        "ScoutingLiveActivity.swift",
+        "ScoutingHomeWidgets.swift",
+        "ScoutingActivityAttributes.swift",
+      ]) {
+        if (!project.hasFile(filename))
+          project.addSourceFile(filename, { target: targetId }, groupId);
+      }
+      for (const filename of ["widget-demo.json", "Heebo-Medium.ttf"]) {
+        if (!project.hasFile(filename))
+          project.addResourceFile(filename, { target: targetId }, groupId);
+      }
+    };
     if (existing) {
       if (
         !existing[1].buildPhases.some((phase) => phase.comment === "Resources")
@@ -88,6 +150,7 @@ module.exports = function withLiveActivities(config) {
           existing[0],
         );
       }
+      addFiles(existing[0], project.findPBXGroupKey({ name }));
       return mod;
     }
 
@@ -115,12 +178,7 @@ module.exports = function withLiveActivities(config) {
       "Frameworks",
       target.uuid,
     );
-    for (const filename of [
-      "ScoutingLiveActivity.swift",
-      "ScoutingActivityAttributes.swift",
-    ]) {
-      project.addSourceFile(filename, { target: target.uuid }, group.uuid);
-    }
+    addFiles(target.uuid, group.uuid);
     const list =
       project.pbxXCConfigurationList()[
         target.pbxNativeTarget.buildConfigurationList

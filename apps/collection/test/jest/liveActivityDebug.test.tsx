@@ -43,4 +43,6 @@ it("keeps both previews available without obsolete mascot style controls", async
   expect(screen.queryAllByRole("radio")).toHaveLength(0);
   expect(screen.getByText("Preview before shift")).toBeTruthy();
   expect(screen.getByText("Preview on shift")).toBeTruthy();
+  await fireEvent.press(screen.getByText("Widget demo"));
+  expect(router.push).toHaveBeenCalledWith("/widget-demo");
 });

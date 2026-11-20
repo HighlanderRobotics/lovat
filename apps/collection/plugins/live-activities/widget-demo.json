@@ -1,0 +1,17 @@
+{
+  "nowMatch": "Q28",
+  "currentTeam": 8033,
+  "nextMatch": "Q34",
+  "nextTeam": 8433,
+  "nextTime": "6:42 PM",
+  "blue": [8433, 1640, 1323],
+  "red": [5410, 5026, 841],
+  "colors": {
+    "WidgetCard": "#292929",
+    "WidgetBlueAlliance": "#364077",
+    "WidgetRedAlliance": "#793F3F",
+    "WidgetMatchText": "#E0E0E0",
+    "WidgetBadge": "#282334",
+    "WidgetAccent": "#B59AFF"
+  }
+}
