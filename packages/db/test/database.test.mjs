@@ -46,3 +46,24 @@ test("shared client supports writes, relations, JSON, enums, errors and rollback
     await db.$disconnect();
   }
 });
+
+test("owned pools close and a later query obtains a fresh pool", async () => {
+  const { createDb } = await import("../dist/index.js");
+  const clientUrl = new URL(url.href);
+  const applicationName = `pool-close-${randomUUID()}`;
+  clientUrl.searchParams.set("application_name", applicationName);
+  const client = createDb(clientUrl.href);
+  try {
+    assert.deepEqual(await client.$queryRaw`SELECT 1 AS value`, [{ value: 1 }]);
+    await client.$disconnect();
+    const [connections] = await db.$queryRaw`SELECT count(*)::int AS count FROM pg_stat_activity WHERE application_name = ${applicationName}`;
+    assert.equal(connections.count, 0);
+    assert.deepEqual(await client.$queryRaw`SELECT 2 AS value`, [{ value: 2 }]);
+    await client.$transaction(async (tx) => {
+      assert.deepEqual(await tx.$queryRaw`SELECT 3 AS value`, [{ value: 3 }]);
+    });
+  } finally {
+    await client.$disconnect();
+    await db.$disconnect();
+  }
+});
