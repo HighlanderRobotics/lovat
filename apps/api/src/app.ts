@@ -1,24 +1,20 @@
-import { dispatch, type ServiceDependencies } from "./http/dispatch.js";
-import { readServicePayload } from "./http/payload.js";
-import { Reply } from "./http/router.js";
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
+import { Hono } from "hono";
 import { randomUUID } from "node:crypto";
 import {
   routes,
   type AnalysisRequest,
   type AnalysisResponse,
 } from "@lovat/api";
+import { games, type GameCatalog } from "@lovat/games";
 import type { AccessScope, Authenticate } from "./auth.js";
 import type { AnalysisRepository } from "./repository.js";
 import { HttpError, publicError } from "./errors.js";
-import { analyzeReports } from "./metrics/engine.js";
-import { season2026 } from "./metrics/season2026.js";
+import { dispatch, type ServiceDependencies } from "./http/dispatch.js";
+import { readServicePayload } from "./http/payload.js";
+import { Reply } from "./http/router.js";
 
-interface Dependencies {
+export interface Dependencies {
+  gameCatalog?: GameCatalog;
   analyze?: (
     scope: AccessScope,
     request: AnalysisRequest,
@@ -36,255 +32,217 @@ interface Dependencies {
     durationMs: number;
   }) => void;
 }
-const MAX_BODY = 64 * 1024;
-async function readBody(req: IncomingMessage): Promise<unknown> {
-  if (
-    req.headers["content-type"]?.split(";")[0].trim() !== "application/json"
-  ) {
-    throw new HttpError(415, "UNSUPPORTED_MEDIA_TYPE", "Use application/json");
-  }
-  if (
-    req.headers["content-encoding"] &&
-    req.headers["content-encoding"] !== "identity"
-  ) {
-    throw new HttpError(
-      415,
-      "UNSUPPORTED_MEDIA_TYPE",
-      "Compressed request bodies are unsupported",
-    );
-  }
-  if (Number(req.headers["content-length"]) > MAX_BODY) {
-    throw new HttpError(413, "REQUEST_TOO_LARGE", "Request body is too large");
-  }
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += Buffer.byteLength(chunk);
-    if (size > MAX_BODY) {
-      throw new HttpError(
-        413,
-        "REQUEST_TOO_LARGE",
-        "Request body is too large",
-      );
-    }
-    chunks.push(Buffer.from(chunk));
-  }
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-  } catch {
-    throw new HttpError(400, "INVALID_JSON", "Invalid JSON body");
-  }
-}
-function send(res: ServerResponse, status: number, data: unknown) {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  res.end(JSON.stringify(data));
-}
+export type ApiEnvironment = {
+  Bindings: { remoteAddress?: string };
+  Variables: { requestId: string };
+};
 export function createApi(deps: Dependencies) {
+  const catalog = deps.gameCatalog ?? games;
+  const app = new Hono<ApiEnvironment>({ strict: false });
   let draining = false;
   let active = 0;
-  const server = createServer(
-    {
-      maxHeaderSize: 16 * 1024,
-      requestTimeout: 10_000,
-      headersTimeout: 10_000,
-    },
-    async (req, res) => {
-      const requestId = randomUUID();
-      const started = performance.now();
-      let route = "unmatched";
-      res.setHeader("X-Request-ID", requestId);
-      res.setHeader("Cache-Control", "no-store");
-      res.setHeader("X-Content-Type-Options", "nosniff");
-      res.once("finish", () => {
-        try {
-          deps.log?.({
-            requestId,
-            route,
-            status: res.statusCode,
-            durationMs: performance.now() - started,
-          });
-        } catch {
-          /* Optional telemetry cannot break a completed request. */
-        }
-      });
-      let admitted = false;
+  app.onError((error, c) => {
+    const failure = publicError(error);
+    return c.json(
+      {
+        code: failure.code,
+        message: failure.message,
+        displayError: failure.message,
+      },
+      failure.status as 400,
+    );
+  });
+  app.use("*", async (c, next) => {
+    const requestId = randomUUID();
+    const started = performance.now();
+    c.set("requestId", requestId);
+    c.header("X-Request-ID", requestId);
+    c.header("Cache-Control", "no-store");
+    c.header("X-Content-Type-Options", "nosniff");
+    let admitted = false;
+    try {
+      const origin = c.req.header("origin");
+      if (origin) {
+        if (!deps.origins?.includes(origin))
+          throw new HttpError(
+            403,
+            "ORIGIN_NOT_ALLOWED",
+            "Origin is not allowed",
+          );
+        c.header("Access-Control-Allow-Origin", origin);
+        c.header("Vary", "Origin");
+      }
+      if (c.req.method === "OPTIONS") {
+        c.header(
+          "Access-Control-Allow-Methods",
+          "GET, POST, PUT, PATCH, DELETE",
+        );
+        c.header(
+          "Access-Control-Allow-Headers",
+          "Authorization, Content-Type, X-Team-Code, X-Scouter-Uuid, X-Device-Id, X-Timestamp, X-Signature",
+        );
+        return c.body(null, 204);
+      }
+      if (c.req.method === "GET" && c.req.path === "/health/live")
+        return c.json({ status: "ok" });
+      if (draining || active >= (deps.maxConcurrent ?? 4))
+        throw new HttpError(503, "UNAVAILABLE", "Service is busy or draining");
+      active++;
+      admitted = true;
+      await next();
+    } catch (error) {
+      const failure = publicError(error);
+      return c.json(
+        {
+          code: failure.code,
+          message: failure.message,
+          displayError: failure.message,
+        },
+        failure.status as 400,
+      );
+    } finally {
+      if (admitted) active--;
       try {
-        const url = new URL(req.url ?? "/", "http://api.local");
-        const origin = req.headers.origin;
-        if (origin) {
-          if (!deps.origins?.includes(origin)) {
-            throw new HttpError(
-              403,
-              "ORIGIN_NOT_ALLOWED",
-              "Origin is not allowed",
-            );
-          }
-          res.setHeader("Access-Control-Allow-Origin", origin);
-          res.setHeader("Vary", "Origin");
-        }
-        if (req.method === "OPTIONS") {
-          res.setHeader(
-            "Access-Control-Allow-Methods",
-            "GET, POST, PUT, PATCH, DELETE",
-          );
-          res.setHeader(
-            "Access-Control-Allow-Headers",
-            "Authorization, Content-Type, X-Team-Code, X-Scouter-Uuid, X-Device-Id, X-Timestamp, X-Signature",
-          );
-          res.writeHead(204).end();
-          return;
-        }
-        if (req.method === "GET" && url.pathname === "/health/live") {
-          route = "/health/live";
-          send(res, 200, { status: "ok" });
-          return;
-        }
-        if (draining || active >= (deps.maxConcurrent ?? 4)) {
-          throw new HttpError(
-            503,
-            "UNAVAILABLE",
-            "Service is busy or draining",
-          );
-        }
-        active++;
-        admitted = true;
-        if (req.method === "GET" && url.pathname === "/health/ready") {
-          route = "/health/ready";
-          const ready = await deps.ready();
-          send(res, ready ? 200 : 503, {
-            status: ready ? "ok" : "unavailable",
-          });
-          return;
-        }
-
-        const serviceMatch = deps.services?.router.match(
-          req.method ?? "",
-          url.pathname,
-        );
-        if (serviceMatch && deps.services) {
-          route = serviceMatch.endpoint.path;
-          const payload = await readServicePayload(req);
-          const value = await dispatch(deps.services, serviceMatch, {
-            ...payload,
-            headers: req.headers,
-            query: Object.fromEntries(url.searchParams),
-            remoteAddress: req.socket.remoteAddress,
-            method: req.method ?? "GET",
-            path: req.url ?? "/",
-          });
-          const reply = value instanceof Reply ? value : new Reply(value);
-          const isText = typeof reply.body === "string";
-          res.writeHead(reply.status, {
-            "Content-Type": isText
-              ? "text/plain; charset=utf-8"
-              : "application/json; charset=utf-8",
-            ...reply.headers,
-          });
-          res.end(isText ? (reply.body as string) : JSON.stringify(reply.body));
-          return;
-        }
-
-        const operation = Object.entries(routes).find(
-          ([, definition]) =>
-            definition.path === url.pathname &&
-            definition.method === req.method,
-        );
-        if (!operation) {
-          throw new HttpError(404, "NOT_FOUND", "Route not found");
-        }
-        route = operation[1].path;
-        const scope = await deps.authenticate(req.headers.authorization);
-        if (operation[0] === "metrics") {
-          send(res, 200, routes.metrics.output.parse(season2026.metadata()));
-          return;
-        }
-        const parsed = routes.analyze.input.safeParse(await readBody(req));
-        if (!parsed.success) {
-          throw new HttpError(
-            400,
-            "INVALID_REQUEST",
-            "Invalid request parameters",
-          );
-        }
-        const input = parsed.data;
-        let definitions;
+        deps.log?.({
+          requestId,
+          route: c.req.routePath ?? "unmatched",
+          status: c.res.status,
+          durationMs: performance.now() - started,
+        });
+      } catch {
+        /* Optional telemetry must not break a request. */
+      }
+    }
+  });
+  app.get("/health/ready", async (c) => {
+    const ready = await deps.ready();
+    return c.json({ status: ready ? "ok" : "unavailable" }, ready ? 200 : 503);
+  });
+  // Hono compiles the route table once; domain modules only declare endpoints.
+  if (deps.services) {
+    const services = deps.services;
+    for (const endpoint of services.router.endpoints) {
+      app.on(endpoint.method, endpoint.path, async (c) => {
+        let params: Record<string, string>;
         try {
-          definitions = season2026.resolve(input.metrics);
+          for (const segment of c.req.path.split("/"))
+            decodeURIComponent(segment);
+          params = c.req.param();
         } catch {
-          throw new HttpError(
-            400,
-            "UNKNOWN_METRIC",
-            "One or more metrics are unknown",
-          );
+          throw new HttpError(400, "INVALID_PATH", "Invalid URL encoding");
         }
-        if (input.season !== 2026) {
-          throw new HttpError(
-            400,
-            "UNSUPPORTED_SEASON",
-            "This API currently supports season 2026",
-          );
-        }
-        const requires = new Set(
-          definitions.flatMap((definition) => definition.metadata.requires),
+        const payload = await readServicePayload(c.req.raw);
+        const url = new URL(c.req.url);
+        const value = await dispatch(
+          services,
+          { endpoint, params },
+          {
+            ...payload,
+            headers: Object.fromEntries(c.req.raw.headers),
+            query: Object.fromEntries(url.searchParams),
+            method: c.req.method,
+            path: url.pathname + url.search,
+            remoteAddress: c.env?.remoteAddress,
+          },
         );
-        const reports = deps.analyze
-          ? []
-          : await deps.repository.loadReports(scope, input, requires);
-        const output = deps.analyze
-          ? await deps.analyze(scope, input)
-          : analyzeReports(reports, input, season2026);
-        // Precision stays intact inside the engine; serialize using each metric's precision.
-        for (const team of Object.values(output.teams)) {
-          const results = [
-            team.metrics,
-            ...(team.timeline?.map((match) => match.metrics) ?? []),
-          ];
-          for (const result of results) {
-            for (const [id, metric] of Object.entries(result)) {
-              const precision = season2026.get(id).metadata.precision;
-              const round = (value: unknown): unknown =>
-                typeof value === "number"
-                  ? Number(value.toFixed(precision))
-                  : Array.isArray(value)
-                    ? value.map(round)
-                    : value && typeof value === "object"
-                      ? Object.fromEntries(
-                          Object.entries(value).map(([key, child]) => [
-                            key,
-                            round(child),
-                          ]),
-                        )
-                      : value;
-              metric.value = round(metric.value) as typeof metric.value;
-            }
-          }
-        }
-        send(res, 200, routes.analyze.output.parse(output));
-      } catch (error) {
-        const failure = publicError(error);
-        if (!res.headersSent) {
-          send(res, failure.status, {
-            code: failure.code,
-            message: failure.message,
-            displayError: failure.message,
-          });
-        } else {
-          res.destroy();
-        }
-      } finally {
-        if (admitted) {
-          active--;
-        }
-        // GET/early errors must not leave an unread body occupying a keep-alive socket.
-        if (!req.complete) {
-          req.resume();
+        const reply = value instanceof Reply ? value : new Reply(value);
+        const isText = typeof reply.body === "string";
+        return new Response(
+          isText ? (reply.body as string) : JSON.stringify(reply.body),
+          {
+            status: reply.status,
+            headers: {
+              "Content-Type": isText
+                ? "text/plain; charset=utf-8"
+                : "application/json; charset=utf-8",
+              ...reply.headers,
+            },
+          },
+        );
+      });
+    }
+  }
+  app.get(routes.games.path, (c) =>
+    c.json(routes.games.output.parse(catalog.list())),
+  );
+  app.get(routes.metrics.path, async (c) => {
+    await deps.authenticate(c.req.header("authorization"));
+    const selection = routes.metrics.input.safeParse(c.req.query());
+    if (!selection.success)
+      throw new HttpError(400, "INVALID_REQUEST", "Invalid game selection");
+    const game = catalog.get(
+      selection.data.season ?? 2026,
+      selection.data.gameVersion,
+    );
+    return c.json(routes.metrics.output.parse(game.metrics.metadata()));
+  });
+  app.post(routes.analyze.path, async (c) => {
+    const scope = await deps.authenticate(c.req.header("authorization"));
+    const { body } = await readServicePayload(c.req.raw, 64 * 1024, true);
+    const parsed = routes.analyze.input.safeParse(body);
+    if (!parsed.success)
+      throw new HttpError(400, "INVALID_REQUEST", "Invalid request parameters");
+    const input = parsed.data;
+    const game = catalog.get(input.season, input.gameVersion);
+    let definitions;
+    try {
+      definitions = game.metrics.resolve(input.metrics);
+    } catch {
+      throw new HttpError(
+        400,
+        "UNKNOWN_METRIC",
+        "One or more metrics are unknown",
+      );
+    }
+    const requires = new Set(
+      definitions.flatMap((definition) => definition.metadata.requires),
+    );
+    const reports = deps.analyze
+      ? []
+      : await deps.repository.loadReports(scope, input, requires);
+    const output = deps.analyze
+      ? await deps.analyze(scope, input)
+      : game.analyze(reports, input);
+    for (const team of Object.values(output.teams)) {
+      for (const result of [
+        team.metrics,
+        ...(team.timeline?.map((match) => match.metrics) ?? []),
+      ]) {
+        for (const [id, metric] of Object.entries(result)) {
+          const precision = game.metrics.get(id).metadata.precision;
+          const round = (value: unknown): unknown =>
+            typeof value === "number"
+              ? Number(value.toFixed(precision))
+              : Array.isArray(value)
+                ? value.map(round)
+                : value && typeof value === "object"
+                  ? Object.fromEntries(
+                      Object.entries(value).map(([key, child]) => [
+                        key,
+                        round(child),
+                      ]),
+                    )
+                  : value;
+          metric.value = round(metric.value) as typeof metric.value;
         }
       }
-    },
-  );
-  server.keepAliveTimeout = 5000;
+    }
+    return c.json(routes.analyze.output.parse(output));
+  });
+  for (const route of [routes.submitGameReport, routes.predictGame]) {
+    app.post(route.path, () => {
+      throw new HttpError(
+        503,
+        "REPORT_SERVICE_UNAVAILABLE",
+        "Report storage is unavailable",
+      );
+    });
+  }
+  app.notFound(() => {
+    throw new HttpError(404, "NOT_FOUND", "Route not found");
+  });
   return {
-    server,
+    app,
     drain: () => {
       draining = true;
     },

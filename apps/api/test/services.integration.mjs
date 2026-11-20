@@ -1,6 +1,5 @@
+import { startApi } from "../dist/runtime.js";
 import { createSignatureVerifier } from "../dist/signatures.js";
-import { WebSocket } from "ws";
-import { attachTrainingSockets } from "../dist/sockets.js";
 import { createAnalysisService } from "../dist/analysis.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -141,12 +140,13 @@ test("rewritten services preserve atomic report lifecycle, idempotency and tenan
       }),
     },
   });
-  const sockets = attachTrainingSockets(api.server, db, [
-    "https://allowed.example",
-  ]);
-  api.server.listen(0, "127.0.0.1");
-  await once(api.server, "listening");
-  const base = "http://127.0.0.1:" + api.server.address().port;
+  const runtime = startApi(api, {
+    port: 0,
+    hostname: "127.0.0.1",
+    db,
+    origins: ["https://allowed.example"],
+  });
+  const base = runtime.url;
   async function call(method, path, body, extras = {}) {
     return fetch(base + path, {
       method,
@@ -162,9 +162,7 @@ test("rewritten services preserve atomic report lifecycle, idempotency and tenan
     });
   }
   t.after(async () => {
-    sockets.close();
-    api.server.closeAllConnections();
-    await new Promise((resolve) => api.server.close(resolve));
+    await runtime.stop(true);
     await db.trainingVideo.deleteMany({ where: { matchKey } });
     await db.analysisRevision.deleteMany({ where: { teamNumber: robot } });
     await db.apiOutbox.deleteMany({
@@ -600,7 +598,7 @@ test("rewritten services preserve atomic report lifecycle, idempotency and tenan
 
   const socket = new WebSocket(
     base.replace("http:", "ws:") + "/collection/training/socket",
-    { origin: "https://allowed.example" },
+    { headers: { Origin: "https://allowed.example" } },
   );
   await once(socket, "open");
   const initial = once(socket, "message");
@@ -608,20 +606,20 @@ test("rewritten services preserve atomic report lifecycle, idempotency and tenan
     JSON.stringify({ sessionUuid: session.uuid, token: session.browserToken }),
   );
   const [raw] = await initial;
-  assert.equal(JSON.parse(raw.toString()).uuid, session.uuid);
+  assert.equal(JSON.parse(raw.data).uuid, session.uuid);
   const closing = once(socket, "close");
   socket.close();
   await closing;
   const rejected = new WebSocket(
     base.replace("http:", "ws:") + "/collection/training/socket",
-    { origin: "https://allowed.example" },
+    { headers: { Origin: "https://allowed.example" } },
   );
   await once(rejected, "open");
   const denial = once(rejected, "close");
   rejected.send(
     JSON.stringify({ sessionUuid: session.uuid, token: "x".repeat(43) }),
   );
-  assert.equal((await denial)[0], 1008);
+  assert.equal((await denial)[0].code, 1008);
 
   const pathsResponse = await call(
     "GET",

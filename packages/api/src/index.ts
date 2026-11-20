@@ -5,3 +5,5 @@ export * from "./routes.js";
 export * from "./client.js";
 
 export * from "./collection.js";
+
+export * from "./games.js";

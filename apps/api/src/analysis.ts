@@ -1,30 +1,21 @@
 import { analysisBudget } from "./budget.js";
 import type { AnalysisRequest } from "@lovat/api";
+import { games, type GameCatalog, type GamePack } from "@lovat/games";
 import type { AccessScope } from "./auth.js";
 import type { AnalysisRepository } from "./repository.js";
-import { analyzeReports } from "./metrics/engine.js";
-import { season2026 } from "./metrics/season2026.js";
 import { createAnalysisCache, type CacheStore } from "./cache.js";
 import { HttpError } from "./errors.js";
-
 export function createAnalysisService(
   repository: AnalysisRepository,
   store?: CacheStore,
+  catalog: GameCatalog = games,
 ) {
-  const budget = analysisBudget;
-  const cached = store
-    ? createAnalysisCache(store, (ids) =>
-        season2026
-          .resolve(ids)
-          .map((d) => d.metadata.id + "@" + d.metadata.version)
-          .sort()
-          .join(","),
-      )
-    : null;
+  const caches = new Map<GamePack, ReturnType<typeof createAnalysisCache>>();
   return async (scope: AccessScope, request: AnalysisRequest) => {
+    const game = catalog.get(request.season, request.gameVersion);
     let definitions;
     try {
-      definitions = season2026.resolve(request.metrics);
+      definitions = game.metrics.resolve(request.metrics);
     } catch {
       throw new HttpError(
         400,
@@ -32,21 +23,38 @@ export function createAnalysisService(
         "One or more metrics are unknown",
       );
     }
-    if (definitions.some((d) => d.metadata.season !== request.season))
-      throw new HttpError(
-        400,
-        "UNSUPPORTED_SEASON",
-        "Unsupported metric season",
-      );
     const compute = () =>
-      budget(async () => {
+      analysisBudget(async () => {
         const reports = await repository.loadReports(
           scope,
           request,
-          new Set(definitions.flatMap((d) => d.metadata.requires)),
+          new Set(
+            definitions.flatMap((definition) => definition.metadata.requires),
+          ),
         );
-        return analyzeReports(reports, request, season2026);
+        return game.analyze(reports, request);
       });
-    return cached ? cached(scope, request, compute) : compute();
+    if (!store) return compute();
+    let cached = caches.get(game);
+    if (!cached) {
+      cached = createAnalysisCache(
+        store,
+        (ids) =>
+          game.descriptor.id +
+          "@" +
+          game.descriptor.version +
+          ":" +
+          game.metrics
+            .resolve(ids)
+            .map(
+              (definition) =>
+                definition.metadata.id + "@" + definition.metadata.version,
+            )
+            .sort()
+            .join(","),
+      );
+      caches.set(game, cached);
+    }
+    return cached(scope, request, compute);
   };
 }

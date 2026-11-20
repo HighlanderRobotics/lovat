@@ -1,3 +1,4 @@
+import { rankingPoints2026, rules2026 } from "@lovat/games/2026";
 import { analysisBudget } from "../budget.js";
 import { loadDetailedReports } from "../repository.js";
 import { z } from "zod";
@@ -306,7 +307,7 @@ export function registerPredictions(
             : allianceTeams.reduce(
                 (s, t) => s + value(data, t, "totalPoints"),
                 0,
-              ) * 0.9;
+              ) * rules2026.ranking.forecastScale;
           const breakdown = officialAlliance?.scoreBreakdown;
           const recordedRp =
             breakdown &&
@@ -321,9 +322,10 @@ export function registerPredictions(
           );
           const rp = completed
             ? recordedRp
-            : (winner === color ? 3 : 0) +
-              (projected >= 240 ? 1 : 0) +
-              (projected >= 400 ? 1 : 0);
+            : rankingPoints2026(
+                projected,
+                winner === null ? "tie" : winner === color ? "win" : "loss",
+              );
           for (const team of allianceTeams) {
             const row = rankings.get(team)!;
             row.matchesPlayed++;
@@ -400,9 +402,9 @@ export function registerPredictions(
           endgameClimb: teleop ? report.endgameClimb : "NOT_ATTEMPTED",
           events: report.events.filter((e) =>
             auto && !teleop
-              ? e.time <= 23
+              ? e.time <= rules2026.autoEnd
               : teleop && !auto
-                ? e.time > 23
+                ? e.time > rules2026.autoEnd
                 : true,
           ),
         }));
@@ -450,9 +452,9 @@ export function registerPredictions(
         const team = report.teamMatchData.teamNumber;
         const events = report.events.filter((e) =>
           ctx.query.auto !== undefined && ctx.query.teleop === undefined
-            ? e.time <= 23
+            ? e.time <= rules2026.autoEnd
             : ctx.query.teleop !== undefined && ctx.query.auto === undefined
-              ? e.time > 23
+              ? e.time > rules2026.autoEnd
               : true,
         );
         const data = analyzeReports(

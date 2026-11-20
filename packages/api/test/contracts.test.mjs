@@ -87,3 +87,57 @@ test("report definition has no database-owned scalar dependency", () => {
     true,
   );
 });
+
+test("public discovery omits credentials and GET game selection uses query parameters", async () => {
+  let credentials = 0;
+  const client = createApiClient({
+    baseUrl: "https://api.example",
+    token: () => {
+      credentials++;
+      return "token";
+    },
+    fetch: async (url, init) => {
+      if (url.pathname === "/v3/games") {
+        assert.equal(init.headers.Authorization, undefined);
+        return Response.json([]);
+      }
+      assert.equal(url.searchParams.get("season"), "2099");
+      assert.equal(url.searchParams.get("gameVersion"), "2");
+      assert.equal(init.body, undefined);
+      assert.equal(init.headers.Authorization, "Bearer token");
+      return Response.json([]);
+    },
+  });
+  assert.deepEqual(await client.request("games", {}), []);
+  assert.equal(credentials, 0);
+  assert.deepEqual(
+    await client.request("metrics", { season: 2099, gameVersion: 2 }),
+    [],
+  );
+  assert.equal(credentials, 1);
+});
+test("generated OpenAPI references resolve and document Collection report authentication", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const document = JSON.parse(
+    await readFile(new URL("../openapi.json", import.meta.url), "utf8"),
+  );
+  const walk = (node) => {
+    if (!node || typeof node !== "object") return;
+    if (node.$ref?.startsWith("#/")) {
+      let target = document;
+      for (const part of node.$ref.slice(2).split("/"))
+        target = target?.[part.replaceAll("~1", "/").replaceAll("~0", "~")];
+      assert.ok(target, "Unresolved schema: " + node.$ref);
+    }
+    for (const child of Object.values(node)) walk(child);
+  };
+  walk(document);
+  const report = document.paths["/v3/reports"].post;
+  assert.deepEqual(report.security, [{ collectionCode: [] }]);
+  assert.ok(report.responses["201"]);
+  assert.ok(
+    report.parameters.some(
+      (parameter) => parameter.name === "X-Scouter-Uuid" && parameter.required,
+    ),
+  );
+});

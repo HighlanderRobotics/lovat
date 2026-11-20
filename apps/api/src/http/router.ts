@@ -43,10 +43,6 @@ export class Reply {
 }
 export class ServiceRouter {
   readonly endpoints: Endpoint[] = [];
-  private readonly candidates = new Map<
-    string,
-    { endpoint: Endpoint; template: string[] }[]
-  >();
   add(
     method: string,
     path: string,
@@ -57,38 +53,9 @@ export class ServiceRouter {
       throw new Error("Duplicate endpoint: " + method + " " + path);
     const endpoint = { method, path, policy, handle };
     this.endpoints.push(endpoint);
-    const template = path.replace(/\/$/, "").split("/");
-    const key = method + ":" + template.length;
-    if (!this.candidates.has(key)) this.candidates.set(key, []);
-    this.candidates.get(key)!.push({ endpoint, template });
-  }
-  match(
-    method: string,
-    path: string,
-  ): { endpoint: Endpoint; params: Record<string, string> } | null {
-    const parts = path.replace(/\/$/, "").split("/");
-    for (const { endpoint, template } of this.candidates.get(
-      method + ":" + parts.length,
-    ) ?? []) {
-      const params: Record<string, string> = {};
-      let valid = true;
-      for (let i = 0; i < template.length; i++) {
-        if (template[i].startsWith(":")) {
-          try {
-            params[template[i].slice(1)] = decodeURIComponent(parts[i]);
-          } catch {
-            throw new HttpError(400, "INVALID_PATH", "Invalid URL encoding");
-          }
-        } else if (template[i] !== parts[i]) {
-          valid = false;
-          break;
-        }
-      }
-      if (valid) return { endpoint, params };
-    }
-    return null;
   }
 }
+
 export function input<S extends z.ZodType>(
   schema: S,
   value: unknown,

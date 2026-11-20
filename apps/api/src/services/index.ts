@@ -1,3 +1,6 @@
+import { registerGamePredictions } from "./gamePredictions.js";
+import { registerGameReports } from "./gameReports.js";
+import type { GameCatalog } from "@lovat/games";
 import { createLegacyOpenApiDocument } from "@lovat/api/legacy";
 import { createOfficialReader, type OfficialReader } from "../official.js";
 import { ServiceRouter } from "../http/router.js";
@@ -19,6 +22,7 @@ export interface ServiceOptions {
   baseUrl: string;
   commit: string;
   analyze: Analyze;
+  gameCatalog?: GameCatalog;
   official?: OfficialReader;
   website?: string;
   slack?: SlackOptions;
@@ -27,6 +31,8 @@ export function createServices(options: ServiceOptions) {
   const router = new ServiceRouter();
   const official = options.official ?? createOfficialReader(undefined);
   const website = options.website ?? "https://lovat.app";
+  const legacyAnalyze: Analyze = (scope, request) =>
+    options.analyze(scope, { ...request, gameVersion: 1 });
   const modules: [string, () => void][] = [
     ["accounts", () => registerAccounts(router)],
     ["apiKeys", () => registerApiKeys(router)],
@@ -34,15 +40,18 @@ export function createServices(options: ServiceOptions) {
     ["collection", () => registerCollection(router)],
     ["picklists", () => registerPicklists(router)],
     ["reports", () => registerReports(router)],
+    ["gameReports", () => registerGameReports(router, options.gameCatalog)],
+    [
+      "gamePredictions",
+      () =>
+        registerGamePredictions(router, options.analyze, options.gameCatalog),
+    ],
     ["settings", () => registerSettings(router, website)],
     ["shifts", () => registerShifts(router)],
-    ["analysis", () => registerAnalysis(router, options.analyze, official)],
-    [
-      "predictions",
-      () => registerPredictions(router, options.analyze, official),
-    ],
+    ["analysis", () => registerAnalysis(router, legacyAnalyze, official)],
+    ["predictions", () => registerPredictions(router, legacyAnalyze, official)],
     ["training", () => registerTraining(router)],
-    ["events", () => registerEvents(router, options.analyze, official)],
+    ["events", () => registerEvents(router, legacyAnalyze, official)],
     ["onboarding", () => registerOnboarding(router, website)],
     [
       "slack",

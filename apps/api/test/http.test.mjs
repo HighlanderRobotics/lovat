@@ -1,6 +1,7 @@
+import { startApi } from "../dist/runtime.js";
+import { legacyAnalysisInput } from "@lovat/games/2026";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { once } from "node:events";
 import { createApi } from "../dist/app.js";
 import { HttpError } from "../dist/errors.js";
 import { report, scope } from "./fixtures.mjs";
@@ -17,27 +18,20 @@ async function fixture(t, overrides = {}) {
     repository: {
       loadReports: async (...args) => {
         loads.push(args);
-        return [report()];
+        return [legacyAnalysisInput(report())];
       },
     },
     ready: async () => true,
     log: (event) => logs.push(event),
     ...overrides,
   });
-  api.server.listen(0, "127.0.0.1");
-  await once(api.server, "listening");
-  t.after(
-    () =>
-      new Promise((resolve) => {
-        api.server.close(resolve);
-        api.server.closeAllConnections();
-      }),
-  );
+  const runtime = startApi(api, { port: 0, hostname: "127.0.0.1" });
+  t.after(() => runtime.stop(true));
   return {
     ...api,
     loads,
     logs,
-    url: "http://127.0.0.1:" + api.server.address().port,
+    url: runtime.url,
   };
 }
 const post = (body) => ({
@@ -131,7 +125,11 @@ test("readiness reflects dependencies and draining preserves liveness", async (t
 
 test("internal metric validation failures return sanitized server errors", async (t) => {
   const api = await fixture(t, {
-    repository: { loadReports: async () => [report({ driverAbility: NaN })] },
+    repository: {
+      loadReports: async () => [
+        legacyAnalysisInput(report({ driverAbility: NaN })),
+      ],
+    },
   });
   const response = await fetch(
     api.url + "/v3/analysis",
@@ -155,7 +153,7 @@ test("concurrency admission stays bounded while a repository call is in flight",
       loadReports: async () => {
         signalStarted();
         await gate;
-        return [report()];
+        return [legacyAnalysisInput(report())];
       },
     },
   });
@@ -173,4 +171,32 @@ test("concurrency admission stays bounded while a repository call is in flight",
     release();
     assert.equal((await first).status, 200);
   }
+});
+
+test("Hono decodes route parameters once and rejects malformed path encoding", async (t) => {
+  const { ServiceRouter } = await import("../dist/http/router.js");
+  const router = new ServiceRouter();
+  router.add("GET", "/encoded/:id", "public", async (ctx) => ctx.params);
+  const api = await fixture(t, {
+    services: {
+      router,
+      db: {},
+      authenticate: async () => {
+        throw Error("Unexpected authentication");
+      },
+    },
+  });
+  assert.deepEqual(await (await fetch(api.url + "/encoded/a%252Fb")).json(), {
+    id: "a%2Fb",
+  });
+  assert.equal((await fetch(api.url + "/encoded/%ZZ")).status, 400);
+});
+test("JSON depth is bounded before recursive game schema validation", async (t) => {
+  const api = await fixture(t);
+  let body = {};
+  for (let i = 0; i < 70; i++) body = { nested: body };
+  const response = await fetch(api.url + "/v3/analysis", post(body));
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, "INVALID_JSON");
+  assert.equal(api.loads.length, 0);
 });

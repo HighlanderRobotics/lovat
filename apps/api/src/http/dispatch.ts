@@ -3,7 +3,12 @@ import type { RateLimiter } from "../identity.js";
 import type { PrismaClient } from "@lovat/db";
 import type { IncomingHttpHeaders } from "node:http";
 import { HttpError } from "../errors.js";
-import { type ServiceRouter, type Context, type Session } from "./router.js";
+import {
+  type ServiceRouter,
+  type Context,
+  type Session,
+  type Endpoint,
+} from "./router.js";
 
 export interface ServiceDependencies {
   router: ServiceRouter;
@@ -21,7 +26,7 @@ export interface ServiceDependencies {
 }
 export async function dispatch(
   deps: ServiceDependencies,
-  match: NonNullable<ReturnType<ServiceRouter["match"]>>,
+  match: { endpoint: Endpoint; params: Record<string, string> },
   request: {
     headers: IncomingHttpHeaders;
     query: Record<string, string>;

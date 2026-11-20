@@ -28,6 +28,7 @@ export const analysisRequestSchema = z
     metrics: z.array(z.string().min(1).max(100)).min(1).max(64),
     season: z.number().int().min(2000).max(2100).default(2026),
     timeline: z.boolean().default(false),
+    gameVersion: z.number().int().positive().optional(),
   })
   .strict();
 export const analysisResponseSchema = z.object({

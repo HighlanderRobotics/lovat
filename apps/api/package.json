@@ -4,34 +4,36 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "bun x tsc",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test test/*.test.mjs",
-    "start": "node dist/server.js",
-    "benchmark": "npm run build && node tools/benchmark.mjs",
-    "prebuild": "npm --prefix ../../packages/api run build",
-    "postinstall": "npm --prefix ../../packages/api ci --ignore-scripts && npm --prefix ../../packages/api run build",
+    "test": "bun run build && bun test ./test/*.test.mjs",
+    "start": "bun --smol dist/server.js",
+    "benchmark": "bun run build && bun tools/benchmark.mjs",
+    "prebuild": "bun run --cwd ../../packages/games build",
+    "postinstall": "npm --prefix ../../packages/api ci --ignore-scripts && npm --prefix ../../packages/games ci --ignore-scripts && bun run --cwd ../../packages/games build",
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "format:check": "prettier --check .",
-    "inventory": "node tools/inventory.mjs",
-    "inventory:check": "node tools/inventory.mjs --check",
-    "test:integration": "npm run build && node --test test/*.integration.mjs"
+    "inventory": "bun tools/inventory.mjs",
+    "inventory:check": "bun tools/inventory.mjs --check",
+    "test:integration": "bun run build && bun test --smol ./test/*.integration.mjs"
   },
   "engines": {
-    "node": ">=22.20.0 <23 || >=24"
+    "bun": "1.4.4"
   },
   "dependencies": {
-    "@lovat/api": "file:../../packages/api",
-    "@lovat/db": "file:../../packages/db",
+    "@lovat/api": "link:../../packages/api",
+    "@lovat/db": "link:../../packages/db",
     "jose": "6.2.12",
     "redis": "6.2.1",
-    "ws": "8.22.0",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@lovat/games": "link:../../packages/games",
+    "hono": "4.13.19"
   },
   "devDependencies": {
     "@types/node": "22.20.4",
-    "@types/ws": "8.18.2",
     "prettier": "3.9.9",
-    "typescript": "5.9.3"
-  }
+    "typescript": "5.9.3",
+    "@types/bun": "1.4.4"
+  },
+  "packageManager": "bun@1.4.4"
 }

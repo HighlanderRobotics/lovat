@@ -9,7 +9,6 @@ import { createSignatureVerifier } from "../dist/signatures.js";
 import { grade } from "../dist/domain/grading.js";
 import { prediction, csv } from "../dist/domain/prediction.js";
 import { createOfficialReader, rankingSchema } from "../dist/official.js";
-import { ServiceRouter } from "../dist/http/router.js";
 const scope = {
   userId: "a",
   teamNumber: 1,
@@ -48,7 +47,7 @@ test("every inventoried legacy HTTP route has exactly one replacement", () => {
       1,
       route.method + " " + route.path,
     );
-  assert.equal(router.endpoints.length, routes.length);
+  assert.equal(router.endpoints.length, routes.length + 2);
 });
 test("cache shares concurrent calculations and isolates scopes and revisions", async () => {
   let computes = 0,
@@ -304,16 +303,6 @@ test("official data is shared, cached and bounded to allowed event paths", async
     official("2026test", "private", rankingSchema),
     (e) => e.status === 400,
   );
-});
-test("router decodes parameters and rejects malformed encodings", () => {
-  const router = new ServiceRouter();
-  router.add("GET", "/test/:id", "public", async () => null);
-  assert.equal(router.match("GET", "/test/a%20b").params.id, "a b");
-  assert.throws(
-    () => router.match("GET", "/test/%E0%A4%A"),
-    (e) => e.status === 400,
-  );
-  assert.equal(router.match("POST", "/test/a"), null);
 });
 
 test("cold-analysis budget bounds parallel work, releases failures and expires queued work", async () => {

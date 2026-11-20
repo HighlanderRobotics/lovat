@@ -8,6 +8,7 @@ on:
       - "apps/server/src/handler/training/training.routes.ts"
       - "packages/api/**"
       - "packages/db/**"
+      - "packages/games/**"
       - ".github/workflows/api-rewrite.yml"
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - "apps/api/**"
       - "packages/api/**"
       - "packages/db/**"
+      - "packages/games/**"
       - ".github/workflows/api-rewrite.yml"
 permissions:
   contents: read
@@ -50,7 +52,8 @@ jobs:
           cache-dependency-path: |
             packages/api/package-lock.json
             packages/db/package-lock.json
-            apps/api/package-lock.json
+            packages/games/package-lock.json
+
       - run: npm ci
         working-directory: packages/db
       - run: npm run build
@@ -61,7 +64,12 @@ jobs:
         working-directory: packages/api
       - run: npm test && npm run generate:check && npm run lint && npm run format:check
         working-directory: packages/api
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
         working-directory: apps/api
-      - run: npm test && npm run test:integration && npm run lint && npm run format:check && npm run inventory:check
+      - run: npm test && npm run lint && npm run format:check
+        working-directory: packages/games
+      - run: bun run test && bun run test:integration && bun run lint && bun run format:check && bun run inventory:check
         working-directory: apps/api

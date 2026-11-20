@@ -1,3 +1,4 @@
+import { GameError } from "@lovat/games";
 export class HttpError extends Error {
   constructor(
     readonly status: number,
@@ -10,6 +11,8 @@ export class HttpError extends Error {
 
 export function publicError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
+  if (error instanceof GameError)
+    return new HttpError(error.status, error.code, error.message);
   if (error instanceof Error && "code" in error) {
     const code = String(error.code);
     if (code === "P2025")

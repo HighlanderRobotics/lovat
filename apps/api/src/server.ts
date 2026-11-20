@@ -1,5 +1,5 @@
 import { createProvisioner } from "./provision.js";
-import { attachTrainingSockets } from "./sockets.js";
+import { startApi } from "./runtime.js";
 import { createOfficialReader } from "./official.js";
 import { createAnalysisService } from "./analysis.js";
 import { createApi } from "./app.js";
@@ -81,38 +81,38 @@ const api = createApi({
     .filter(Boolean),
   log: (event) => console.log(JSON.stringify(event)),
 });
-const sockets = attachTrainingSockets(
-  api.server,
+const runtime = startApi(api, {
+  port,
   db,
-  (process.env.CORS_ALLOWED_ORIGINS ?? "")
+  origins: (process.env.CORS_ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
-);
-api.server.listen(port, () =>
-  console.log(JSON.stringify({ event: "listening", port })),
+});
+console.log(
+  JSON.stringify({
+    event: "listening",
+    port: runtime.server.port,
+    runtime: "bun",
+  }),
 );
 let stopping = false;
-function shutdown() {
-  if (stopping) {
-    return;
-  }
+async function shutdown() {
+  if (stopping) return;
   stopping = true;
   api.drain();
-  sockets.close();
   const deadline = setTimeout(() => {
-    api.server.closeAllConnections();
+    void runtime.stop(true);
     process.exit(1);
-  }, 15_000);
+  }, 15000);
   deadline.unref();
-  api.server.close(() => {
-    void Promise.all([db.$disconnect(), state.close()]).then(
-      () => {
-        clearTimeout(deadline);
-      },
-      () => process.exit(1),
-    );
-  });
+  try {
+    await runtime.stop();
+    await Promise.all([db.$disconnect(), state.close()]);
+    clearTimeout(deadline);
+  } catch {
+    process.exit(1);
+  }
 }
-process.once("SIGINT", shutdown);
-process.once("SIGTERM", shutdown);
+process.once("SIGINT", () => void shutdown());
+process.once("SIGTERM", () => void shutdown());

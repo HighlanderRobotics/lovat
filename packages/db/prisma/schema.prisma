@@ -52,8 +52,9 @@ model ImportJob {
 }
 
 model Season {
-  year     Int     @id
-  gameName String?
+  gameReports GameReport[]
+  year        Int          @id
+  gameName    String?
 
   teamSeasons     TeamSeason[]
   districtSeasons DistrictSeason[]
@@ -236,13 +237,14 @@ enum TournamentGapTimingSource {
 }
 
 model TeamMatchData {
-  key               String    @id
+  gameReports       GameReport[]
+  key               String       @id
   tournamentKey     String
-  matchNumber       Int       @db.SmallInt
+  matchNumber       Int          @db.SmallInt
   teamNumber        Int
   matchType         MatchType
   /// True only when a public provider schedule includes this practice team.
-  practiceScheduled Boolean   @default(false)
+  practiceScheduled Boolean      @default(false)
 
   matchKey String?
   alliance AllianceColor?
@@ -476,6 +478,7 @@ model ScouterScheduleShift {
 }
 
 model Scouter {
+  gameReports        GameReport[]
   reportsInProgress  ScoutReportInProgress[]
   trainingAttempts   TrainingAttempt[]
   uuid               String                  @id @default(uuid())
@@ -564,7 +567,7 @@ model SlackSubscription {
 }
 
 model SlackNotificationThread {
-  tournamentKey String?
+  tournamentKey  String?
   messageId      String            @id
   matchNumber    Int
   teamNumber     Int
@@ -605,8 +608,6 @@ model CachedAnalysis {
   teamDependencies       Int[]    @default([])
   tournamentDependencies String[] @default([])
 }
-
-
 
 enum Position {
   LEFT_TRENCH
@@ -740,4 +741,27 @@ model ApiOutbox {
   createdAt   DateTime  @default(now())
 
   @@index([completedAt, availableAt])
+}
+
+model GameReport {
+  uuid          String            @id
+  scouterUuid   String
+  teamMatchKey  String
+  seasonYear    Int
+  gameId        String
+  gameVersion   Int
+  reportVersion Int
+  startTime     DateTime
+  endTime       DateTime
+  data          Json
+  training      Boolean           @default(false)
+  reliability   ReportReliability @default(UNVERIFIED)
+  createdAt     DateTime          @default(now())
+  scouter       Scouter           @relation(fields: [scouterUuid], references: [uuid], onDelete: Cascade)
+  teamMatchData TeamMatchData     @relation(fields: [teamMatchKey], references: [key], onDelete: Cascade)
+  season        Season            @relation(fields: [seasonYear], references: [year])
+
+  @@index([scouterUuid])
+  @@index([teamMatchKey])
+  @@index([seasonYear, gameId, gameVersion])
 }

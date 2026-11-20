@@ -1,5 +1,5 @@
+import { startApi } from "../dist/runtime.js";
 import { randomUUID } from "node:crypto";
-import { once } from "node:events";
 import { performance } from "node:perf_hooks";
 import { createApi } from "../dist/app.js";
 import { createRepository } from "../dist/repository.js";
@@ -41,6 +41,7 @@ const body = JSON.stringify({
   timeline: false,
 });
 let api;
+let runtime;
 const percentile = (a, p) =>
   a[Math.min(a.length - 1, Math.ceil(a.length * p) - 1)];
 try {
@@ -146,10 +147,8 @@ try {
         authenticate: async () => scope,
         ready: async () => true,
       });
-      api.server.listen(0, "127.0.0.1");
-      await once(api.server, "listening");
-      const endpoint =
-        "http://127.0.0.1:" + api.server.address().port + "/v3/analysis";
+      runtime = startApi(api, { port: 0, hostname: "127.0.0.1" });
+      const endpoint = runtime.url + "/v3/analysis";
       const call = async () => {
         const start = performance.now();
         const response = await fetch(endpoint, {
@@ -185,7 +184,8 @@ try {
             metrics: 31,
             concurrency,
             requests: timings.length,
-            node: process.version,
+            runtime: "bun",
+            bun: Bun.version,
             p50Ms: percentile(timings, 0.5),
             p95Ms: percentile(timings, 0.95),
             p99Ms: percentile(timings, 0.99),
@@ -198,8 +198,7 @@ try {
           }),
         );
       }
-      api.server.closeAllConnections();
-      await new Promise((resolve) => api.server.close(resolve));
+      await runtime.stop(true);
       api = undefined;
       // Remove only this run's explicitly namespaced cache entries.
       await state.connect();
@@ -215,8 +214,7 @@ try {
   }
 } finally {
   if (api) {
-    api.server.closeAllConnections();
-    await new Promise((resolve) => api.server.close(resolve));
+    await runtime.stop(true);
   }
   await db.tournament.deleteMany({ where: { key: eventKey } });
   await db.registeredTeam.deleteMany({ where: { number: own } });

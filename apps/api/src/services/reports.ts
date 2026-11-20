@@ -1,3 +1,4 @@
+import { write2026Report } from "../gameAdapters/2026Write.js";
 import { recordAnalysisChange, reportEffects } from "../domain/effects.js";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
@@ -109,6 +110,17 @@ async function slot(
     include: { tournament: { select: { seasonYear: true } } },
   });
   if (!row && report.matchType === "PRACTICE") {
+    const tournament = await ctx.db.tournament.findUnique({
+      where: { key: report.tournamentKey },
+      select: { seasonYear: true },
+    });
+    if (!tournament) notFound("Tournament not found");
+    if (tournament.seasonYear !== 2026)
+      throw new HttpError(
+        409,
+        "CLIENT_UPDATE_REQUIRED",
+        "Use the versioned game report API for this season",
+      );
     const key =
       report.tournamentKey +
       "_pm" +
@@ -122,6 +134,12 @@ async function slot(
       include: { tournament: { select: { seasonYear: true } } },
     });
   }
+  if (row && row.tournament.seasonYear !== 2026)
+    throw new HttpError(
+      409,
+      "CLIENT_UPDATE_REQUIRED",
+      "Use the versioned game report API for this season",
+    );
   return row ?? notFound("Match not found");
 }
 export function registerReports(router: ServiceRouter) {
@@ -156,6 +174,12 @@ export function registerReports(router: ServiceRouter) {
     });
     const selected = match?.teamSlots[0];
     if (!match || !selected) notFound("Team not in match");
+    if (match.tournament.seasonYear !== 2026)
+      throw new HttpError(
+        409,
+        "CLIENT_UPDATE_REQUIRED",
+        "Use the versioned game report API for this season",
+      );
     const existing = await ctx.db.scoutReportInProgress.findUnique({
       where: { uuid: data.uuid },
     });
@@ -398,51 +422,15 @@ export function registerReports(router: ServiceRouter) {
       matchType: report.matchType,
       matchNumber: report.matchNumber,
     });
-    await ctx.db.$transaction(async (tx) => {
-      const receipt = await tx.scoutReportInProgress.findFirst({
-        where: { uuid: report.uuid },
-      });
-      if (receipt) {
-        if (
-          receipt.sourceTeamNumber !== actor.sourceTeamNumber ||
-          receipt.scouterUuid !== actor.uuid
-        )
-          notFound();
-        if (!isDeepStrictEqual(receipt.payload, canonicalPayload(report)))
-          throw new HttpError(
-            409,
-            "REPORT_PAYLOAD_CONFLICT",
-            "UUID was submitted with different data",
-          );
-        return;
-      }
-      await tx.scoutReport.create({ data: persistenceData(report, match.key) });
-      await tx.scoutReportInProgress.create({
-        data: {
-          uuid: report.uuid,
-          sourceTeamNumber: actor.sourceTeamNumber,
-          scouterUuid: actor.uuid,
-          deviceId: String(ctx.headers["x-device-id"] ?? "legacy"),
-          seasonYear:
-            match.tournament.seasonYear ??
-            Number(report.tournamentKey.slice(0, 4)),
-          schemaVersion: 1,
-          mode: "COMPETITION",
-          status: "SUBMITTED",
-          tournamentKey: report.tournamentKey,
-          matchType: report.matchType,
-          matchNumber: report.matchNumber,
-          teamNumber: report.teamNumber,
-          payload: canonicalPayload(report),
-          startedAt: new Date(report.startTime),
-          submittedAt: new Date(),
-          expiresAt: ttl(),
-          finalizedReportUuid: report.uuid,
-        },
-      });
-      await reportEffects(tx, report, actor.sourceTeamNumber);
-    });
-
+    await ctx.db.$transaction((tx) =>
+      write2026Report(
+        tx,
+        report,
+        actor,
+        match,
+        String(ctx.headers["x-device-id"] ?? "legacy"),
+      ),
+    );
     return "done adding data";
   };
   for (const prefix of ["/collection", "/v2/collection"]) {

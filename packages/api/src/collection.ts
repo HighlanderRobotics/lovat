@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { timestampSchema } from "./reports.js";
+import { timestampSchema } from "./common.js";
 export const collectionIdentityHeadersSchema = z.object({
   "x-team-code": z.string().min(1).max(256),
   "x-scouter-uuid": z.uuid(),
