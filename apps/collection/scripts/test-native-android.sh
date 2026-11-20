@@ -66,6 +66,7 @@ adb shell cmd connectivity airplane-mode enable
 # landscape session rather than relying on a successful input command.
 maestro test --debug-output .maestro/results/enter-game-debug --test-output-dir .maestro/results/enter-game-debug --format junit --output .maestro/results/enter-game.xml .maestro/enter-game.yaml
 maestro test --debug-output .maestro/results/record-match-debug --test-output-dir .maestro/results/record-match-debug --format junit --output .maestro/results/record-match.xml .maestro/record-match.yaml
+python3 scripts/tap-native-menu.py
 maestro test --debug-output .maestro/results/offline-debug --test-output-dir .maestro/results/offline-debug --format junit --output .maestro/results/offline.xml .maestro/offline-restart.yaml
 adb shell cmd connectivity airplane-mode disable
 start_fixture

@@ -17,5 +17,3 @@ appId: com.frc8033.lovatcollection
 - longPressOn: "Intake from depot"
 - longPressOn: "Undo"
 - longPressOn: "Intake from depot"
-- longPressOn: "End match"
-- longPressOn: "End match"

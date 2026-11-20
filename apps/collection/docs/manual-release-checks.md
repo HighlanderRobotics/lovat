@@ -62,7 +62,7 @@ Do not use a personal device: bootstrap intentionally clears app storage.
 For iOS, build the existing `native-smoke-ios` EAS simulator profile with Xcode 27
 from that same source SHA, record the run URL, version and artifact hash, install
 on a disposable simulator, and run `.maestro/bootstrap.yaml`,
-`.maestro/enter-game.yaml`, `.maestro/record-match.yaml`,
+`.maestro/enter-game.yaml`, `.maestro/record-match.yaml`, `.maestro/end-match.yaml`,
 `.maestro/offline-restart.yaml` and `.maestro/reconnect.yaml` in that order,
 each in a separate Maestro invocation against the synthetic fixture
 (`node test/native/fixture-api.mjs`). Stop the fixture before `enter-game.yaml`
@@ -71,6 +71,13 @@ Retain Maestro JUnit/screenshots and the fixture submission ledger. This iOS
 procedure is a pending operator check until its actual build/run evidence is
 attached; a build profile alone is not a passed native test. Physical-device
 rows above still apply after a simulator pass.
+
+On Android CI, landscape field controls use Maestro's shell-based long press
+because the pinned driver's normal tap is ineffective after rotation on the
+emulator image. The native End Match menu requires a short tap, so the Android
+runner uses `scripts/tap-native-menu.py` in place of `end-match.yaml`. It resolves
+fresh accessibility bounds, rejects missing/disabled/ambiguous targets and
+retains its UI snapshots and JUnit result. All state assertions remain required.
 
 If CI cannot boot/install, attach its failure and run the same journey on a
 physical test device. Record that separate result explicitly. Attach redacted
