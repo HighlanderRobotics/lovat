@@ -121,3 +121,27 @@ Automated tests cover state selection, match labels, assigned-team selection,
 team ownership, token validation, and the public sidebar/preview controls. Xcode
 compilation and simulator previews don't prove real APNs delivery; the signed
 device/background checks above must be completed before release.
+
+## Simulator widgets stuck on gray placeholders
+
+The Home Screen demo uses an App Intent for its shift-state picker. In the local
+iOS 27.2 simulator, installing a build made with `CODE_SIGNING_ALLOWED=NO` caused
+the configuration service to fail with `Unable to get LNAction from intent` and
+`No AppIntent in timeline(for:with:)`. The JSON was present, but WidgetKit could
+not request its timeline. Compilation alone did not catch this failure.
+
+Keep local signing enabled when building simulator demos. If installing an
+existing unsigned build manually, apply an ad hoc signature to the extension
+first and then the app, after any development-only Info.plist edits:
+
+```bash
+# Run from the directory containing the built Collection.app.
+codesign --force --sign - Collection.app/PlugIns/ScoutingLiveActivity.appex
+codesign --force --sign - Collection.app
+xcrun simctl install booted Collection.app
+```
+
+This simulator signature does not need a paid developer account and does not
+enable device signing or APNs. After reinstalling, reopen the widget gallery.
+Verify actual match numbers in both sizes and switch the installed widget's
+Shift state to On scout; a successful build or gray placeholder is insufficient.
