@@ -76,6 +76,7 @@ private final class ScoutingActivityCoordinator {
         $0.activityState == .active || $0.activityState == .stale
       },
     ]
+    if let environment = PushEnvironment.current { result["pushEnvironment"] = environment }
     if let error = lastRegistrationError { result["registrationError"] = error }
     return result
   }
@@ -155,11 +156,10 @@ private final class ScoutingActivityCoordinator {
 
   private func register(token: Data, kind: String, activityId: String?) async {
     guard !config.isEmpty, !dismissed, !stopping else { return }
-    #if DEBUG
-    let environment = "sandbox"
-    #else
-    let environment = "production"
-    #endif
+    guard let environment = PushEnvironment.current else {
+      lastRegistrationError = "Unable to read the signing profile's push environment. Reinstall a signed Collection build."
+      return
+    }
     var body: [String: Any] = [
       "installationId": config["installationId", default: ""],
       "tournamentKey": config["tournamentKey", default: ""],

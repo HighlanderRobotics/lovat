@@ -7,6 +7,7 @@ export type NativeActivityStatus = {
   enabled: boolean;
   active: boolean;
   registrationError?: string;
+  pushEnvironment?: "sandbox" | "production";
 };
 
 export type ActivityConfiguration = {

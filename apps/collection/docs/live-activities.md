@@ -76,8 +76,12 @@ Configure `APNS_TEAM_ID`, `APNS_KEY_ID`, and `APNS_PRIVATE_KEY` on Server using 
 Apple APNs signing key. Store the `.p8` private key only in the hosting provider's
 secret manager, never in Collection, `EXPO_PUBLIC_*`, Git, or the widget bundle.
 The fixed APNs topic is
-`com.frc8033.lovatcollection.push-type.liveactivity`. Debug builds register
-sandbox tokens; signed release/TestFlight builds register production tokens.
+`com.frc8033.lovatcollection.push-type.liveactivity`. The provisioning profile's
+`aps-environment` selects sandbox or production, independently of Debug/Release
+optimization. Local development-signed Release builds still use sandbox;
+distribution/TestFlight builds use production. Debug displays the selected Apple
+push environment. An unreadable embedded profile prevents registration rather
+than guessing the wrong endpoint.
 
 The phone registers its ActivityKit update and push-to-start tokens through
 `POST /collection/live-activities`. The native module observes token rotations
@@ -121,6 +125,18 @@ Automated tests cover state selection, match labels, assigned-team selection,
 team ownership, token validation, and the public sidebar/preview controls. Xcode
 compilation and simulator previews don't prove real APNs delivery; the signed
 device/background checks above must be completed before release.
+
+The native signing-environment regression checks can run without a simulator:
+
+```bash
+xcrun swiftc modules/lovat-live-activities/ios/PushEnvironment.swift \
+  test/native/PushEnvironmentTests.swift -o /tmp/lovat-push-environment-tests
+/tmp/lovat-push-environment-tests
+```
+
+An optional argument points to a local development build's
+`Collection.app/embedded.mobileprovision`, verifying that its real profile maps
+to sandbox. Do not commit that profile.
 
 ## Simulator widgets stuck on gray placeholders
 

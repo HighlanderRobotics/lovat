@@ -88,6 +88,11 @@ export default function Debug() {
               assignments.
             </BodyMedium>
           )}
+          {debug.status?.pushEnvironment && (
+            <BodyMedium>
+              Apple push environment: {debug.status.pushEnvironment}
+            </BodyMedium>
+          )}
           {debug.backgroundReady === true && (
             <BodyMedium>Server background updates are configured.</BodyMedium>
           )}
