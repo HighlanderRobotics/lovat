@@ -21,10 +21,32 @@ export async function acquireConnection<T>(
     try {
       return await connect();
     } catch (error) {
-      const code =
-        error && typeof error === "object" && "code" in error
-          ? String(error.code)
-          : "";
+      let cause = error;
+      let code = "";
+      for (
+        let depth = 0;
+        depth < 4 && cause && typeof cause === "object";
+        depth++
+      ) {
+        if (
+          cause instanceof Error &&
+          [
+            "Connection terminated due to connection timeout",
+            "timeout exceeded when trying to connect",
+          ].includes(cause.message)
+        ) {
+          code = "ETIMEDOUT";
+          break;
+        }
+        if (
+          "code" in cause &&
+          transientConnectionCodes.has(String(cause.code))
+        ) {
+          code = String(cause.code);
+          break;
+        }
+        cause = "cause" in cause ? cause.cause : undefined;
+      }
       const delay = delays[attempt];
       if (delay === undefined || !transientConnectionCodes.has(code))
         throw error;

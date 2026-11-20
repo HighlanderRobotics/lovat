@@ -56,3 +56,28 @@ test("connection retries are bounded and preserve the final failure", async () =
   );
   assert.equal(attempts, 3);
 });
+
+test("recovers pg-pool's code-less startup timeouts and nested DNS errors", async () => {
+  for (const error of [
+    new Error("Connection terminated due to connection timeout", {
+      cause: new Error("Connection terminated unexpectedly"),
+    }),
+    new Error("timeout exceeded when trying to connect"),
+    new Error("connect failed", {
+      cause: Object.assign(new Error("lookup"), { code: "ETIMEDOUT" }),
+    }),
+  ]) {
+    let attempts = 0;
+    assert.equal(
+      await acquireConnection(
+        async () => {
+          if (++attempts === 1) throw error;
+          return "connected";
+        },
+        async () => {},
+      ),
+      "connected",
+    );
+    assert.equal(attempts, 2);
+  }
+});
