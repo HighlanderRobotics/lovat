@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Button, TextField } from 'magnolia-ui-svelte';
+	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte';
 
 	let submitClicked = false;
 </script>

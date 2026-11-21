@@ -1,4 +1,4 @@
-import { Text } from "react-native";
+import { Text } from "@highlanderrobotics/magnolia-react-native";
 import { colors } from "../../colors";
 
 const TitleLarge = ({

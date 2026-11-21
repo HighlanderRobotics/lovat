@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import Recaptcha from '$lib/components/Recaptcha.svelte';
 	import type { PageData, ActionData } from './$types';
-	import { Button, TextField } from 'magnolia-ui-svelte';
+	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -93,7 +93,7 @@
 		{/if}
 
 		<div class="submit">
-			<Button disabled={submitClicked || !!teamError || !captchaToken}>Send</Button>
+			<Button type="submit" disabled={submitClicked || !!teamError || !captchaToken}>Send</Button>
 		</div>
 	</form>
 </section>

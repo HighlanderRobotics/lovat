@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Icon } from 'magnolia-ui-svelte';
+	import { Icon } from '@highlanderrobotics/magnolia-svelte';
 </script>
 
 <svelte:head>

@@ -1,4 +1,5 @@
-import { StyleProp, Text, TextStyle } from "react-native";
+import { Text } from "@highlanderrobotics/magnolia-react-native";
+import { StyleProp, TextStyle } from "react-native";
 import { colors } from "../../colors";
 
 const Heading1Small = ({

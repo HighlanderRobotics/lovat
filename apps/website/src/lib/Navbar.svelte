@@ -1,7 +1,7 @@
 <script>
 	import { learnUrl } from '$lib/siteUrls';
 	import { onNavigate } from '$app/navigation';
-	import { Button, DensityProvider, Icon } from 'magnolia-ui-svelte';
+	import { Button, DensityProvider, Icon } from '@highlanderrobotics/magnolia-svelte';
 
 	let expanded = false;
 
@@ -27,7 +27,7 @@
 			class="menu-button"
 			aria-label="Navigation menu"
 			aria-expanded={expanded}
-			on:click={() => (expanded = !expanded)}
+			onclick={() => (expanded = !expanded)}
 		>
 			<Icon icon="menu" />
 		</button>
@@ -39,7 +39,7 @@
 					<Button variant="secondary" element="a" href="/contact">Join the waitlist</Button>
 				{:else}
 					<!-- <MenuWrapper>
-					<Button variant="text-only-secondary" on:click={() => (isLearnOpen = true)}>Learn</Button>
+					<Button variant="text-only-secondary" onclick={() => (isLearnOpen = true)}>Learn</Button>
 					<Menu bind:open={isLearnOpen}>
 						<MenuButton element="a" href="/collection">Collection</MenuButton>
 						<MenuButton element="a" href="/dashboard">Dashboard for Analysts</MenuButton>

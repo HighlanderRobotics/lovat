@@ -1,5 +1,5 @@
 <script>
-	import { Icon } from 'magnolia-ui-svelte';
+	import { Icon } from '@highlanderrobotics/magnolia-svelte';
 </script>
 
 <section>

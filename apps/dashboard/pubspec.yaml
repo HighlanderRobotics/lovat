@@ -31,6 +31,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  magnolia_ui:
+    git:
+      url: https://github.com/HighlanderRobotics/magnolia-ui.git
+      ref: fb6a12d6c19e3ab27780b31aa56d13c40bbebbf0
+      path: packages/flutter
   http: ^1.6.0
 
   # The following adds the Cupertino Icons font to your application.
