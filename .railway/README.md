@@ -85,9 +85,10 @@ Cron or PostgreSQL Serverless.
 
 GitHub requires `Monorepo CI` on `main`. That job requires Railway IaC checks,
 app tests, applicable production web image HTTP checks, and the CodeQL result.
-CodeQL selects analyses by changed files. A successful selection with zero
-applicable analyses passes, while a failed or cancelled selected analysis
-fails the aggregate. CI runs on every push to `main`.
+CodeQL selects each language by its watch paths. Only a manual CodeQL run
+requests the full matrix. A successful selection with zero applicable analyses
+passes the aggregate. A failed or cancelled selected analysis fails it.
+CI runs on every push to `main`.
 
 `RAILWAY_WAIT_FOR_CI=true` opts all five GitHub sources in the linked environment
 into Railway's [Wait for CI](https://docs.railway.com/deployments/github-autodeploys).
