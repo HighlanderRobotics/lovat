@@ -13,6 +13,18 @@ export type DataSourceRule<T extends number | string> = {
   items: T[];
 };
 
+/** Stored visibility is server state, not caller input. Fail closed on corruption. */
+export function parseStoredSourceRule<T extends z.ZodString | z.ZodNumber>(
+  itemType: T,
+  value: unknown,
+): z.infer<ReturnType<typeof dataSourceRuleSchema<T>>> {
+  try {
+    return dataSourceRuleSchema(itemType).parse(value);
+  } catch (error) {
+    throw new Error("Invalid stored source rule", { cause: error });
+  }
+}
+
 // Return a Prisma-compatible filter object for scalar fields
 export const dataSourceRuleToPrismaFilter = <T extends number | string>(
   rule: DataSourceRule<T>,

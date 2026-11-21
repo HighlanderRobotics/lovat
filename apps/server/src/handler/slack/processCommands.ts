@@ -6,7 +6,7 @@ export const processCommand = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         command: z.string(),
@@ -154,8 +154,5 @@ export const processCommand = async (
           `${body[1]} is not a valid argument for '/lovat team'. Try /lovat team set (team code)`,
         );
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

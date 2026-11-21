@@ -12,6 +12,7 @@ import { TbaHttpError } from "./providers/tba";
 import { day, hour, minute, tournamentCadence } from "./schedule";
 
 export const jobKinds = [
+  "maintenance",
   "teams",
   "tournaments",
   "team-seasons",
@@ -38,7 +39,7 @@ export async function enqueueImport(
 
   if (["tournaments", "team-seasons", "districts"].includes(kind))
     validateSeason(Number(targetKey));
-  if (kind === "teams" && targetKey !== "global")
+  if (["teams", "maintenance"].includes(kind) && targetKey !== "global")
     throw new Error("Team catalog target must be global");
 
   // Preserve existing leases, retry delays and recurring run times.
@@ -89,6 +90,7 @@ export async function reconcileSchedule(
   db: PrismaClient,
   now = new Date(),
   year = now.getUTCFullYear(),
+  includeArchived = false,
 ) {
   validateSeason(year);
 
@@ -117,16 +119,20 @@ export async function reconcileSchedule(
       existing.get(`${kind}:${target}`),
     );
 
-  await ensure("teams", "global", 7 * day);
-  await ensure("tournaments", String(year), 6 * hour);
-  await ensure("team-seasons", String(year), 7 * day);
-  await ensure("districts", String(year), day);
+  if (year === now.getUTCFullYear()) {
+    await ensure("maintenance", "global", day);
+    await ensure("teams", "global", 7 * day);
+    await ensure("tournaments", String(year), 6 * hour);
+    await ensure("team-seasons", String(year), 7 * day);
+    await ensure("districts", String(year), day);
+  }
 
   for (const district of districts)
     await ensure("district-teams", district.key, day);
 
   for (const tournament of tournaments) {
     const cadence = tournamentCadence(tournament, now);
+    if (cadence.phase === "archived" && !includeArchived) continue;
 
     await ensure("tournament-teams", tournament.key, cadence.roster);
     await ensure("tournament-details", tournament.key, cadence.roster);
@@ -134,7 +140,12 @@ export async function reconcileSchedule(
   }
 }
 
-export async function claimJob(db: PrismaClient, now = new Date()) {
+export async function claimJob(
+  db: PrismaClient,
+  now = new Date(),
+  id: string | null = null,
+  cutoff = now,
+) {
   const token = crypto.randomUUID();
   const expires = new Date(now.getTime() + leaseMs);
 
@@ -144,7 +155,8 @@ export async function claimJob(db: PrismaClient, now = new Date()) {
     SET "leaseToken" = ${token}, "leaseExpiresAt" = ${expires}
     FROM (
       SELECT "id" FROM "ImportJob"
-      WHERE "runAt" <= ${now}
+      WHERE "runAt" <= ${cutoff}
+        AND (${id}::text IS NULL OR "id" = ${id})
         AND ("leaseExpiresAt" IS NULL OR "leaseExpiresAt" <= ${now})
       ORDER BY CASE
         WHEN "kind" = 'matches' AND EXISTS (
@@ -170,6 +182,11 @@ export async function executeImport(
   job: Pick<ImportJob, "kind" | "targetKey">,
   db: PrismaClient,
 ) {
+  if (job.kind === "maintenance") {
+    const { runMaintenance } = await import("./jobs/maintenance");
+    return runMaintenance(db);
+  }
+
   const { tba } = await import("./tba");
   const dependencies = { db, tba };
   const year = Number(job.targetKey);
@@ -179,12 +196,22 @@ export async function executeImport(
       return importAllTeams(dependencies);
     case "tournaments":
       await importTournaments(year, year, dependencies);
-      return reconcileSchedule(db, new Date(), year);
+      return reconcileSchedule(
+        db,
+        new Date(),
+        year,
+        year < new Date().getUTCFullYear(),
+      );
     case "team-seasons":
       return importTeamSeasons(year, dependencies);
     case "districts":
       await importDistricts(year, dependencies);
-      return reconcileSchedule(db, new Date(), year);
+      return reconcileSchedule(
+        db,
+        new Date(),
+        year,
+        year < new Date().getUTCFullYear(),
+      );
     case "district-teams":
       return importDistrictTeams(job.targetKey, dependencies);
     case "tournament-teams":
@@ -201,7 +228,18 @@ export async function executeImport(
 }
 
 async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
-  if (job.kind === "gaps") return day;
+  if (job.kind === "maintenance") return day;
+  if (job.kind === "gaps") return null;
+  if (
+    ["tournaments", "team-seasons", "districts"].includes(job.kind) &&
+    Number(job.targetKey) < now.getUTCFullYear()
+  )
+    return null;
+  if (
+    job.kind === "district-teams" &&
+    Number(job.targetKey.slice(0, 4)) < now.getUTCFullYear()
+  )
+    return null;
   if (job.kind === "teams" || job.kind === "team-seasons") return 7 * day;
   if (job.kind === "tournaments") return 6 * hour;
   if (job.kind === "districts" || job.kind === "district-teams") return day;
@@ -210,6 +248,8 @@ async function refreshInterval(db: PrismaClient, job: ImportJob, now: Date) {
     where: { key: job.targetKey },
   });
   const cadence = tournamentCadence(event, now);
+
+  if (cadence.phase === "archived") return null;
 
   return job.kind === "matches" ? cadence.matches : cadence.roster;
 }
@@ -230,15 +270,35 @@ export function retryDelay(attempts: number, error: unknown, now = new Date()) {
 export async function runNextJob(
   db: PrismaClient,
   execute: (job: ImportJob, db: PrismaClient) => Promise<void> = executeImport,
+  claim: { cutoff: Date; id: string } | undefined = undefined,
 ) {
-  const job = await claimJob(db);
+  const job = await claimJob(db, new Date(), claim?.id, claim?.cutoff);
 
   if (!job) return false;
 
+  const startedAt = Date.now();
+  const log = (event: string, extra: Record<string, unknown> = {}) =>
+    console.info(
+      JSON.stringify({
+        event,
+        kind: job.kind,
+        target: job.targetKey,
+        attempt: job.attempts + 1,
+        durationMs: Date.now() - startedAt,
+        queueDelayMs: Math.max(0, startedAt - job.runAt.getTime()),
+        ...extra,
+      }),
+    );
+  log("job.started");
+  let renewal: Promise<void> | undefined;
   let renewing = false;
   let lostLease = false;
 
-  const heartbeat = setInterval(async () => {
+  const heartbeat = setInterval(() => {
+    if (!renewing && !lostLease) renewal = renew();
+  }, 30_000);
+
+  const renew = async () => {
     if (renewing || lostLease) return;
 
     renewing = true;
@@ -260,7 +320,7 @@ export async function runNextJob(
     } finally {
       renewing = false;
     }
-  }, 30_000);
+  };
 
   try {
     await execute(job, db);
@@ -269,6 +329,18 @@ export async function runNextJob(
     const interval = await refreshInterval(db, job, now);
 
     if (!lostLease) {
+      const where = {
+        id: job.id,
+        leaseToken: job.leaseToken,
+        leaseExpiresAt: { gt: now },
+      };
+      if (interval === null) {
+        const completed = await db.importJob.deleteMany({ where });
+        log(completed.count === 1 ? "job.completed" : "job.lease_lost", {
+          finalized: true,
+        });
+        return true;
+      }
       const completed = await db.importJob.updateMany({
         where: {
           id: job.id,
@@ -284,9 +356,9 @@ export async function runNextJob(
         },
       });
       if (completed.count === 1) {
-        console.info(
-          `Import completed: ${job.kind} ${job.targetKey}; next refresh ${new Date(now.getTime() + interval).toISOString()}`,
-        );
+        log("job.completed", {
+          nextRunAt: new Date(now.getTime() + interval).toISOString(),
+        });
       }
     }
   } catch (error) {
@@ -316,9 +388,13 @@ export async function runNextJob(
       });
     }
 
-    console.error(`Import failed: ${job.kind} ${job.targetKey} (${lastError})`);
+    log("job.failed", {
+      error: lastError,
+      retryDelayMs: retryDelay(job.attempts, error, now),
+    });
   } finally {
     clearInterval(heartbeat);
+    await renewal;
   }
 
   return true;

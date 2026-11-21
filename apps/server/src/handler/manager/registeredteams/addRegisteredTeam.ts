@@ -8,7 +8,7 @@ export const addRegisteredTeam = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -71,9 +71,6 @@ export const addRegisteredTeam = async (
     await sendVerificationEmail(params.data.email, params.data.number);
 
     res.status(200).send("verification email sent");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };
 

@@ -23,22 +23,27 @@ check_server() {
 
 check_collection() {
   cd "$repo_root/apps/collection" || return
-  npm run lint && npm run format:check && npm run ts:check
+  npm run test:ci && npm run lint && npm run format:check && npm run ts:check
 }
 
 check_dashboard() {
   cd "$repo_root/apps/dashboard" || return
-  flutter analyze && dart format --output=none --set-exit-if-changed .
+  python3 tool/run_tests.py && flutter analyze && dart format --output=none --set-exit-if-changed .
 }
 
 check_website() {
   cd "$repo_root/apps/website" || return
-  npm run check && npm run lint && npm run build
+  npm run test:ci && npm run check && npm run lint && npm run build
 }
 
 check_learn() {
   cd "$repo_root/apps/learn" || return
-  npm run build
+  npm run test:ci
+}
+
+check_reviewer() {
+  cd "$repo_root/tools/pr-reviewer" || return
+  npm run typecheck && npm run typecheck:test && npm test && npm run build
 }
 
 run_group "Structure" "$repo_root/scripts/check-structure.sh"
@@ -47,6 +52,8 @@ run_group "Collection" check_collection
 run_group "Dashboard" check_dashboard
 run_group "Website" check_website
 run_group "Learn" check_learn
+run_group "Cross-app contracts" "$repo_root/scripts/check-contracts.sh"
+run_group "PR reviewer" check_reviewer
 
 if (( failures > 0 )); then
   echo "$failures check group(s) failed. Compare with docs/migration/baseline-before.md." >&2

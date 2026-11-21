@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import {
-  dataSourceRuleSchema,
+  parseStoredSourceRule,
   dataSourceRuleToArray,
 } from "../../analysis/dataSourceRule.js";
 import { allTournaments } from "../../analysis/analysisConstants.js";
@@ -11,17 +11,14 @@ export const getTournamentSource = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     res
       .status(200)
       .send(
         dataSourceRuleToArray(
-          dataSourceRuleSchema(z.string()).parse(req.user.tournamentSourceRule),
+          parseStoredSourceRule(z.string(), req.user.tournamentSourceRule),
           await allTournaments,
         ),
       );
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

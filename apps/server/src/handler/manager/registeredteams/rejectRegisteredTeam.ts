@@ -6,7 +6,7 @@ export const rejectRegisteredTeam = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     //check its coming from Collin
 
     const params = z
@@ -26,8 +26,5 @@ export const rejectRegisteredTeam = async (
       },
     });
     res.status(200).send("Team removed");
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Internal server error");
   }
 };

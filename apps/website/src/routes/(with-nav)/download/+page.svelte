@@ -158,8 +158,8 @@
 	}
 
 	.help a {
+		text-decoration: underline;
 		color: var(--victory-purple);
-		text-decoration: none;
 	}
 
 	.help a:hover {

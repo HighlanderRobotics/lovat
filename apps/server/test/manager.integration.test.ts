@@ -165,6 +165,7 @@ const apiRoot = "/v1/manager/apikey";
 const createKey = async (owner = "owner") => {
   const response = await request(app)
     .post(apiRoot)
+    .set("X-Lovat-Error-Format", "json-v1")
     .query({ name: `key-${randomUUID()}` })
     .auth(tokens[owner], { type: "bearer" });
   expect(response.status).toBe(200);
@@ -185,6 +186,7 @@ describe.sequential("API key management with real persistence and JWTs", () => {
     expect(first.row.keyHash).not.toBe(first.token);
     const listed = await request(app)
       .get(apiRoot)
+      .set("X-Lovat-Error-Format", "json-v1")
       .auth(tokens.owner, { type: "bearer" });
     expect(listed.status).toBe(200);
     expect(listed.body.apiKeys).toContainEqual(
@@ -207,6 +209,7 @@ describe.sequential("API key management with real persistence and JWTs", () => {
     ] as const) {
       const response = await request(app)
         .get(apiRoot)
+        .set("X-Lovat-Error-Format", "json-v1")
         .auth(tokens[viewer], { type: "bearer" });
       expect(response.status).toBe(200);
       const ids = response.body.apiKeys.map(
@@ -285,6 +288,7 @@ describe.sequential("API key management with real persistence and JWTs", () => {
       const { row, token } = await createKey();
       const renamed = await request(app)
         .patch(apiRoot)
+        .set("X-Lovat-Error-Format", "json-v1")
         .query({ uuid: row.uuid, newName: "renamed" })
         .auth(tokens[viewer], { type: "bearer" });
       expect(renamed.status).toBe(200);
@@ -295,6 +299,7 @@ describe.sequential("API key management with real persistence and JWTs", () => {
         (
           await request(app)
             .delete(apiRoot)
+            .set("X-Lovat-Error-Format", "json-v1")
             .query({ uuid: row.uuid })
             .auth(tokens[viewer], { type: "bearer" })
         ).status,
@@ -303,8 +308,12 @@ describe.sequential("API key management with real persistence and JWTs", () => {
         await db.apiKey.findUnique({ where: { uuid: row.uuid } }),
       ).toBeNull();
       expect(
-        (await request(app).get(apiRoot).auth(token, { type: "bearer" }))
-          .status,
+        (
+          await request(app)
+            .get(apiRoot)
+            .set("X-Lovat-Error-Format", "json-v1")
+            .auth(token, { type: "bearer" })
+        ).status,
       ).toBe(401);
     },
   );
@@ -327,6 +336,7 @@ for (const kind of ["shared", "mutable"] as const) {
       (
         await request(app)
           .post(root)
+          .set("X-Lovat-Error-Format", "json-v1")
           .send({ ...payload, name, authorId: userIds.otherLead })
           .auth(tokens[owner], { type: "bearer" })
       ).status,
@@ -346,6 +356,7 @@ for (const kind of ["shared", "mutable"] as const) {
       expect(row.authorId).toBe(userIds.owner);
       const response = await request(app)
         .get(`${root}/${row.uuid}`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .auth(tokens.peer, { type: "bearer" });
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
@@ -362,6 +373,7 @@ for (const kind of ["shared", "mutable"] as const) {
       const foreign = await createPicklist("otherLead");
       const response = await request(app)
         .get(root)
+        .set("X-Lovat-Error-Format", "json-v1")
         .auth(tokens.owner, { type: "bearer" });
       expect(response.status).toBe(200);
       const ids = response.body.map((row: { uuid: string }) => row.uuid);
@@ -393,6 +405,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .put(`${root}/${row.uuid}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .send({ ...payload, name: "updated" })
             .auth(tokens.peer, { type: "bearer" })
         ).status,
@@ -413,6 +426,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .post(root)
+            .set("X-Lovat-Error-Format", "json-v1")
             .send(invalid)
             .auth(tokens.owner, { type: "bearer" })
         ).status,
@@ -421,6 +435,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .put(`${root}/${row.uuid}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .send(invalid)
             .auth(tokens.owner, { type: "bearer" })
         ).status,
@@ -436,6 +451,7 @@ for (const kind of ["shared", "mutable"] as const) {
           (
             await request(app)
               .post(root)
+              .set("X-Lovat-Error-Format", "json-v1")
               .send(invalid)
               .auth(tokens.owner, { type: "bearer" })
           ).status,
@@ -444,6 +460,7 @@ for (const kind of ["shared", "mutable"] as const) {
           (
             await request(app)
               .put(`${root}/${row.uuid}`)
+              .set("X-Lovat-Error-Format", "json-v1")
               .send(invalid)
               .auth(tokens.owner, { type: "bearer" })
           ).status,
@@ -458,6 +475,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .delete(`${root}/${row.uuid}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .auth(tokens.otherLead, { type: "bearer" })
         ).status,
       ).toBe(403);
@@ -466,6 +484,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .delete(`${root}/${row.uuid}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .auth(tokens.peer, { type: "bearer" })
         ).status,
       ).toBe(200);
@@ -474,6 +493,7 @@ for (const kind of ["shared", "mutable"] as const) {
         (
           await request(app)
             .delete(`${root}/${row.uuid}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .auth(tokens.peer, { type: "bearer" })
         ).status,
       ).toBe(404);
@@ -525,6 +545,7 @@ for (const root of [
         (
           await request(app)
             .post(root)
+            .set("X-Lovat-Error-Format", "json-v1")
             .query({ name: "forbidden" })
             .send({ name: "forbidden", teams: [] })
             .auth(tokens[viewer], { type: "bearer" })
@@ -547,6 +568,7 @@ describe("scouter archival tenant isolation", () => {
       const path = `/v1/manager/${action}/uuid/${scouter.uuid}`;
       const unauthorized = await request(app)
         .post(path)
+        .set("X-Lovat-Error-Format", "json-v1")
         .auth(tokens.otherLead, { type: "bearer" });
       expect(unauthorized.status).toBe(404);
       expect(
@@ -555,6 +577,7 @@ describe("scouter archival tenant isolation", () => {
       ).toBe(action === "unarchive");
       const authorized = await request(app)
         .post(path)
+        .set("X-Lovat-Error-Format", "json-v1")
         .auth(tokens.lead, { type: "bearer" });
       expect(authorized.status).toBe(200);
       expect(
@@ -565,6 +588,7 @@ describe("scouter archival tenant isolation", () => {
         (
           await request(app)
             .post(`/v1/manager/${action}/uuid/${randomUUID()}`)
+            .set("X-Lovat-Error-Format", "json-v1")
             .auth(tokens.lead, { type: "bearer" })
         ).status,
       ).toBe(404);
@@ -596,6 +620,7 @@ it("prevents a lead from transferring another team's shift by editing its UUID",
     (
       await request(app)
         .post(path)
+        .set("X-Lovat-Error-Format", "json-v1")
         .send(body)
         .auth(tokens.otherLead, { type: "bearer" })
     ).status,
@@ -613,6 +638,7 @@ it("prevents a lead from transferring another team's shift by editing its UUID",
     (
       await request(app)
         .post(path)
+        .set("X-Lovat-Error-Format", "json-v1")
         .send(body)
         .auth(tokens.lead, { type: "bearer" })
     ).status,
@@ -671,6 +697,7 @@ it("filters match-result reports by the authenticated viewer's source rules", as
   }
   const response = await request(app)
     .get("/v1/manager/match-results-page")
+    .set("X-Lovat-Error-Format", "json-v1")
     .query({ matchKey })
     .auth(tokens.lead, { type: "bearer" });
   expect(response.status).toBe(200);

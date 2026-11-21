@@ -13,31 +13,7 @@ import { SvgXml } from "react-native-svg";
 import { useQrCodeSizeStore } from "../../storage/userStores";
 import React from "react";
 
-type ReportChunk = {
-  index: number;
-  total: number;
-  data: string;
-  uuid: string;
-};
-
-function splitScoutReportIntoCodes(
-  scoutReport: ScoutReport,
-  maxCodeLength: number,
-): ReportChunk[] {
-  const json = JSON.stringify(scoutReport);
-  const chunks: ReportChunk[] = [];
-
-  for (let i = 0; i < json.length; i += maxCodeLength) {
-    chunks.push({
-      index: i,
-      total: Math.ceil(json.length / maxCodeLength),
-      data: json.slice(i, i + maxCodeLength),
-      uuid: scoutReport.uuid,
-    });
-  }
-
-  return chunks;
-}
+import { splitScoutReportIntoCodes, type ReportChunk } from "../qrPayload";
 
 export const ResizableQRCode = ({ chunk }: { chunk: ReportChunk }) => {
   const [svgXml, setSvgXml] = useState<string | null>(null);

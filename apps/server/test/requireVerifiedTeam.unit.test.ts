@@ -27,7 +27,7 @@ const check = (teamNumber?: number | null) => {
   app.get("/protected", requireVerifiedTeam, (_req, res) =>
     res.json({ allowed: true }),
   );
-  return request(app).get("/protected");
+  return request(app).get("/protected").set("X-Lovat-Error-Format", "json-v1");
 };
 
 describe("verified team access", () => {

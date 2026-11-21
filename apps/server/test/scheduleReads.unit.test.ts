@@ -14,11 +14,11 @@ vi.mock("../src/prismaClient.js", () => ({ default: db }));
 vi.mock("../src/handler/manager/addTournamentMatches.js", () => ({
   addTournamentMatches: db.importMatches,
 }));
-import { getScheduleForScouter } from "../src/handler/manager/scouters/getScheduleForScouter.js";
+import { getScheduleForScouter } from "../src/handler/collection/getScheduleForScouter.js";
 import { getScouterSchedule } from "../src/handler/manager/tournament/getScouterSchedule.js";
 import { getTournamentForScouterWithSchedule } from "../src/handler/manager/scouters/getTournamentForScouterWithSchedule.js";
 import { getTournamentsWithSchedule } from "../src/handler/manager/getTournamentWithSchedule.js";
-import { getScouterTournaments } from "../src/handler/manager/scouters/getScouterTournaments.js";
+import { getScouterTournaments } from "../src/handler/collection/getScouterTournaments.js";
 import { getTeamsInTournament } from "../src/handler/manager/tournament/getTeamsInTournament.js";
 const params = { tournament: "2026test", uuid: "scouter" };
 const headers = { "x-team-code": "code" };
@@ -33,6 +33,8 @@ const shift = {
   ),
 };
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
   vi.resetAllMocks();
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   db.registeredTeam.findUnique.mockResolvedValue({ number: 8033 });
@@ -52,7 +54,10 @@ beforeEach(() => {
   ]);
   db.team.findMany.mockResolvedValue([{ number: 254 }]);
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 for (const handler of [
   getScheduleForScouter,
   getScouterSchedule,
@@ -68,7 +73,7 @@ for (const handler of [
     db.scouter.findUnique.mockRejectedValue(new Error("offline"));
     db.scouterScheduleShift.findMany.mockRejectedValue(new Error("offline"));
     db.teamMatchData.findMany.mockRejectedValue(new Error("offline"));
-    expect((await invoke(handler, { params, headers })).statusCode).toBe(500);
+    await expect(invoke(handler, { params, headers })).rejects.toThrow();
   });
 }
 it("expands schedules into qualification and elimination assignments for both alliances", async () => {
@@ -101,9 +106,9 @@ it("denies unknown Collection team codes", async () => {
 });
 it("reports unavailable qualification matches", async () => {
   db.teamMatchData.findFirst.mockResolvedValue(null);
-  expect(
-    (await invoke(getScheduleForScouter, { params, headers })).statusCode,
-  ).toBe(400);
+  const response = await invoke(getScheduleForScouter, { params, headers });
+  expect(response.statusCode).toBe(400);
+  expect(response.body).toMatchObject({ code: "MATCHES_NOT_AVAILABLE" });
 });
 it.each([0, 5])(
   "skips absent matches or reports incomplete imported matches (%s)",
@@ -200,20 +205,48 @@ it.each([
     expect(db.tournament.findMany).toHaveBeenCalledWith({
       ...(query.skip ? { skip: 1 } : {}),
       ...(query.take ? { take: 2 } : {}),
-      ...(query.filter
-        ? {
-            where: {
+      where: {
+        startDate: {
+          gte: new Date(2026, 0, 1),
+          lte: new Date(2026, 11, 31, 23, 59, 59, 999),
+        },
+        ...(query.filter
+          ? {
               OR: [
                 { key: { contains: "test" } },
                 { name: { contains: "test" } },
               ],
-            },
-          }
-        : {}),
+            }
+          : {}),
+      },
       orderBy: { date: "asc" },
     });
+
+    // The initial lookup, selected page, and count must all use this season.
+    for (const [args] of db.tournament.findMany.mock.calls) {
+      expect(args.where.startDate).toEqual({
+        gte: new Date(2026, 0, 1),
+        lte: new Date(2026, 11, 31, 23, 59, 59, 999),
+      });
+    }
   },
 );
+
+it("uses the new season after the calendar year changes", async () => {
+  vi.setSystemTime(new Date(2027, 0, 1, 12));
+
+  const result = await invoke(getScouterTournaments, { headers });
+
+  expect(result.statusCode).toBe(200);
+
+  for (const [args] of db.tournament.findMany.mock.calls) {
+    expect(args.where.startDate).toEqual({
+      gte: new Date(2027, 0, 1),
+      lte: new Date(2027, 11, 31, 23, 59, 59, 999),
+    });
+  }
+});
+
 it.each([
   { skip: "bad" },
   { take: "bad" },
@@ -236,9 +269,7 @@ it("requires a valid Collection code before returning tournaments", async () => 
 });
 it("reports failed tournament discovery", async () => {
   db.tournament.findMany.mockRejectedValue(new Error("offline"));
-  expect((await invoke(getScouterTournaments, { headers })).statusCode).toBe(
-    500,
-  );
+  await expect(invoke(getScouterTournaments, { headers })).rejects.toThrow();
 });
 
 it("returns the filtered page rather than the initial unfiltered tournament rows", async () => {

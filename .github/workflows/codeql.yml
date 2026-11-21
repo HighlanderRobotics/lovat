@@ -1,33 +1,46 @@
 name: CodeQL
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
+  workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '23 7 * * 2'
 
 permissions:
   contents: read
 
-concurrency:
-  group: codeql-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
+  changes:
+    name: Detect CodeQL inputs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      any: ${{ steps.matrix.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+      - name: Validate matrix selection
+        run: node --test scripts/codeql-matrix.test.mjs
+      - uses: dorny/paths-filter@v3
+        id: paths
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          base: ${{ github.ref }}
+          # JSON is valid YAML and keeps this config easy to inspect with Node.
+          filters: .github/codeql-filters.json
+      - name: Select analyses
+        id: matrix
+        env:
+          CHANGED_FILTERS: ${{ steps.paths.outputs.changes || '[]' }}
+          FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' }}
+        run: node scripts/codeql-matrix.mjs
+
   analyze:
+    needs: changes
+    if: needs.changes.outputs.any == 'true'
     name: Analyze (${{ matrix.language }}${{ matrix.platform && format(' / {0}', matrix.platform) || '' }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -37,28 +50,7 @@ jobs:
       packages: read
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            os: ubuntu-latest
-            build-mode: none
-          - language: javascript-typescript
-            os: ubuntu-latest
-            build-mode: none
-          - language: c-cpp
-            os: ubuntu-latest
-            build-mode: none
-          - language: java-kotlin
-            os: ubuntu-latest
-            build-mode: manual
-          - language: swift
-            platform: ios
-            os: macos-15
-            build-mode: manual
-          - language: swift
-            platform: macos
-            os: macos-15
-            build-mode: manual
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - name: Select result destination
@@ -88,9 +80,8 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          # iOS already uses FlutterImplicitEngineDelegate (UIScene lifecycle).
-          # Keep the existing SDK for Android/macOS; match the migrated iOS code.
-          flutter-version: ${{ matrix.platform == 'ios' && '3.41.0' || '3.35.4' }}
+          # Match Dashboard's tested SDK on every native platform.
+          flutter-version: 3.41.0
       - name: Install Dashboard dependencies
         if: matrix.build-mode == 'manual'
         working-directory: apps/dashboard
@@ -153,3 +144,22 @@ jobs:
           path: ${{ runner.temp }}/codeql-results/*.sarif
           if-no-files-found: error
           retention-days: 7
+
+  result:
+    name: Require applicable CodeQL analyses
+    if: ${{ always() }}
+    needs: [changes, analyze]
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      DETECTION_RESULT: ${{ needs.changes.result }}
+      ANALYSIS_SELECTED: ${{ needs.changes.outputs.any }}
+      ANALYSIS_RESULT: ${{ needs.analyze.result }}
+    steps:
+      - name: Check scan outcome
+        run: |
+          test "$DETECTION_RESULT" = success
+          case "$ANALYSIS_SELECTED:$ANALYSIS_RESULT" in
+            true:success|false:skipped) ;;
+            *) echo 'An applicable CodeQL analysis did not succeed.' >&2; exit 1 ;;
+          esac

@@ -6,12 +6,16 @@ export const getMutablePicklists = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.user.teamNumber === null) {
+      const message =
+        "Not authortized to get mutable picklists because your not on a team";
       res
         .status(403)
         .send(
-          "Not authortized to get mutable picklists because your not on a team",
+          req.headers["x-lovat-error-format"] === "json-v1"
+            ? { code: "TEAM_REQUIRED", displayError: message }
+            : message,
         );
       return;
     }
@@ -34,8 +38,5 @@ export const getMutablePicklists = async (
       },
     });
     res.status(200).send(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

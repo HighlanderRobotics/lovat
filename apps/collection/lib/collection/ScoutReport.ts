@@ -12,7 +12,11 @@ export const scoutReportEventSchema = z.union([
 export type ScoutReportEvent = z.infer<typeof scoutReportEventSchema>;
 
 // String enum values for the spec
-export const MatchTypeString = z.enum(["QUALIFICATION", "ELIMINATION"]);
+export const MatchTypeString = z.enum([
+  "QUALIFICATION",
+  "ELIMINATION",
+  "PRACTICE",
+]);
 export const MobilityString = z.enum(["TRENCH", "BUMP", "BOTH", "NONE"]);
 export const RobotRoleString = z.enum([
   "CYCLING",

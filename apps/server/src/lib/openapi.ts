@@ -12,6 +12,44 @@ extendZodWithOpenApi(z);
 // Shared OpenAPI registry for the app. Other modules can import and register.
 export const registry = new OpenAPIRegistry();
 
+export const ApiErrorSchema = registry.register(
+  "ApiError",
+  z.object({
+    code: z.string().openapi({
+      description:
+        "Machine-readable error identifier. Use the HTTP status and code for program decisions; messages may change.",
+      example: "INVALID_QUERY_PARAMETERS",
+    }),
+    message: z.string().openapi({
+      description: "Safe, human-readable explanation.",
+      example: "Invalid team query parameters",
+    }),
+    displayError: z.string().openapi({
+      description:
+        "Compatibility alias of message, with the same value, for existing clients.",
+      example: "Invalid team query parameters",
+    }),
+    invalidFields: z.array(z.string()).optional().openapi({
+      description:
+        "Optional field names to correct. Submitted values are never included.",
+    }),
+    retryAfterSeconds: z.number().optional().openapi({
+      description:
+        "Optional retry delay in seconds. Also respect Retry-After when provided.",
+    }),
+  }),
+);
+
+const apiErrorContent = {
+  "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+};
+
+registry.registerComponent("responses", "ApiErrorResponse", {
+  description:
+    "Request failed. The HTTP status describes the failure category; code identifies the error. Unexpected server failures use INTERNAL_SERVER_ERROR and a generic message.",
+  content: apiErrorContent,
+});
+
 // Import and register Prisma-derived schemas
 import { registerPrismaSchemas } from "./prisma-zod.js";
 registerPrismaSchemas(registry);
@@ -65,14 +103,51 @@ registry.registerPath({
 
 export function generateOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
-  return generator.generateDocument({
+  const document = generator.generateDocument({
     openapi: "3.1.0",
     info: {
       title: "Lovat API",
       version: pkg.version,
       description:
-        "API Documentation for Lovat, a scouting system used to scout teams and matches in the First Robotics Competition",
+        "API Documentation for Lovat, a scouting system used to scout teams and matches in the First Robotics Competition. Clients request the shared format using X-Lovat-Error-Format: json-v1. Without that header, direct guard responses retain their legacy formats for installed clients; unexpected failures are still sanitized. Negotiated HTTP error responses (400–599) use application/json and the ApiError schema. message and displayError contain the same safe text. invalidFields and retryAfterSeconds appear only when applicable. Authentication, validation, missing resources, rate limits and unexpected failures share this format. Success responses, including legacy domain messages returned with status 200, retain their documented shapes. Internal exception details and submitted values are not part of the error response.",
     },
     servers: [{ url: `${process.env.BASE_URL || "https://api.lovat.app"}` }],
   });
+
+  // Keep each endpoint's status descriptions and headers while documenting the
+  // response contract enforced by errorResponses and errorHandler.
+  for (const path of Object.values(document.paths ?? {})) {
+    if (!path) {
+      continue;
+    }
+    for (const method of [
+      "get",
+      "post",
+      "put",
+      "patch",
+      "delete",
+      "options",
+      "head",
+      "trace",
+    ] as const) {
+      const operation = path[method];
+      if (!operation) {
+        continue;
+      }
+      operation.responses ??= {};
+      for (const [status, response] of Object.entries(operation.responses)) {
+        if (
+          /^[45](?:\d{2}|XX)$/.test(status) &&
+          response &&
+          !("$ref" in response)
+        ) {
+          response.content = apiErrorContent;
+        }
+      }
+      operation.responses.default ??= {
+        $ref: "#/components/responses/ApiErrorResponse",
+      };
+    }
+  }
+  return document;
 }

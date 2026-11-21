@@ -107,6 +107,7 @@ class GameMatchIdentity {
 enum MatchType {
   qualifier,
   elimination,
+  practice,
 }
 
 extension MatchTypeExtension on MatchType {
@@ -116,6 +117,8 @@ extension MatchTypeExtension on MatchType {
         return "QUALIFICATION";
       case MatchType.elimination:
         return "ELIMINATION";
+      case MatchType.practice:
+        return "PRACTICE";
     }
   }
 
@@ -125,6 +128,8 @@ extension MatchTypeExtension on MatchType {
         return "Qualifiers";
       case MatchType.elimination:
         return "Eliminations";
+      case MatchType.practice:
+        return "Practice matches";
     }
   }
 
@@ -134,6 +139,8 @@ extension MatchTypeExtension on MatchType {
         return "Qualifier";
       case MatchType.elimination:
         return "Elimination";
+      case MatchType.practice:
+        return "Practice";
     }
   }
 
@@ -143,6 +150,8 @@ extension MatchTypeExtension on MatchType {
         return "qm";
       case MatchType.elimination:
         return "em";
+      case MatchType.practice:
+        return "pm";
     }
   }
 
@@ -152,6 +161,8 @@ extension MatchTypeExtension on MatchType {
         return Icons.leaderboard_outlined;
       case MatchType.elimination:
         return Icons.emoji_events_outlined;
+      case MatchType.practice:
+        return Icons.sports_outlined;
     }
   }
 

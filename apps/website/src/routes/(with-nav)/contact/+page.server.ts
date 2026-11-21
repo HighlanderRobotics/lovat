@@ -14,30 +14,6 @@ export const actions = {
 			return fail(503, { message: 'Contact verification is unavailable. Please try again later.' });
 		}
 
-		const token = data.get('g-recaptcha-response');
-		if (typeof token !== 'string' || !token.trim()) {
-			return fail(400, { message: 'Please complete the reCAPTCHA verification.' });
-		}
-
-		let verification: { success?: boolean } | null;
-		try {
-			const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-				method: 'POST',
-				body: new URLSearchParams({ secret: env.RECAPTCHA_SECRET_KEY, response: token }),
-				signal: AbortSignal.timeout(10_000)
-			});
-			if (!response.ok) throw new Error('reCAPTCHA service unavailable');
-			verification = await response.json();
-		} catch {
-			return fail(503, { message: 'Verification is unavailable. Please try again.' });
-		}
-
-		if (verification?.success !== true) {
-			return fail(400, {
-				message: 'Verification failed or expired. Please complete reCAPTCHA again.'
-			});
-		}
-
 		const name = data.get('name');
 		const email = data.get('email');
 		const team = data.get('team');
@@ -60,6 +36,30 @@ export const actions = {
 			if (teamNum.toString().length > 5) {
 				throw redirect(303, '/contact/success');
 			}
+		}
+
+		const token = data.get('g-recaptcha-response');
+		if (typeof token !== 'string' || !token.trim()) {
+			return fail(400, { message: 'Please complete the reCAPTCHA verification.' });
+		}
+
+		let verification: { success?: boolean } | null;
+		try {
+			const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+				method: 'POST',
+				body: new URLSearchParams({ secret: env.RECAPTCHA_SECRET_KEY, response: token }),
+				signal: AbortSignal.timeout(10_000)
+			});
+			if (!response.ok) throw new Error('reCAPTCHA service unavailable');
+			verification = await response.json();
+		} catch {
+			return fail(503, { message: 'Verification is unavailable. Please try again.' });
+		}
+
+		if (verification?.success !== true) {
+			return fail(400, {
+				message: 'Verification failed or expired. Please complete reCAPTCHA again.'
+			});
 		}
 
 		const body = {

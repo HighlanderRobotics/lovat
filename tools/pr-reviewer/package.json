@@ -1,0 +1,26 @@
+{
+  "name": "lovat-pr-reviewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI pull request reviewer for the Lovat repository",
+  "type": "module",
+  "engines": {
+    "node": "22.20.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

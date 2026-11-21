@@ -1,6 +1,7 @@
 import { Alert, View } from "react-native";
 import { NavBar } from "../../lib/components/NavBar";
-import { Stack, router, useNavigation } from "expo-router";
+import { Redirect, Stack, router, useNavigation } from "expo-router";
+import { resetToStart } from "../../lib/collection/resetNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../lib/components/Button";
 import LabelSmall from "../../lib/components/text/LabelSmall";
@@ -28,27 +29,26 @@ import {
 } from "../../lib/collection/EndgameClimb";
 import TextField from "../../lib/components/TextField";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { CommonActions } from "@react-navigation/native";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import { useTrainingModeStore } from "../../lib/storage/userStores";
 import React from "react";
+import { useTrainingSessionStore } from "../../lib/training/trainingStore";
 import { Checkbox } from "../../lib/components/Checkbox";
 import { RobotRole } from "../../lib/collection/RobotRole";
 import { MatchEventType } from "../../lib/collection/MatchEventType";
 
 export default function PostMatch() {
-  const reportState = useReportStateStore();
-  const trainingModeEnabled = useTrainingModeStore((state) => state.value);
-
   const navigation = useNavigation();
+  const reportState = useReportStateStore();
+  const localPractice = useTrainingModeStore((state) => state.value);
+  const training = useTrainingSessionStore();
+  const pairedTraining = !!reportState.meta?.collection?.trainingAttemptUuid;
+  const trainingModeEnabled = localPractice && !pairedTraining;
+  const interrupted =
+    pairedTraining && training.snapshot?.status === "INTERRUPTED";
 
   if (!reportState) {
-    navigation.dispatch(
-      CommonActions.reset({
-        routes: [{ key: "index", name: "index" }],
-      }),
-    );
-    return null;
+    return <Redirect href="/" />;
   }
 
   const shouldShowDefenseEffectiveness =
@@ -79,18 +79,19 @@ export default function PostMatch() {
       />
       <NavBar title="Post match" />
       <KeyboardAwareScrollView
-        style={{ flex: 1, paddingVertical: 16, paddingHorizontal: 26, gap: 28 }}
+        style={{ flex: 1 }}
         contentContainerStyle={{
-          flexDirection: "row",
-          justifyContent: "center",
+          // Keep the keyboard spacer below the form so it adds scrollable height.
+          alignItems: "center",
+          paddingVertical: 16,
+          paddingHorizontal: 26,
         }}
         bottomOffset={48}
         keyboardDismissMode="interactive"
-        disableScrollOnKeyboardHide={true}
       >
         <SafeAreaView
           edges={["bottom", "left", "right"]}
-          style={{ flex: 1, gap: 14, paddingBottom: 200, maxWidth: 550 }}
+          style={{ width: "100%", gap: 14, maxWidth: 550 }}
         >
           <PostMatchSelector
             title="Robot roles"
@@ -315,7 +316,6 @@ export default function PostMatch() {
                   value={reportState.robotBrokeDescription}
                   onChangeText={reportState.setRobotBrokeDescription}
                   multiline={true}
-                  returnKeyType="done"
                   placeholder="How did it break?"
                 />
               </View>
@@ -328,7 +328,6 @@ export default function PostMatch() {
               value={reportState!.notes}
               onChangeText={reportState.setNotes}
               multiline={true}
-              returnKeyType="done"
             />
             <View
               style={{
@@ -343,6 +342,7 @@ export default function PostMatch() {
           <View style={{ gap: 10 }}>
             <Button
               disabled={
+                interrupted ||
                 trainingModeEnabled ||
                 endgameClimbIsMismatched ||
                 (reportState.hasEventOfType(MatchEventType.StartScoring) &&
@@ -353,7 +353,7 @@ export default function PostMatch() {
                 router.replace("/game/submit");
               }}
             >
-              Submit
+              {pairedTraining ? "Submit training report" : "Submit"}
             </Button>
             <Button
               variant="secondary"
@@ -369,12 +369,9 @@ export default function PostMatch() {
                       text: "Discard",
                       style: "destructive",
                       onPress: () => {
+                        useTrainingSessionStore.getState().clear();
                         reportState.reset();
-                        navigation.dispatch(
-                          CommonActions.reset({
-                            routes: [{ key: "index", name: "index" }],
-                          }),
-                        );
+                        resetToStart(navigation);
                       },
                     },
                   ],
@@ -384,6 +381,11 @@ export default function PostMatch() {
               Discard match
             </Button>
 
+            {interrupted && (
+              <BodyMedium>
+                Playback was interrupted. Join a new session to try again.
+              </BodyMedium>
+            )}
             {trainingModeEnabled && (
               <BodyMedium>
                 Disable training mode in settings to submit data.

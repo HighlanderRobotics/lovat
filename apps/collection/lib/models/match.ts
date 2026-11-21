@@ -3,6 +3,7 @@ import { z } from "zod";
 export enum MatchType {
   Qualifier = "QUALIFIER",
   Elimination = "PLAYOFF",
+  Practice = "PRACTICE",
 }
 
 export type MatchTypeDescription = {
@@ -33,6 +34,15 @@ export const matchTypes: MatchTypeDescription[] = [
     localizedDescriptionAbbreviatedPlural: "Elims",
     shortName: "P",
     num: 1,
+  },
+  {
+    type: MatchType.Practice,
+    localizedDescription: "Practice",
+    localizedDescriptionPlural: "Practice matches",
+    localizedDescriptionAbbreviated: "Practice",
+    localizedDescriptionAbbreviatedPlural: "Practice",
+    shortName: "PM",
+    num: 2,
   },
 ];
 

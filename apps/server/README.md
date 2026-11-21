@@ -23,6 +23,31 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+## Request telemetry
+
+Request analytics use an anonymous allowlist with no payloads or person lookups.
+See the [event contract and PostHog privacy review](docs/request-telemetry.md) for
+route grouping, dashboard migration and historical-data remediation.
+
+## Redis cache maintenance
+
+Every Redis key uses `REDIS_KEY_PREFIX` (default `lovat:`). The example local
+configuration uses database 1 and prefix `lovat:local:`. Use distinct prefixes
+for environments sharing a database; changing a prefix makes previous keys
+inaccessible without deleting them.
+
+Startup preserves existing keys. To delete only keys in the configured namespace:
+
+```bash
+npm run cache:reset
+```
+
+Stop all Server instances and drain requests before a complete reset. An online
+reset removes scanned keys, but concurrent requests can repopulate the cache.
+Dependency metadata is retained so analyses finishing after a reset remain
+available for normal invalidation. Foreign keys and legacy unprefixed keys are
+never deleted. Configure the same Redis URL and prefix as the Server.
+
 ## Checks
 
 ```bash
@@ -101,9 +126,11 @@ when a report is available. Download and extract the artifact, then serve its
 directory with a static HTTP server; opening `index.html` directly from disk
 cannot load the compressed test data reliably.
 
-Successful server CI runs on main can publish the report to GitHub Pages.
-See [test report hosting](../../docs/test-report-hosting.md) for the one-time
-Pages settings, public URL, and optional `tests.lovat.app` custom domain.
+Successful main CI runs publish the combined report site to GitHub Pages. The
+[Server report](https://highlanderrobotics.github.io/lovat/server/) now lives at
+`/lovat/server/`; `/lovat/` lists all application reports. See
+[test report hosting](../../docs/test-report-hosting.md) for publishing settings
+and the complete directory layout.
 
 ## Optional database restore
 
@@ -124,15 +151,15 @@ Railway must use the repository root and `apps/server/Dockerfile` so the shared 
 
 ### Railway service configuration
 
-Keep **Root Directory** set to `/` so Docker can copy `packages/db`. Set
-**Config File** to `/apps/server/railway.json`; that file selects
-`apps/server/Dockerfile`. Update this Railway setting before deploying the
-relocation commit, since there is no longer a root `railway.json`.
+Keep **Root Directory** set to `/` so Docker can copy `packages/db`.
+The `api` service in [Railway IaC](../../.railway/railway.ts) selects
+`apps/server/Dockerfile`, the private database migration/start command, and
+`/status` healthcheck. Clear the legacy **Config File** path during the
+[one-time cutover](../../.railway/README.md), then plan and apply the IaC file.
 Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
 
 The Dockerfile-specific `apps/server/Dockerfile.dockerignore` filters the
-repository-root build context. Database migration, startup, environment
-variables, and healthcheck behavior remain defined in the moved config.
+repository-root build context.
 
 Build locally from the repository root:
 
@@ -145,5 +172,54 @@ docker build -f apps/server/Dockerfile -t lovat-server .
 In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance
 imports so a fresh local database can start without an external API key.
 PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
-for real team, tournament, and match imports. Routes that call Blue Alliance
+for real team and match refreshes. Tournament imports run in the separate
+worker, which automatically refreshes the current UTC season every six hours. Routes that call Blue Alliance
 directly still require the key. Production keeps its existing import behavior.
+
+### Practice match imports from Nexus
+
+Practice schedules come from [Nexus](https://frc.nexus). Get an API key at
+[Nexus API access](https://frc.nexus/api), then set `NEXUS_API_KEY` in your local
+`apps/server/.env` and restart the server. For deployment, set the same variable
+in the Server service's environment settings. Keep the actual key out of Git.
+An empty key skips Nexus imports.
+
+The match importer queues worker-owned qualification and playoff refreshes,
+then attempts the Nexus practice import even if queueing the official refresh
+fails. Existing refresh jobs retain their leases and retry backoff. The
+background-job settings still control scheduled imports;
+match-list requests also call the importer. Nexus responses are cached in
+server memory for one minute and requests time out after ten seconds. Events
+Nexus does not have return no practice matches; other failures are logged.
+Replays are skipped because they need an identity separate from the original
+practice match.
+
+Imported rows use the same event, match-number, and team-number keys as practice
+report uploads. Imported rows are marked `practiceScheduled=true`; existing
+scouting reports stay attached. Apply the checked-in
+`20261011000000_mark_scheduled_practice_matches` migration before running this
+Server version. It adds the marker with a default of false, so old report-only
+rows do not become public.
+
+The importer adds missing team catalog entries before saving practice rows to
+satisfy their team foreign key. Existing team names are preserved; new entries
+use `Team <number>` until the catalog worker supplies their official names.
+
+With `includePractice=true`, the match-list API includes publicly imported
+practice teams even before they have reports. Report-only teams remain visible
+only when the viewer can access a report, and report counts and scouter names
+retain their source-team filters. Practice responses still use a `teams` array
+without alliance slots. This does not add Dashboard or Collection UI support.
+The importer preserves existing rows when a schedule changes, including rows
+that are no longer returned by Nexus. See the
+[Nexus API documentation](https://frc.nexus/api/v1/docs) for the response format.
+
+To check live fetching and database saving, use a migrated, disposable local
+`lovat_test` database with `LOVAT_DB_TEST=1`, a valid `NEXUS_API_KEY`, and
+`LOVAT_TEST_EVENT_KEY` set to a Nexus event with practice matches. Run
+`npm run test:practice-live` from `apps/server`. The command builds Server,
+loads `.env` without overriding variables already set in the terminal, and
+imports the schedule twice to check keys, scheduling markers, and duplicates.
+It refuses an event already present in the test database and removes only its
+own temporary tournament and match rows. This optional check needs live Nexus
+availability and is not part of the offline unit suite.

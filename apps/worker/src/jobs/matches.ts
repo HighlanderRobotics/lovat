@@ -1,12 +1,9 @@
 import type { PrismaClient } from "@lovat/db";
 import type { createTbaClient, TbaMatch } from "../providers/tba";
-import {
-  lockTournament,
-  refreshTournamentGaps,
-  saveTournamentGaps,
-} from "./gaps";
+import { lockTournament, saveTournamentGaps } from "./gaps";
 
 import { orderMatches } from "../match-order";
+import { flagReportsAboveAllianceScore } from "./report-reliability";
 
 type Dependencies = {
   db: PrismaClient;
@@ -101,7 +98,14 @@ export const importMatches = async (
   );
 
   if (!fetched.modified) {
-    await refreshTournamentGaps(eventKey, { db });
+    await db.$transaction(
+      async (tx) => {
+        await lockTournament(tx, eventKey);
+        await flagReportsAboveAllianceScore(tx, eventKey);
+        await saveTournamentGaps(tx, eventKey);
+      },
+      { timeout: 60_000 },
+    );
     return;
   }
 
@@ -317,6 +321,7 @@ export const importMatches = async (
         }
       }
 
+      await flagReportsAboveAllianceScore(tx, eventKey);
       await saveTournamentGaps(tx, eventKey);
 
       for (const [identity, response] of [

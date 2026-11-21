@@ -18,7 +18,7 @@ the importer.
    and check schema drift. Disposable fixture tests and a sanitized PR database
    do not replace this production rehearsal.
 4. Configure the production worker as an empty service before the API rollout:
-   repository root `/`, config `/apps/worker/railway.json`, Dockerfile
+   repository root `/`, config `/.railway/railway.ts`, Dockerfile
    `apps/worker/Dockerfile`, one replica, sleeping disabled, no cron. Set
    `DATABASE_URL=${{Postgres.DATABASE_PRIVATE_URL}}`, `TBA_KEY=${{api.TBA_KEY}}`,
    and `WORKER_CONCURRENCY=2`. Verify names and references in production. Do not
@@ -29,7 +29,7 @@ the importer.
 1. Merge the schema/worker PR and deploy the API. Its existing start command runs
    `npm --prefix ../../packages/db run db:deploy` against `DATABASE_PRIVATE_URL`
    before starting. Confirm the production service uses repository-root builds
-   and `/apps/server/railway.json`, and has no inherited `db push` command. Use a
+   and `/.railway/railway.ts`, and has no inherited `db push` command. Use a
    single migration owner; avoid simultaneous migration runners.
 2. Confirm all five migrations are applied and `/status` is healthy. Existing
    reports and participant keys are retained; missing parent teams receive a

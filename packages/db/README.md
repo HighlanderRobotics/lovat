@@ -62,7 +62,11 @@ A second deploy should apply nothing, and the diff should report no difference. 
 
 For databases previously maintained with `db push`, first inspect the verified environment's schema and `_prisma_migrations` history on a staging clone. Do not replay old migrations against an already-current schema or mark migrations applied without checking every effect. If the new transaction fails, PostgreSQL rolls back its schema/data changes but Prisma retains a failed migration record; after resolving the cause, mark only this migration rolled back using `prisma migrate resolve --rolled-back 20260913000000_reconcile_current_schema` before retrying. Never use that command to hide a partially applied older migration.
 
-Railway must use repository root `/` and `apps/server/Dockerfile` so both directories are available. The image installs both lockfiles, generates Prisma during the build, and starts from `/app/apps/server` using `dist/src/server.js`. Keep the Prisma CLI installed in the migration job. `apps/server/railway.json` supplies the existing private database URL at runtime. Set the Railway service’s Config File to `/apps/server/railway.json` and Root Directory to `/` in the dashboard as well; `apps/server/railway.json` cannot expand a build context already restricted to `/apps/server`. Clear inherited build commands and the old `db push` pre-deploy command. These settings have been applied to the PR #16 server preview; production settings and databases remain unchanged. After changing the root directory, use a fresh source build if a redeploy retains the old snapshot.
+Railway must use repository root `/` and `apps/server/Dockerfile` so both directories are available. The image installs both lockfiles, generates Prisma during the build, and starts from `/app/apps/server` using `dist/src/server.js`. Keep the Prisma CLI installed in the migration job.
+
+The `api` service in `.railway/railway.ts` supplies the existing private database URL at runtime. Keep Root Directory `/` and clear the legacy Config File path during the [IaC cutover](../../.railway/README.md). Clear inherited build commands and the old `db push` pre-deploy command. For failed migrations, follow the verified-clone and rollback-record procedure above before retrying; do not mark a partially applied migration resolved.
+
+The earlier repository-root settings were validated in the PR #16 server preview. The new IaC cutover must be planned and verified separately in each target environment. After changing the root directory, use a fresh source build if a redeploy retains the old snapshot.
 
 ## Integration checks
 
@@ -115,6 +119,7 @@ npm run db:deploy
 npx --no-install prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 LOVAT_DB_TEST=1 node --test test/migrations.test.mjs
 LOVAT_DB_TEST=1 npm run test:integration
+LOVAT_DB_TEST=1 npm run test:practice-migration
 ```
 
 CI provisions PostgreSQL 16, replays the complete migration history, checks repeat deployment and schema drift, and exercises account/filter preservation and legacy-data rollback in additional disposable databases. Tests exercise actual writes, nested relations, generated enums, JSON defaults and updates, Prisma error identity, transaction rollback, parameterized SQL, and report/event commit and cascade behavior. They do not certify production migration readiness. Server build, compilation checks, and lint remain separate required checks.

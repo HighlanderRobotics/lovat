@@ -10,20 +10,35 @@
 	});
 
 	export let hasBanner = false;
+	export let training = false;
 </script>
 
 <div class="column">
 	<nav>
 		<a href="https://frc8033.com/" target="_blank">
-			<img src="/assets/img/logo.png" alt="8033" />
+			<img
+				src={training ? '/assets/training/logo.png' : '/assets/img/logo.png'}
+				alt="8033"
+				class:training-logo={training}
+			/>
 		</a>
 		<a class="main-title" href="/">Lovat</a>
-		<button class="menu-button" on:click={() => (expanded = !expanded)}>
+		<button
+			class="menu-button"
+			aria-label="Navigation menu"
+			aria-expanded={expanded}
+			on:click={() => (expanded = !expanded)}
+		>
 			<Icon icon="menu" />
 		</button>
 		<DensityProvider density="compact">
 			<div class="actions" class:expanded>
-				<!-- <MenuWrapper>
+				{#if training}
+					<Button variant="text-only-secondary" element="a" href="/about">About</Button>
+					<Button variant="text-only-secondary" element="a" href="/contact">Contact</Button>
+					<Button variant="secondary" element="a" href="/contact">Join the waitlist</Button>
+				{:else}
+					<!-- <MenuWrapper>
 					<Button variant="text-only-secondary" on:click={() => (isLearnOpen = true)}>Learn</Button>
 					<Menu bind:open={isLearnOpen}>
 						<MenuButton element="a" href="/collection">Collection</MenuButton>
@@ -31,13 +46,15 @@
 						<MenuButton element="a" href="/scouting-lead">Dashboard for Scouting Leads</MenuButton>
 					</Menu>
 				</MenuWrapper> -->
-				<Button variant="text-only-secondary" element="a" href={`${learnUrl()}/guides/welcome`}
-					>Learn</Button
-				>
-				<Button variant="text-only-secondary" element="a" href="/about">About</Button>
-				<Button variant="text-only-secondary" element="a" href="/changelog">Changelog</Button>
-				<Button variant="text-only-secondary" element="a" href="/contact">Contact</Button>
-				<Button variant="secondary" element="a" href="/download">Get Started</Button>
+					<Button variant="text-only-secondary" element="a" href={`${learnUrl()}/guides/welcome`}
+						>Learn</Button
+					>
+					<Button variant="text-only-secondary" element="a" href="/training/start">Training</Button>
+					<Button variant="text-only-secondary" element="a" href="/about">About</Button>
+					<Button variant="text-only-secondary" element="a" href="/changelog">Changelog</Button>
+					<Button variant="text-only-secondary" element="a" href="/contact">Contact</Button>
+					<Button variant="secondary" element="a" href="/download">Get Started</Button>
+				{/if}
 			</div>
 		</DensityProvider>
 	</nav>
@@ -60,6 +77,9 @@
 </div>
 
 <style>
+	.training-logo {
+		opacity: 0.9;
+	}
 	div.secondary-container {
 		background-color: var(--secondary-container);
 	}

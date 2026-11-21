@@ -6,13 +6,164 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/home.dart';
+import 'package:scouting_dashboard_app/pages/match_schedule.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_team_rankings.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_matches.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournament_status.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/models/scout_schedule.dart';
 
 void main() {
+  testWidgets(
+      'Teams opens the selected tournament page and weekly heading is not tappable',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final tournament = Tournament('test-event', 'Test Event');
+    await tournament.storeAsCurrent();
+    final api = TournamentTestAPI();
+    Map<String, dynamic>? arguments;
+    await tester.pumpWidget(MaterialApp(
+      home: HomePage(api: api),
+      routes: {
+        '/tournament_teams': (context) {
+          arguments = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>;
+          return Scaffold(
+              appBar: AppBar(), body: const Text('All tournament teams'));
+        }
+      },
+    ));
+    await tester.pumpAndSettle();
+    final weekly = find.text('Upcoming Tournaments This Week');
+    expect(find.ancestor(of: weekly, matching: find.byType(GestureDetector)),
+        findsNothing);
+    await tester.ensureVisible(find.text('Teams'));
+    await tester.tap(find.text('Teams'));
+    await tester.pumpAndSettle();
+    expect(find.text('All tournament teams'), findsOneWidget);
+    expect(arguments?['tournament'], same(tournament));
+    expect(arguments?['api'], same(api));
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Teams'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await Tournament.clearCurrent();
+  });
+
+  testWidgets('status tiles stay equal and compact on a phone', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 320,
+          child: Row(children: [
+            Expanded(
+                child: HomeStatusTile(value: Text('3'), label: Text('Rank'))),
+            SizedBox(width: 8),
+            Expanded(
+                child: HomeStatusTile(value: Text('20'), label: Text('RP'))),
+            SizedBox(width: 8),
+            Expanded(
+                child: HomeStatusTile(
+                    value: Text('9/12'), label: Text('Matches Played'))),
+          ]),
+        ),
+      ),
+    ));
+    final tiles = find.byType(HomeStatusTile);
+    final size = tester.getSize(tiles.first);
+    expect(size.height, 60);
+    for (var i = 1; i < 3; i++) {
+      expect(tester.getSize(tiles.at(i)), size);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('empty and populated match cards have matching dimensions',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 320,
+          child: Column(children: [
+            HomePageMatch(
+                match1:
+                    MatchScheduleMatch.fromJson(matchFixture(0, 1), 'demo')),
+            const HomePageMatch(match1: null, isTeamMatch: true),
+          ]),
+        ),
+      ),
+    ));
+    final blue = tester.widgetList<AllianceRow>(find.byType(AllianceRow)).first;
+    expect(blue.alliance, Alliance.blue);
+    expect(blue.items.map((item) => item.longMatchKey.split('_').last),
+        ['3', '4', '5']);
+    final cards = find.byType(HomePageMatch);
+    expect(tester.getSize(cards.first), tester.getSize(cards.last));
+    final corners = tester
+        .widgetList<ClipRRect>(
+            find.descendant(of: cards, matching: find.byType(ClipRRect)))
+        .toList();
+    expect(corners.length, 2);
+    expect(corners.first.borderRadius, corners.last.borderRadius);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('off-duty count follows inclusive shift ranges and scout IDs',
+      (tester) async {
+    const first = Scout(name: 'Alex', id: 'first');
+    const second = Scout(name: 'Alex', id: 'second');
+    final schedule = ServerScoutSchedule(hash: 'test', shifts: [
+      ServerScoutingShift(
+        id: 'shift-one',
+        start: 1,
+        end: 2,
+        team1: [first],
+        team2: [first, second],
+        team3: [],
+        team4: [],
+        team5: [],
+        team6: [],
+      ),
+      ServerScoutingShift(
+        id: 'shift-two',
+        start: 3,
+        end: 4,
+        team1: [],
+        team2: [],
+        team3: [],
+        team4: [],
+        team5: [],
+        team6: [second],
+      ),
+    ]);
+
+    Future<void> showMatch(int? ordinal, {bool hasSchedule = true}) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ScoutersCard(
+            onDuty: false,
+            lastCompletedMatch: null,
+            schedule: hasSchedule ? schedule : null,
+            nextMatchOrdinal: ordinal,
+          ),
+        ),
+      ));
+    }
+
+    await showMatch(2);
+    expect(find.text('Next Match'), findsOneWidget);
+    expect(find.text('2 Scouters'), findsOneWidget);
+    await showMatch(3);
+    expect(find.text('1 Scouters'), findsOneWidget);
+    await showMatch(5);
+    expect(find.text('0 Scouters'), findsOneWidget);
+    await showMatch(3, hasSchedule: false);
+    expect(find.text('Schedule unavailable'), findsOneWidget);
+    await showMatch(null);
+    expect(find.text('No upcoming matches'), findsOneWidget);
+  });
+
   test('rankings sort with null ranks last', () {
     TeamRanking ranking(int number, int? rank) => TeamRanking(
           number: number,
@@ -63,15 +214,16 @@ void main() {
     final cards = tester.widgetList<TeamCard>(find.byType(TeamCard)).toList();
     expect(
         cards.map((card) => card.teamNumber), ['1000', '2000', '3000', '4000']);
-    expect(cards.map((card) => card.rank), ['1st', '2nd', '3rd', '4th']);
+    expect(cards.map((card) => card.rank), ['1', '2', '3', '4']);
     expect(cards.map((card) => card.score),
-        ['30 RP', '25 RP', '20 RP', 'RP unavailable']);
+        ['30 RP / 10 QM', '25 RP / 10 QM', '20 RP / 10 QM', 'RP unavailable']);
     expect(find.text('5000'), findsNothing);
     expect(find.text('6000'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('unranked event shows an unavailable message, not sample teams',
+  testWidgets(
+      'unranked event keeps actual teams visible with an unavailable message',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
@@ -80,7 +232,8 @@ void main() {
             number: 8033, rank: null, matchesPlayed: null, rankingPoints: null),
       ])),
     ));
-    expect(find.byType(TeamCard), findsNothing);
+    expect(find.byType(TeamCard), findsOneWidget);
+    expect(find.text('8033'), findsOneWidget);
     expect(find.text('Rankings are not available for this tournament yet.'),
         findsOneWidget);
   });
@@ -237,8 +390,7 @@ void main() {
     await Tournament('old-event', 'Old event').storeAsCurrent();
     await tester.pumpWidget(MaterialApp(home: HomePage(api: api)));
     await tester.pumpAndSettle();
-    expect(find.text('Match 1 - Upper Bracket - Round 1 at old-event'),
-        findsWidgets);
+    expect(find.text('Match 1 - Upper Bracket - Round 1'), findsWidgets);
 
     // Start a slow refresh, then select another event before it completes.
     final pending = Completer<http.Response?>();
@@ -248,12 +400,12 @@ void main() {
     api.pendingSchedule = null;
     await Tournament('new-event', 'New event').storeAsCurrent();
     await tester.pumpAndSettle();
-    expect(find.text('Qualifier 7 at new-event'), findsNWidgets(2));
+    expect(find.text('Qualifier 7'), findsNWidgets(2));
     expect(find.textContaining('at old-event'), findsNothing);
 
     pending.complete(http.Response(jsonEncode([matchFixture(1, 1)]), 200));
     await tester.pumpAndSettle();
-    expect(find.text('Qualifier 7 at new-event'), findsNWidgets(2));
+    expect(find.text('Qualifier 7'), findsNWidgets(2));
     expect(find.textContaining('at old-event'), findsNothing);
 
     await Tournament.clearCurrent();

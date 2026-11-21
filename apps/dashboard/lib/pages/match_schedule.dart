@@ -556,11 +556,15 @@ class AllianceRow extends StatelessWidget {
     required this.alliance,
     required this.items,
     this.isScoutingLead,
+    this.showDetails = true,
+    this.padding = const EdgeInsets.all(10),
   }) : super(key: key);
 
   final Alliance alliance;
   final List<AllianceRowItem> items;
   final bool? isScoutingLead;
+  final bool showDetails;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -576,7 +580,7 @@ class AllianceRow extends StatelessWidget {
             ? Theme.of(context).colorScheme.redAlliance
             : Theme.of(context).colorScheme.blueAlliance,
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: padding,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -642,60 +646,65 @@ class AllianceRow extends StatelessWidget {
               ),
             ],
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ...(item.teamInfo.scouters
-                  .map((scouterInfo) => Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            scouterInfo.isScouted
-                                ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
-                            size: 16,
-                            color: alliance == Alliance.red
-                                ? Theme.of(context).colorScheme.onRedAlliance
-                                : Theme.of(context).colorScheme.onBlueAlliance,
-                          ),
-                          Text(
-                            scouterInfo.name,
-                            style:
-                                Theme.of(context).textTheme.labelSmall!.merge(
-                                      TextStyle(
-                                        color: alliance == Alliance.red
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .onRedAlliance
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .onBlueAlliance,
+          if (showDetails)
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...(item.teamInfo.scouters
+                    .map((scouterInfo) => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              scouterInfo.isScouted
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              size: 16,
+                              color: alliance == Alliance.red
+                                  ? Theme.of(context).colorScheme.onRedAlliance
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onBlueAlliance,
+                            ),
+                            Text(
+                              scouterInfo.name,
+                              style:
+                                  Theme.of(context).textTheme.labelSmall!.merge(
+                                        TextStyle(
+                                          color: alliance == Alliance.red
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onRedAlliance
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onBlueAlliance,
+                                        ),
                                       ),
-                                    ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ].withSpaceBetween(width: 2),
+                        ))
+                    .toList()),
+                if (item.teamInfo.externalReportCount != 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      "${item.teamInfo.externalReportCount} external\nreport${item.teamInfo.externalReportCount == 1 ? "" : "s"}",
+                      style: Theme.of(context).textTheme.labelSmall!.merge(
+                            TextStyle(
+                              color: alliance == Alliance.red
+                                  ? Theme.of(context).colorScheme.onRedAlliance
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onBlueAlliance,
+                              height: 1.1,
+                            ),
                           ),
-                        ].withSpaceBetween(width: 2),
-                      ))
-                  .toList()),
-              if (item.teamInfo.externalReportCount != 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    "${item.teamInfo.externalReportCount} external\nreport${item.teamInfo.externalReportCount == 1 ? "" : "s"}",
-                    style: Theme.of(context).textTheme.labelSmall!.merge(
-                          TextStyle(
-                            color: alliance == Alliance.red
-                                ? Theme.of(context).colorScheme.onRedAlliance
-                                : Theme.of(context).colorScheme.onBlueAlliance,
-                            height: 1.1,
-                          ),
-                        ),
+                    ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

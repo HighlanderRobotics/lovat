@@ -8,7 +8,7 @@ export const onboardingRedirect = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z.object({ team_code: z.string() }).parse(req.query);
 
     const teamRow = await prismaClient.registeredTeam.findUnique({
@@ -36,8 +36,5 @@ export const onboardingRedirect = async (
           encodeURIComponent(state),
       );
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

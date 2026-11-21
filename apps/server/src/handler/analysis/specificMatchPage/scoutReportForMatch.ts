@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { createAnalysisHandler } from "../analysisHandler.js";
@@ -13,9 +14,7 @@ export const scoutReportForMatch = createAnalysisHandler({
   shouldCache: false,
   calculateAnalysis: async ({ params }, ctx) => {
     const scoutReports = await prismaClient.scoutReport.findMany({
-      where: {
-        teamMatchKey: params.match,
-      },
+      where: { ...analysisReportFilter, teamMatchKey: params.match },
 
       select: {
         uuid: true,

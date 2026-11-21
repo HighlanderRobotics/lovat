@@ -7,7 +7,7 @@ export const deleteScouterShift = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -51,8 +51,5 @@ export const deleteScouterShift = async (
       res.status(403).send("Unauthorized to delete this picklist");
       return;
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

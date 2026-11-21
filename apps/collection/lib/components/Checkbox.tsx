@@ -1,7 +1,7 @@
 import { Pressable, StyleProp, View, ViewStyle } from "react-native";
 import { colors } from "../colors";
 import LabelSmall from "./text/LabelSmall";
-import { Icon } from "./Icon";
+import Svg, { Path } from "react-native-svg";
 
 export const Checkbox = (props: {
   label: string;
@@ -20,7 +20,9 @@ export const Checkbox = (props: {
       aria-checked={checked}
     >
       <SelectionIndicator type="checkbox" selected={checked ?? false} />
-      <LabelSmall color={colors.body.default}>{label}</LabelSmall>
+      <View style={{ flexShrink: 1 }}>
+        <LabelSmall color={colors.body.default}>{label}</LabelSmall>
+      </View>
     </Pressable>
   );
 };
@@ -51,6 +53,7 @@ export const SelectionIndicator = (props: SelectionIndicatorProps) => {
         {
           width: 24,
           height: 24,
+          flexShrink: 0,
           borderRadius: props.type === "checkbox" ? 5 : 12,
           alignItems: "center",
           justifyContent: "center",
@@ -58,7 +61,16 @@ export const SelectionIndicator = (props: SelectionIndicatorProps) => {
       ]}
     >
       {props.selected && props.type === "checkbox" && (
-        <Icon name="check" color={colors.background.default} size={20} />
+        <Svg width={20} height={20} viewBox="0 0 24 24">
+          <Path
+            d="M5 12l4 4L19 6"
+            fill="none"
+            stroke={colors.background.default}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
       )}
       {props.selected && props.type === "radio" && (
         <View

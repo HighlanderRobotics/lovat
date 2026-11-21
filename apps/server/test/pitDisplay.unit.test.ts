@@ -144,11 +144,11 @@ it("omits predictions when there is insufficient scouting data", async () => {
 });
 it("propagates unexpected prediction failures", async () => {
   db.predict.mockRejectedValue(new Error("prediction"));
-  expect((await run()).statusCode).toBe(500);
+  await expect(run()).rejects.toThrow();
 });
 it("reports event service failures", async () => {
   db.get.mockReset().mockRejectedValue(new Error("TBA"));
-  expect((await run()).statusCode).toBe(500);
+  await expect(run()).rejects.toThrow();
 });
 it("collapses rankings between the leaders and the selected team", async () => {
   const result = await run({ team: "1" });

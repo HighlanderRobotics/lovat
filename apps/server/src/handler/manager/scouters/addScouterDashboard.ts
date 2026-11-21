@@ -7,7 +7,7 @@ export const addScouterDashboard = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     if (req.tokenType === "apiKey") {
       res
         .status(403)
@@ -38,8 +38,5 @@ export const addScouterDashboard = async (
       },
     });
     res.status(201).send(scouter);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

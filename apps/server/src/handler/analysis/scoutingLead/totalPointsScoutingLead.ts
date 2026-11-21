@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { runAnalysis } from "../analysisFunction.js";
@@ -14,6 +15,7 @@ const config = {
     const points = await prismaClient.event.aggregate({
       where: {
         scoutReportUuid: args.scoutReportUuid,
+        scoutReport: analysisReportFilter,
       },
       _sum: {
         points: true,

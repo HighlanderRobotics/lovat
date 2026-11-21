@@ -1,3 +1,4 @@
+import { analysisReportFilter } from "../reportReliability.js";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { FlippedActionMap, FlippedPositionMap } from "../analysisConstants.js";
@@ -16,7 +17,10 @@ export const timelineForScoutReport = createAnalysisHandler({
     const events = await prismaClient.event.findMany({
       where: {
         scoutReportUuid: params.uuid,
-        scoutReport: scoutReportSourceFilter(ctx.user),
+        scoutReport: {
+          ...scoutReportSourceFilter(ctx.user),
+          ...analysisReportFilter,
+        },
       },
       orderBy: { time: "asc" },
     });

@@ -1,0 +1,138 @@
+# Railway infrastructure
+
+`railway.ts` owns build and deployment settings for `api`, `worker`, `dashboard`,
+`website`, and `learn`. Install the isolated tooling with `npm --prefix .railway ci`
+and check it with `npm --prefix .railway run typecheck` and
+`npm --prefix .railway test`. Use Node 22.20.0 and Railway CLI 5.62.1 or newer.
+
+The `lovat-apps` named partial owns only these application services. Databases,
+volumes, buckets, and domains remain managed outside this repository. Existing
+variable names are listed with `preserve()`; their values remain on Railway.
+GitHub sources and root directories are declared explicitly because omission
+would disconnect sources or delete variables during adoption. This prevents an app configuration apply from deleting omitted
+infrastructure. Any other IaC authoring file targeting the same environment must
+also use a named partial. Do not rename the partial after adoption without
+transferring ownership with `railway config partials`.
+
+CLI 5.62.1 includes the environment-context fix from railwayapp/cli#1139.
+Older releases can pass an empty context and silently omit staging limits; the
+authoring file now refuses to render without an environment name.
+
+## One-time cutover
+
+The TypeScript file is evaluated by the CLI; Railway does not read it during image
+deployment. Do not put its path in the dashboard's legacy **Config File** field.
+
+1. Authenticate with `railway login`, then `railway link` to the intended Lovat
+   project and a disposable preview environment. Verify the project/environment
+   and actual service names, especially `api` (the directory is `apps/server`).
+   Never link this file to an unrelated project.
+2. Verify the declared source connections and roots: `/` for api, worker, website;
+   `/apps/dashboard` for dashboard; `/apps/learn` for learn. For a PR environment, set
+   `RAILWAY_CONFIG_BRANCH` to its existing GitHub branch for every plan/apply.
+   Production and staging use `main`, matching the verified live services.
+   Compare variable names with `env` in the file and add `preserve()` entries for
+   any newly configured variables before applying. Never include secret values. Preserve Dashboard's existing release workflow when deciding source/deploy policy.
+3. Confirm the preview has isolated Postgres/Redis and sandbox integration keys.
+   Deploy API migrations before the worker starts; API remains the migration owner.
+4. Clear the old **Config File** paths on all five services. The old app-local
+   `railway.json` files are removed by this PR. Preserve the last applied settings
+   until the new configuration is applied; coordinate this step before deploying
+   the merged sources. Do not run `config migrate --apply` over this authored file.
+5. From the repository root, run `railway config plan` (for previews, prefix it
+   with `RAILWAY_CONFIG_BRANCH=<existing-preview-branch>`). Review every change:
+   existing services should be adopted, never duplicated under different names.
+   Expect the existing build/deploy settings plus `.railway` watch paths. Reject
+   any service, variable, domain, or storage removals. If unrelated changes are
+   already staged in the environment, preserve that patch: do not use the shared
+   accept/deploy action. Review the IaC plan separately and verify the pre-existing
+   patch is unchanged afterward. Inspect ownership
+   with `railway config partials list` if the environment already has IaC owners.
+6. Run `railway config apply` after reviewing the plan, using the same
+   `RAILWAY_CONFIG_BRANCH` for previews. Deploy the preview images,
+   verify `/status`, `/health`, and `/healthz`, and check the worker logs for a
+   successful current-year tournament import. The server no longer imports the
+   tournament catalog; a healthy worker with `TBA_KEY` is required.
+7. Repeat the link, config-path clearing, plan, apply, and health checks in the
+   intended production environment after preview validation.
+
+## Subsequent changes
+
+Run local checks, link the intended environment, run `railway config plan`, review,
+then `railway config apply` before deploying application images. Merely merging
+this file does not apply infrastructure. The CI workflow validates TypeScript and
+renders production/staging graphs without credentials; it does not apply changes.
+
+Platform-default values are omitted from the authoring graph to avoid perpetual
+no-op drift: sleeping is disabled, restart policy is `ON_FAILURE`, and the default
+retry count is 10. The explicit per-region replica maps retain one western replica.
+Non-production API builds retain inert inherited Nixpacks metadata; Dockerfile
+remains the active builder.
+
+API retains the private database migration/start command and staging's 2 CPU /
+2 GiB limit. Worker retains its single western replica, disabled sleeping, and
+60-second drain window. Historical tournament imports are explicit worker jobs:
+`bun run enqueue tournaments 2025` or `bun run backfill 1992 2025`.
+
+See [Railway's IaC migration guide](https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code).
+
+For finite offseason batches, see [Worker batch rollout](../docs/worker-batch-rollout.md).
+`RAILWAY_WORKER_CRON='0 18 * * *'` is an opt-in local plan/apply input; production defaults to six-hour event-aware windows after the rollout. An
+explicit empty `RAILWAY_WORKER_CRON` restores continuous mode. Merging this configuration does not enable
+Cron or PostgreSQL Serverless.
+
+## Tested-commit deployment gate (LVT-337)
+
+GitHub requires `Monorepo CI` on `main`. That job requires Railway IaC checks,
+app tests, applicable production web image HTTP checks, and the CodeQL result.
+CodeQL selects each language by its watch paths. Only a manual CodeQL run
+requests the full matrix. A successful selection with zero applicable analyses
+passes the aggregate. A failed or cancelled selected analysis fails it.
+CI runs on every push to `main`.
+
+`RAILWAY_WAIT_FOR_CI=true` opts all five GitHub sources in the linked environment
+into Railway's [Wait for CI](https://docs.railway.com/deployments/github-autodeploys).
+Keep that input in subsequent plans for an environment after enabling it. An
+explicit `false` restores the prior setting. Pass the current live Worker mode
+to the plan as well. For a continuously running Worker, use
+`RAILWAY_WORKER_CRON=''` so the same apply does not switch it to scheduled mode.
+
+1. Link to an isolated environment with GitHub autodeploy enabled. Generate a
+   read-only plan and confirm the only intended change is `checkSuites` on app
+   sources. Review the plan and keep the IDs of the currently healthy deployments.
+2. After applying the reviewed test plan, verify a commit with an applicable
+   failing check does not deploy. Verify a later passing commit does deploy.
+   Match the GitHub workflow SHA to the Railway deployment SHA and record both.
+3. Review the production plan separately. Services with autodeploy disabled
+   still need their approved promotion path. For manual rollback, identify the
+   last healthy deployment by ID and verify service health after redeployment.
+
+Railway evaluates workflow conclusions and can ignore a cancelled workflow when
+another workflow passed. Keep the `main` CI workflow free of superseding-run
+cancellation. Verify the aggregate outcome and deployed SHA for each promotion.
+
+The November 20 read-only production audit found the API already had sleeping
+enabled. The graph now preserves that setting alongside the Worker's existing
+six-hour schedule. The refreshed production plan proposed only the five
+`source.checkSuites` updates and reported zero diagnostics. The PR #128 preview
+plan also proposes explicitly writing
+`WORKER_MODE=continuous` where the Worker previously used its default. Review
+that reconciliation independently before using the preview to test Wait for CI.
+
+## Verified live state (November 12, 2026)
+
+The Lovat project is `c210dce8-37af-4bf0-b1e0-7e28b30597c6` in **8033 Admin's
+Projects**. The connected list-projects inventory omitted it; a direct project ID
+lookup and the local Railway CLI both work. See the
+[cutover verification record](evidence/2026-11-12/verification.md) and redacted
+configuration snapshot. The five application services already belong to the
+`lovat-apps` named partial in production and staging. PR #128 inherits matching
+settings but has no explicit partial ownership; preview adoption remains open.
+
+The audit found source/sleeping/preview-limit drift in the authored file. The
+updated definitions preserve the observed live settings rather than changing
+service availability, cost or staging source on the next apply. Healthcheck
+readiness (LVT-339) and release migrations (LVT-338) remain separate proposed
+changes. No live settings were applied by
+this audit. Secret-value isolation and a restore/rollback exercise still need
+independent evidence.

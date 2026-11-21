@@ -1,13 +1,24 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
+  exercise: vi.fn(),
   schedule: vi.fn(),
+  connect: vi.fn(),
   clear: vi.fn(),
   listen: vi.fn(),
   create: vi.fn(),
   disconnect: vi.fn(),
+  sockets: vi.fn(),
+  server: { on: vi.fn() },
+}));
+vi.mock("../src/handler/training/builtInExercise.js", () => ({
+  ensureBuiltInTrainingExercise: mocks.exercise,
+}));
+vi.mock("../src/handler/training/trainingSockets.js", () => ({
+  attachTrainingSockets: mocks.sockets,
 }));
 vi.mock("../src/app.js", () => ({ app: { listen: mocks.listen } }));
 vi.mock("../src/lib/scheduleJobs.js", () => ({ default: mocks.schedule }));
+vi.mock("../src/redisClient.js", () => ({ connectRedis: mocks.connect }));
 vi.mock("../src/lib/clearCache.js", () => ({ clearCache: mocks.clear }));
 vi.mock("../src/prismaClient.js", () => ({
   default: {
@@ -20,27 +31,36 @@ beforeEach(() => {
   vi.resetModules();
   vi.spyOn(console, "log").mockImplementation(() => undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
-  mocks.listen.mockImplementation((_port, callback) => callback());
+  mocks.listen.mockImplementation((_port, callback) => {
+    callback();
+    return mocks.server;
+  });
 });
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 it.each([undefined, "4321"])(
-  "schedules and clears cache before listening on the configured port (%s)",
+  "schedules and connects Redis before listening on the configured port (%s)",
   async (port) => {
     vi.stubEnv("PORT", port);
     await import("../src/server.js");
+    expect(mocks.sockets).toHaveBeenCalledWith(mocks.server);
+    expect(mocks.exercise).toHaveBeenCalledOnce();
+    expect(mocks.exercise.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.schedule.mock.invocationCallOrder[0],
+    );
     expect(mocks.schedule).toHaveBeenCalledOnce();
-    expect(mocks.clear).toHaveBeenCalledOnce();
+    expect(mocks.clear).not.toHaveBeenCalled();
+    expect(mocks.connect).toHaveBeenCalledOnce();
     expect(mocks.listen).toHaveBeenCalledWith(
       port ?? 3000,
       expect.any(Function),
     );
     expect(mocks.schedule.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.clear.mock.invocationCallOrder[0],
+      mocks.connect.mock.invocationCallOrder[0],
     );
-    expect(mocks.clear.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mocks.connect.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.listen.mock.invocationCallOrder[0],
     );
   },
@@ -81,3 +101,11 @@ it.each([
     );
   },
 );
+
+it("does not listen or schedule work if the built-in exercise conflicts", async () => {
+  mocks.exercise.mockRejectedValue(new Error("exercise conflict"));
+  await expect(import("../src/server.js")).rejects.toThrow("exercise conflict");
+  expect(mocks.schedule).not.toHaveBeenCalled();
+  expect(mocks.clear).not.toHaveBeenCalled();
+  expect(mocks.listen).not.toHaveBeenCalled();
+});

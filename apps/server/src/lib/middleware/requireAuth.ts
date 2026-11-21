@@ -20,7 +20,7 @@ export const requireAuth = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  try {
+  {
     // Validate JWT
     const tokenString = req.headers.authorization?.split(" ")[1]; // It would be in the format "Bearer <token>" so we split on the space and take the second part
 
@@ -69,12 +69,7 @@ export const requireAuth = async (
         return;
       } catch (error) {
         console.error("Error validating API key:", error);
-        // TODO(LVT-297): Remove this notice after the rotation recovery window.
-        res
-          .status(401)
-          .send(
-            "Invalid API key. API keys were rotated recently. Please check your email for your replacement API key.",
-          );
+        res.status(401).send("Invalid API key");
         return;
       }
     }
@@ -151,9 +146,5 @@ export const requireAuth = async (
 
       next();
     }
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).send("Internal server error");
   }
 };

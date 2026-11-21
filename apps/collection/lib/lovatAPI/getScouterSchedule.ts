@@ -2,6 +2,7 @@ import { z } from "zod";
 import { MatchIdentity, matchTypes } from "../models/match";
 import { AllianceColor } from "../models/AllianceColor";
 import { get } from "./lovatAPI";
+import { isUnavailableScheduleError } from "./apiError";
 import { useTournamentStore } from "../storage/userStores";
 
 const scouterScheduleResponseSchema = z.object({
@@ -11,6 +12,7 @@ const scouterScheduleResponseSchema = z.object({
       matchType: z.number(),
       matchNumber: z.number(),
       scouters: z.record(
+        z.string(),
         z.object({
           team: z.number(),
           alliance: z.union([z.literal("red"), z.literal("blue")]),
@@ -41,13 +43,18 @@ type ScouterScheduleScouterEntry = {
 export async function getScouterSchedule(): Promise<
   ScouterSchedule | undefined
 > {
-  const tournamentKey = useTournamentStore.getState().value!.key;
-  const response = await get("/v1/manager/scouterschedules/" + tournamentKey);
+  const tournament = useTournamentStore.getState().value;
+  if (!tournament) {
+    return undefined;
+  }
+
+  const tournamentKey = tournament.key;
+  const response = await get("/collection/schedules/" + tournamentKey);
 
   if (!response.ok) {
     const json = await response.json();
 
-    if (json["error"] === "Matches are not available for this tournamnet") {
+    if (isUnavailableScheduleError(json)) {
       return;
     }
 

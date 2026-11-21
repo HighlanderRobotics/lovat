@@ -1,16 +1,18 @@
 # Railway web hosting
 
-Learn, Dashboard web and Website run as independent services in the existing Lovat Railway project. Use an isolated PR environment before promoting to production. API uses `/apps/server/railway.json` with repository root `/` so its build includes `packages/db`.
+Learn, Dashboard web and Website run as independent services in the existing Lovat Railway project. Use an isolated PR environment before promoting to production. API settings live in `/.railway/railway.ts` with repository root `/` so its build includes `packages/db`.
 
-| Service | Root directory | Config file (repository absolute) | Health check |
+| Service | Root directory | IaC file (repository absolute) | Health check |
 | --- | --- | --- | --- |
-| learn | /apps/learn | /apps/learn/railway.json | /healthz |
-| dashboard | /apps/dashboard | /apps/dashboard/railway.json | /healthz |
-| website | / | /apps/website/railway.json | /healthz |
+| learn | /apps/learn | /.railway/railway.ts | /healthz |
+| dashboard | /apps/dashboard | /.railway/railway.ts | /healthz |
+| website | / | /.railway/railway.ts | /healthz |
 
 Website builds from the repository root so its Docker image can read `CHANGELOG.md`. Set its service root to `/` in Railway before deploying this configuration. Its Dockerfile-specific ignore file limits the context to Website sources and the changelog. Learn and Dashboard retain their app-directory build contexts.
 
 All services build their app-local Dockerfile, listen on PORT (8080 by default), and use app-specific watch paths. No volumes are needed. Enable Railway CDN for static delivery. Learn has short shared HTML caching and immutable hashed assets. Dashboard revalidates stable Flutter filenames on every request; do not override this with a blanket CDN TTL. Website caches adapter-served static assets only; dynamic responses use private, no-store.
+
+See the [IaC cutover and plan/apply workflow](../.railway/README.md). Railway evaluates this file through the CLI, so apply changes before deploying images. Clear legacy Config File paths; do not set that field to the TypeScript file.
 
 ## Preview configuration
 
@@ -35,6 +37,6 @@ The Web hosting images workflow builds all three production images and runs scri
 
 After PR validation, configure equivalent production services and real runtime integration credentials, then move existing custom domains. Production ORIGIN must use the canonical public website URL, not the Railway service domain. Preserve redirects between apex/www and existing auth URLs.
 
-Website retains its Netlify adapter when NETLIFY=true for rollback. Dashboard's release workflow retains Netlify until repository variable DASHBOARD_HOSTING=railway and secret RAILWAY_DASHBOARD_PRODUCTION_TOKEN (production-scoped Railway project token) are configured. The Railway step uploads the repository root (matching the configured /apps/dashboard service root and repository-absolute config path) after the version bump so web and APK versions agree. Set production Dashboard LOVAT_API_BASE=https://api.lovat.app and LOVAT_WEBSITE_URL=https://lovat.app. Set production Learn PUBLIC_WEBSITE_URL=https://lovat.app and Website public URL variables to their corresponding canonical domains. Avoid a second automatic GitHub deployment for that release-managed service; use the release workflow as production deploy authority.
+Website retains its Netlify adapter when NETLIFY=true for rollback. Dashboard's release workflow retains Netlify until repository variable DASHBOARD_HOSTING=railway and secret RAILWAY_DASHBOARD_PRODUCTION_TOKEN (production-scoped Railway project token) are configured. The Railway step uploads the repository root (matching the configured /apps/dashboard service root and applied IaC settings) after the version bump so web and APK versions agree. Set production Dashboard LOVAT_API_BASE=https://api.lovat.app and LOVAT_WEBSITE_URL=https://lovat.app. Set production Learn PUBLIC_WEBSITE_URL=https://lovat.app and Website public URL variables to their corresponding canonical domains. Avoid a second automatic GitHub deployment for that release-managed service; use the release workflow as production deploy authority.
 
 Keep Netlify sites available until DNS and integrations are verified. Roll back by restoring DNS and setting DASHBOARD_HOSTING back to netlify. A PR deployment alone does not cut production traffic over.

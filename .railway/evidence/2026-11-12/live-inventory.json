@@ -1,0 +1,1864 @@
+{
+  "observedDate": "2026-11-12",
+  "projectId": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+  "environments": {
+    "production": {
+      "inventory": {
+        "project": {
+          "id": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+          "name": "lovat",
+          "workspaceName": "8033 Admin's Projects"
+        },
+        "environment": {
+          "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+          "name": "production",
+          "isEphemeral": false
+        },
+        "staged": null,
+        "region": null,
+        "services": [
+          {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "88edfb74-54a0-48fe-a0ff-eadd00a762e6",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T04:07:25.000Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "dff1453c-3fef-4684-bd5b-afd5ed5657be",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-10T15:45:45.345Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "4b556c2e-db29-48ba-b882-0e5587554f50",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T04:07:24.999Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "4f666324-b7a4-4b6a-b44e-bcc61f8cfa17",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T04:07:25.008Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+            "name": "Postgres",
+            "state": "live",
+            "source": {
+              "image": "ghcr.io/railwayapp-templates/postgres-ssl:16",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+                "volumeName": "ink-volume",
+                "mountPath": "/var/lib/postgresql/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "bc51912a-9629-46ee-821c-00959427e43d",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-05T15:07:12.359Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "e7374dcb-6e4f-44a4-b11a-29dc4c8f4234",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-13T00:54:07.820Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+            "name": "Redis",
+            "state": "live",
+            "source": {
+              "image": "redis:8.10.3",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "1de4c728-4246-43d0-98e6-41a83cd44672",
+                "volumeName": "redis-volume",
+                "mountPath": "/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "69a85feb-f093-46c2-9332-978be094bb04",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-05T15:09:12.796Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "volumes": [
+          {
+            "id": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+            "name": "ink-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 5000,
+            "mountedOn": {
+              "serviceId": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+              "serviceName": "Postgres",
+              "mountPath": "/var/lib/postgresql/data"
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "1de4c728-4246-43d0-98e6-41a83cd44672",
+            "name": "redis-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 5000,
+            "mountedOn": {
+              "serviceId": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+              "serviceName": "Redis",
+              "mountPath": "/data"
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "buckets": [
+          {
+            "id": "3cb0fa95-8aa3-4148-a899-488969e2a66f",
+            "name": "Postgres-PITR",
+            "state": "live",
+            "region": "sjc",
+            "stagedChangeCount": 0
+          }
+        ],
+        "sharedVariableNames": []
+      },
+      "services": {
+        "api": {
+          "service": {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live"
+          },
+          "environment": {
+            "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+            "name": "production"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "lovat-server-production.up.railway.app": {}
+              },
+              "customDomains": {
+                "api.lovat.app": {}
+              },
+              "privateNetworkEndpoint": "lovat-server"
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/server/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/server/Dockerfile"
+            },
+            "deploy": {
+              "startCommand": "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && exec npm start'",
+              "healthcheckPath": "/status",
+              "healthcheckTimeout": 1200,
+              "restartPolicyMaxRetries": 20,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1,
+                  "stackerAssignment": null
+                }
+              }
+            },
+            "configFile": ""
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "AUTH0_DOMAIN",
+            "BASE_URL",
+            "DATABASE_PRIVATE_URL",
+            "DATABASE_URL",
+            "DIRECT_DATABASE_URL",
+            "LOVAT_SIGNING_KEY",
+            "LOVAT_WEBSITE",
+            "PIT_DISPLAY_KEY",
+            "PORT",
+            "POSTHOG_PROJECT_API_KEY",
+            "REDIS_URL",
+            "RESEND_KEY",
+            "SLACK_APP_ID",
+            "SLACK_CLIENT_ID",
+            "SLACK_CLIENT_SECRET",
+            "SLACK_VERIFICATION_KEY",
+            "SLACK_WEBHOOK",
+            "TBA_KEY"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "d6a75eb5-6e96-4eef-9219-724c366960bc",
+                "domain": "lovat-server-production.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": [
+              {
+                "id": "b9ce5260-9264-463a-9581-0c9370d8f8ef",
+                "domain": "api.lovat.app",
+                "targetPort": null
+              }
+            ]
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "e7374dcb-6e4f-44a4-b11a-29dc4c8f4234",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-13T00:54:07.820Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "worker": {
+          "service": {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live"
+          },
+          "environment": {
+            "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+            "name": "production"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/worker/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/worker/Dockerfile"
+            },
+            "deploy": {
+              "startCommand": "bun index.ts",
+              "healthcheckPath": "/health",
+              "healthcheckTimeout": 120,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              },
+              "drainingSeconds": 60
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "dff1453c-3fef-4684-bd5b-afd5ed5657be",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-10T15:45:45.345Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "dashboard": {
+          "service": {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live"
+          },
+          "environment": {
+            "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+            "name": "production"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/apps/dashboard"
+            },
+            "networking": {
+              "serviceDomains": {
+                "dashboard-production-4f76.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/dashboard/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["LOVAT_API_BASE", "LOVAT_WEBSITE_URL", "PORT"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "5208be5a-3be3-4c3d-9b11-1f8d6da50d14",
+                "domain": "dashboard-production-4f76.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "4b556c2e-db29-48ba-b882-0e5587554f50",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T04:07:24.999Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "website": {
+          "service": {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live"
+          },
+          "environment": {
+            "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+            "name": "production"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "website-production-8b64.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/website/**",
+                "/CHANGELOG.md",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/website/Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "LOVAT_API_BASE",
+            "LOVAT_SIGNING_KEY",
+            "ORIGIN",
+            "PORT",
+            "PUBLIC_DASHBOARD_URL",
+            "PUBLIC_LEARN_URL",
+            "PUBLIC_WEBSITE_URL",
+            "RECAPTCHA_SECRET_KEY",
+            "RECAPTCHA_SITE_KEY"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "e83ba00f-5578-4243-aeb0-b6e01dac726e",
+                "domain": "website-production-8b64.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "88edfb74-54a0-48fe-a0ff-eadd00a762e6",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T04:07:25.000Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "learn": {
+          "service": {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live"
+          },
+          "environment": {
+            "id": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+            "name": "production"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/apps/learn"
+            },
+            "networking": {
+              "serviceDomains": {
+                "learn-production-3ca4.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/learn/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["PORT", "PUBLIC_WEBSITE_URL"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "c83f6e01-854c-4c09-afa6-4da8869e0e1a",
+                "domain": "learn-production-3ca4.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "4f666324-b7a4-4b6a-b44e-bcc61f8cfa17",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T04:07:25.008Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        }
+      }
+    },
+    "staging": {
+      "inventory": {
+        "project": {
+          "id": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+          "name": "lovat",
+          "workspaceName": "8033 Admin's Projects"
+        },
+        "environment": {
+          "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+          "name": "staging",
+          "isEphemeral": false
+        },
+        "staged": null,
+        "region": null,
+        "services": [
+          {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "bea9389e-51c7-4f9b-937e-781d8e2ba770",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T00:54:59.597Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+            "name": "Redis",
+            "state": "live",
+            "source": {
+              "image": "redis:8.2.9",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "1de4c728-4246-43d0-98e6-41a83cd44672",
+                "volumeName": "redis-volume",
+                "mountPath": "/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "d11b183e-43bc-450e-b009-30777e4c6a99",
+              "status": "SUCCESS",
+              "createdAt": "2026-09-11T03:33:58.784Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "0ec66e42-74a4-4b4a-817c-adbfafc90b2d",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-12T03:22:27.956Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+            "name": "Postgres",
+            "state": "live",
+            "source": {
+              "image": "ghcr.io/railwayapp-templates/postgres-ssl:latest",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+                "volumeName": "ink-volume",
+                "mountPath": "/var/lib/postgresql/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "a73fde67-df04-42ea-ab77-96e1c5c51909",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-03T05:11:34.562Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "e5e29a90-fb23-4c1f-927a-c92c15ca70ed",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-12T03:22:27.757Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "2655a246-ede9-46b7-a4d1-fce379d985d4",
+            "name": "support",
+            "state": "live",
+            "source": null,
+            "regions": ["sfo"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "8fa44b29-1dfe-4d77-b3d0-acd3632251c6",
+              "status": "FAILED",
+              "createdAt": "2026-09-24T23:29:09.508Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "f25a26d6-dab0-4534-b42a-db10d84f03bc",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-13T00:54:07.822Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "551ab25c-7443-4f53-8fd1-60ec2bb14c0c",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-12T03:22:27.695Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "volumes": [
+          {
+            "id": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+            "name": "ink-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 5000,
+            "mountedOn": {
+              "serviceId": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+              "serviceName": "Postgres",
+              "mountPath": "/var/lib/postgresql/data"
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "1de4c728-4246-43d0-98e6-41a83cd44672",
+            "name": "redis-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 5000,
+            "mountedOn": {
+              "serviceId": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+              "serviceName": "Redis",
+              "mountPath": "/data"
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "buckets": [],
+        "sharedVariableNames": []
+      },
+      "services": {
+        "api": {
+          "service": {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live"
+          },
+          "environment": {
+            "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+            "name": "staging"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "lovat-server-staging.up.railway.app": {}
+              },
+              "privateNetworkEndpoint": "lovat-server"
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/server/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildCommand": "",
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/server/Dockerfile",
+              "nixpacksPlan": {
+                "repo": "MangoSwirl/lovat-server"
+              }
+            },
+            "deploy": {
+              "startCommand": "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && exec npm start'",
+              "healthcheckPath": "/status",
+              "limitOverride": {
+                "containers": {
+                  "cpu": 2,
+                  "memoryBytes": 2147483648
+                }
+              },
+              "healthcheckTimeout": 1200,
+              "restartPolicyMaxRetries": 20,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "configFile": ""
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "AUTH0_DOMAIN",
+            "BASE_URL",
+            "CORS_ALLOWED_ORIGINS",
+            "DATABASE_PRIVATE_URL",
+            "DATABASE_URL",
+            "DIRECT_DATABASE_URL",
+            "LOVAT_SIGNING_KEY",
+            "LOVAT_WEBSITE",
+            "NPM_CONFIG_PRODUCTION",
+            "PIT_DISPLAY_KEY",
+            "PORT",
+            "POSTHOG_PROJECT_API_KEY",
+            "REDIS_URL",
+            "RESEND_KEY",
+            "SLACK_APP_ID",
+            "SLACK_CLIENT_ID",
+            "SLACK_CLIENT_SECRET",
+            "SLACK_VERIFICATION_KEY",
+            "SLACK_WEBHOOK",
+            "TBA_KEY"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "5db43b64-860e-4a9f-8b6b-6b27ee758194",
+                "domain": "lovat-server-staging.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "f25a26d6-dab0-4534-b42a-db10d84f03bc",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-13T00:54:07.822Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "worker": {
+          "service": {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live"
+          },
+          "environment": {
+            "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+            "name": "staging"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "privateNetworkEndpoint": "learn-b671070f-ed43-449f-9106-1f2605856b3a"
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/worker/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/worker/Dockerfile"
+            },
+            "deploy": {
+              "startCommand": "bun index.ts",
+              "healthcheckPath": "/health",
+              "healthcheckTimeout": 120,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              },
+              "drainingSeconds": 60
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "e5e29a90-fb23-4c1f-927a-c92c15ca70ed",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-12T03:22:27.757Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "dashboard": {
+          "service": {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live"
+          },
+          "environment": {
+            "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+            "name": "staging"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/apps/dashboard",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "lovat-dashboard-staging.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/dashboard/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["LOVAT_API_BASE", "LOVAT_WEBSITE_URL", "PORT"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "6a02b62b-fdd7-4c01-af21-e0f903675f6c",
+                "domain": "lovat-dashboard-staging.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "bea9389e-51c7-4f9b-937e-781d8e2ba770",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T00:54:59.597Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "website": {
+          "service": {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live"
+          },
+          "environment": {
+            "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+            "name": "staging"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "lovat-website-staging.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/website/**",
+                "/CHANGELOG.md",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/website/Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "LOVAT_API_BASE",
+            "LOVAT_SIGNING_KEY",
+            "ORIGIN",
+            "PORT",
+            "PUBLIC_DASHBOARD_URL",
+            "PUBLIC_LEARN_URL",
+            "PUBLIC_WEBSITE_URL"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "eb71dc27-1c2a-4d1e-abc3-8ae1e7b64e37",
+                "domain": "lovat-website-staging.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "551ab25c-7443-4f53-8fd1-60ec2bb14c0c",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-12T03:22:27.695Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "learn": {
+          "service": {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live"
+          },
+          "environment": {
+            "id": "1902828c-65ae-455c-90c8-5a370b7cedab",
+            "name": "staging"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "main",
+              "rootDirectory": "/apps/learn",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "lovat-learn-staging.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/learn/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "cdn": {
+              "enabled": true
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["PORT", "PUBLIC_WEBSITE_URL"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "6bcc1ed3-4368-4b41-8239-5e29bbaefa11",
+                "domain": "lovat-learn-staging.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "0ec66e42-74a4-4b4a-817c-adbfafc90b2d",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-12T03:22:27.956Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        }
+      }
+    },
+    "preview128": {
+      "inventory": {
+        "project": {
+          "id": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+          "name": "lovat",
+          "workspaceName": "8033 Admin's Projects"
+        },
+        "environment": {
+          "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+          "name": "lovat-pr-128",
+          "isEphemeral": true
+        },
+        "staged": null,
+        "region": null,
+        "services": [
+          {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": null,
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "bbbdf529-a857-4de3-b7ff-ec7e0eb3fd96",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T06:30:36.234Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+            "name": "Postgres",
+            "state": "live",
+            "source": {
+              "image": "ghcr.io/railwayapp-templates/postgres-ssl:latest",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+                "volumeName": "ink-volume",
+                "mountPath": "/var/lib/postgresql/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "ccbbcb55-e3ca-498f-8adf-387631b3e6da",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-13T06:30:35.957Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "2655a246-ede9-46b7-a4d1-fce379d985d4",
+            "name": "support",
+            "state": "live",
+            "source": null,
+            "regions": ["sfo"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": null,
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "4c063820-8764-4190-9814-a689df7fe417",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-13T06:30:36.218Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "1ab2fa7e-023e-4463-a573-bab102debd96",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T06:30:36.241Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live",
+            "source": {
+              "image": null,
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and"
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [],
+            "latestDeployment": {
+              "id": "575feabd-6eb6-43e9-8c84-18277c508c32",
+              "status": "SLEEPING",
+              "createdAt": "2026-11-13T06:30:36.210Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+            "name": "Redis",
+            "state": "live",
+            "source": {
+              "image": "redis:8.2.9",
+              "repo": null,
+              "branch": null
+            },
+            "regions": ["us-west2"],
+            "numReplicas": 1,
+            "cronSchedule": null,
+            "volumeMounts": [
+              {
+                "volumeId": "1de4c728-4246-43d0-98e6-41a83cd44672",
+                "volumeName": "redis-volume",
+                "mountPath": "/data"
+              }
+            ],
+            "latestDeployment": {
+              "id": "df7c6773-5dbb-4c35-99b8-0b9d499eca36",
+              "status": "SUCCESS",
+              "createdAt": "2026-11-13T06:30:35.963Z",
+              "url": null
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "volumes": [
+          {
+            "id": "1de4c728-4246-43d0-98e6-41a83cd44672",
+            "name": "redis-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 50000,
+            "mountedOn": {
+              "serviceId": "a6e778c7-4c13-48ba-81bd-f3db8c9ec0f0",
+              "serviceName": "Redis",
+              "mountPath": "/data"
+            },
+            "stagedChangeCount": 0
+          },
+          {
+            "id": "3dfadc08-5ed0-4470-893a-a15f5667fc66",
+            "name": "ink-volume",
+            "state": "live",
+            "region": "us-west2",
+            "sizeMB": 50000,
+            "mountedOn": {
+              "serviceId": "c8bca5d9-eb38-4d3c-9318-40a5b72fe0bd",
+              "serviceName": "Postgres",
+              "mountPath": "/var/lib/postgresql/data"
+            },
+            "stagedChangeCount": 0
+          }
+        ],
+        "buckets": [],
+        "sharedVariableNames": []
+      },
+      "services": {
+        "api": {
+          "service": {
+            "id": "f2015c97-62cd-4f1b-9144-4c64d13e487b",
+            "name": "api",
+            "state": "live"
+          },
+          "environment": {
+            "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+            "name": "lovat-pr-128"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "api-lovat-pr-128.up.railway.app": {}
+              },
+              "privateNetworkEndpoint": "lovat-server"
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/server/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildCommand": "",
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/server/Dockerfile",
+              "nixpacksPlan": {
+                "repo": "MangoSwirl/lovat-server"
+              }
+            },
+            "deploy": {
+              "startCommand": "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && exec npm start'",
+              "healthcheckPath": "/status",
+              "limitOverride": {
+                "containers": {
+                  "cpu": 2,
+                  "memoryBytes": 2147483648
+                }
+              },
+              "healthcheckTimeout": 1200,
+              "restartPolicyMaxRetries": 20,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            },
+            "configFile": ""
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "AUTH0_DOMAIN",
+            "BASE_URL",
+            "CORS_ALLOWED_ORIGINS",
+            "DATABASE_PRIVATE_URL",
+            "DATABASE_URL",
+            "DIRECT_DATABASE_URL",
+            "LOVAT_SIGNING_KEY",
+            "LOVAT_WEBSITE",
+            "NPM_CONFIG_PRODUCTION",
+            "PIT_DISPLAY_KEY",
+            "PORT",
+            "POSTHOG_PROJECT_API_KEY",
+            "REDIS_URL",
+            "RESEND_KEY",
+            "SLACK_APP_ID",
+            "SLACK_CLIENT_ID",
+            "SLACK_CLIENT_SECRET",
+            "SLACK_VERIFICATION_KEY",
+            "SLACK_WEBHOOK",
+            "TBA_KEY"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "a43013c8-b72c-4a6d-af6b-094114be68e9",
+                "domain": "api-lovat-pr-128.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "4c063820-8764-4190-9814-a689df7fe417",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-13T06:30:36.218Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "worker": {
+          "service": {
+            "id": "99a7baae-d20f-48d1-83a8-f4d0965f26f2",
+            "name": "worker",
+            "state": "live"
+          },
+          "environment": {
+            "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+            "name": "lovat-pr-128"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "privateNetworkEndpoint": "learn-b671070f-ed43-449f-9106-1f2605856b3a"
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/worker/**",
+                "/packages/db/**",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/worker/Dockerfile"
+            },
+            "deploy": {
+              "startCommand": "bun index.ts",
+              "healthcheckPath": "/health",
+              "healthcheckTimeout": 120,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              },
+              "drainingSeconds": 60
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": null,
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "dashboard": {
+          "service": {
+            "id": "7466d74a-228c-43e4-8dfb-28e9d7a5975d",
+            "name": "dashboard",
+            "state": "live"
+          },
+          "environment": {
+            "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+            "name": "lovat-pr-128"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and",
+              "rootDirectory": "/apps/dashboard",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "dashboard-lovat-pr-128.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/dashboard/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["LOVAT_API_BASE", "LOVAT_WEBSITE_URL", "PORT"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "89fd7818-22a0-48bf-8972-abb41371550a",
+                "domain": "dashboard-lovat-pr-128.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "1ab2fa7e-023e-4463-a573-bab102debd96",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T06:30:36.241Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "website": {
+          "service": {
+            "id": "2c361c7e-0936-4777-a3a8-31973b08f9c5",
+            "name": "website",
+            "state": "live"
+          },
+          "environment": {
+            "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+            "name": "lovat-pr-128"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and",
+              "rootDirectory": "/",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "website-lovat-pr-128.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": [
+                "/apps/website/**",
+                "/CHANGELOG.md",
+                "/.railway/**"
+              ],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "apps/website/Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": [
+            "LOVAT_API_BASE",
+            "LOVAT_SIGNING_KEY",
+            "ORIGIN",
+            "PORT",
+            "PUBLIC_DASHBOARD_URL",
+            "PUBLIC_LEARN_URL",
+            "PUBLIC_WEBSITE_URL"
+          ],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "933ad1f3-42dd-42aa-bccf-fd88f3f14b32",
+                "domain": "website-lovat-pr-128.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "bbbdf529-a857-4de3-b7ff-ec7e0eb3fd96",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T06:30:36.234Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        },
+        "learn": {
+          "service": {
+            "id": "356589e7-d546-4eeb-84d8-6dec0fa40863",
+            "name": "learn",
+            "state": "live"
+          },
+          "environment": {
+            "id": "d42d9835-c01a-48c4-bcd2-424fa61e93c3",
+            "name": "lovat-pr-128"
+          },
+          "staged": null,
+          "config": {
+            "source": {
+              "repo": "HighlanderRobotics/lovat",
+              "branch": "jackshim415/lvt-334-server-redact-request-analytics-and",
+              "rootDirectory": "/apps/learn",
+              "checkSuites": false
+            },
+            "networking": {
+              "serviceDomains": {
+                "learn-lovat-pr-128.up.railway.app": {}
+              }
+            },
+            "build": {
+              "builder": "DOCKERFILE",
+              "watchPatterns": ["/apps/learn/**", "/.railway/**"],
+              "buildEnvironment": "V3",
+              "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+              "healthcheckPath": "/healthz",
+              "healthcheckTimeout": 120,
+              "restartPolicyMaxRetries": 3,
+              "sleepApplication": true,
+              "useLegacyStacker": false,
+              "ipv6EgressEnabled": false,
+              "runtime": "V2",
+              "multiRegionConfig": {
+                "us-west2": {
+                  "numReplicas": 1
+                }
+              }
+            }
+          },
+          "stagedChanges": [],
+          "variableNames": ["PORT", "PUBLIC_WEBSITE_URL"],
+          "volumes": [],
+          "domains": {
+            "serviceDomains": [
+              {
+                "id": "b13c725b-921d-42e4-9044-f73153744614",
+                "domain": "learn-lovat-pr-128.up.railway.app",
+                "targetPort": null
+              }
+            ],
+            "customDomains": []
+          },
+          "tcpProxies": [],
+          "latestDeployment": {
+            "id": "575feabd-6eb6-43e9-8c84-18277c508c32",
+            "status": "SLEEPING",
+            "createdAt": "2026-11-13T06:30:36.210Z",
+            "url": null
+          },
+          "tracing": {
+            "tracingEnabled": false,
+            "autoInstrumentationEnabled": false,
+            "autoInstrumentationActive": false
+          }
+        }
+      }
+    }
+  },
+  "credentialIsolation": {
+    "verified": false,
+    "reason": "Variable values withheld by connected app; only names and provisioned resources are visible."
+  }
+}

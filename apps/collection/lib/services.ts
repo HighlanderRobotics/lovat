@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { GenericStore, storage } from "./storage/zustandStorage";
+import {
+  GenericStore,
+  storage,
+  waitForStoreHydration,
+} from "./storage/zustandStorage";
 import {
   getScouterSchedule,
   ScouterSchedule,
@@ -8,30 +12,66 @@ import {
 import { Scouter } from "./models/scouter";
 import { getTeamScouters } from "./lovatAPI/getTeamScouters";
 import { getTournaments, Tournament } from "./lovatAPI/getTournaments";
+import { getMatchSchedule, MatchSchedule } from "./lovatAPI/getMatchSchedule";
+import {
+  startupStores,
+  useOnboardingCompleteStore,
+  useScouterStore,
+  useTournamentStore,
+  useTeamStore,
+} from "./storage/userStores";
+import { loadScouterServices } from "./collection/startup";
 
 export function getServiceLoader() {
   const fetchScouterSchedule =
     useScouterScheduleStore.getInitialState().fetchData;
   const fetchTeamScouters = useTeamScoutersStore.getInitialState().fetchData;
   const fetchTournaments = useTournamentsStore.getInitialState().fetchData;
+  const fetchMatchSchedule = useMatchScheduleStore.getInitialState().fetchData;
   const setServicesLoading = useServicesLoadingStore.getInitialState().setValue;
   const setServiceError = useServiceErrorStore.getInitialState().setValue;
 
   return async () => {
     let error: string | null = null;
+
     try {
       setServicesLoading(true);
-      await fetchTournaments();
-      await fetchTeamScouters();
-      await fetchScouterSchedule();
+      await Promise.all(startupStores.map(waitForStoreHydration));
+
+      const scouter = useScouterStore.getState().value;
+      const teamCode = useTeamStore.getState().code;
+      if (!teamCode) return;
+      const isCurrent = () =>
+        useScouterStore.getState().value?.uuid === scouter?.uuid &&
+        useTeamStore.getState().code === teamCode;
+      const result = await loadScouterServices(scouter, {
+        isCurrent,
+        fetchTeamScouters,
+        fetchTournaments,
+        fetchScouterSchedule,
+        fetchMatchSchedule,
+        getTeamScouters: () => useTeamScoutersStore.getState().data,
+      });
+
+      if (!isCurrent()) return;
+
+      if (result.invalidScouter) {
+        useScouterStore.getState().setValue(null);
+        useTournamentStore.getState().setValue(null);
+        useOnboardingCompleteStore.getState().setValue(false);
+        return;
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
     } catch (e) {
       console.error(e);
       error = JSON.stringify(e);
     } finally {
-      console.log("Fetch successful");
       setServicesLoading(false);
+      setServiceError(error);
     }
-    setServiceError(error);
   };
 }
 
@@ -92,3 +132,10 @@ export const useTournamentsStore = createGenericServiceStore<Tournament[]>(
   getTournaments,
   "tournamentsListStore",
 );
+
+export const useMatchScheduleStore = createGenericServiceStore<
+  MatchSchedule | undefined
+>(async () => {
+  const tournament = useTournamentStore.getState().value;
+  return tournament ? getMatchSchedule(tournament.key) : undefined;
+}, "matchScheduleStore");

@@ -9,7 +9,7 @@ export const checkScouterShiftMatches = async (
   currEnd: number,
   uuid: string = null,
 ): Promise<boolean> => {
-  try {
+  {
     let shifts = [];
     if (uuid) {
       shifts = await prismaClient.scouterScheduleShift.findMany({
@@ -60,8 +60,5 @@ export const checkScouterShiftMatches = async (
       }
     }
     return false;
-  } catch (error) {
-    console.error(error);
-    throw error;
   }
 };

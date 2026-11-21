@@ -81,6 +81,7 @@ export const matchPrediction = createAnalysisHandler({
       if (error === "not enough data") {
         return { error: "not enough data" };
       }
+      throw error;
     }
   },
 });

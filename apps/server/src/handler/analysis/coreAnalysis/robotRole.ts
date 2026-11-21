@@ -23,7 +23,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
     args: z.infer<typeof argsSchema>,
     ctx: { user: User },
   ) => {
-    try {
+    {
       const roles: NonEventMetricResult = await nonEventMetric(ctx.user, {
         team: args.team,
         metric: MetricsBreakdown.robotRole,
@@ -36,9 +36,6 @@ const config: AnalysisFunctionConfig<typeof argsSchema, typeof returnSchema> = {
       return {
         mainRoles: sortedRoles,
       };
-    } catch (error) {
-      console.error(error);
-      throw error;
     }
   },
 };

@@ -8,7 +8,7 @@ export const requireVerifiedTeam = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  try {
+  {
     if (!req.user || !req.user.teamNumber) {
       res.status(401).send("No team");
       return;
@@ -36,8 +36,5 @@ export const requireVerifiedTeam = async (
     }
 
     next();
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

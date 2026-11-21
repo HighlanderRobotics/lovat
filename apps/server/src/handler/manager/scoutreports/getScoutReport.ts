@@ -9,7 +9,7 @@ export const getScoutReport = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         uuid: z.string(),
@@ -64,8 +64,5 @@ export const getScoutReport = async (
     res
       .status(200)
       .send({ scoutReport: responseReport, events: events, canModify });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error");
   }
 };

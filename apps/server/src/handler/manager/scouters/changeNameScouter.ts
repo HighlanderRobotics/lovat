@@ -6,7 +6,7 @@ export const changeNameScouter = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const params = z
       .object({
         uuid: z.string(),
@@ -33,10 +33,5 @@ export const changeNameScouter = async (
       },
     });
     res.status(200).send("done changing name to provided scouter");
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: "Internal server error", displayError: "Error" });
   }
 };

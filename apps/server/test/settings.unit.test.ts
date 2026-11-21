@@ -115,18 +115,19 @@ for (const handler of [addTeamSource, addTournamentSource, updateSettings]) {
     });
     it("reports database write failures", async () => {
       db.user.update.mockRejectedValue(new Error("offline"));
-      expect(
-        (
-          await invoke(handler, {
-            body: {
-              teams: [],
-              tournaments: [],
-              teamSource: [],
-              tournamentSource: [],
-            },
-          })
-        ).statusCode,
-      ).toBe(500);
+      const operation = invoke(handler, {
+        body: {
+          teams: [],
+          tournaments: [],
+          teamSource: [],
+          tournamentSource: [],
+        },
+      });
+      if (handler === updateSettings) {
+        expect((await operation).statusCode).toBe(500);
+      } else {
+        await expect(operation).rejects.toThrow("offline");
+      }
     });
   });
 }
@@ -135,13 +136,11 @@ for (const [handler, field] of [
   [getTournamentSource, "tournamentSourceRule"],
 ] as const) {
   it(`${handler.name} rejects malformed stored rules`, async () => {
-    expect(
-      (
-        await invoke(handler, {
-          user: { ...testUser, [field]: { mode: "unknown", items: [] } },
-        })
-      ).statusCode,
-    ).toBe(500);
+    await expect(
+      invoke(handler, {
+        user: { ...testUser, [field]: { mode: "unknown", items: [] } },
+      }),
+    ).rejects.toThrow();
   });
 }
 it("restricts settings updates to JWT callers", async () => {
@@ -187,10 +186,14 @@ for (const handler of [getTeamEmail, updateTeamEmail]) {
   });
   it(`${handler.name} reports failed lookup`, async () => {
     db.registeredTeam.findUnique.mockRejectedValue(new Error("offline"));
-    expect(
-      (await invoke(handler, { query: { email: "new@example.invalid" } }))
-        .statusCode,
-    ).toBe(500);
+    const operation = invoke(handler, {
+      query: { email: "new@example.invalid" },
+    });
+    if (handler === updateTeamEmail) {
+      expect((await operation).statusCode).toBe(500);
+    } else {
+      await expect(operation).rejects.toThrow("offline");
+    }
   });
 }
 it("reports new-email verification failures", async () => {

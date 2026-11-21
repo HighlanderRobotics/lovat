@@ -77,7 +77,7 @@ it("reports unexpected command middleware failures", async () => {
   next.mockImplementation(() => {
     throw new Error("failure");
   });
-  expect((await slack()).statusCode).toBe(500);
+  await expect(slack()).rejects.toThrow();
 });
 it.each([
   {},

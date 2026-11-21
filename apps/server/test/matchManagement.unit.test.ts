@@ -145,7 +145,10 @@ it.each([
           _count: {
             select: {
               scoutReports: {
-                where: { scouter: { sourceTeamNumber: filter } },
+                where: {
+                  training: false,
+                  scouter: { sourceTeamNumber: filter },
+                },
               },
             },
           },
@@ -211,19 +214,16 @@ it.each([undefined, '["bad"]', "[1,2,3,4,5,6,7]"])(
   },
 );
 it("reports malformed JSON and import failures", async () => {
-  expect(
-    (
-      await invoke(getMatches, {
-        params: { tournament: "2026test" },
-        query: { teams: "invalid" },
-      })
-    ).statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(getMatches, {
+      params: { tournament: "2026test" },
+      query: { teams: "invalid" },
+    }),
+  ).rejects.toMatchObject({ statusCode: 400, code: "INVALID_REQUEST" });
   db.importMatches.mockRejectedValue(new Error("offline"));
-  expect(
-    (await invoke(getMatches, { params: { tournament: "2026test" } }))
-      .statusCode,
-  ).toBe(500);
+  await expect(
+    invoke(getMatches, { params: { tournament: "2026test" } }),
+  ).rejects.toThrow("offline");
 });
 it("averages report observations per team before summing alliance totals", async () => {
   db.teamMatchData.findUnique.mockImplementation(async ({ where }) => ({
@@ -327,6 +327,8 @@ it("applies report visibility rules to match-result reads", async () => {
     include: {
       scoutReports: {
         where: {
+          training: false,
+          reliability: { in: ["VERIFIED", "UNVERIFIED"] },
           scouter: { sourceTeamNumber: { in: [8033] } },
           teamMatchData: { tournamentKey: undefined },
         },

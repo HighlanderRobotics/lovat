@@ -240,3 +240,58 @@ test.skipIf(!enabled)(
     }
   },
 );
+
+test.skipIf(!enabled)(
+  "snapshot claims use a fresh lease and exclude rescheduled jobs",
+  async () => {
+    const cutoff = new Date(Date.now() - 10 * minute);
+    const job = await enqueueImport(
+      db,
+      "gaps",
+      `${fixture}-snapshot`,
+      new Date(0),
+    );
+    try {
+      const claimed = await claimJob(db, new Date(), job.id, cutoff);
+      expect(claimed?.leaseExpiresAt!.getTime()).toBeGreaterThan(
+        Date.now() + minute,
+      );
+      await db.importJob.update({
+        where: { id: job.id },
+        data: { leaseToken: null, leaseExpiresAt: null, runAt: new Date() },
+      });
+      expect(await claimJob(db, new Date(), job.id, cutoff)).toBeNull();
+    } finally {
+      await db.importJob.delete({ where: { id: job.id } });
+    }
+  },
+);
+
+test.skipIf(!enabled)(
+  "one-shot gaps finalize only with the owned lease; failures stay durable",
+  async () => {
+    const job = await enqueueImport(
+      db,
+      "gaps",
+      `${fixture}-finalize`,
+      new Date(0),
+    );
+    await runNextJob(
+      db,
+      async () => {
+        throw new Error("retry");
+      },
+      { id: job.id, cutoff: new Date() },
+    );
+    expect(
+      (await db.importJob.findUniqueOrThrow({ where: { id: job.id } }))
+        .attempts,
+    ).toBe(1);
+    await db.importJob.update({
+      where: { id: job.id },
+      data: { runAt: new Date(0) },
+    });
+    await runNextJob(db, async () => {}, { id: job.id, cutoff: new Date() });
+    expect(await db.importJob.findUnique({ where: { id: job.id } })).toBeNull();
+  },
+);

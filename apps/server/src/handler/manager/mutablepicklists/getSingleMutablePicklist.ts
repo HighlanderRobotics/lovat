@@ -7,7 +7,7 @@ export const getSingleMutablePicklist = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
-  try {
+  {
     const user = req.user;
     if (user.teamNumber === null) {
       res.status(403).send("Not affiliated with a team");
@@ -40,9 +40,5 @@ export const getSingleMutablePicklist = async (
     }
 
     res.status(200).send(row);
-  } catch (error) {
-    console.error(error);
-    console.error("failed mutable picklist");
-    res.status(500).send("Internal server error");
   }
 };

@@ -116,20 +116,47 @@ class UpcomingTournamentCard extends StatelessWidget {
         ? "${format.format(start)} – ${format.format(end)}"
         : format.format(start);
     return Container(
-      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(minHeight: 56),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(tournament.localized,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(date),
-          if (tournament.location?.trim().isNotEmpty == true)
-            Text(tournament.location!),
+          Expanded(
+            flex: 3,
+            child: Text(
+              tournament.localized,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: DefaultTextStyle(
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (tournament.location?.trim().isNotEmpty == true) ...[
+                    Text(tournament.location!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right),
+                    const SizedBox(height: 3),
+                  ],
+                  FittedBox(fit: BoxFit.scaleDown, child: Text(date)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

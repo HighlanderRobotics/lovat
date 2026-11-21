@@ -1,19 +1,34 @@
-import { ComponentProps } from "react";
-import ReactTimeAgo from "react-time-ago";
-
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
+import JavascriptTimeAgo from "javascript-time-ago";
 
-type TimeProps = {
-  date: number | Date;
-  verboseDate?: string;
-  tooltip: boolean;
-  children: string;
-};
+let timeAgo: JavascriptTimeAgo | undefined;
 
-export default function TimeAgo(props: ComponentProps<typeof ReactTimeAgo>) {
-  return <ReactTimeAgo {...props} component={Time} />;
+function getTimeAgo() {
+  timeAgo ??= new JavascriptTimeAgo("en");
+  return timeAgo;
 }
 
-function Time({ children }: TimeProps) {
-  return <Text>{children}</Text>;
+export default function TimeAgo({ date }: { date: number | Date }) {
+  const [text, setText] = useState(() => getTimeAgo().format(date));
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    const update = () => {
+      const [formatted, timeToNextUpdate] = getTimeAgo().format(date, {
+        getTimeToNextUpdate: true,
+      });
+      setText(formatted);
+      timeout = setTimeout(update, Math.max(timeToNextUpdate ?? 60_000, 1_000));
+    };
+
+    update();
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [date]);
+
+  return <Text>{text}</Text>;
 }

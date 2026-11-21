@@ -5,7 +5,36 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
-  { ignores: ["babel.config.js"] },
+  {
+    ignores: [
+      "babel.config.js",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "test-report/**",
+      ".maestro/results/**",
+      ".expo/**",
+    ],
+  },
+  {
+    files: [
+      "test/jest/**/*.{ts,tsx}",
+      "jest.config.cjs",
+      "scripts/test-ci.mjs",
+    ],
+    languageOptions: {
+      globals: {
+        require: "readonly",
+        module: "readonly",
+        process: "readonly",
+        console: "readonly",
+        fetch: "readonly",
+        Response: "readonly",
+        global: "readonly",
+      },
+    },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
@@ -34,6 +63,10 @@ export default [
         version: "detect",
       },
     },
+  },
+  {
+    files: ["test/jest/**/*.{ts,tsx}"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
   },
   eslintConfigPrettier,
 ];

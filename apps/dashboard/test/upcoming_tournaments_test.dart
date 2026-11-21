@@ -59,12 +59,21 @@ void main() {
     final api = TournamentListAPI();
     await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-      body: UpcomingWeekTournaments(api: api, now: DateTime(2026, 10, 22)),
+      body: SizedBox(
+        width: 320,
+        child: UpcomingWeekTournaments(api: api, now: DateTime(2026, 10, 22)),
+      ),
     )));
     await tester.pumpAndSettle();
     expect(find.text('API Weekend Event'), findsOneWidget);
     expect(find.text('Oct 24 – Oct 25'), findsOneWidget);
     expect(find.text('Glendale'), findsOneWidget);
+    expect(tester.getTopLeft(find.text('Glendale')).dx,
+        greaterThan(tester.getTopLeft(find.text('API Weekend Event')).dx));
+    expect(tester.getTopLeft(find.text('Oct 24 – Oct 25')).dy,
+        greaterThan(tester.getTopLeft(find.text('Glendale')).dy));
+    expect(tester.getSize(find.byType(UpcomingTournamentCard)).height,
+        lessThanOrEqualTo(60));
     expect(find.text('Outside this week'), findsNothing);
     expect(api.requestedPath, '/v1/manager/tournaments');
     expect(tester.takeException(), isNull);

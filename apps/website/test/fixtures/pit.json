@@ -1,0 +1,18 @@
+{
+	"webcasts": [],
+	"matches": {
+		"next": {
+			"key": "2026test_qm1",
+			"alliances": {
+				"red": { "teams": [8033, 1, 2], "winPrediction": 0.7 },
+				"blue": { "teams": [3, 4, 5], "winPrediction": 0.3 }
+			}
+		}
+	},
+	"teamMatchTimeline": { "matchCount": 12, "currentMatchCount": 1 },
+	"rankingBlocks": [
+		{ "type": "team", "number": 8033, "rank": 1, "rankingPoints": 3.5 },
+		{ "type": "collapsedDivider", "teamCount": 8 },
+		{ "type": "team", "number": 1234, "rank": 10, "rankingPoints": 1.2 }
+	]
+}

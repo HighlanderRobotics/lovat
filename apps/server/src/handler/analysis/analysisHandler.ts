@@ -2,7 +2,10 @@ import { RequestHandler } from "express";
 import z from "zod";
 import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import prismaClient from "../../prismaClient.js";
-import { dataSourceRuleSchema } from "./dataSourceRule.js";
+import {
+  parseStoredSourceRule,
+  dataSourceRuleSchema,
+} from "./dataSourceRule.js";
 import { kv } from "../../redisClient.js";
 import { AnalysisContext } from "./analysisConstants.js";
 import {
@@ -68,27 +71,21 @@ export const createAnalysisHandler: <
       const context: AnalysisContext = {
         user: req.user,
         dataSource: {
-          teams: dataSourceRuleSchema(z.number()).parse(
-            req.user.teamSourceRule,
-          ),
-          tournaments: dataSourceRuleSchema(z.string()).parse(
+          teams: parseStoredSourceRule(z.number(), req.user.teamSourceRule),
+          tournaments: parseStoredSourceRule(
+            z.string(),
             req.user.tournamentSourceRule,
           ),
         },
       };
 
       if (!args.shouldCache) {
-        try {
-          let calculatedAnalysis = null;
-          calculatedAnalysis = await args.calculateAnalysis(params, context);
-
-          res.status(200).send(calculatedAnalysis.error ?? calculatedAnalysis);
-        } catch (error) {
-          res.status(500).send("Error calculating analysis");
-          console.error(error);
-        } finally {
-          return;
-        }
+        const calculatedAnalysis = await args.calculateAnalysis(
+          params,
+          context,
+        );
+        res.status(200).send(calculatedAnalysis.error ?? calculatedAnalysis);
+        return;
       }
 
       // Make the key - including data source if necessary
@@ -121,12 +118,17 @@ export const createAnalysisHandler: <
       ].join(":");
 
       // Check to see if there's already an output in the cache
-      const cacheRow = await kv.get(key);
+      const cachedValue = await kv.get(key);
+      const cacheRow =
+        cachedValue &&
+        (await prismaClient.cachedAnalysis.findUnique({ where: { key } }))
+          ? cachedValue
+          : null;
 
       // If not, calculate, respond, then store in cache
 
       if (cacheRow === null || cacheRow === undefined) {
-        try {
+        {
           const calculatedAnalysis = await args.calculateAnalysis(
             params,
             context,
@@ -154,10 +156,6 @@ export const createAnalysisHandler: <
             console.error(error);
             return;
           }
-        } catch (error) {
-          res.status(500).send("Error calculating analysis");
-          console.error(error);
-          return;
         }
       } else {
         res.set("X-Lovat-Cache", "hit");
@@ -173,8 +171,7 @@ export const createAnalysisHandler: <
         res.status(400).send("Invalid parameters");
         console.error(error);
       } else {
-        res.status(500).send("Internal server error");
-        console.error(error);
+        throw error;
       }
     }
   };

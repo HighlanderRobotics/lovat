@@ -66,7 +66,13 @@ for (const handler of [
   it(`${handler.name} reports database failure`, async () => {
     db.scouterScheduleShift.findUnique.mockRejectedValue(new Error("offline"));
     db.scouterScheduleShift.create.mockRejectedValue(new Error("offline"));
-    expect((await invoke(handler, { body, params })).statusCode).toBe(500);
+    if (handler === updateScouterShift) {
+      expect((await invoke(handler, { body, params })).statusCode).toBe(500);
+    } else {
+      await expect(invoke(handler, { body, params })).rejects.toThrow(
+        "offline",
+      );
+    }
   });
 }
 for (const handler of [addScouterShift, updateScouterShift]) {

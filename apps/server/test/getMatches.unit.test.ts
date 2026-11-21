@@ -37,6 +37,7 @@ const practiceRow = (teamNumber: number) => ({
   matchNumber: 1,
   matchType: "PRACTICE" as const,
   teamNumber,
+  practiceScheduled: false,
   _count: { scoutReports: 2 },
   scoutReports: [{ scouter: { name: "Own scouter", uuid: "own" } }],
 });
@@ -100,9 +101,9 @@ describe("Official match completion", () => {
           match: { status: "COMPLETED" },
         })),
       ] as never);
-      const response = await request(appFor(teamNumber)).get(
-        `/matches/${tournament}`,
-      );
+      const response = await request(appFor(teamNumber))
+        .get(`/matches/${tournament}`)
+        .set("X-Lovat-Error-Format", "json-v1");
       expect(response.status).toBe(200);
       expect(
         response.body.map((match: { finished: boolean }) => match.finished),
@@ -119,14 +120,18 @@ describe("Official match completion", () => {
           match: { status },
         })) as never,
       );
-      const response = await request(appFor()).get(`/matches/${tournament}`);
+      const response = await request(appFor())
+        .get(`/matches/${tournament}`)
+        .set("X-Lovat-Error-Format", "json-v1");
       expect(response.status).toBe(200);
       expect(response.body[0].finished).toBe(false);
     },
   );
 
   it("retains the legacy qualifier completion fallback", async () => {
-    const response = await request(appFor()).get(`/matches/${tournament}`);
+    const response = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1");
     expect(response.status).toBe(200);
     expect(
       response.body.map((match: { finished: boolean }) => match.finished),
@@ -141,6 +146,7 @@ describe("Practice match listing", () => {
       const query = includePractice ? { includePractice } : {};
       const response = await request(appFor())
         .get(`/matches/${tournament}`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .query(query);
       expect(response.status).toBe(200);
       expect(
@@ -157,6 +163,7 @@ describe("Practice match listing", () => {
   it("includes partial practice groups without colliding with official matches or assigning shifts", async () => {
     const response = await request(appFor())
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true" });
     expect(response.status).toBe(200);
     expect(
@@ -182,13 +189,16 @@ describe("Practice match listing", () => {
     const options = vi.mocked(prismaClient.teamMatchData.findMany).mock
       .calls[0][0];
     expect(options?.select?.scoutReports).toEqual({
-      where: { scouter: { sourceTeamNumber: 8033 } },
+      where: { training: false, scouter: { sourceTeamNumber: 8033 } },
       select: { scouter: { select: { name: true, uuid: true } } },
     });
     expect(options?.select?._count).toEqual({
       select: {
         scoutReports: {
-          where: { scouter: { sourceTeamNumber: { in: [9143, 8033] } } },
+          where: {
+            training: false,
+            scouter: { sourceTeamNumber: { in: [9143, 8033] } },
+          },
         },
       },
     });
@@ -197,12 +207,14 @@ describe("Practice match listing", () => {
   it("applies the all-teams filter to practice groups", async () => {
     const response = await request(appFor())
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true", teams: JSON.stringify([8033, 9133]) });
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0].matchType).toBe(2);
     const missing = await request(appFor())
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true", teams: JSON.stringify([8033, 9999]) });
     expect(missing.body).toEqual([]);
   });
@@ -214,11 +226,64 @@ describe("Practice match listing", () => {
     ] as never);
     const response = await request(appFor())
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true" });
     expect(response.status).toBe(200);
     expect(
       response.body[0].teams.map((team: { number: number }) => team.number),
     ).toEqual([8033]);
+  });
+
+  it("lists public practice schedules before scouting while hiding private report-only teams", async () => {
+    vi.mocked(prismaClient.teamMatchData.findMany).mockResolvedValue([
+      ...[8033, 254].map((teamNumber) => ({
+        ...practiceRow(teamNumber),
+        practiceScheduled: true,
+        _count: { scoutReports: 0 },
+        scoutReports: [],
+      })),
+      // This team's only membership evidence comes from an inaccessible report.
+      { ...practiceRow(9999), _count: { scoutReports: 0 }, scoutReports: [] },
+    ] as never);
+
+    const response = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
+      .query({ includePractice: "true" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        matchNumber: 1,
+        matchType: 2,
+        scouted: false,
+        finished: false,
+        teams: [254, 8033].map((number) => ({
+          number,
+          scouters: [],
+          externalReports: 0,
+        })),
+      },
+    ]);
+    expect(prismaClient.teamMatchData.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({ practiceScheduled: true }),
+      }),
+    );
+
+    const filtered = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
+      .query({ includePractice: "true", teams: JSON.stringify([8033, 254]) });
+    expect(filtered.status).toBe(200);
+    expect(filtered.body).toEqual(response.body);
+
+    const hidden = await request(appFor())
+      .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
+      .query({ includePractice: "true", teams: JSON.stringify([9999]) });
+    expect(hidden.status).toBe(200);
+    expect(hidden.body).toEqual([]);
   });
 
   it("includes practice for viewers without a team without exposing named scouters", async () => {
@@ -227,6 +292,7 @@ describe("Practice match listing", () => {
     ] as never);
     const response = await request(appFor(null))
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true" });
     expect(response.status).toBe(200);
     expect(response.body[0].teams).toEqual([
@@ -240,6 +306,7 @@ describe("Practice match listing", () => {
     async (includePractice) => {
       const response = await request(appFor())
         .get(`/matches/${tournament}`)
+        .set("X-Lovat-Error-Format", "json-v1")
         .query({ includePractice });
       expect(response.status).toBe(400);
       expect(addTournamentMatches).not.toHaveBeenCalled();
@@ -257,6 +324,7 @@ describe("Practice match listing", () => {
 
     const response = await request(appFor())
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true" });
 
     expect(response.status).toBe(200);
@@ -278,9 +346,34 @@ describe("Practice match listing", () => {
 
     const response = await request(appFor(null))
       .get(`/matches/${tournament}`)
+      .set("X-Lovat-Error-Format", "json-v1")
       .query({ includePractice: "true", teams: "[]" });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
   });
+});
+
+it("rejects non-scalar team filters before querying the database", async () => {
+  const { invoke } = await import("./helpers/handlerHarness.js");
+  await expect(
+    invoke(getMatches, {
+      params: { tournament },
+      query: { teams: ["1", "2"] },
+    }),
+  ).rejects.toMatchObject({ statusCode: 400, code: "INVALID_REQUEST" });
+  expect(prismaClient.teamMatchData.findMany).not.toHaveBeenCalled();
+});
+it("does not disguise an unexpected decoder failure as invalid input", async () => {
+  const failure = new Error("decoder unavailable");
+  vi.spyOn(JSON, "parse").mockImplementationOnce(() => {
+    throw failure;
+  });
+  try {
+    await expect(
+      getMatches({ query: { teams: "[]" } } as never, {} as never),
+    ).rejects.toBe(failure);
+  } finally {
+    vi.restoreAllMocks();
+  }
 });

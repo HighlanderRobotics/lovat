@@ -1,0 +1,8 @@
+appId: com.frc8033.lovatcollection
+---
+- tapOn: "Scout this match"
+- extendedWaitUntil:
+    visible: "Start position Hub"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 5000

@@ -28,8 +28,9 @@ export const scouterScoutReports = createAnalysisHandler({
 
     if (!query.tournamentKey) {
       const allScoutReports = await prismaClient.scoutReport.findMany({
-        where: { scouterUuid: query.scouterUuid },
+        where: { training: false, scouterUuid: query.scouterUuid },
         select: {
+          reliability: true,
           scouter: { select: { name: true } },
           teamMatchData: {
             select: {
@@ -53,10 +54,12 @@ export const scouterScoutReports = createAnalysisHandler({
 
     const tournamentScoutReports = await prismaClient.scoutReport.findMany({
       where: {
+        training: false,
         scouterUuid: query.scouterUuid,
         teamMatchData: { tournamentKey: query.tournamentKey },
       },
       select: {
+        reliability: true,
         scouter: { select: { name: true } },
         teamMatchData: {
           select: {

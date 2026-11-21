@@ -66,7 +66,7 @@ it.each([
 );
 it("reports token listing failures", async () => {
   db.apiKey.findMany.mockRejectedValue(new Error("database"));
-  expect((await invoke(getApiKeys)).statusCode).toBe(500);
+  await expect(invoke(getApiKeys)).rejects.toThrow();
 });
 for (const [handler, method, query] of [
   [renameApiKey, "update", { uuid: "key", newName: "Renamed" }],

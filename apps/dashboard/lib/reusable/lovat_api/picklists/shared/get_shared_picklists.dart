@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:scouting_dashboard_app/pages/picklist/picklist_models.dart';
+import 'package:scouting_dashboard_app/reusable/lovat_api/api_error.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
 
@@ -17,8 +18,10 @@ extension SharedPicklistsQuery on LovatAPI {
         if (response?.statusCode != 200) {
           debugPrint(response?.body ?? '');
 
-          if (response?.body ==
-              'Not authortized to get mutable picklists because your not on a team') {
+          final error = ApiError.fromBody(response?.body);
+          if (error.code == 'TEAM_REQUIRED' ||
+              error.message ==
+                  'Not authortized to get mutable picklists because your not on a team') {
             throw const LovatAPIException('Not on team');
           }
 

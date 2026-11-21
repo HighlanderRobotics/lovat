@@ -1,7 +1,12 @@
 import { KeyboardTypeOptions } from "react-native";
 import { colors } from "../colors";
 import { TextInput } from "react-native";
-import { forwardRef, ForwardRefRenderFunction, useState } from "react";
+import {
+  ComponentRef,
+  forwardRef,
+  ForwardRefRenderFunction,
+  useState,
+} from "react";
 
 type TextInputProps = {
   density?: "comfortable" | "compact";
@@ -21,7 +26,10 @@ type TextInputProps = {
   onBlur?: () => void;
 };
 
-const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
+const TextField: ForwardRefRenderFunction<
+  ComponentRef<typeof TextInput>,
+  TextInputProps
+> = (
   {
     density = "comfortable",
     placeholder = "",
@@ -46,6 +54,8 @@ const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
   return (
     <TextInput
       style={{
+        minHeight: multiline ? 48 : undefined,
+        textAlignVertical: multiline ? "top" : "auto",
         fontFamily: "Heebo_400Regular",
         fontSize: density === "comfortable" ? 16 : 14,
         lineHeight: density === "comfortable" ? 23.5 : 20.56,
@@ -85,9 +95,11 @@ const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
         setIsFocused(false);
         if (onBlur) onBlur();
       }}
-      blurOnSubmit={true}
+      submitBehavior={multiline ? "newline" : "blurAndSubmit"}
       value={value}
       multiline={multiline}
+      // Let the form own scrolling while multiline fields grow with their text.
+      scrollEnabled={multiline ? false : undefined}
     />
   );
 };
