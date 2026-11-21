@@ -185,7 +185,51 @@ jobs:
           if-no-files-found: warn
       - name: Build server deployment image
         working-directory: .
-        run: docker build -f apps/server/Dockerfile -t lovat-server:ci .
+        run: |
+          TIMEFORMAT='Server image build: %3R seconds'
+          time docker build -f apps/server/Dockerfile -t lovat-server:ci .
+          docker image inspect --format 'Server image size: {{.Size}} bytes' lovat-server:ci
+      - name: Smoke-test Server image against disposable PostgreSQL and Redis
+        timeout-minutes: 4
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$POSTGRES_CONTAINER" createdb -U lovat_test lovat_image_smoke
+          image=lovat-server:ci
+          container=lovat-server-image-smoke
+          opts=(
+            --network host --read-only --tmpfs /tmp
+            --env npm_config_cache=/tmp/npm
+            --env DATABASE_PRIVATE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke
+            --env REDIS_URL=redis://127.0.0.1:6379/14
+            --env AUTH0_DOMAIN=ci.example.invalid
+            --env PORT=3010
+          )
+          trap 'docker logs "$container" 2>/dev/null || true; docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+
+          # Run the same migration command Railway runs before API startup.
+          docker run --rm "${opts[@]}" "$image" sh -ec '
+            test "$(id -u)" -ne 0
+            test ! -w .
+            test ! -e node_modules/.bin/vitest
+            test ! -e node_modules/.bin/tsc
+            test ! -e ../../packages/db/node_modules/.bin/tsc
+            export DATABASE_URL="$DATABASE_PRIVATE_URL"
+            npm --prefix ../../packages/db run db:deploy
+            npm --prefix ../../packages/db run db:status
+          '
+          # Startup writes the built-in training exercise to PostgreSQL and
+          # connects to Redis before listening on /status.
+          docker run -d --name "$container" "${opts[@]}" \
+            --env DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke "$image"
+          curl --fail --silent --show-error --retry 30 --retry-connrefused \
+            --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
+          docker stop --time 10 "$container"
+          case "$(docker inspect --format '{{.State.ExitCode}}' "$container")" in
+            0|143) ;;
+            *) echo "Server did not shut down cleanly"; exit 1 ;;
+          esac
 
   worker:
     name: Worker

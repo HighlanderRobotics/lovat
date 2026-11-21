@@ -167,6 +167,30 @@ Build locally from the repository root:
 docker build -f apps/server/Dockerfile -t lovat-server .
 ```
 
+The image runs as the unprivileged `node` user. The build copies both npm
+lockfiles before installing dependencies, builds the shared Prisma client and
+API, and ships the compiled code, static assets, and production dependencies.
+Prisma's CLI, schema, and migrations stay in the image because Railway runs
+`npm --prefix ../../packages/db run db:deploy` before starting the API.
+Do not give the Docker build database credentials. Supply them at runtime.
+
+Keep the exact Node patch and Debian slim variant pinned in the Dockerfile.
+Update the Server `.nvmrc`, package engine, and CI runtime along with the image
+when updating Node. Rebuild to pick up Debian/OpenSSL updates, and rerun the
+migration and startup smoke check before shipping any base-image change.
+The tag pins the Node release, not the operating-system image digest.
+
+CI logs the image size in bytes and build time. To compare a Dockerfile change
+against its base branch, build both checkouts on the same machine and platform
+with the same Docker version and base-image cache. For a cold build, use
+`--no-cache` in both checkouts. For a source-edit rebuild, build once, edit a
+Server source file, then time a second build with caching enabled:
+
+```sh
+time docker build --no-cache -f apps/server/Dockerfile -t lovat-server:compare .
+docker image inspect --format '{{.Size}}' lovat-server:compare
+```
+
 ### Development without a Blue Alliance key
 
 In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance
