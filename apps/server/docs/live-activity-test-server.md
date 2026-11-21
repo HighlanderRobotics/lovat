@@ -104,6 +104,14 @@ Without them, `backgroundReady` is false and the refresh worker skips delivery.
 Successful foreground updates or token registration do not prove background
 delivery. No fake APNs credential or alternate delivery mechanism is used here.
 
+Store the real provider credentials only in the private environment file and
+restart Server. The key must support the sandbox environment and Collection's
+topic when testing a development-signed phone. Do not put the `.p8` file or its
+contents in this repository. Match/assignment changes, starts, and endings use
+APNs priority 10 for prompt delivery; unchanged three-minute heartbeats use
+priority 5 to conserve the system's notification budget. Apple may still delay
+delivery, so an APNs HTTP 200 must be checked against the actual device display.
+
 With a sandbox-capable APNs key configured privately, repeat match advancement
 while the phone is locked or Collection is closed, then verify the heartbeat,
 schedule completion, and disable/unregister behavior. That is a separate gate

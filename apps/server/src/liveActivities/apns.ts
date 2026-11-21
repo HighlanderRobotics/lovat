@@ -84,6 +84,7 @@ export async function sendActivityPush(
   token: string,
   environment: "sandbox" | "production",
   payload: ReturnType<typeof activityPushPayload>,
+  priority: 5 | 10,
 ): Promise<number> {
   const bearer = await authorization();
   const host =
@@ -114,7 +115,7 @@ export async function sendActivityPush(
       authorization: `bearer ${bearer}`,
       "apns-topic": "com.frc8033.lovatcollection.push-type.liveactivity",
       "apns-push-type": "liveactivity",
-      "apns-priority": payload.aps.event === "start" ? "10" : "5",
+      "apns-priority": String(priority),
       "apns-expiration": "0",
     });
     let status = 500;

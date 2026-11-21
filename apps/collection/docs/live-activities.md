@@ -92,8 +92,9 @@ after eight hours without renewal. No database migration is needed.
 
 Server checks registered devices every 30 seconds against the worker-imported
 canonical match results and current team-scoped scouting shifts. It sends state
-changes and a heartbeat at most every three minutes. Actual timeliness also
-depends on provider updates, worker imports, APNs delivery, and iOS budgets;
+changes and a heartbeat at most every three minutes. Starts, ends, and changed
+assignments use APNs priority 10; unchanged heartbeats use priority 5. Actual
+timeliness depends on provider updates, worker imports, APNs delivery, and iOS budgets;
 this isn't a buzzer-time guarantee. Apple may delay or drop pushes. Activities
 mark data stale after five minutes without an update and invite the user to
 open Collection. A completed schedule ends the activity immediately. Disabling,
