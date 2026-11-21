@@ -7,6 +7,7 @@ import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
 import 'package:scouting_dashboard_app/pages/picklist/picklist_models.dart';
 import 'package:scouting_dashboard_app/reusable/emphasized_container.dart';
+import 'package:scouting_dashboard_app/reusable/tournament_banner.dart';
 import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_matches.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_user_profile.dart';
@@ -80,8 +81,11 @@ class _HomePageState extends State<HomePage> {
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(t?.localized ?? "No Selected Tournament",
-                              style: Theme.of(context).textTheme.titleLarge),
+                          if (t != null)
+                            TournamentBanner(
+                              tournament: t!,
+                              api: widget.api ?? lovatAPI,
+                            ),
                           const SizedBox(height: 16),
                           for (final notice in notices)
                             Padding(
