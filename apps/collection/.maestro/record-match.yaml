@@ -1,6 +1,6 @@
 appId: com.frc8033.lovatcollection
 ---
-# Portable iOS flow; Android uses native-android-journey.py for short taps.
+# Shared installed-app flow; Android dismisses its system hint before this flow.
 - tapOn: "Start position Hub"
 - assertVisible:
     text: "Start position Hub"

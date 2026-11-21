@@ -72,18 +72,19 @@ procedure is a pending operator check until its actual build/run evidence is
 attached; a build profile alone is not a passed native test. Physical-device
 rows above still apply after a simulator pass.
 
-On Android CI, `scripts/native-android-journey.py` runs the landscape recording
-and end-menu steps in place of `record-match.yaml` and `end-match.yaml`. Android's
-first-use full-screen hint can cover the field while the underlying app controls
-remain discoverable. The runner acknowledges only the system immersive hint,
-identified by its Android package and specific title/button resource IDs, then
-reads the active window again before selecting an app control. It retains the
-hint snapshot and rejects disabled or ambiguous confirmation buttons. It uses
-Android short taps with fresh accessibility bounds, rejects missing, disabled or
-ambiguous targets, and verifies selection, Start availability and Undo state.
-Outpost intake exists in every match phase, so waiting for Android accessibility
-snapshots does not race the real Auto timer. Each step retains its UI snapshot
-and JUnit result. Bootstrap, offline persistence and reconnect still use Maestro.
+On Android CI, `scripts/prepare-native-android.py` runs before the shared
+`record-match.yaml` and `end-match.yaml` Maestro flows. It acknowledges only
+Android's known first-use full-screen hint, identified by its Android package and
+specific title/button resource IDs, then reads the active window again. It
+retains the hint snapshot and rejects disabled or ambiguous confirmations.
+Preparation requires the field to be enabled and Start to remain disabled.
+
+Android's `uiautomator dump` CLI waits for global idle and cannot reliably capture
+the running match timer. It is used only during static pre-match preparation;
+Maestro performs every timed recording, Undo, end-menu, offline and reconnect
+assertion. Outpost intake exists in every phase, so the flow does not race the
+real Auto timer. Failed idle capture cannot reuse an old snapshot. Each stage
+retains its JUnit result and diagnostics.
 
 If CI cannot boot/install, attach its failure and run the same journey on a
 physical test device. Record that separate result explicitly. Attach redacted

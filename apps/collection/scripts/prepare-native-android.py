@@ -1,4 +1,4 @@
-"""Record a report with Android short taps and fresh accessibility bounds.
+"""Prepare Android full-screen state before the real match timer starts.
 
 Android's first-use immersive hint can cover app controls. Resolve the active
 window and acknowledge only that known hint before requiring app assertions.
@@ -21,11 +21,6 @@ def node_for(data, label, attribute):
     if len(nodes) != 1:
         raise ValueError("Expected exactly one " + label + " " + attribute)
     return nodes[0]
-
-
-def tap_point(data, attribute, label="End match"):
-    node = node_for(data, label, attribute)
-    return point_for(node)
 
 
 def point_for(node):
@@ -65,33 +60,25 @@ def assert_state(data, label, expected):
 def run():
     out = Path(".maestro/results")
     out.mkdir(parents=True, exist_ok=True)
-    suite = ET.Element("testsuite", name="Android landscape report", failures="0")
-    # Outpost actions exist in Auto, Teleop and Endgame. Accessibility snapshots
-    # can wait for Android's idle state, so these assertions do not race the
-    # real match clock or change production match timing for the test.
+    suite = ET.Element("testsuite", name="Android pre-match preparation", failures="0")
+    # UI Automator's CLI requires global idle. Use it only before Start; Maestro
+    # owns all recording assertions once the real timer updates every second.
     steps = [
-        ("select-hub", "tap", "Start position Hub", "content-desc"),
-        ("hub-selected", "state", "Start position Hub", {"selected": "true"}),
-        ("start-enabled", "state", "Start match", {"enabled": "true"}),
-        ("start-match", "tap", "Start match", "content-desc"),
-        ("undo-empty", "state", "Undo", {"enabled": "false"}),
-        ("open-first-intake", "tap", "Open outpost actions", "content-desc"),
-        ("first-intake", "tap", "Intake from outpost", "content-desc"),
-        ("undo-available", "state", "Undo", {"enabled": "true"}),
-        ("undo-intake", "tap", "Undo", "content-desc"),
-        ("undo-cleared", "state", "Undo", {"enabled": "false"}),
-        ("open-final-intake", "tap", "Open outpost actions", "content-desc"),
-        ("final-intake", "tap", "Intake from outpost", "content-desc"),
-        ("final-event-recorded", "state", "Undo", {"enabled": "true"}),
-        ("open-end-menu", "tap", "End match", "content-desc"),
-        ("confirm-end", "tap", "End match", "text"),
+        ("field-available", "Start position Hub", {"enabled": "true"}),
+        ("match-not-started", "Start match", {"enabled": "false"}),
     ]
     try:
-        for name, action, label, condition in steps:
+        for name, label, expected in steps:
             case = ET.SubElement(suite, "testcase", name=name)
             try:
                 deadline = time.monotonic() + 30
                 while True:
+                    # Never reuse an earlier dump when Android reports that it
+                    # could not reach idle but still exits with status zero.
+                    subprocess.run(
+                        ["adb", "shell", "rm", "-f", "/sdcard/collection-menu.xml"],
+                        check=True, timeout=10,
+                    )
                     subprocess.run(
                         ["adb", "shell", "uiautomator", "dump", "/sdcard/collection-menu.xml"],
                         check=True, timeout=20,
@@ -115,23 +102,13 @@ def run():
                         # behind-dialog bounds as evidence that it is tappable.
                         continue
                     try:
-                        if action == "state":
-                            assert_state(data, label, condition)
-                        else:
-                            x, y = tap_point(data, condition, label)
+                        assert_state(data, label, expected)
                         break
                     except (ValueError, AssertionError):
                         if time.monotonic() >= deadline:
                             raise
                         time.sleep(0.25)
-                if action == "tap":
-                    print(name, "Android input tap at", x, y, flush=True)
-                    subprocess.run(
-                        ["adb", "shell", "input", "tap", str(x), str(y)],
-                        check=True, timeout=10,
-                    )
-                else:
-                    print(name, "state assertion passed", flush=True)
+                print(name, "state assertion passed", flush=True)
             except Exception as error:
                 suite.set("failures", "1")
                 ET.SubElement(case, "failure", message=str(error)).text = repr(error)
@@ -139,7 +116,7 @@ def run():
     finally:
         suite.set("tests", str(len(suite.findall("testcase"))))
         ET.ElementTree(suite).write(
-            out / "record-match.xml", encoding="utf-8", xml_declaration=True
+            out / "prepare-landscape.xml", encoding="utf-8", xml_declaration=True
         )
 
 
