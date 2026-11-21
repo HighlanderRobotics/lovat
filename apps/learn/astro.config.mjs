@@ -62,6 +62,10 @@ export default defineConfig({
             },
           ],
         },
+        {
+          label: "Lovat API",
+          items: [{ label: "Getting Started", slug: "guides/lovat-api" }],
+        },
       ],
       components: {
         Header: "./src/components/Header.astro",
