@@ -1,6 +1,6 @@
 # Build from the repository root: docker build -f apps/server/Dockerfile .
 FROM node:22.20.0-bookworm-slim AS base
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates tini && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 FROM base AS build
@@ -40,4 +40,5 @@ COPY --from=build /app/apps/server/dist ./dist
 COPY apps/server/public ./public
 # Leave app files root-owned; the runtime can read but not modify them.
 USER node
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "docker-entrypoint.sh"]
 CMD ["node", "dist/src/server.js"]

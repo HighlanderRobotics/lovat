@@ -170,6 +170,7 @@ docker build -f apps/server/Dockerfile -t lovat-server .
 The image runs as the unprivileged `node` user. The build copies both npm
 lockfiles before installing dependencies, builds the shared Prisma client and
 API, and ships the compiled code, static assets, and production dependencies.
+The default Docker entrypoint uses Tini to forward shutdown signals to Node.
 Prisma's CLI, schema, and migrations stay in the image because Railway runs
 `npm --prefix ../../packages/db run db:deploy` before starting the API.
 Do not give the Docker build database credentials. Supply them at runtime.

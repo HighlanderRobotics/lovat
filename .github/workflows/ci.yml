@@ -127,6 +127,8 @@ jobs:
         working-directory: apps/server
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22.20.0
@@ -225,11 +227,32 @@ jobs:
           curl --fail --silent --show-error --retry 30 --retry-connrefused \
             --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
           curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
-          docker stop --time 10 "$container"
-          case "$(docker inspect --format '{{.State.ExitCode}}' "$container")" in
+          docker stop --timeout 10 "$container"
+          exit_code="$(docker inspect --format '{{.State.ExitCode}}' "$container")"
+          case "$exit_code" in
             0|143) ;;
-            *) echo "Server did not shut down cleanly"; exit 1 ;;
+            *) echo "Server did not shut down on SIGTERM (exit $exit_code)"; exit 1 ;;
           esac
+      - name: Compare Server image size and cold build time with the PR base
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 8
+        working-directory: .
+        run: |
+          # The PR checkout is GitHub's test merge; its first parent is the PR base.
+          base="$(git rev-parse HEAD^1)"
+          if git diff --quiet "$base" HEAD -- apps/server/Dockerfile; then
+            exit 0
+          fi
+          baseline="$(mktemp -d)"
+          trap 'git worktree remove "$baseline" || true' EXIT
+          git worktree add --detach "$baseline" "$base"
+
+          # Same runner and warm base image, with application layer caching disabled.
+          TIMEFORMAT='Baseline build: %3R seconds'
+          time docker build --no-cache -f "$baseline/apps/server/Dockerfile" -t lovat-server:baseline "$baseline"
+          TIMEFORMAT='Candidate build: %3R seconds'
+          time docker build --no-cache -f apps/server/Dockerfile -t lovat-server:ci .
+          docker image inspect --format '{{index .RepoTags 0}}: {{.Size}} bytes' lovat-server:baseline lovat-server:ci
 
   worker:
     name: Worker
