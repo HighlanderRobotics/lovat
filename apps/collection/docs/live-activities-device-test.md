@@ -142,3 +142,9 @@ unchanged heartbeats stay at priority 5. Existing delivery/token-rotation checks
 were retained and two priority regression tests added: all 1,483 Server tests in
 75 suites pass, along with build, test typecheck, and lint (the same 79 warnings,
 zero errors). Apple still controls delivery timing and budgets.
+
+The APNs session finished with no active test activity or device registration.
+The phone remained locked, so resetting its custom API URL back to production
+is pending the owner's unlock. The APNs key is configured only on the local
+test server; production deployment and distribution-environment verification
+remain separate work.
