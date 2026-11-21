@@ -108,3 +108,37 @@ custom-URL card disappeared, confirming the normal production default was
 restored. The isolated server was left running on the Mac with the fixture reset
 to before shift for repeat testing. It is reachable only while this Mac and its
 local services remain running; it is not a hosted deployment.
+
+## APNs-enabled follow-up
+
+The supplied APNs provider key was configured only in the private local test
+environment, outside Git. Apple accepted sandbox pushes for the installed
+development-signed app. No private key, JWT, or device token was printed or
+committed. These results apply to the local QA server and sandbox signing, not
+the currently deployed production API or a distribution build.
+
+- Apple's Lock Screen permission prompt was accepted by the phone owner.
+- With Collection in the background, an APNs update changed the Lock Screen
+  from before shift to Q28/team 254. The scheduled Server worker then advanced
+  the display to Q29/team 8033 after Q28 was canceled. No foreground assignment
+  fetch was used for those changes.
+- An unchanged three-minute heartbeat was accepted and the Lock Screen remained
+  fresh after the prior update's five-minute stale deadline, without reopening
+  Collection.
+- For push-to-start, the phone first registered with an empty test schedule:
+  Debug showed no active activity and Redis held only a start token. Collection
+  was put in the background and the phone locked. Seeding pending assignments
+  caused a new activity to appear on the Lock Screen; a new activity identifier
+  and update token arrived at Server without another foreground fetch.
+- The remotely started activity then received its next Q28/team 8433 update
+  while the phone remained locked. Completing all remaining synthetic matches
+  sent a remote ending: the Lock Screen card disappeared before reopening
+  Collection, and the isolated Redis device registration count became zero.
+
+Initial low-priority updates were accepted by APNs but did not promptly change
+the visible state. An immediate-priority probe delivered the new assignment.
+Server now uses priority 10 for changed content, starts, and endings, while
+unchanged heartbeats stay at priority 5. Existing delivery/token-rotation checks
+were retained and two priority regression tests added: all 1,483 Server tests in
+75 suites pass, along with build, test typecheck, and lint (the same 79 warnings,
+zero errors). Apple still controls delivery timing and budgets.
