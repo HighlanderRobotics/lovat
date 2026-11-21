@@ -6,6 +6,8 @@ import { PreMatchActions } from "../../lib/collection/ui/actions/PreMatchActions
 import { useReportStateStore } from "../../lib/collection/reportStateStore";
 import { useTeamStore } from "../../lib/storage/userStores";
 import { meta } from "./fixtures";
+import { MatchEventType } from "../../lib/collection/MatchEventType";
+import { MatchEventPosition } from "../../lib/collection/MatchEventPosition";
 
 jest.mock("@react-native-menu/menu", () => ({ MenuView: () => null }));
 jest.mock("../../lib/training/TrainingReadyButton", () => ({
@@ -35,6 +37,17 @@ test("closed outpost actions leave no hidden touch controls over the field", asy
   ).toBeSelected();
   await view.rerender(<GameViewTemplate {...props} overlay />);
   await userEvent.setup().press(screen.getByLabelText("Close Overlay"));
+  expect(setOverlay).toHaveBeenCalledWith(false);
+  setOverlay.mockClear();
+  await userEvent
+    .setup()
+    .press(screen.getByRole("button", { name: "Intake from outpost" }));
+  expect(useReportStateStore.getState().events).toEqual([
+    expect.objectContaining({
+      type: MatchEventType.Intake,
+      position: MatchEventPosition.Outpost,
+    }),
+  ]);
   expect(setOverlay).toHaveBeenCalledWith(false);
   await view.rerender(<GameViewTemplate {...props} overlay={false} />);
   expect(

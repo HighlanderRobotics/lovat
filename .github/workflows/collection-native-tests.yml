@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Test native menu selector guards
+      - name: Test native input and state assertion guards
         run: python3 -m unittest discover -s apps/collection/test/native -p '*_test.py'
       - env:
           RUN_ID: ${{ inputs.candidate_run_id }}

@@ -198,6 +198,7 @@ function GameViewOverlay({
 
   return (
     <Pressable
+      accessible={false}
       style={{
         backgroundColor: "#45454540",
         position: "absolute",
@@ -271,6 +272,8 @@ function OutpostOverlay({
       }}
     >
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel="Outtake to outpost"
         style={{
           backgroundColor: "#3EE6794d",
           borderRadius: 7,
@@ -290,6 +293,8 @@ function OutpostOverlay({
         <Icon name="download" size={100} color="#3EE679" />
       </TouchableOpacity>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel="Intake from outpost"
         style={{
           backgroundColor: "#c1c3374d",
           borderRadius: 7,

@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 import unittest
 
-spec = importlib.util.spec_from_file_location("menu_input", Path(__file__).resolve().parents[2] / "scripts/tap-native-menu.py")
+spec = importlib.util.spec_from_file_location("menu_input", Path(__file__).resolve().parents[2] / "scripts/native-android-journey.py")
 menu = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(menu)
 
@@ -24,6 +24,14 @@ class MenuInputTest(unittest.TestCase):
         for data in [b"<hierarchy/>", self.node(enabled="false"), self.node(package="other.app"), self.node(bounds="[1,2][1,2]"), self.node(bounds="bad"), b"<hierarchy>" + self.node() + self.node() + b"</hierarchy>"]:
             with self.subTest(data=data), self.assertRaises(ValueError):
                 menu.tap_point(data, "content-desc")
+
+    def test_state_assertions_reject_wrong_or_absent_state(self):
+        menu.assert_state(self.node(selected="true"), "End match", {"selected": "true"})
+        menu.assert_state(self.node(enabled="false"), "End match", {"enabled": "false"})
+        with self.assertRaises(AssertionError):
+            menu.assert_state(self.node(selected="false"), "End match", {"selected": "true"})
+        with self.assertRaises(ValueError):
+            menu.assert_state(b"<hierarchy/>", "End match", {"enabled": "false"})
 
 
 if __name__ == "__main__":

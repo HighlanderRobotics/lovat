@@ -72,12 +72,15 @@ procedure is a pending operator check until its actual build/run evidence is
 attached; a build profile alone is not a passed native test. Physical-device
 rows above still apply after a simulator pass.
 
-On Android CI, landscape field controls use Maestro's shell-based long press
-because the pinned driver's normal tap is ineffective after rotation on the
-emulator image. The native End Match menu requires a short tap, so the Android
-runner uses `scripts/tap-native-menu.py` in place of `end-match.yaml`. It resolves
-fresh accessibility bounds, rejects missing/disabled/ambiguous targets and
-retains its UI snapshots and JUnit result. All state assertions remain required.
+On Android CI, `scripts/native-android-journey.py` runs the landscape recording
+and end-menu steps in place of `record-match.yaml` and `end-match.yaml`. The pinned
+Maestro driver's landscape gestures proved ineffective while Android's own short
+tap at the same coordinates changed the expected app state. The runner uses
+Android short taps with fresh accessibility bounds, rejects missing, disabled or
+ambiguous targets, and verifies selection, Start availability and Undo state.
+Outpost intake exists in every match phase, so waiting for Android accessibility
+snapshots does not race the real Auto timer. Each step retains its UI snapshot
+and JUnit result. Bootstrap, offline persistence and reconnect still use Maestro.
 
 If CI cannot boot/install, attach its failure and run the same journey on a
 physical test device. Record that separate result explicitly. Attach redacted
