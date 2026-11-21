@@ -116,10 +116,19 @@ class _TournamentBannerState extends State<TournamentBanner> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
                       onPressed: () => launchUrl(Uri.parse(photo.source)),
                       child: Text(
                         'Photo: ${photo.credit}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              height: 1.2,
+                            ),
                       ),
                     ),
                   ),

@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                               tournament: t!,
                               api: widget.api ?? lovatAPI,
                             ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 6),
                           for (final notice in notices)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
