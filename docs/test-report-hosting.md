@@ -42,6 +42,12 @@ path-filtered. This deliberately produces a complete set from the same commit:
 a partial deployment cannot erase another application's reports or label an
 older report as current.
 
+When Server is selected, its unit checks, integration tests, and production
+image build run in parallel. The integration job applies migrations to disposable
+PostgreSQL, checks migration drift, and produces the combined coverage and test
+reports. The final Monorepo CI gate requires all three jobs to pass. Logs produced
+by failed Server jobs are retained as separate diagnostic artifacts.
+
 CI uploads `server-test-report`, `learn-test-report`, `learn-browser-report`,
 `website-test-report` and `website-browser-report` as ordinary Actions artifacts
 with 14-day retention. They remain available on failures if generated; browser
