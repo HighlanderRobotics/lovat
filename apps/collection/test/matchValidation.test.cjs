@@ -85,6 +85,21 @@ test("disconnection allows starting even without a cached schedule", async () =>
   };
   assert.deepEqual(await checkMatchExists(meta), { status: "offline" });
 });
+test("native fetch transport errors allow offline scouting", async () => {
+  request = async () => {
+    throw new Error(
+      "fetch failed: java.io.IOException: unexpected end of stream",
+    );
+  };
+  assert.deepEqual(await checkMatchExists(meta), { status: "offline" });
+  request = async () => {
+    throw new Error("Could not read local device headers");
+  };
+  await assert.rejects(
+    checkMatchExists(meta),
+    /Could not read local device headers/,
+  );
+});
 test("an unresponsive connection times out instead of preventing offline scouting", async (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   request = (_url, { signal }) =>

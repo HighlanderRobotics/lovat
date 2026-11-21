@@ -76,6 +76,12 @@ it("cannot become ready if shutdown starts while a probe is pending", async () =
   const result = health.ready();
   await vi.advanceTimersByTimeAsync(0);
   health.stop();
-  finish();
+  const drained = vi.fn();
+  const draining = health.drain().then(drained);
+  await vi.advanceTimersByTimeAsync(1000);
   expect(await result).toBe(false);
+  expect(drained).not.toHaveBeenCalled();
+  finish();
+  await draining;
+  expect(drained).toHaveBeenCalledOnce();
 });

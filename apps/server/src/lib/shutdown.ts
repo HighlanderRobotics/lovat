@@ -2,9 +2,8 @@ import type { Server } from "node:http";
 
 interface ShutdownDependencies {
   server: Pick<Server, "close" | "closeAllConnections">;
-  health: { stop(): void };
+  health: { stop(): void; drain(): Promise<void> };
   sockets: { close(): Promise<void>; terminate(): void };
-  stopWork?: () => void;
   cleanup: (() => Promise<unknown>)[];
   exit: (code: number) => void;
   timeoutMs?: number;
@@ -15,7 +14,6 @@ export function createShutdown({
   server,
   health,
   sockets,
-  stopWork = () => undefined,
   cleanup,
   exit,
   timeoutMs = 10_000,
@@ -26,7 +24,6 @@ export function createShutdown({
       return stopping;
     }
     health.stop();
-    stopWork();
     stopping = new Promise<void>((resolve) => {
       let finished = false;
       const finish = (code: number) => {
@@ -51,8 +48,11 @@ export function createShutdown({
       const httpClosed = new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
       });
-      void Promise.allSettled([httpClosed, socketsClosed]).then(
+      void Promise.allSettled([httpClosed, socketsClosed, health.drain()]).then(
         async (drained) => {
+          if (finished) {
+            return;
+          }
           const results = await Promise.allSettled(
             cleanup.map((close) => Promise.resolve().then(close)),
           );

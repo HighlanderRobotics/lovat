@@ -67,7 +67,9 @@ export async function checkMatchExists(
   } catch (error) {
     if (
       error instanceof TypeError ||
-      (error instanceof Error && error.name === "AbortError")
+      (error instanceof Error &&
+        (error.name === "AbortError" ||
+          /^fetch failed(?::|$)/i.test(error.message)))
     ) {
       return { status: "offline" };
     }

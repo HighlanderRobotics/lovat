@@ -22,6 +22,7 @@ jobs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       collection: ${{ steps.filter.outputs.collection }}
       website: ${{ steps.filter.outputs.website }}
+      web-images: ${{ steps.filter.outputs.web-images }}
       learn: ${{ steps.filter.outputs.learn }}
       reviewer: ${{ steps.filter.outputs.reviewer }}
       contracts: ${{ steps.filter.outputs.contracts }}
@@ -31,6 +32,19 @@ jobs:
         id: filter
         with:
           filters: .github/ci-filters.json
+
+  codeql:
+    uses: ./.github/workflows/codeql.yml
+    permissions:
+      contents: read
+      pull-requests: read
+      packages: read
+      security-events: write
+
+  web-images:
+    needs: changes
+    if: ${{ needs.changes.outputs.web-images == 'true' }}
+    uses: ./.github/workflows/web-hosting.yml
 
   structure:
     name: Structure
@@ -473,7 +487,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.19.6
+          node-version-file: apps/website/.nvmrc
           cache: npm
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
@@ -509,7 +523,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.21.0
+          node-version-file: apps/website/.nvmrc
           cache: npm
           cache-dependency-path: apps/website/package-lock.json
       - run: npm ci
@@ -586,6 +600,8 @@ jobs:
         changes,
         structure,
         railway-config,
+        codeql,
+        web-images,
         contracts,
         reviewer,
         server,

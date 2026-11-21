@@ -2,10 +2,30 @@ import express from "express";
 import type { Request, Response } from "express";
 import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AppError, errorHandler, normalizeError } from "../src/lib/errors.js";
+import {
+  AppError,
+  errorHandler,
+  normalizeError,
+  runBackgroundTask,
+} from "../src/lib/errors.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+it("contains and sanitizes a rejected background task", async () => {
+  const failure = new Error("private provider details");
+  const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+  await expect(
+    runBackgroundTask(() => Promise.reject(failure), "Socket polling failed"),
+  ).resolves.toBeUndefined();
+
+  expect(log).toHaveBeenCalledExactlyOnceWith(
+    "Socket polling failed",
+    expect.objectContaining({ name: "Error" }),
+  );
+  expect(JSON.stringify(log.mock.calls)).not.toContain(failure.message);
 });
 
 describe("central error handling", () => {

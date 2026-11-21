@@ -18,20 +18,21 @@ queries. A recovered dependency is checked again after the short cache expires.
 
 `GET /status` retains its legacy HTTP 200 text response for existing callers.
 It is process status only; new deployment checks must use `/ready`. The OpenAPI
-reference documents all three paths. This does not remove the current startup
-TBA imports; that is separate LVT-335 work.
+reference documents all three paths. The Worker owns TBA imports and periodic
+database maintenance.
 
 ## Termination
 
 SIGTERM and SIGINT invoke the same idempotent shutdown path:
 
-1. Readiness becomes false and recurring background timers stop.
+1. Readiness becomes false and new dependency probes stop.
 2. The HTTP listener stops accepting connections. Subsequent requests that
    arrive on an existing connection receive HTTP 503 with `Connection: close`.
 3. Training WebSockets reject new upgrades and close with code 1001. In-flight
    snapshot work finishes before the database client closes.
-4. After HTTP and WebSocket draining completes, PostgreSQL and Redis close and
-   PostHog flushes/shuts down. The process exits successfully only if cleanup
+4. After in-flight HTTP requests, WebSocket updates, and readiness probes
+   finish, PostgreSQL and Redis close and PostHog flushes queued telemetry.
+   The process exits successfully only if cleanup
    succeeds. Cleanup errors use a constant log message, without provider errors.
 5. A ten-second deadline covers draining and cleanup. Stuck HTTP connections
    and WebSockets are destroyed and the process exits unsuccessfully for retry.

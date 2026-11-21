@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { codeqlMatrix } from "./codeql-matrix.mjs";
 
@@ -24,7 +25,12 @@ test("platform changes select only that platform", () => {
     ["java-kotlin"],
   );
 });
-test("workflow edits outside CodeQL select only the Actions analysis", () => {
+test("workflow edits select only the Actions analysis, including edits to CodeQL itself", () => {
+  const filters = JSON.parse(
+    readFileSync(new URL("../.github/codeql-filters.json", import.meta.url)),
+  );
+  assert.equal(Object.hasOwn(filters, "workflow"), false);
+  assert(filters.actions.includes(".github/workflows/**"));
   assert.deepEqual(
     codeqlMatrix(["actions"]).include.map((job) => job.language),
     ["actions"],
@@ -40,8 +46,8 @@ test("combined changes select each analysis once", () => {
     2,
   );
 });
-test("CodeQL configuration changes and explicit manual scans select all six analyses", () => {
-  assert.equal(codeqlMatrix(["workflow"]).include.length, 6);
+test("only a manual full scan overrides language path selection", () => {
+  assert.deepEqual(codeqlMatrix(["workflow"]), { include: [] });
   assert.equal(codeqlMatrix([], true).include.length, 6);
 });
 test("invalid filter output fails rather than silently omitting analysis", () => {

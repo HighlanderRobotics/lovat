@@ -23,6 +23,12 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+## Request telemetry
+
+Request analytics use an anonymous allowlist with no payloads or person lookups.
+See the [event contract and PostHog privacy review](docs/request-telemetry.md) for
+route grouping, dashboard migration and historical-data remediation.
+
 ## Health and shutdown
 
 Use `/live` for process liveness and `/ready` for bounded PostgreSQL/Redis readiness.

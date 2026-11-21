@@ -1,6 +1,7 @@
 interface HealthState {
   start(): void;
   stop(): void;
+  drain(): Promise<void>;
   isStopping(): boolean;
   ready(): Promise<boolean>;
 }
@@ -14,20 +15,24 @@ export function createHealth(
   let stopping = false;
   let cached: { ready: boolean; expires: number } | undefined;
   let checking: Promise<boolean> | undefined;
+  const active = new Set<Promise<boolean>>();
   const probes = checks.map((check) => {
     let running: Promise<boolean> | undefined;
     return () => {
       // A timed-out driver call stays in flight: do not pile up connections.
       if (!running) {
-        running = Promise.resolve()
+        const pending = Promise.resolve()
           .then(check)
           .then(
             () => true,
             () => false,
           )
           .finally(() => {
+            active.delete(pending);
             running = undefined;
           });
+        active.add(pending);
+        running = pending;
       }
       return running;
     };
@@ -43,6 +48,9 @@ export function createHealth(
       serving = false;
       stopping = true;
       cached = undefined;
+    },
+    async drain(): Promise<void> {
+      await Promise.all(active);
     },
     isStopping(): boolean {
       return stopping;

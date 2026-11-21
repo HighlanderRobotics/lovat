@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   closeRedis: vi.fn(),
   healthStart: vi.fn(),
   healthStop: vi.fn(),
+  healthDrain: vi.fn(),
   posthogShutdown: vi.fn(),
   clear: vi.fn(),
   listen: vi.fn(),
@@ -28,7 +29,11 @@ vi.mock("../src/redisClient.js", () => ({
   closeRedis: mocks.closeRedis,
 }));
 vi.mock("../src/lib/runtimeHealth.js", () => ({
-  runtimeHealth: { start: mocks.healthStart, stop: mocks.healthStop },
+  runtimeHealth: {
+    start: mocks.healthStart,
+    stop: mocks.healthStop,
+    drain: mocks.healthDrain,
+  },
 }));
 vi.mock("../src/posthogClient.js", () => ({
   posthog: { shutdown: mocks.posthogShutdown },
@@ -51,6 +56,7 @@ beforeEach(() => {
   mocks.server.close.mockImplementation((callback) => callback());
   mocks.disconnect.mockResolvedValue(undefined);
   mocks.closeRedis.mockResolvedValue(undefined);
+  mocks.healthDrain.mockResolvedValue(undefined);
   mocks.posthogShutdown.mockResolvedValue(undefined);
   mocks.listen.mockImplementation((_port, callback) => {
     callback();

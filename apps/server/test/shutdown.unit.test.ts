@@ -30,7 +30,7 @@ function setup() {
     terminate: vi.fn(),
   };
   const stop = vi.fn();
-  const stopWork = vi.fn();
+  const drain = vi.fn().mockResolvedValue(undefined);
   const cleanup = [
     vi.fn().mockResolvedValue(undefined),
     vi.fn().mockResolvedValue(undefined),
@@ -39,8 +39,7 @@ function setup() {
   const exit = vi.fn();
   const shutdown = createShutdown({
     server,
-    health: { stop },
-    stopWork,
+    health: { stop, drain },
     sockets,
     cleanup,
     exit,
@@ -50,7 +49,7 @@ function setup() {
     server,
     sockets,
     stop,
-    stopWork,
+    drain,
     cleanup,
     exit,
     finishHttp: (error?: Error) => finishHttp(error),
@@ -58,11 +57,17 @@ function setup() {
   };
 }
 
-it("stops admission immediately, drains HTTP and sockets, then closes every client once", async () => {
+it("stops admission immediately and drains HTTP, sockets and probes before closing clients", async () => {
   const s = setup();
+  let finishProbes!: () => void;
+  s.drain.mockReturnValue(
+    new Promise<void>((resolve) => {
+      finishProbes = resolve;
+    }),
+  );
   const done = s.shutdown();
   expect(s.stop).toHaveBeenCalledOnce();
-  expect(s.stopWork).toHaveBeenCalledOnce();
+  expect(s.drain).toHaveBeenCalledOnce();
   expect(s.server.close).toHaveBeenCalledOnce();
   expect(s.shutdown()).toBe(done);
   await vi.advanceTimersByTimeAsync(0);
@@ -70,6 +75,9 @@ it("stops admission immediately, drains HTTP and sockets, then closes every clie
   await vi.advanceTimersByTimeAsync(0);
   expect(s.cleanup[0]).not.toHaveBeenCalled();
   s.finishSockets();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(s.cleanup[0]).not.toHaveBeenCalled();
+  finishProbes();
   await done;
   for (const close of s.cleanup) {
     expect(close).toHaveBeenCalledOnce();
@@ -91,6 +99,7 @@ it("forces stuck connections closed at the deadline and never exits twice", asyn
   s.finishSockets();
   await vi.advanceTimersByTimeAsync(0);
   expect(s.exit).toHaveBeenCalledTimes(1);
+  expect(s.cleanup[0]).not.toHaveBeenCalled();
 });
 
 it("closes the remaining clients after an error without logging private details", async () => {
@@ -151,7 +160,7 @@ it("drains a real in-flight HTTP request before closing dependencies", async () 
   const exit = vi.fn();
   const shutdown = createShutdown({
     server,
-    health: { stop },
+    health: { stop, drain: async () => undefined },
     sockets: {
       close: async () => undefined,
       terminate: vi.fn(),

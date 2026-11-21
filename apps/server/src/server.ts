@@ -13,7 +13,7 @@ import { createShutdown } from "./lib/shutdown.js";
 const port = process.env.PORT || 3000;
 
 await ensureBuiltInTrainingExercise();
-const stopJobs = await scheduleJobs();
+await scheduleJobs();
 await connectRedis();
 
 const server = app.listen(port, () => {
@@ -25,7 +25,6 @@ const sockets = attachTrainingSockets(server);
 const shutdown = createShutdown({
   server,
   health: runtimeHealth,
-  stopWork: stopJobs,
   sockets,
   cleanup: [
     () => prisma.$disconnect(),
