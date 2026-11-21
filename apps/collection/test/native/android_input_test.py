@@ -33,6 +33,30 @@ class MenuInputTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             menu.assert_state(b"<hierarchy/>", "End match", {"enabled": "false"})
 
+    def test_recognizes_captured_android_immersive_confirmation(self):
+        data = (Path(__file__).parent / "fixtures/immersive-confirmation.xml").read_bytes()
+        self.assertEqual(menu.immersive_confirmation_point(data), (510, 190))
+        # An app button or another system OK dialog must never be acknowledged.
+        self.assertIsNone(menu.immersive_confirmation_point(self.node(text="Got it")))
+        self.assertIsNone(menu.immersive_confirmation_point(
+            b'<node package="android" resource-id="android:id/ok" />'
+        ))
+
+    def test_immersive_confirmation_rejects_disabled_or_ambiguous_button(self):
+        import xml.etree.ElementTree as ET
+        data = (Path(__file__).parent / "fixtures/immersive-confirmation.xml").read_bytes()
+        for mode in ["disabled", "duplicate", "wrong-package"]:
+            root = ET.fromstring(data)
+            button = next(n for n in root.iter("node") if n.get("resource-id") == "android:id/ok")
+            if mode == "disabled":
+                button.set("enabled", "false")
+            elif mode == "wrong-package":
+                button.set("package", "other.app")
+            else:
+                root.append(ET.fromstring(ET.tostring(button)))
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                menu.immersive_confirmation_point(ET.tostring(root))
+
 
 if __name__ == "__main__":
     unittest.main()

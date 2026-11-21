@@ -1,7 +1,7 @@
 """Record a report with Android short taps and fresh accessibility bounds.
 
-Maestro 2.12.1's gRPC taps are ineffective after rotation on the CI image.
-Keep real gestures and state assertions rather than relying on driver success.
+Android's first-use immersive hint can cover app controls. Resolve the active
+window and acknowledge only that known hint before requiring app assertions.
 """
 
 from pathlib import Path
@@ -25,8 +25,12 @@ def node_for(data, label, attribute):
 
 def tap_point(data, attribute, label="End match"):
     node = node_for(data, label, attribute)
+    return point_for(node)
+
+
+def point_for(node):
     if node.get("enabled") != "true":
-        raise ValueError("Expected enabled " + label)
+        raise ValueError("Expected enabled control")
     match = re.fullmatch(
         r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", node.get("bounds", "")
     )
@@ -36,6 +40,19 @@ def tap_point(data, attribute, label="End match"):
     if x2 <= x1 or y2 <= y1:
         raise ValueError("Control has no visible area")
     return ((x1 + x2) // 2, (y1 + y2) // 2)
+
+
+def immersive_confirmation_point(data):
+    nodes = list(ET.fromstring(data).iter("node"))
+    titles = [n for n in nodes if n.get("package") == "android"
+              and n.get("resource-id") == "android:id/immersive_cling_title"]
+    if not titles:
+        return None
+    buttons = [n for n in nodes if n.get("package") == "android"
+               and n.get("resource-id") == "android:id/ok"]
+    if len(titles) != 1 or len(buttons) != 1:
+        raise ValueError("Ambiguous Android immersive confirmation")
+    return point_for(buttons[0])
 
 
 def assert_state(data, label, expected):
@@ -84,6 +101,19 @@ def run():
                         timeout=10,
                     )
                     (out / (name + ".xml")).write_bytes(data)
+                    confirmation = immersive_confirmation_point(data)
+                    if confirmation is not None:
+                        (out / "immersive-confirmation.xml").write_bytes(data)
+                        if time.monotonic() >= deadline:
+                            raise AssertionError("Android immersive hint did not dismiss")
+                        print("Dismissing Android immersive education", flush=True)
+                        subprocess.run(
+                            ["adb", "shell", "input", "tap", *map(str, confirmation)],
+                            check=True, timeout=10,
+                        )
+                        # Read the active window again; never use the app's
+                        # behind-dialog bounds as evidence that it is tappable.
+                        continue
                     try:
                         if action == "state":
                             assert_state(data, label, condition)

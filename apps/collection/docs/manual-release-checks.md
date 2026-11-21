@@ -73,9 +73,12 @@ attached; a build profile alone is not a passed native test. Physical-device
 rows above still apply after a simulator pass.
 
 On Android CI, `scripts/native-android-journey.py` runs the landscape recording
-and end-menu steps in place of `record-match.yaml` and `end-match.yaml`. The pinned
-Maestro driver's landscape gestures proved ineffective while Android's own short
-tap at the same coordinates changed the expected app state. The runner uses
+and end-menu steps in place of `record-match.yaml` and `end-match.yaml`. Android's
+first-use full-screen hint can cover the field while the underlying app controls
+remain discoverable. The runner acknowledges only the system immersive hint,
+identified by its Android package and specific title/button resource IDs, then
+reads the active window again before selecting an app control. It retains the
+hint snapshot and rejects disabled or ambiguous confirmation buttons. It uses
 Android short taps with fresh accessibility bounds, rejects missing, disabled or
 ambiguous targets, and verifies selection, Start availability and Undo state.
 Outpost intake exists in every match phase, so waiting for Android accessibility
