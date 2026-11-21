@@ -1,36 +1,11 @@
 name: CodeQL
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'tools/**'
-      - '.github/actions/**'
-      - '.github/codeql-filters.json'
-      - '*'
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'tools/**'
-      - '.github/actions/**'
-      - '.github/codeql-filters.json'
-      - '*'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: codeql-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   changes:
@@ -169,3 +144,22 @@ jobs:
           path: ${{ runner.temp }}/codeql-results/*.sarif
           if-no-files-found: error
           retention-days: 7
+
+  result:
+    name: Require applicable CodeQL analyses
+    if: ${{ always() }}
+    needs: [changes, analyze]
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      DETECTION_RESULT: ${{ needs.changes.result }}
+      ANALYSIS_SELECTED: ${{ needs.changes.outputs.any }}
+      ANALYSIS_RESULT: ${{ needs.analyze.result }}
+    steps:
+      - name: Check scan outcome
+        run: |
+          test "$DETECTION_RESULT" = success
+          case "$ANALYSIS_SELECTED:$ANALYSIS_RESULT" in
+            true:success|false:skipped) ;;
+            *) echo 'An applicable CodeQL analysis did not succeed.' >&2; exit 1 ;;
+          esac

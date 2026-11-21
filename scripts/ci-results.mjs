@@ -10,6 +10,7 @@ export const jobSelectors = {
   "dashboard-browser": "dashboard",
   website: "website",
   "website-browser": "website",
+  "web-images": "web-images",
   learn: "learn",
   contracts: "contracts",
 };
@@ -25,7 +26,7 @@ const reportJobs = new Set([
 ]);
 export function requireCiResults(needs, publishReports = false) {
   const errors = [];
-  for (const job of ["changes", "structure", "railway-config"])
+  for (const job of ["changes", "structure", "railway-config", "codeql"])
     if (needs[job]?.result !== "success") errors.push(`${job} must succeed`);
   const selected = needs.changes?.outputs ?? {};
   for (const [job, selector] of Object.entries(jobSelectors)) {
