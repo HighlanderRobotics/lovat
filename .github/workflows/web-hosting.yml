@@ -1,13 +1,6 @@
 name: Web hosting images
 on:
-  pull_request:
-    paths:
-      - 'apps/website/**'
-      - 'CHANGELOG.md'
-      - 'apps/learn/**'
-      - 'apps/dashboard/**'
-      - '.github/workflows/web-hosting.yml'
-      - 'scripts/test-web-hosting.mjs'
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read
