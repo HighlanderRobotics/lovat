@@ -17,6 +17,7 @@ export function OutpostAction({
       })}
     >
       <GameAction
+        label="Open outpost actions"
         onPress={() => setOverlay(true)}
         color="#C1C337"
         icon="flag"

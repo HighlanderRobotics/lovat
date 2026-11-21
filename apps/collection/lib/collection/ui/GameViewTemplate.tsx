@@ -192,13 +192,15 @@ function GameViewOverlay({
   overlay: boolean;
   setOverlay: (value: boolean) => void;
 }) {
+  // Remove the modal's native touch targets while it is closed. Opacity only
+  // changes painting; hidden controls should not remain over the playing field.
+  if (!overlay) return null;
+
   return (
     <Pressable
-      pointerEvents={overlay ? "auto" : "none"}
-      disabled={overlay}
+      accessible={false}
       style={{
         backgroundColor: "#45454540",
-        opacity: overlay ? 1 : 0,
         position: "absolute",
         zIndex: 50,
         width: "100%",
@@ -270,6 +272,8 @@ function OutpostOverlay({
       }}
     >
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel="Outtake to outpost"
         style={{
           backgroundColor: "#3EE6794d",
           borderRadius: 7,
@@ -289,6 +293,8 @@ function OutpostOverlay({
         <Icon name="download" size={100} color="#3EE679" />
       </TouchableOpacity>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel="Intake from outpost"
         style={{
           backgroundColor: "#c1c3374d",
           borderRadius: 7,
