@@ -144,7 +144,8 @@ were retained and two priority regression tests added: all 1,483 Server tests in
 zero errors). Apple still controls delivery timing and budgets.
 
 The APNs session finished with no active test activity or device registration.
-The phone remained locked, so resetting its custom API URL back to production
-is pending the owner's unlock. The APNs key is configured only on the local
-test server; production deployment and distribution-environment verification
-remain separate work.
+After the owner unlocked the phone, its custom API override was reset through
+Settings. The Custom API URL card disappeared, confirming the production default
+was restored. The APNs key is configured only on the local test server;
+production deployment and distribution-environment verification remain separate
+work.
