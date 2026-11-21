@@ -33,8 +33,10 @@ their watch patterns. API and Worker additionally watch `/packages/db/**`.
 | website   | `/`               | `apps/website/Dockerfile` | `/healthz`, 120 seconds |
 | learn     | `/apps/learn`     | `Dockerfile`              | `/healthz`, 120 seconds |
 
-All apps use one replica in `us-west2`. Dashboard, Website and Learn sleep in all
-three environments; API sleeps in staging/previews and stays awake in production.
+All apps used one replica in `us-west2` at the November 12 inspection. Dashboard,
+Website, and Learn had sleeping enabled in all three environments. API sleeping
+was enabled in staging and previews at that inspection. The November 20 audit
+also confirmed it was enabled in production, and the current graph preserves it.
 Staging and preview API have two CPUs/2 GiB container limits. Worker drains for
 60 seconds. Current API start runs Prisma deploy before npm start; Worker does
 not run migrations. This verifies the declared migration owner, not safe
