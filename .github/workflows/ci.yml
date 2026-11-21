@@ -120,6 +120,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
         run: |
+          set -o pipefail
           (
             set -e
             npm run format:check
@@ -185,6 +186,7 @@ jobs:
           DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
           LOVAT_DB_TEST: "1"
         run: |
+          set -o pipefail
           (
             set -e
             npm run db:validate
@@ -201,7 +203,9 @@ jobs:
           DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
           REDIS_URL: redis://127.0.0.1:6379/15
           LOVAT_DB_TEST: "1"
-        run: npm run test:coverage 2>&1 | tee "$RUNNER_TEMP/server-integration.log"
+        run: |
+          set -o pipefail
+          npm run test:coverage 2>&1 | tee "$RUNNER_TEMP/server-integration.log"
       - name: Upload Server coverage report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -236,7 +240,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Build server deployment image
-        run: docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci . 2>&1 | tee "$RUNNER_TEMP/server-image.log"
+        run: |
+          set -o pipefail
+          docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci . 2>&1 | tee "$RUNNER_TEMP/server-image.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
