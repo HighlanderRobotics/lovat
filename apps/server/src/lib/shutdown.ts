@@ -4,6 +4,7 @@ interface ShutdownDependencies {
   server: Pick<Server, "close" | "closeAllConnections">;
   health: { stop(): void; drain(): Promise<void> };
   sockets: { close(): Promise<void>; terminate(): void };
+  background: { drain(): Promise<void> };
   cleanup: (() => Promise<unknown>)[];
   exit: (code: number) => void;
   timeoutMs?: number;
@@ -14,6 +15,7 @@ export function createShutdown({
   server,
   health,
   sockets,
+  background,
   cleanup,
   exit,
   timeoutMs = 10_000,
@@ -53,11 +55,19 @@ export function createShutdown({
           if (finished) {
             return;
           }
+          // In-flight requests or sockets may start response-tail work during
+          // drain. Inspect background work only once transports finish.
+          const backgroundResults = await Promise.allSettled([
+            Promise.resolve().then(() => background.drain()),
+          ]);
+          if (finished) {
+            return;
+          }
           const results = await Promise.allSettled(
             cleanup.map((close) => Promise.resolve().then(close)),
           );
           clearTimeout(deadline);
-          const failed = [...drained, ...results].some(
+          const failed = [...drained, ...backgroundResults, ...results].some(
             (result) => result.status === "rejected",
           );
           if (failed) {

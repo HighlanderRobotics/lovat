@@ -21,6 +21,7 @@ import {
   ClimbSide,
 } from "@lovat/db";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { shutdownWork } from "../../../lib/shutdownWork.js";
 import { sendWarningToSlack } from "../../slack/sendWarningNotification.js";
 import { classifyReportReliability } from "./reportReliability.js";
 import {
@@ -249,9 +250,13 @@ export const addScoutReportDashboard = async (
     });
 
     // Invalidate cached analyses
-    invalidateCache(
-      paramsScoutReport.teamNumber,
-      paramsScoutReport.tournamentKey,
+    void shutdownWork.track(
+      () =>
+        invalidateCache(
+          paramsScoutReport.teamNumber,
+          paramsScoutReport.tournamentKey,
+        ),
+      "Failed to invalidate added report cache",
     );
 
     const broke = paramsScoutReport.robotBrokeDescription?.trim();

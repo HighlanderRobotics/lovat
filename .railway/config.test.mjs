@@ -73,14 +73,9 @@ for (const environment of ["production", "staging"]) {
     const api = service("api");
     assert.equal(api.build.dockerfilePath, "apps/server/Dockerfile");
     assert(api.build.watchPatterns.includes("/packages/db/**"));
-    assert(
-      api.deploy.startCommand.includes(
-        "db:deploy && export NODE_ENV=production && exec node dist/src/server.js",
-      ),
-    );
+    assert(api.deploy.startCommand.includes("db:deploy && exec npm start"));
     assert(api.deploy.startCommand.includes("$DATABASE_PRIVATE_URL"));
-    assert.equal(api.deploy.healthcheckPath, "/ready");
-    assert.equal(api.deploy.drainingSeconds, 15);
+    assert.equal(api.deploy.healthcheckPath, "/status");
     assert.deepEqual(
       api.deploy.limitOverride,
       environment === "staging"

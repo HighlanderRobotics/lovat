@@ -1,6 +1,7 @@
 import type { Server } from "node:http";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createShutdown } from "../src/lib/shutdown.js";
+import { createShutdownWork } from "../src/lib/shutdownWork.js";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -11,7 +12,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function setup() {
+function setup(background = createShutdownWork()) {
   let finishHttp!: (error?: Error) => void;
   let finishSockets!: () => void;
   const server = {
@@ -41,6 +42,7 @@ function setup() {
     server,
     health: { stop, drain },
     sockets,
+    background,
     cleanup,
     exit,
   });
@@ -99,6 +101,55 @@ it("forces stuck connections closed at the deadline and never exits twice", asyn
   s.finishSockets();
   await vi.advanceTimersByTimeAsync(0);
   expect(s.exit).toHaveBeenCalledTimes(1);
+  expect(s.cleanup[0]).not.toHaveBeenCalled();
+});
+
+it("waits for late response-tail work after transports have drained", async () => {
+  const background = createShutdownWork();
+  const s = setup(background);
+  const done = s.shutdown();
+  await vi.advanceTimersByTimeAsync(0);
+
+  let release!: () => void;
+  const tail = background.track(
+    () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+    "Failed to invalidate report cache",
+  );
+  s.finishHttp();
+  s.finishSockets();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(s.cleanup[0]).not.toHaveBeenCalled();
+  expect(s.exit).not.toHaveBeenCalled();
+  release();
+  await tail;
+  await done;
+  expect(s.cleanup[0]).toHaveBeenCalledOnce();
+  expect(s.exit).toHaveBeenCalledExactlyOnceWith(0);
+});
+
+it("does not close shared clients after the deadline expires waiting for tail work", async () => {
+  const background = createShutdownWork();
+  const s = setup(background);
+  const done = s.shutdown();
+  let release!: () => void;
+  const tail = background.track(
+    () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+    "Failed to write cache",
+  );
+  s.finishHttp();
+  s.finishSockets();
+  await vi.advanceTimersByTimeAsync(10_000);
+  await done;
+  expect(s.exit).toHaveBeenCalledExactlyOnceWith(1);
+  release();
+  await tail;
+  await vi.advanceTimersByTimeAsync(0);
   expect(s.cleanup[0]).not.toHaveBeenCalled();
 });
 
@@ -165,6 +216,7 @@ it("drains a real in-flight HTTP request before closing dependencies", async () 
       close: async () => undefined,
       terminate: vi.fn(),
     },
+    background: createShutdownWork(),
     cleanup: [cleanup],
     exit,
   });

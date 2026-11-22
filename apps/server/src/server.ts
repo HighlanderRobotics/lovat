@@ -9,6 +9,7 @@ import prisma from "./prismaClient.js";
 import { posthog } from "./posthogClient.js";
 import { runtimeHealth } from "./lib/runtimeHealth.js";
 import { createShutdown } from "./lib/shutdown.js";
+import { shutdownWork } from "./lib/shutdownWork.js";
 
 const port = process.env.PORT || 3000;
 
@@ -26,6 +27,7 @@ const shutdown = createShutdown({
   server,
   health: runtimeHealth,
   sockets,
+  background: shutdownWork,
   cleanup: [
     () => prisma.$disconnect(),
     () => closeRedis(),

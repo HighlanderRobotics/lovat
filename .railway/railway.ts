@@ -106,7 +106,7 @@ export default defineRailway((ctx) => {
     deploy: {
       runtime: "V2",
       startCommand:
-        "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && export NODE_ENV=production && exec node dist/src/server.js'",
+        "sh -c 'export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; npm --prefix ../../packages/db run db:deploy && exec npm start'",
       useLegacyStacker: false,
       multiRegionConfig: {
         "us-west2": {
@@ -115,8 +115,7 @@ export default defineRailway((ctx) => {
       },
       restartPolicyMaxRetries: 20,
       sleepApplication: true,
-      healthcheckPath: "/ready",
-      drainingSeconds: 15,
+      healthcheckPath: "/status",
       healthcheckTimeout: 1200,
       ...(!production
         ? { limitOverride: { containers: { cpu: 2, memoryBytes: 2147483648 } } }

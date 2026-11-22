@@ -106,7 +106,7 @@ for (const [path, status, description] of [
   [
     "/ready",
     "ready",
-    "Ready only after initialization and bounded PostgreSQL/Redis probes pass.",
+    "Ready after initialization and a bounded Redis probe; does not test PostgreSQL.",
   ],
 ] as const) {
   registry.registerPath({
@@ -126,7 +126,7 @@ for (const [path, status, description] of [
         ? {
             503: {
               description:
-                "Starting, draining, or a critical dependency is unavailable.",
+                "Starting, draining, or Redis did not answer in time.",
               content: {
                 "application/json": {
                   schema: z.object({ status: z.literal("not_ready") }),
