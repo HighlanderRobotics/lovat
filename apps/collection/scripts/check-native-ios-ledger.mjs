@@ -33,7 +33,11 @@ export function checkIosLedger(stage, ledger, original) {
   }
 
   assert.equal(stage, "after", "Expected before or after");
-  assert.equal(uuid, original, "Report UUID differs from the pre-outage record");
+  assert.equal(
+    uuid,
+    original,
+    "Report UUID differs from the pre-outage record",
+  );
   const submissions = entries.filter(({ path }) =>
     [submit, legacySubmit].includes(path),
   );
