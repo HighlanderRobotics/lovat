@@ -58,6 +58,7 @@ jobs:
         run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color=false
       - run: node --test scripts/ci-selection.test.mjs scripts/ci-results.test.mjs scripts/prepare-contract-report.test.mjs
       - run: node --test scripts/prepare-pages-reports.test.mjs
+      - run: node --test scripts/deployment-smoke.test.mjs
       - run: python3 -m unittest discover -s scripts -p railway_preview_qr_test.py
 
   railway-config:

@@ -21,3 +21,29 @@ For Railway service roots and the plan/apply process, use [Railway configuration
 4. Record the tested revision and verify a rollback path before promoting to production.
 
 [Test report hosting](../test-report-hosting.md) covers the separate GitHub Pages test site.
+
+## Public production smoke checks
+
+After a production deployment, run **Public deployment smoke** from the repository's
+Actions tab on `main`, or run `node scripts/deployment-smoke.mjs` with Node 22.20.0.
+It checks the deployed Website home, Learn root redirect and Welcome guide,
+Dashboard shell and JavaScript entry point, and the public API `/status` and
+`/version` contracts. The target domains and paths are fixed in the script.
+It sends only bounded, anonymous GET requests, never follows redirects, and
+retries timeouts, network errors, 429s and 5xx responses once for cold starts.
+This is a manual check, not a periodic probe that could wake a sleeping service.
+
+Record the deployment SHA/ID separately from the smoke runner commit, and link
+the Actions run to the release notes or incident. The run publishes a short log
+as a 14-day artifact on success or probe failure. It logs the fixed endpoint,
+status, elapsed time, retry count and failure category, not response contents or
+arbitrary response headers. An overall failure is evidence to investigate,
+not an automatic rollback: verify the deployed revision, check the provider and
+service logs, and decide whether to repair or restore the last healthy release.
+
+`/status` is the current public **process** status, not dependency readiness.
+This check does not establish PostgreSQL/Redis health, verify a deployed SHA,
+exercise authenticated reads or submissions, or monitor production continuously.
+Dependency readiness and shutdown remain in [LVT-339](https://linear.app/highlander-robotics/issue/LVT-339).
+An authorized synthetic read, isolated test report, alerts, service metrics and
+rollback rehearsal remain in [LVT-347](https://linear.app/highlander-robotics/issue/LVT-347).
