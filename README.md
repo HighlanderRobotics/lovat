@@ -1,4 +1,6 @@
-# Lovat
+<h1 align="center">
+  <img src="apps/collection/assets/splash.png" alt="Lovat" width="560">
+</h1>
 
 [![CI](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
 [![Tests (CI workflow)](https://img.shields.io/github/actions/workflow/status/HighlanderRobotics/lovat/ci.yml?branch=main&label=Tests)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
