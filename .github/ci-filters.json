@@ -2,6 +2,7 @@
   "worker": [
     "apps/worker/**",
     "packages/db/**",
+    ".railway/railway.ts",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
     "docs/testing/fixtures/**",
@@ -11,6 +12,7 @@
   "server": [
     "apps/server/**",
     "packages/db/**",
+    ".railway/railway.ts",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
     "docs/testing/fixtures/**",
@@ -79,6 +81,7 @@
     "docs/testing/fixtures/**",
     "apps/server/**",
     "packages/db/**",
+    ".railway/railway.ts",
     "apps/collection/lib/collection/**",
     "apps/collection/lib/lovatAPI/collectionRequests.ts",
     "apps/collection/lib/storage/scoutReportMigrations.ts",
