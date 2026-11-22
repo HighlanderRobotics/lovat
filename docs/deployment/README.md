@@ -13,6 +13,11 @@
 
 For Railway service roots and the plan/apply process, use [Railway configuration as code](../../.railway/README.md) and the [deployment graph](../../.railway/railway.ts). These document the configured deployment paths; consult the provider and release workflow for live state rather than assuming a public domain has cut over.
 
+For the proposed move from API startup migrations to one release owner, see the
+[release migration rehearsal](release-migration-rehearsal.md).
+To verify Railway's deployment gate without touching production, see the
+[isolated tested-commit rehearsal](railway-ci-rehearsal.md).
+
 ## Before promoting a change
 
 1. Verify the target project, environment, and source revision. Test in an isolated PR environment first.
