@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
 import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/images/city_photo.dart';
+import 'package:scouting_dashboard_app/reusable/tournament_banner.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_matches.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_user_profile.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
@@ -18,6 +20,7 @@ export 'package:scouting_dashboard_app/reusable/team_card.dart' show TeamCard;
 import 'package:scouting_dashboard_app/reusable/upcoming_team_tournaments.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_team_rankings.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournament_status.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Set to true to show the team's upcoming entered tournaments on Home.
 const bool showUpcomingEnteredTournaments = false;
@@ -47,6 +50,8 @@ class _HomePageState extends State<HomePage> {
   List<TeamRanking> topTeams = [];
   Tournament? selectedTournament;
   ServerScoutSchedule? schedule;
+  CityPhoto? cityPhoto;
+  String? cityPhotoLocation;
 
   @override
   void initState() {
@@ -88,14 +93,20 @@ class _HomePageState extends State<HomePage> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    Text(
-                                        t?.localized ??
-                                            "No Selected Tournament",
-                                        style: const TextStyle(
-                                            fontSize: 24,
-                                            height: 32 / 24,
-                                            fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 10),
+                                    if (t != null)
+                                      TournamentBanner(
+                                        tournament: t!,
+                                        api: widget.api ?? lovatAPI,
+                                        onPhotoResolved: (photo, location) {
+                                          setState(() {
+                                            cityPhoto = photo;
+                                            cityPhotoLocation = location;
+                                          });
+                                        },
+                                      )
+                                    else
+                                      const Text("No Selected Tournament"),
+                                    const SizedBox(height: 6),
                                     for (final notice in notices)
                                       Padding(
                                         padding:
@@ -282,6 +293,33 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 8),
                                     UpcomingWeekTournaments(api: widget.api),
+                                    if (cityPhoto != null) ...[
+                                      const SizedBox(height: 24),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton(
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 2),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                          onPressed: () => launchUrl(
+                                              Uri.parse(cityPhoto!.source)),
+                                          child: Text(
+                                            cityPhotoLocation == null
+                                                ? 'Photo: ${cityPhoto!.credit}'
+                                                : 'Photo of $cityPhotoLocation: ${cityPhoto!.credit}',
+                                            textAlign: TextAlign.right,
+                                            style: const TextStyle(
+                                                fontSize: 10, height: 1.2),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ]),
                             ],
                           ),
@@ -304,6 +342,8 @@ class _HomePageState extends State<HomePage> {
       teamTournamentStatus = null;
       notices = [];
       schedule = null;
+      cityPhoto = null;
+      cityPhotoLocation = null;
     });
 
     const timeout = Duration(seconds: 30);
