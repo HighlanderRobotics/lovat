@@ -306,12 +306,24 @@ jobs:
           curl --fail --silent --show-error --retry 30 --retry-connrefused \
             --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
           curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
-          docker stop --timeout 10 "$container"
+
+          # Probe for the first time with the disposable database stopped.
+          # A cached successful SQL probe cannot hide a startup/readiness dependency.
+          docker stop --timeout 10 "$POSTGRES_CONTAINER"
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/live | grep -Fx '{"status":"live"}'
+          for probe in 1 2; do
+            echo "Redis-only readiness probe $probe with PostgreSQL stopped"
+            curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/ready | grep -Fx '{"status":"ready"}'
+            # Expire the one-second readiness cache before the next probe.
+            if [ "$probe" -eq 1 ]; then sleep 1.1; fi
+          done
+
+          docker stop --timeout 15 "$container"
           exit_code="$(docker inspect --format '{{.State.ExitCode}}' "$container")"
-          case "$exit_code" in
-            0|143) ;;
-            *) echo "Server did not shut down on SIGTERM (exit $exit_code)"; exit 1 ;;
-          esac
+          if [ "$exit_code" -ne 0 ]; then
+            echo "Server did not shut down cleanly on SIGTERM (exit $exit_code)"
+            exit 1
+          fi
       - name: Compare Server image size and cold build time with the PR base
         if: github.event_name == 'pull_request'
         timeout-minutes: 8
