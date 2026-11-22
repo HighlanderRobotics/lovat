@@ -2,7 +2,7 @@ import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
-import { allTournaments } from "../../analysis/analysisConstants.js";
+import { getAllTournaments } from "../../analysis/analysisConstants.js";
 import { arrayToRule } from "../../../lib/migrateDataSources.js";
 
 export const addTournamentSource = async (
@@ -31,7 +31,7 @@ export const addTournamentSource = async (
       data: {
         tournamentSourceRule: arrayToRule<string>(
           params.data.tournamentSource,
-          await allTournaments,
+          await getAllTournaments(),
         ),
       },
     });

@@ -6,7 +6,7 @@ import {
   Metric,
   metricToEvent,
   minActionDuration,
-  allTournaments,
+  getAllTournaments,
   accuracyToPercentage,
 } from "../analysisConstants.js";
 import { EndgameClimb, AutoClimb, Prisma, Event, $Enums } from "@lovat/db";
@@ -100,7 +100,7 @@ const config: AnalysisFunctionConfig<typeof argsSchema, z.ZodType> = {
       },
     });
 
-    const tournamentIndex = await allTournaments;
+    const tournamentIndex = await getAllTournaments();
     const finalResults: Record<string, Record<string, number>> = {};
 
     for (const metric of args.metrics) {

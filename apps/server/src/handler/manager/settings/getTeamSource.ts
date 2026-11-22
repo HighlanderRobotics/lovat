@@ -5,7 +5,7 @@ import {
   dataSourceRuleToArray,
 } from "../../analysis/dataSourceRule.js";
 import z from "zod";
-import { allTeamNumbers } from "../../analysis/analysisConstants.js";
+import { getAllTeamNumbers } from "../../analysis/analysisConstants.js";
 
 export const getTeamSource = async (
   req: AuthenticatedRequest,
@@ -34,7 +34,7 @@ export const getTeamSource = async (
     } else {
       res
         .status(200)
-        .send(dataSourceRuleToArray(teamSourceRule, await allTeamNumbers));
+        .send(dataSourceRuleToArray(teamSourceRule, await getAllTeamNumbers()));
     }
   }
 };
