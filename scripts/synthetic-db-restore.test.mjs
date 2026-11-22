@@ -6,7 +6,85 @@ import {
   postgresEnvironment,
   postgresUrl,
   restoreArguments,
+  withRehearsalCleanup,
 } from "./synthetic-db-restore.mjs";
+
+test("successful rehearsal returns its metrics after cleanup", () => {
+  const metrics = { restoreMs: 12 };
+  const calls = [];
+  const result = withRehearsalCleanup(
+    () => {
+      calls.push("rehearse");
+      return metrics;
+    },
+    () => calls.push("cleanup"),
+  );
+  assert.deepEqual(calls, ["rehearse", "cleanup"]);
+  assert.equal(result, metrics);
+});
+
+for (const primary of [
+  new Error("pg_restore failed: bad archive"),
+  new Error("Migration history differs"),
+]) {
+  test(`cleanup runs without masking ${primary.message}`, () => {
+    let cleanupRuns = 0;
+    assert.throws(
+      () =>
+        withRehearsalCleanup(
+          () => {
+            throw primary;
+          },
+          () => cleanupRuns++,
+        ),
+      (error) => error === primary,
+    );
+    assert.equal(cleanupRuns, 1);
+  });
+
+  test(`cleanup failure retains its diagnostic and ${primary.message}`, () => {
+    const cleanup = new Error(
+      "Could not stop disposable PostgreSQL; retained /tmp/lovat-restore-123 for cleanup",
+    );
+    assert.throws(
+      () =>
+        withRehearsalCleanup(
+          () => {
+            throw primary;
+          },
+          () => {
+            throw cleanup;
+          },
+        ),
+      (error) => {
+        assert.ok(error instanceof AggregateError);
+        assert.deepEqual(error.errors, [primary, cleanup]);
+        // The CLI prints error.message, so both diagnostics belong in it.
+        assert.equal(
+          error.message,
+          `Rehearsal failed: ${primary.message}\nCleanup failed: ${cleanup.message}`,
+        );
+        return true;
+      },
+    );
+  });
+}
+
+test("cleanup-only failure preserves the diagnostic and does not return metrics", () => {
+  const cleanup = new Error(
+    "Could not remove disposable rehearsal files at /tmp/lovat-restore-123: permission denied",
+  );
+  assert.throws(
+    () =>
+      withRehearsalCleanup(
+        () => ({ restoreMs: 12 }),
+        () => {
+          throw cleanup;
+        },
+      ),
+    (error) => error === cleanup,
+  );
+});
 
 test("rehearsal commands do not inherit database, credential, or dotenv settings", () => {
   assert.deepEqual(postgresEnvironment("/known/tools", "/private/sandbox"), {
