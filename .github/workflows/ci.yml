@@ -271,42 +271,115 @@ jobs:
           TIMEFORMAT='Server image build: %3R seconds'
           { time docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci .; } 2>&1 | tee "$RUNNER_TEMP/server-image.log"
           docker image inspect --format 'Server image size: {{.Size}} bytes' lovat-server:ci
-      - name: Smoke-test Server image against disposable PostgreSQL and Redis
-        timeout-minutes: 4
+      - name: Rehearse the release gate and smoke-test the Server image
+        timeout-minutes: 6
         env:
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: |
+          set -o pipefail
           docker exec "$POSTGRES_CONTAINER" createdb -U lovat_test lovat_image_smoke
-          image=lovat-server:ci
+          image="$(docker image inspect --format '{{.Id}}' lovat-server:ci)"
           container=lovat-server-image-smoke
+          database=127.0.0.1:5432/lovat_image_smoke
+          migration_url="postgresql://lovat_test:lovat_test@$database"
+          runtime_url="postgresql://lovat_image_runtime:lovat_image_runtime@$database"
           opts=(
             --network host --read-only --tmpfs /tmp
             --env npm_config_cache=/tmp/npm
-            --env DATABASE_PRIVATE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke
             --env REDIS_URL=redis://127.0.0.1:6379/14
             --env AUTH0_DOMAIN=ci.example.invalid
             --env PORT=3010
+            --env "RAILWAY_GIT_COMMIT_SHA=$GITHUB_SHA"
           )
           trap 'docker logs "$container" 2>/dev/null || true; docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
 
-          # Run the same migration command Railway runs before API startup.
+          image_sql() {
+            docker exec -i "$POSTGRES_CONTAINER" psql -X -qAt -v ON_ERROR_STOP=1 \
+              -U lovat_test -d lovat_image_smoke "$@"
+          }
+
+          # Model the proposed Railway pre-deploy/start split locally. The same
+          # immutable image runs both commands; a failed migration must not start it.
+          migrate() {
+            docker run --rm "${opts[@]}" --env "DATABASE_PRIVATE_URL=$1" "$image" \
+              sh -c 'export DATABASE_URL="$DATABASE_PRIVATE_URL"; exec npm --prefix ../../packages/db run db:deploy'
+          }
+          start_candidate() {
+            docker run -d --name "$container" "${opts[@]}" --env "DATABASE_PRIVATE_URL=$runtime_url" "$image" \
+              sh -c 'export DATABASE_URL="$DATABASE_PRIVATE_URL"; exec npm start'
+          }
+          promote_if_migrated() {
+            migrate "$1" || return "$?"
+            shift
+            "$@"
+          }
+          migration_history() {
+            image_sql -c 'SELECT id, migration_name, checksum, finished_at FROM public._prisma_migrations ORDER BY id;'
+          }
+
           docker run --rm "${opts[@]}" "$image" sh -ec '
             test "$(id -u)" -ne 0
             test ! -w .
             test ! -e node_modules/.bin/vitest
             test ! -e node_modules/.bin/tsc
             test ! -e ../../packages/db/node_modules/.bin/tsc
-            export DATABASE_URL="$DATABASE_PRIVATE_URL"
-            npm --prefix ../../packages/db run db:deploy
-            npm --prefix ../../packages/db run db:status
           '
-          # Startup writes the built-in training exercise to PostgreSQL and
-          # connects to Redis before listening on /status.
-          docker run -d --name "$container" "${opts[@]}" \
-            --env DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke "$image"
+          if promote_if_migrated "postgresql://lovat_test:invalid-test-password@$database" start_candidate \
+            > "$RUNNER_TEMP/migration-gate-rejection.log" 2>&1; then
+            cat "$RUNNER_TEMP/migration-gate-rejection.log"
+            echo "The candidate was promoted despite invalid migration credentials."
+            exit 1
+          fi
+          # A Docker/setup error is not a passing negative test: require Prisma's
+          # PostgreSQL authentication failure and no runtime or history table.
+          cat "$RUNNER_TEMP/migration-gate-rejection.log"
+          grep -F 'P1000' "$RUNNER_TEMP/migration-gate-rejection.log" >/dev/null
+          if docker container inspect "$container" >/dev/null 2>&1; then
+            echo "The rejected candidate started a container."
+            exit 1
+          fi
+          image_sql -c "SELECT to_regclass('public._prisma_migrations') IS NULL;" | grep -Fx t
+
+          prepare_runtime() {
+            docker run --rm "${opts[@]}" --env "DATABASE_URL=$migration_url" "$image" \
+              npm --prefix ../../packages/db run db:status || return "$?"
+            # The CI runtime role must be able to seed/read the app, but not run
+            # migrations. This role is only created in the disposable CI database.
+            image_sql <<'SQL' || return "$?"
+          CREATE ROLE lovat_image_runtime LOGIN PASSWORD 'lovat_image_runtime';
+          GRANT USAGE ON SCHEMA public TO lovat_image_runtime;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO lovat_image_runtime;
+          GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO lovat_image_runtime;
+          REVOKE ALL ON TABLE public._prisma_migrations FROM lovat_image_runtime;
+          SQL
+            image_sql -c "SELECT NOT has_schema_privilege('lovat_image_runtime', 'public', 'CREATE')
+              AND NOT has_table_privilege('lovat_image_runtime', 'public._prisma_migrations', 'SELECT');" | grep -Fx t || return "$?"
+            migration_history > "$RUNNER_TEMP/migration-history.before"
+            test -s "$RUNNER_TEMP/migration-history.before"
+          }
+          start_after_prepare() {
+            prepare_runtime || return "$?"
+            start_candidate
+          }
+          promote_if_migrated "$migration_url" start_after_prepare
+          curl --fail --silent --show-error --retry 30 --retry-connrefused \
+            --retry-delay 1 --max-time 2 http://127.0.0.1:3010/ready | grep -Fx '{"status":"ready"}'
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/version |
+            jq -e --arg sha "$GITHUB_SHA" '.gitCommit == $sha'
+          # Server startup writes this built-in exercise to PostgreSQL before readiness.
+          image_sql -c "SELECT count(*) FROM public.\"Match\" WHERE key = '2026joh_qm19';" | grep -Fx 1
+          migration_history > "$RUNNER_TEMP/migration-history.after"
+          diff -u "$RUNNER_TEMP/migration-history.before" "$RUNNER_TEMP/migration-history.after"
+
+          # Cold-start the same image under the same runtime role, retaining
+          # the existing Docker default command/shutdown contract checks.
+          docker rm -f "$container"
+          docker run -d --name "$container" "${opts[@]}" --env "DATABASE_URL=$runtime_url" "$image"
           curl --fail --silent --show-error --retry 30 --retry-connrefused \
             --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
           curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
+          migration_history > "$RUNNER_TEMP/migration-history.after-restart"
+          diff -u "$RUNNER_TEMP/migration-history.before" "$RUNNER_TEMP/migration-history.after-restart"
 
           # Probe for the first time with the disposable database stopped.
           # A cached successful SQL probe cannot hide a startup/readiness dependency.
