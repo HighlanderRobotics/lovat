@@ -112,3 +112,15 @@ The reusable native workflow also builds Linux and macOS release targets. Its
 Android/iOS journeys and desktop builds use the same resolved candidate version;
 release jobs wait for every platform result. Web compilation and the Chrome
 journey remain in app CI and build-only release validation.
+
+### On-device strategy with Apple Intelligence
+
+The AI Strategy Assistant offers **Apple Intelligence · On device** on eligible iPhones, iPads, and Macs running iOS/iPadOS 26+ or macOS 26+. It checks the system model at runtime and explains when the device is unsupported, Apple Intelligence is disabled, or its model is still downloading. Supported devices default to local generation; Claude remains an explicit cloud option. Older OS versions and other platforms retain the cloud option.
+
+The app-local `packages/apple_strategy` Flutter plugin calls `SystemLanguageModel.default` through a native method channel. It does not use Private Cloud Compute, Siri, or a separately trained model. The iOS deployment minimum remains 15.0. Foundation Models is weak-linked and every native access is guarded by an OS availability check. On-device generation never falls back to Claude automatically.
+
+Selecting a tournament loads an authenticated, source-filtered match snapshot from the API with `local=true`. Local evidence contains report counts, average driver/defense ratings, and at most three recent notes per team, with bounded note lengths. Generation then uses that loaded snapshot without another network request, so it can work offline while that page remains loaded. It does not refresh the schedule offline; refresh the match and data before using the brief at the field. The NorCal synthetic example supports both engines.
+
+This integration uses Apple's existing system model; no custom model or adapter has been trained. Apple's legacy Foundation Models adapter toolkit does not support iOS 27. Any future custom training needs reviewed input/strategy pairs and a separate quality evaluation. Siri/App Intents and spoken responses are not implemented in this version.
+
+Native verification should cover a physical Apple Intelligence-compatible iPhone with Apple Intelligence enabled, a device with it disabled, and an older supported OS. Simulator compilation does not establish model availability or strategy quality on a phone. For the local path, load a match, disconnect networking, generate, and verify there is no Claude POST request. Review drafts with a drive-team mentor; the model is not trained on the REBUILT rulebook.

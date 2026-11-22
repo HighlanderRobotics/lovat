@@ -5,6 +5,7 @@
 import FlutterMacOS
 import Foundation
 
+import apple_strategy
 import auth0_flutter
 import mobile_scanner
 import package_info_plus
@@ -14,6 +15,7 @@ import shared_preferences_foundation
 import url_launcher_macos
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+  AppleStrategyPlugin.register(with: registry.registrar(forPlugin: "AppleStrategyPlugin"))
   Auth0FlutterPlugin.register(with: registry.registrar(forPlugin: "Auth0FlutterPlugin"))
   MobileScannerPlugin.register(with: registry.registrar(forPlugin: "MobileScannerPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))

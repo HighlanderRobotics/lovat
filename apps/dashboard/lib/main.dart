@@ -1,3 +1,4 @@
+import 'package:scouting_dashboard_app/pages/ai_strategy.dart';
 import 'package:flutter/material.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
@@ -42,6 +43,7 @@ void main() async {
     initialRoute: "/loading",
     routes: {
       '/home': (context) => const HomePage(),
+      '/ai_strategy': (context) => const AiStrategyPage(),
       '/loading': (context) => const InitialLoaderPage(),
       '/preview_over': (context) => const PreviewOverPage(),
       '/match_schedule': (context) => const MatchSchedulePage(),

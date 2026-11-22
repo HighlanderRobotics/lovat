@@ -223,3 +223,23 @@ imports the schedule twice to check keys, scheduling markers, and duplicates.
 It refuses an event already present in the test database and removes only its
 own temporary tournament and match rows. This optional check needs live Nexus
 availability and is not part of the offline unit suite.
+
+## AI match strategy
+
+The Dashboard's **AI Strategy Assistant** asks for the current tournament and uses the signed-in team's next scheduled match. It reads up to 20 recent, non-training, non-practice reports per participating team from completed matches at that event. Saved team and tournament source rules still apply, and rejected reports are excluded. Missing reports are shown as unknown capabilities. Legacy rows without an imported completed Match are excluded until the schedule importer supplies their status.
+
+Set `ANTHROPIC_API_KEY` in the server environment to enable generation. `STRATEGY_MODEL` defaults to `claude-haiku-4-5-20251001`. The key stays on the server. The page explains that generating sends scoped scouting summaries, notes, and the optional team briefing to Claude; drafts are returned to the page without being saved in the database. Requests time out after 45 seconds and are limited to four drafts per user per minute.
+
+`GET /v1/manager/ai-strategy/:tournament` previews the next match and report counts. `POST` accepts `{ "matchKey": "...", "briefing": "..." }`, re-reads the context, and rejects a changed next match. Both routes require authentication and a verified team. The UI provides refresh, retry, and copy controls.
+
+The `StrategyProvider` interface in `src/lib/strategy/provider.ts` separates model transport from data selection. Replace the Claude implementation with a local provider implementing `draft(context)` when local inference is ready; keep the source filters and server-side context assembly in place. The Claude transport uses the [Messages API](https://platform.claude.com/docs/en/api/messages/create).
+
+### NorCal REBUILT example
+
+**Try NorCal REBUILT example** on the AI page previews a hypothetical 8033 / 1323 / 4414 alliance against 254 / 1678 / 971. All 18 observations and alliance assignments are synthetic; no official match results or private scouting data are imported. The example uses the real configured model, so it still requires `ANTHROPIC_API_KEY`. Generated and copied drafts carry an explicit example label.
+
+The authenticated `GET` and `POST /v1/manager/ai-strategy-example` routes need no team membership because they read only the fixed fixture in `src/lib/strategy/norCalExample.ts`. The normal tournament routes continue to require a verified team and enforce saved source filters. Example and tournament generation share the same per-user rate limit. The example does not modify the user's selected tournament, membership, or source settings.
+
+### Evidence for on-device generation
+
+`GET /v1/manager/ai-strategy/:tournament?local=true` includes a bounded `localPrompt` alongside the preview. It uses exactly the same authenticated team, completed-match, training/reliability and saved source filters as cloud generation. The prompt summarizes counts and ratings across up to 20 reports per team, with at most three recent observations per team. It contains no account identifiers or scouter identities and does not invoke a model. The authenticated synthetic example GET accepts the same query without reading private data. The client uses this loaded snapshot for Apple Intelligence generation; it must refresh to see schedule or report changes.

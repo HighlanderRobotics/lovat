@@ -1,4 +1,7 @@
 PODS:
+  - apple_strategy (0.1.0):
+    - Flutter
+    - FlutterMacOS
   - Auth0 (2.10.0):
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
@@ -28,6 +31,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - apple_strategy (from `Flutter/ephemeral/.symlinks/plugins/apple_strategy/darwin`)
   - auth0_flutter (from `Flutter/ephemeral/.symlinks/plugins/auth0_flutter/darwin`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
@@ -44,6 +48,8 @@ SPEC REPOS:
     - SimpleKeychain
 
 EXTERNAL SOURCES:
+  apple_strategy:
+    :path: Flutter/ephemeral/.symlinks/plugins/apple_strategy/darwin
   auth0_flutter:
     :path: Flutter/ephemeral/.symlinks/plugins/auth0_flutter/darwin
   FlutterMacOS:
@@ -62,6 +68,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
+  apple_strategy: c32e065b0326d42743fd5b12ada6ca04a08ae27a
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
   auth0_flutter: 031042ca6cf84f1b21611062b33ea7ec4bf3bc52
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
