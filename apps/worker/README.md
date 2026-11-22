@@ -298,6 +298,13 @@ data. A fresh empty response clears withdrawn data, while HTTP 304 preserves it.
 
 Run `bun run backfill 1992 2025` with the target database and TBA credentials configured to queue archived season imports. With no arguments, it queues every season from 1992 through the current year. Existing jobs keep their leases and retry schedules. Tournament and district imports queue event and district details through the existing scheduler, so the backfill continues on the worker.
 
+## Replacement API effects
+
+Set `WORKER_MODE=continuous API_EFFECTS_ENABLED=true` only when running the replacement API with the two additive outbox migrations applied. Set `REDIS_URL` and `REDIS_KEY_PREFIX` to the API's values (default prefix `lovat:rewrite:`), and `RESEND_KEY` / `EMAIL_FROM` for onboarding email delivery. Finite batch/scheduled modes reject this flag to avoid disconnecting Prisma beneath the effect consumer or silently delaying delivery. Use a continuously running consumer when qualifying the replacement; for Railway-managed configuration, set the IaC input `RAILWAY_WORKER_CRON=""` to retain continuous mode. This loop shares the worker process but has one consumer; it does not run in the API request path.
+
+Reports and analysis revisions commit with durable outbox records. Consumers claim records with a 60-second lease and retry failures with exponential backoff, up to ten attempts. Slack warning fan-out creates one durable child per subscribed channel so a failed channel does not resend every successful channel. External delivery is at least once; email idempotency keys and Slack client message IDs reduce duplicates, but cannot guarantee exactly-once delivery after a remote timeout. Failed records retain a sanitized error and can be inspected by an operator before replay. Cache revisions increase monotonically; the API's 15-second cache lifetime also bounds staleness if Redis delivery is unavailable.
+
+The loop abandons expired drafts, scrubs old abandoned payloads, and removes expired verification requests and delivered outbox records. Training reports never create competition cache revisions or warnings. Keep this flag disabled for the existing Server deployment until cutover qualification is complete.
 
 ## Finite batches (LVT-382)
 
@@ -330,7 +337,6 @@ scrubs their payloads at day thirty. API startup creates no import or cleanup
 timers and needs no TBA key. Read-time report and verification expiry checks stay
 in the API. Import ownership overlaps LVT-335; resource/pool tuning remains with
 LVT-376. See [batch rollout](../../docs/worker-batch-rollout.md) before cutover.
-
 
 `WORKER_MODE=scheduled` combines six-hour external Cron with automatic event-day
 continuous runs. Outside competition dates it exits after the batch. On an event's

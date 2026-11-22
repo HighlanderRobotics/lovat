@@ -1,5 +1,7 @@
 **
 !packages/
+!packages/api/
+!packages/api/**
 !packages/db/
 !packages/db/**
 !apps/

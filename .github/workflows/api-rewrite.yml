@@ -1,0 +1,98 @@
+name: API rewrite
+on:
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "apps/server/**"
+      - "packages/api/**"
+      - "packages/db/**"
+      - "packages/games/**"
+      - ".github/workflows/api-rewrite.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/api/**"
+      - "packages/db/**"
+      - "packages/games/**"
+      - ".github/workflows/api-rewrite.yml"
+permissions:
+  contents: read
+jobs:
+  contracts-and-api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lovat_test" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_test
+      REDIS_URL: redis://127.0.0.1:6379
+      LOVAT_DB_TEST: "1"
+      LOVAT_REDIS_TEST: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: |
+            packages/api/package-lock.json
+            packages/db/package-lock.json
+            packages/games/package-lock.json
+
+      - run: npm ci
+        working-directory: packages/db
+      - run: npm run build
+        working-directory: packages/db
+      - run: npm run db:deploy
+        working-directory: packages/db
+      - run: npm ci
+        working-directory: packages/api
+      - run: npm test && npm run generate:check && npm run lint && npm run format:check
+        working-directory: packages/api
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+        working-directory: apps/api
+      - run: npm test && npm run lint && npm run format:check
+        working-directory: packages/games
+      - run: bun run test && bun run test:integration && bun run lint && bun run format:check && bun run inventory:check
+        working-directory: apps/api
+
+      - name: Build legacy Server for local rollback rehearsal
+        run: npm ci && npm run build
+        working-directory: apps/server
+      - name: Rehearse traffic rollback without schema rollback
+        run: bun run test:rollout
+        working-directory: apps/api
+      - name: Build production Bun image
+        run: docker build -t lovat-api:qualification -f apps/api/Dockerfile .
+      - name: Smoke test bounded container and graceful shutdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'docker logs lovat-api-smoke; docker rm -f lovat-api-smoke' EXIT
+          docker run --detach --name lovat-api-smoke --network host --memory=512m --cpus=1 \
+            --env DATABASE_URL --env REDIS_URL \
+            --env AUTH0_ISSUER=https://auth.test.invalid/ \
+            --env AUTH0_AUDIENCE=https://api.lovat.app \
+            --env REDIS_KEY_PREFIX=lovat:container:${{ github.run_id }}: \
+            --env HOST=127.0.0.1 --env PORT=3001 lovat-api:qualification
+          node apps/api/tools/smoke-container.mjs http://127.0.0.1:3001
+          docker stats --no-stream lovat-api-smoke
+          docker image inspect --format '{{.Size}}' lovat-api:qualification
+          docker stop --time 20 lovat-api-smoke
+          test "$(docker inspect --format '{{.State.ExitCode}}' lovat-api-smoke)" = 0

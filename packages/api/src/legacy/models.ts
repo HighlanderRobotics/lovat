@@ -199,18 +199,12 @@ export const EmailVerificationRequestSchema = z.object({
   teamNumber: z.number().int(),
 });
 
-export const SlackWorkspaceSchema = z.object({
+export const SlackWorkspacePublicSchema = z.object({
   workspaceId: z.string(),
   owner: z.number().int(),
   name: z.string(),
-  authToken: z.string(),
   botUserId: z.string(),
   authUserId: z.string(),
-});
-
-// Public schema omitting authToken for API responses
-export const SlackWorkspacePublicSchema = SlackWorkspaceSchema.omit({
-  authToken: true,
 });
 
 export const SlackSubscriptionSchema = z.object({
@@ -244,16 +238,6 @@ export const UserSchema = z.object({
   role: UserRoleSchema,
   teamSourceRule: DataSourceRuleNumberSchema,
   tournamentSourceRule: DataSourceRuleStringSchema,
-});
-
-export const ApiKeySchema = z.object({
-  uuid: z.string().uuid(),
-  keyHash: z.string(),
-  name: z.string(),
-  userId: z.string(),
-  createdAt: z.string().datetime(),
-  lastUsed: z.string().datetime().optional().nullable(),
-  requests: z.number().int(),
 });
 
 // Public response schema matching what API endpoints actually return
@@ -306,3 +290,9 @@ export function registerPrismaSchemas(registry: OpenAPIRegistry) {
   registry.register("ApiKey", ApiKeyResponseSchema);
   registry.register("CachedAnalysis", CachedAnalysisSchema);
 }
+
+export const LovatTimestampHeader = z.object({
+  "x-timestamp": z.string().openapi({
+    description: "Unix timestamp (seconds) used in HMAC signature generation",
+  }),
+});

@@ -1,0 +1,40 @@
+{
+  "name": "lovat-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun x tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "bun run build && bun test ./test/*.test.mjs",
+    "start": "bun --smol dist/server.js",
+    "benchmark": "bun run build && bun tools/benchmark.mjs",
+    "prebuild": "bun run --cwd ../../packages/games build",
+    "postinstall": "npm --prefix ../../packages/api ci --ignore-scripts && npm --prefix ../../packages/games ci --ignore-scripts && bun run --cwd ../../packages/games build",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "format:check": "prettier --check .",
+    "inventory": "bun tools/inventory.mjs",
+    "inventory:check": "bun tools/inventory.mjs --check",
+    "test:integration": "bun run build && bun test --smol ./test/*.integration.mjs",
+    "test:rollout": "bun run build && bun test --smol ./test/*.qualification.mjs"
+  },
+  "engines": {
+    "bun": "1.4.4"
+  },
+  "dependencies": {
+    "@lovat/api": "link:../../packages/api",
+    "@lovat/db": "link:../../packages/db",
+    "jose": "6.2.12",
+    "redis": "6.2.1",
+    "zod": "4.6.7",
+    "@lovat/games": "link:../../packages/games",
+    "hono": "4.13.19"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "@types/bun": "1.4.4"
+  },
+  "packageManager": "bun@1.4.4"
+}

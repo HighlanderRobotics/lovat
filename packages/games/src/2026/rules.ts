@@ -1,0 +1,35 @@
+export const rules2026 = {
+  season: 2026,
+  version: 1,
+  id: "frc-2026",
+  label: "Lovat 2026",
+  minimumScoringInterval: 0.5,
+  allianceSize: 3,
+  periods: [
+    { id: "auto", label: "Autonomous scouting clock", durationSeconds: 23 },
+    {
+      id: "teleop",
+      label: "Teleoperated scouting clock",
+      durationSeconds: 135,
+    },
+    { id: "buffer", label: "Post-match scouting buffer", durationSeconds: 5 },
+  ],
+  autoEnd: 23,
+  climbClockEnd: 158,
+  autoClimbPoints: 15,
+  endgamePoints: {
+    NOT_ATTEMPTED: 0,
+    FAILED: 0,
+    L1: 10,
+    L2: 20,
+    L3: 30,
+  } as Record<string, number>,
+  accuracyPercent: [25, 55, 65, 75, 85, 95],
+  reportFlagThreshold: 800,
+  ranking: {
+    win: 3,
+    tie: 1,
+    scoreBonusThresholds: [240, 400],
+    forecastScale: 0.9,
+  },
+} as const;
