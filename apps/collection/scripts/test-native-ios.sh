@@ -7,7 +7,7 @@ test "${GITHUB_ACTIONS:-}" = true
 test "${LOVAT_DISPOSABLE_BUILD:-}" = 1
 test "$(uname -s)" = Darwin
 test "$(uname -m)" = arm64
-test "$(git rev-parse HEAD)" = "${GITHUB_SHA:?Exact Actions source revision required}"
+test "$(git rev-parse HEAD)" = "${LOVAT_EXPECTED_SOURCE_SHA:?Exact Actions source revision required}"
 test ! -e ios
 export CI=1 EXPO_NO_DOTENV=1 EXPO_PUBLIC_API_URL=http://127.0.0.1:9877
 export EXPO_NO_TELEMETRY=1 MAESTRO_CLI_NO_ANALYTICS=1
@@ -18,7 +18,7 @@ results="$PWD/.maestro/results/ios"
 fixture_pid=""
 simulator=""
 mkdir -p "$results"
-printf '%s\n' "$GITHUB_SHA" > "$results/source-sha.txt"
+printf '%s\n' "$LOVAT_EXPECTED_SOURCE_SHA" > "$results/source-sha.txt"
 printf '%s\n' 'Simulator endpoint outage and process restart; not airplane mode, LAN consent, physical camera, QR or signed-device acceptance.' > "$results/scope.txt"
 : > "$results/ledger.jsonl"
 

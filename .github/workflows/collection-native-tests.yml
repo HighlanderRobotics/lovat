@@ -14,6 +14,14 @@ on:
       artifact_name:
         description: Artifact containing one standalone APK with localhost HTTP enabled for the fixture API
         required: false
+  pull_request:
+    types: [ready_for_review]
+    branches: [main]
+    paths:
+      - .github/workflows/collection-native-tests.yml
+      - apps/collection/scripts/test-native-ios.sh
+      - apps/collection/scripts/check-native-ios-ledger.mjs
+      - apps/collection/test/native/ios-ledger.test.mjs
 permissions:
   contents: read
   actions: read
@@ -22,15 +30,23 @@ defaults:
     shell: bash
 jobs:
   validate:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.id == github.event.repository.id) }}
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - name: Test native input and state assertion guards
+        if: github.event_name == 'workflow_dispatch'
         run: python3 -m unittest discover -s apps/collection/test/native -p '*_test.py'
       - name: Test iOS outage and retry evidence checks
-        if: inputs.platform == 'ios'
+        if: github.event_name == 'pull_request' || inputs.platform == 'ios'
         run: node --test apps/collection/test/native/ios-ledger.test.mjs
-      - env:
+      - if: github.event_name == 'workflow_dispatch'
+        env:
           PLATFORM: ${{ inputs.platform }}
           RUN_ID: ${{ inputs.candidate_run_id }}
           ARTIFACT: ${{ inputs.artifact_name }}
@@ -44,7 +60,7 @@ jobs:
           fi
   build:
     needs: validate
-    if: inputs.platform == 'android' && inputs.candidate_run_id == '' && inputs.artifact_name == ''
+    if: github.event_name == 'workflow_dispatch' && inputs.platform == 'android' && inputs.candidate_run_id == '' && inputs.artifact_name == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -78,7 +94,7 @@ jobs:
           retention-days: 14
   android:
     needs: [validate, build]
-    if: ${{ always() && inputs.platform == 'android' && needs.validate.result == 'success' && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.candidate_run_id != '' && inputs.artifact_name != '')) }}
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.platform == 'android' && needs.validate.result == 'success' && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.candidate_run_id != '' && inputs.artifact_name != '')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -143,17 +159,19 @@ jobs:
           retention-days: 14
   ios:
     needs: validate
-    if: inputs.platform == 'ios'
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.platform == 'ios') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.id == github.event.repository.id) }}
     # Official GitHub-hosted public preview. Actionlint 1.7.12's static label
     # list predates it, so keep the published label as a fixed expression.
     runs-on: ${{ 'xcode-27' }}
     permissions:
       contents: read
+    env:
+      LOVAT_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.LOVAT_EXPECTED_SOURCE_SHA }}
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -177,6 +195,6 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: collection-native-ios-results-${{ github.sha }}
+          name: collection-native-ios-results-${{ env.LOVAT_EXPECTED_SOURCE_SHA }}
           path: apps/collection/.maestro/results/ios/
           retention-days: 14

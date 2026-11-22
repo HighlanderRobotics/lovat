@@ -73,6 +73,11 @@ simulator endpoint outage and restart, not airplane mode, local-network
 permission prompts, camera/QR transfer or a signed install/upgrade. Those
 physical-device rows still apply even after a simulator pass.
 
+For changes to the iOS harness, marking a same-repository PR ready for
+review can also run the iOS job against its exact head commit. This is
+optional evidence, not a required PR check; it never starts Android and
+does not rerun on every push. A release candidate still needs its own run.
+
 On Android CI, `scripts/prepare-native-android.py` runs before the shared
 `record-match.yaml` and `end-match.yaml` Maestro flows. It acknowledges only
 Android's known first-use full-screen hint, identified by its Android package and
