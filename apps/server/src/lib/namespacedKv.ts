@@ -23,6 +23,7 @@ export type NamespacedKv = {
   exp(key: string, seconds: number): Promise<unknown>;
   setEx(key: string, data: string, seconds: number): Promise<unknown>;
   reset(): Promise<number>;
+  keys(prefix: string): AsyncIterable<string>;
 };
 
 export const createNamespacedKv = (
@@ -94,6 +95,21 @@ export const createNamespacedKv = (
     return deleted;
   };
 
+  const keys = async function* (prefix: string): AsyncIterable<string> {
+    if (["*", "?", "[", "]", "\\"].some((char) => prefix.includes(char))) {
+      throw new Error("Key prefix cannot contain Redis glob characters");
+    }
+
+    for await (const batch of redis.scanIterator({
+      MATCH: `${namespacedKey(prefix)}*`,
+      COUNT: RESET_BATCH_SIZE,
+    })) {
+      for (const key of batch) {
+        yield key.toString().slice(keyPrefix.length);
+      }
+    }
+  };
+
   return {
     set,
     get,
@@ -102,5 +118,6 @@ export const createNamespacedKv = (
     exp,
     setEx,
     reset,
+    keys,
   };
 };

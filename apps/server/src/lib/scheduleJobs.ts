@@ -1,4 +1,13 @@
-/** Imports and maintenance belong to the durable Worker queue. */
+import { refreshLiveActivities } from "../liveActivities/subscriptions.js";
+import { runBackgroundTask } from "./errors.js";
+
+/** Imports and database maintenance remain owned by the durable Worker queue. */
 export default async function scheduleJobs(): Promise<void> {
-  // Retain the startup hook for consumers; never start API-owned DB timers.
+  // Live Activity delivery is independent of the Worker's tournament imports.
+  setInterval(() => {
+    void runBackgroundTask(
+      refreshLiveActivities,
+      "Live Activity refresh failed",
+    );
+  }, 30_000);
 }

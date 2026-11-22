@@ -9,6 +9,7 @@ import TitleMedium from "../../lib/components/text/TitleMedium";
 import BodyMedium from "../../lib/components/text/BodyMedium";
 import Button from "../../lib/components/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { stopLiveActivities } from "../../lib/liveActivities/LiveActivityConnection";
 import React from "react";
 import {
   useFieldOrientationStore,
@@ -29,6 +30,7 @@ import {
 export default function Reset() {
   const navigation = useNavigation();
   const reset = async () => {
+    await stopLiveActivities();
     console.log("resetting");
     useTeamStore.setState(useTeamStore.getInitialState());
     useOnboardingCompleteStore.setState(

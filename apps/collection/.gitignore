@@ -9,6 +9,8 @@ dist/
 build/
 
 # Native
+/ios/
+/android/
 *.orig.*
 *.jks
 *.p8

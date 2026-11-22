@@ -10,6 +10,8 @@ export default [
       "babel.config.js",
       "dist/**",
       "build/**",
+      "ios/**",
+      "android/**",
       "coverage/**",
       "test-report/**",
       ".maestro/results/**",

@@ -72,6 +72,7 @@ import {
 } from "../lib/storage/zustandStorage";
 import { checkMatchExists } from "../lib/lovatAPI/checkMatchExists";
 import { scheduledTeamsForAlliance } from "../lib/collection/scheduledTeams";
+import { Sidebar } from "../lib/components/Sidebar";
 import { resolveStartupRoute } from "../lib/collection/startup";
 
 export default function Home() {
@@ -162,12 +163,7 @@ export default function Home() {
               justifyContent: "space-between",
             }}
           >
-            <IconButton
-              label="history"
-              icon="history"
-              color={colors.onBackground.default}
-              onPress={() => router.push("/history")}
-            />
+            <Sidebar />
 
             <ServiceStatus />
 

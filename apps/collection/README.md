@@ -1,5 +1,9 @@
 # Lovat Collection
 
+For scouting Dynamic Island and Lock Screen activities, native build/signing,
+Server push configuration, and the sidebar Debug controls, see
+[Live Activities](docs/live-activities.md).
+
 Collection is the Expo and React Native client used by scouters to record match events, complete post-match observations, retain reports offline, and upload them to Lovat Server.
 
 Return to the [monorepo README](../../README.md).
