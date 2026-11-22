@@ -106,6 +106,25 @@ function run(command, args, options) {
   return result.stdout.trim();
 }
 
+export function withRehearsalCleanup(rehearse, cleanup) {
+  let metrics;
+  try {
+    metrics = rehearse();
+  } catch (rehearsalError) {
+    try {
+      cleanup();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [rehearsalError, cleanupError],
+        `Rehearsal failed: ${rehearsalError.message}\nCleanup failed: ${cleanupError.message}`,
+      );
+    }
+    throw rehearsalError;
+  }
+  cleanup();
+  return metrics;
+}
+
 export function rehearseRestore() {
   if (process.getuid?.() === 0) {
     throw new Error("Run as a non-root user with PostgreSQL 16 tools in PATH.");
@@ -150,9 +169,8 @@ export function rehearseRestore() {
     );
   };
   let attemptedStart = false;
-  let safeToRemove = true;
 
-  try {
+  function rehearse() {
     mkdirSync(socket, { mode: 0o700 });
     invoke("initdb", [
       "--pgdata",
@@ -253,32 +271,51 @@ export function rehearseRestore() {
       archiveBytes: statSync(archive).size,
       migrations: migrations.split("\n").length,
     };
-  } finally {
+  }
+
+  function cleanup() {
     if (attemptedStart) {
-      const stopped = spawnSync(
-        "pg_ctl",
-        ["-D", data, "-m", "fast", "-w", "-t", "15", "stop"],
-        {
-          encoding: "utf-8",
-          env,
+      let stopError;
+      try {
+        invoke("pg_ctl", ["-D", data, "-m", "fast", "-w", "-t", "15", "stop"], {
           timeout: 20_000,
-        },
-      );
+        });
+      } catch (error) {
+        stopError = error;
+      }
+
       // pg_ctl may exit before starting a process; inspect its PID file rather
       // than deleting a data directory while a server could still be running.
+      let pidExists = false;
       try {
         statSync(join(data, "postmaster.pid"));
-        safeToRemove = stopped.status === 0;
+        pidExists = true;
       } catch (error) {
-        if (error.code !== "ENOENT") safeToRemove = false;
+        if (error.code !== "ENOENT") {
+          throw new Error(
+            `Could not check if disposable PostgreSQL has stopped; retained ${directory} for cleanup: ${error.message}`,
+            { cause: error },
+          );
+        }
+      }
+      if (stopError && pidExists) {
+        throw new Error(
+          `Could not stop disposable PostgreSQL; retained ${directory} for cleanup: ${stopError.message}`,
+          { cause: stopError },
+        );
       }
     }
-    if (safeToRemove) rmSync(directory, { recursive: true, force: true });
-    else
+    try {
+      rmSync(directory, { recursive: true, force: true });
+    } catch (error) {
       throw new Error(
-        `Could not stop disposable PostgreSQL; retained ${directory} for cleanup`,
+        `Could not remove disposable rehearsal files at ${directory}: ${error.message}`,
+        { cause: error },
       );
+    }
   }
+
+  return withRehearsalCleanup(rehearse, cleanup);
 }
 
 if (
