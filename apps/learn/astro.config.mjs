@@ -9,6 +9,10 @@ import rehypeMathJaxSvg from "rehype-mathjax/svg";
 
 // https://astro.build/config
 export default defineConfig({
+  // Include a redirect page in the static output for hosts without routing rules.
+  redirects: {
+    "/": "/guides/welcome/",
+  },
   integrations: [
     starlight({
       title: "Lovat Guide",
