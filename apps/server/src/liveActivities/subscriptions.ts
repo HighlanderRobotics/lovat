@@ -126,9 +126,6 @@ export async function refreshLiveActivities(): Promise<void> {
             scouterUuid: record.scouterUuid,
             mascotStyle: record.mascotStyle ?? "plain",
           }),
-          // Match/team changes and endings need prompt delivery while locked.
-          // Unchanged heartbeats use the lower priority to conserve the budget.
-          event === "update" && record.fingerprint === fingerprint ? 5 : 10,
         );
 
         if (status === 410 || status === 400) {

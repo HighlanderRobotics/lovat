@@ -75,7 +75,6 @@ it("updates the correct device and scout while the app is closed", async () => {
     expect.objectContaining({
       aps: expect.objectContaining({ event: "update", "content-state": state }),
     }),
-    10,
   );
 });
 
@@ -83,7 +82,6 @@ it("ends completed shifts and removes their device registration", async () => {
   mocks.state.mockResolvedValue(null);
   await refreshLiveActivities();
   expect(mocks.send.mock.calls[0][2].aps.event).toBe("end");
-  expect(mocks.send.mock.calls[0][3]).toBe(10);
   expect(mocks.records.has(key)).toBe(false);
 });
 
@@ -102,7 +100,6 @@ it("starts an activity once using the push-to-start token", async () => {
   expect(mocks.send).toHaveBeenCalledTimes(1);
   expect(mocks.send.mock.calls[0][0]).toBe("start-token");
   expect(mocks.send.mock.calls[0][2].aps.event).toBe("start");
-  expect(mocks.send.mock.calls[0][3]).toBe(10);
   expect(mocks.send.mock.calls[0][2].aps.attributes.mascotStyle).toBe(
     "holding",
   );
@@ -143,37 +140,4 @@ it("does not send pushes without server credentials", async () => {
   mocks.ready.mockReturnValue(false);
   await refreshLiveActivities();
   expect(mocks.send).not.toHaveBeenCalled();
-});
-
-it("sends assignment changes immediately even after a recent push", async () => {
-  mocks.records.set(
-    key,
-    JSON.stringify({
-      ...record(),
-      fingerprint: JSON.stringify({ ...state, updatedAt: 0 }),
-      lastSentAt: Date.now(),
-    }),
-  );
-  mocks.state.mockResolvedValue({
-    ...state,
-    assignments: [{ ...state.assignments[0], teamNumber: 254 }],
-  });
-  await refreshLiveActivities();
-  expect(mocks.send).toHaveBeenCalledTimes(1);
-  expect(mocks.send.mock.calls[0][3]).toBe(10);
-});
-
-it("uses low priority for an unchanged heartbeat after three minutes", async () => {
-  mocks.records.set(
-    key,
-    JSON.stringify({
-      ...record(),
-      fingerprint: JSON.stringify({ ...state, updatedAt: 0 }),
-      lastSentAt: Date.now() - 181_000,
-    }),
-  );
-  mocks.state.mockResolvedValue({ ...state, updatedAt: state.updatedAt + 1 });
-  await refreshLiveActivities();
-  expect(mocks.send).toHaveBeenCalledTimes(1);
-  expect(mocks.send.mock.calls[0][3]).toBe(5);
 });
