@@ -46,6 +46,7 @@ export type AnalysisHandlerArgs<
 } & (
   | {
       shouldCache: true;
+      usesViewerTeam?: true;
       createKey: (
         params: AnalysisHandlerParams<T, U, V>,
       ) => Promise<CreateKeyResult> | CreateKeyResult;
@@ -107,6 +108,10 @@ export const createAnalysisHandler: <
         keyFragments.push(
           `{${tournamentSourceRule.mode}:[${tournamentSourceRule.items}]}`,
         );
+      }
+
+      if (args.usesViewerTeam) {
+        keyFragments.push(`viewer-team=${req.user.teamNumber ?? "none"}`);
       }
 
       const key = [
