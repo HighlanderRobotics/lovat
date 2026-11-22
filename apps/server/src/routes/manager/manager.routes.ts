@@ -1,3 +1,10 @@
+import { rateLimit } from "express-rate-limit";
+import {
+  getAiStrategyContext,
+  draftAiStrategy,
+  getAiStrategyExample,
+  draftAiStrategyExample,
+} from "../../handler/manager/aiStrategy.js";
 import { Router } from "express";
 
 import onboarding from "./onboarding.routes.js";
@@ -14,7 +21,10 @@ import apikey from "./apikey.routes.js";
 import { getUpcomingTeamTournaments } from "../../handler/manager/getUpcomingTeamTournaments.js";
 import { getTournaments } from "../../handler/manager/getTournaments.js";
 import { getTeams } from "../../handler/manager/getTeams.js";
-import { requireAuth } from "../../lib/middleware/requireAuth.js";
+import {
+  requireAuth,
+  type AuthenticatedRequest,
+} from "../../lib/middleware/requireAuth.js";
 import { getMatches } from "../../handler/manager/getMatches.js";
 import { getMatchSchedule } from "../../handler/manager/getMatchSchedule.js";
 import { updateNotes } from "../../handler/manager/updateNotes.js";
@@ -59,6 +69,106 @@ router.get(
   "/upcoming-entered-tournaments",
   requireAuth,
   getUpcomingTeamTournaments,
+);
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/manager/ai-strategy/{tournament}",
+  tags: ["Manager - Strategy"],
+  summary:
+    "Preview the authenticated team's next match and tournament report coverage",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ tournament: z.string() }),
+    query: z.object({ local: z.enum(["true", "false"]).optional() }),
+  },
+  responses: {
+    200: { description: "Next match, alliances and visible report counts" },
+    404: { description: "No upcoming match" },
+  },
+});
+registry.registerPath({
+  method: "post",
+  path: "/v1/manager/ai-strategy/{tournament}",
+  tags: ["Manager - Strategy"],
+  summary:
+    "Draft strategy using completed matches at the selected event and saved source filters",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ tournament: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            matchKey: z.string(),
+            briefing: z.string().max(2000).optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Plain-text draft and refreshed context" },
+    409: { description: "Next match changed" },
+    422: { description: "No sourced reports" },
+    429: { description: "Rate limited" },
+    503: { description: "Model unavailable" },
+  },
+});
+const strategyRateLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 4,
+  keyGenerator: (req) => (req as AuthenticatedRequest).user.id,
+  message: {
+    message: "Please wait a minute before requesting another strategy.",
+  },
+});
+
+// Example endpoints remain authenticated but need no verified team because they
+// use only fixed synthetic data, never private reports or production schedules.
+for (const method of ["get", "post"] as const) {
+  registry.registerPath({
+    method,
+    path: "/v1/manager/ai-strategy-example",
+    tags: ["Manager - Strategy"],
+    summary:
+      method === "get"
+        ? "Preview the synthetic NorCal REBUILT example"
+        : "Generate a real model draft using only the synthetic NorCal example",
+    security: [{ bearerAuth: [] }],
+    ...(method === "get"
+      ? {
+          request: {
+            query: z.object({ local: z.enum(["true", "false"]).optional() }),
+          },
+        }
+      : {}),
+    responses: {
+      200: { description: "Explicitly labeled example context or draft" },
+      401: { description: "Authentication required" },
+    },
+  });
+}
+router.get("/ai-strategy-example", requireAuth, getAiStrategyExample);
+router.post(
+  "/ai-strategy-example",
+  requireAuth,
+  strategyRateLimit,
+  draftAiStrategyExample,
+);
+
+router.get(
+  "/ai-strategy/:tournament",
+  requireAuth,
+  requireVerifiedTeam,
+  getAiStrategyContext,
+);
+router.post(
+  "/ai-strategy/:tournament",
+  requireAuth,
+  requireVerifiedTeam,
+  strategyRateLimit,
+  draftAiStrategy,
 );
 
 // OpenAPI documentation for selected manager endpoints

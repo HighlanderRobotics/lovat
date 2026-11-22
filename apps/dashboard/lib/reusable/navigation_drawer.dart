@@ -173,6 +173,16 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
               ],
               const SectionHeader(title: "Analysis & Strategy"),
               DrawerDestination(
+                label: "AI Strategy Assistant",
+                onTap: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, "/ai_strategy", (route) => false);
+                },
+                isSelected:
+                    ModalRoute.of(context)?.settings.name == "/ai_strategy",
+                icon: Icons.auto_awesome,
+              ),
+              DrawerDestination(
                 label: "Team Lookup",
                 onTap: () {
                   Navigator.pushNamedAndRemoveUntil(

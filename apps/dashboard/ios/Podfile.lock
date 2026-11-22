@@ -1,4 +1,7 @@
 PODS:
+  - apple_strategy (0.1.0):
+    - Flutter
+    - FlutterMacOS
   - Auth0 (2.10.0):
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
@@ -9,6 +12,8 @@ PODS:
     - JWTDecode (= 3.2.0)
     - SimpleKeychain (= 1.2.0)
   - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
   - JWTDecode (3.2.0)
   - mobile_scanner (7.0.0):
     - Flutter
@@ -28,8 +33,10 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - apple_strategy (from `.symlinks/plugins/apple_strategy/darwin`)
   - auth0_flutter (from `.symlinks/plugins/auth0_flutter/darwin`)
   - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -44,10 +51,14 @@ SPEC REPOS:
     - SimpleKeychain
 
 EXTERNAL SOURCES:
+  apple_strategy:
+    :path: ".symlinks/plugins/apple_strategy/darwin"
   auth0_flutter:
     :path: ".symlinks/plugins/auth0_flutter/darwin"
   Flutter:
     :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
   mobile_scanner:
     :path: ".symlinks/plugins/mobile_scanner/darwin"
   package_info_plus:
@@ -62,9 +73,11 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  apple_strategy: c32e065b0326d42743fd5b12ada6ca04a08ae27a
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
   auth0_flutter: 031042ca6cf84f1b21611062b33ea7ec4bf3bc52
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
