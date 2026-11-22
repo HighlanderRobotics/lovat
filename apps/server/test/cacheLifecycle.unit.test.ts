@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => ({
   client: {
     on: vi.fn(),
     connect: vi.fn(),
+    isReady: true,
+    ping: vi.fn(),
     quit: vi.fn(),
     set: vi.fn(),
     get: vi.fn(),
@@ -16,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("redis", () => ({ createClient: mocks.create }));
 vi.mock("../src/prismaClient.js", () => ({ default: mocks.db }));
-import { closeRedis, connectRedis, kv } from "../src/redisClient.js";
+import { closeRedis, connectRedis, pingRedis, kv } from "../src/redisClient.js";
 import { resetCache, invalidateCache } from "../src/lib/clearCache.js";
 beforeEach(() => {
   vi.clearAllMocks();
@@ -121,3 +123,16 @@ it.each(["  lovat:custom:  ", "   "])(
     }
   },
 );
+
+it("checks Redis health without creating or reconnecting a client", async () => {
+  await closeRedis();
+  await expect(pingRedis()).rejects.toThrow("Redis unavailable");
+  expect(mocks.create).not.toHaveBeenCalled();
+  await connectRedis();
+  await pingRedis();
+  expect(mocks.client.ping).toHaveBeenCalledOnce();
+  mocks.client.isReady = false;
+  await expect(pingRedis()).rejects.toThrow("Redis unavailable");
+  expect(mocks.client.connect).toHaveBeenCalledOnce();
+  mocks.client.isReady = true;
+});

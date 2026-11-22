@@ -8,6 +8,7 @@ import {
 } from "./dataSourceRule.js";
 import { kv } from "../../redisClient.js";
 import { AnalysisContext } from "./analysisConstants.js";
+import { shutdownWork } from "../../lib/shutdownWork.js";
 import {
   analysisCacheVersion,
   type CreateKeyResult,
@@ -137,7 +138,7 @@ export const createAnalysisHandler: <
           res.set("X-Lovat-Cache", "miss");
           res.status(200).send(calculatedAnalysis.error ?? calculatedAnalysis);
 
-          try {
+          await shutdownWork.track(async () => {
             await kv.set(key, JSON.stringify(calculatedAnalysis));
 
             try {
@@ -152,10 +153,7 @@ export const createAnalysisHandler: <
               if (e?.code !== "P2002") throw e;
               // Ignore duplicate key; another request already created the row
             }
-          } catch (error) {
-            console.error(error);
-            return;
-          }
+          }, "Failed to store analysis cache");
         }
       } else {
         res.set("X-Lovat-Cache", "hit");
