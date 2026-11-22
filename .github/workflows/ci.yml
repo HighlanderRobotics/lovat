@@ -474,54 +474,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  test-report:
-    name: Publish test reports
-    needs:
-      [
-        server,
-        website,
-        website-browser,
-        learn,
-        dashboard,
-        dashboard-browser,
-        gate,
-      ]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: test-report-pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 22.20.0
-      - name: Download this run's public reports
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: "*-report"
-          path: downloaded-test-reports
-      - name: Stage app report directories
-        run: node scripts/stage-pages-reports.mjs downloaded-test-reports public-test-reports
-      - name: Validate and index reports from this run
-        run: node scripts/prepare-pages-reports.mjs public-test-reports
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
-      - name: Package all public test reports
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
-        with:
-          path: public-test-reports/
-      - name: Deploy test reports
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
-
   collection:
     name: Collection
     needs: changes
