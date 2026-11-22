@@ -1,5 +1,6 @@
 import { stagePagesReports, reportSections } from "./stage-pages-reports.mjs";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import {
   mkdtemp,
   mkdir,
@@ -11,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   preparePagesReports,
   requiredReports,
@@ -62,6 +64,25 @@ test("refuses a partial upload rather than publishing over another app report", 
   await rm(join(root, "learn/browser/index.html"));
   await assert.rejects(preparePagesReports(root));
   await assert.rejects(readFile(join(root, "index.html")));
+});
+
+test("CLI publishes the triggering CI SHA instead of the publisher workflow SHA", async (t) => {
+  const root = await fixture(t);
+  const source = "a".repeat(40);
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(new URL("./prepare-pages-reports.mjs", import.meta.url)),
+      root,
+      source,
+    ],
+    { env: { ...process.env, GITHUB_SHA: "b".repeat(40) }, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(
+    JSON.parse(await readFile(join(root, "revision.json"), "utf8")),
+    { revision: source },
+  );
 });
 
 test("rejects symbolic links before packaging a Pages artifact", async (t) => {
