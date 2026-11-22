@@ -25,7 +25,7 @@ Fill the local `.env` without committing it. PostgreSQL and Redis are required t
 
 ## Request telemetry
 
-Request analytics use an anonymous allowlist with no payloads or person lookups.
+Request analytics use an allowlist with no payloads or extra person lookups.
 See the [event contract and PostHog privacy review](docs/request-telemetry.md) for
 route grouping, dashboard migration and historical-data remediation.
 

@@ -20,24 +20,33 @@ vi.mock("../src/prismaClient.js", () => ({
   },
 }));
 vi.mock("../src/redisClient.js", () => ({ kv: mocks }));
-import type { AuthenticatedRequest } from "../src/lib/middleware/requireAuth.js";
 import reporter from "../src/lib/middleware/posthogMiddleware.js";
 
 const secret = "private-password-api-key-token-team-code-email-scouting-note";
+const callerId = "auth0|000000000000000000000001";
 const app = express();
 app.use(express.json());
-app.use((req, _res, next) => {
-  if (req.headers.authorization) {
-    Object.assign(req as AuthenticatedRequest, {
-      user: { id: secret, username: secret, email: secret, teamNumber: 8033 },
-    });
-  }
-  next();
-});
 app.use(reporter);
 app.get("/status", (_req, res) => res.send("ok"));
 const manager = Router();
 manager.all("/reports/:uuid", (req, res) => {
+  const tokenType = {
+    "Bearer test-verified-jwt": "jwt",
+    "Bearer test-verified-key": "apiKey",
+  }[req.headers.authorization ?? ""];
+  if (tokenType) {
+    // Simulate requireAuth succeeding after the reporter installs its listener.
+    Object.assign(req, {
+      tokenType,
+      user: {
+        id: callerId,
+        username: secret,
+        email: secret,
+        teamNumber: 8033,
+        role: "SCOUTING_LEAD",
+      },
+    });
+  }
   res.set("X-Lovat-Cache", "miss");
   res.status(Number(req.query.status) || 200).json({ error: secret });
 });
@@ -73,6 +82,11 @@ it.each([200, 400, 401, 403, 500])(
   "captures only anonymous operational fields for HTTP %s",
   async (status) => {
     vi.stubEnv("RAILWAY_DEPLOYMENT_ID", "deployment-123");
+    vi.stubEnv("RAILWAY_REPLICA_ID", "replica-123");
+    vi.stubEnv(
+      "RAILWAY_GIT_COMMIT_SHA",
+      "1234567890123456789012345678901234567890",
+    );
     const response = await request(app)
       .post(`/v1/manager/reports/${secret}?status=${status}&token=${secret}`)
       .set("Authorization", `Bearer ${secret}`)
@@ -98,8 +112,19 @@ it.each([200, 400, 401, 403, 500])(
         environment: expect.any(String),
         requestId: expect.stringMatching(/^[0-9a-f-]{36}$/),
         railwayDeployment: "deployment-123",
+        railwayReplica: "replica-123",
+        gitCommit: "1234567890123456789012345678901234567890",
         method: "POST",
         route: "/v1/manager/reports/:uuid",
+        $pathname: "/v1/manager/reports/:uuid",
+        userType: undefined,
+        authType: undefined,
+        teamNumber: undefined,
+        role: undefined,
+        $set: undefined,
+        appVersion: undefined,
+        appBuild: undefined,
+        $os_name: undefined,
         statusCode: status,
         errorCode:
           status >= 500
@@ -120,6 +145,80 @@ it.each([200, 400, 401, 403, 500])(
 );
 
 it.each([
+  ["jwt", "Bearer test-verified-jwt"],
+  ["apiKey", "Bearer test-verified-key"],
+])(
+  "uses the authenticated %s caller without capturing private fields",
+  async (authType, authorization) => {
+    const response = await request(app)
+      .post(`/v1/manager/reports/${secret}?status=400&code=${secret}`)
+      .set("Authorization", authorization)
+      .set("X-Team-Code", secret)
+      .set("X-Scouter-Uuid", secret)
+      .set("X-Device-Id", secret)
+      .set("X-App-Version", "26.0.4")
+      .set("X-Build-Number", "33")
+      .set("X-Operating-System", "web")
+      .send({ password: secret, privateReport: secret });
+
+    expect(response.status).toBe(400);
+    expect(mocks.capture).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        distinctId: callerId,
+        disableGeoip: true,
+        properties: expect.objectContaining({
+          $process_person_profile: true,
+          route: "/v1/manager/reports/:uuid",
+          $pathname: "/v1/manager/reports/:uuid",
+          userType: "user",
+          authType,
+          teamNumber: 8033,
+          role: "SCOUTING_LEAD",
+          $set: {
+            userType: "user",
+            teamNumber: 8033,
+            role: "SCOUTING_LEAD",
+          },
+          appVersion: "26.0.4",
+          appBuild: "33",
+          $os_name: "web",
+        }),
+      }),
+    );
+    expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
+    expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(
+      authorization,
+    );
+    expect(mocks.alias).not.toHaveBeenCalled();
+  },
+);
+
+it("keeps Collection-style requests anonymous and rejects code-shaped build hints", async () => {
+  const teamCode = "012345";
+  await request(app)
+    .get(`/status?code=${teamCode}`)
+    .set("X-Team-Code", teamCode)
+    .set("X-Scouter-Uuid", "eafd426c-1d70-4d38-8994-912dd9671246")
+    .set("X-Device-Id", "cabbcaf6-161c-42e1-917d-d3f046dc3a59")
+    .set("X-App-Version", "26.1.0")
+    .set("X-Build-Number", teamCode)
+    .set("X-Os-Name", "android");
+
+  expect(mocks.capture).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      distinctId: "lovat-server",
+      properties: expect.objectContaining({
+        $process_person_profile: false,
+        appVersion: "26.1.0",
+        appBuild: undefined,
+        $os_name: "android",
+      }),
+    }),
+  );
+  expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(teamCode);
+});
+
+it.each([
   `/missing/${secret}?token=${secret}`,
   `/private/${secret}/reports/${secret}`,
 ])(
@@ -128,7 +227,10 @@ it.each([
     await request(app).get(path);
     expect(mocks.capture).toHaveBeenCalledWith(
       expect.objectContaining({
-        properties: expect.objectContaining({ route: "unmatched" }),
+        properties: expect.objectContaining({
+          route: "unmatched",
+          $pathname: undefined,
+        }),
       }),
     );
     expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain(secret);
