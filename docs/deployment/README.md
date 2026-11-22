@@ -27,6 +27,9 @@ To verify Railway's deployment gate without touching production, see the
 
 [Test report hosting](../test-report-hosting.md) covers the separate GitHub Pages test site.
 
+[Database restore rehearsal](database-recovery.md) covers the isolated synthetic
+restore check and the remaining provider backup and rollback acceptance.
+
 ## Public production smoke checks
 
 After a production deployment, run **Public deployment smoke** from the repository's

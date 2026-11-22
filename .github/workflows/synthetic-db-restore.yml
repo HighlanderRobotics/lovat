@@ -1,0 +1,36 @@
+name: Synthetic PostgreSQL restore
+
+on:
+  pull_request:
+    paths:
+      - "packages/db/prisma/**"
+      - "packages/db/prisma.config.ts"
+      - "packages/db/package.json"
+      - "packages/db/package-lock.json"
+      - "scripts/synthetic-db-restore*.mjs"
+      - ".github/workflows/synthetic-db-restore.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: packages/db/package-lock.json
+      - run: npm ci --prefix packages/db
+      - run: node --test scripts/synthetic-db-restore.test.mjs
+      - name: Verify a synthetic dump and restore on PostgreSQL 16
+        run: |
+          export PATH="/usr/lib/postgresql/16/bin:$PATH"
+          pg_ctl --version
+          node scripts/synthetic-db-restore.mjs
