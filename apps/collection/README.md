@@ -119,3 +119,7 @@ Before a release, the release owner must run the candidate checks and record the
 The owner-assigned acceptance matrix and candidate evidence template are in
 [manual release checks](docs/manual-release-checks.md). Unexecuted physical-device
 and iOS simulator checks remain pending.
+
+## Apple Watch
+
+The SwiftUI [Apple Watch companion](watch/README.md) displays scouting assignments and schedules match reminders using the existing Collection sign-in. It is embedded through an Expo config plugin and a local Swift bridge; use a native build rather than Expo Go.

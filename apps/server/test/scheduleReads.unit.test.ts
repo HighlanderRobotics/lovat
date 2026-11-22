@@ -84,6 +84,10 @@ it("expands schedules into qualification and elimination assignments for both al
     data: [0, 1].map((matchType) => ({
       matchType,
       matchNumber: 1,
+      scheduledTime: null,
+      predictedTime: null,
+      actualTime: null,
+      status: null,
       scouters: Object.fromEntries(
         [1, 2, 3, 4, 5, 6].map((i) => [
           `s${i}`,
@@ -285,4 +289,30 @@ it("returns the filtered page rather than the initial unfiltered tournament rows
       })
     ).body,
   ).toEqual({ tournaments: [{ key: "selected" }], count: 1 });
+});
+
+it("includes stored match timing without changing team-scoped assignments", async () => {
+  db.teamMatchData.findMany.mockResolvedValue(
+    [1, 2, 3, 4, 5, 6].map((teamNumber) => ({
+      teamNumber,
+      match: {
+        scheduledTime: new Date("2026-06-15T13:00:00Z"),
+        predictedTime: new Date("2026-06-15T13:08:00Z"),
+        actualTime: null,
+        status: "SCHEDULED",
+      },
+    })),
+  );
+  const result = await invoke(getScheduleForScouter, { params, headers });
+  expect(result.body).toMatchObject({
+    data: expect.arrayContaining([
+      expect.objectContaining({
+        scheduledTime: "2026-06-15T13:00:00.000Z",
+        predictedTime: "2026-06-15T13:08:00.000Z",
+        actualTime: null,
+        status: "SCHEDULED",
+        scouters: expect.objectContaining({ s1: { team: 1, alliance: "red" } }),
+      }),
+    ]),
+  });
 });

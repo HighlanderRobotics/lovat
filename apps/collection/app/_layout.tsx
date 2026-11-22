@@ -1,3 +1,4 @@
+import { WatchSync } from "../lib/watch/WatchSync";
 import { TrainingConnection } from "../lib/training/TrainingConnection";
 import { LiveActivityConnection } from "../lib/liveActivities/LiveActivityConnection";
 import { SplashScreen, Stack } from "expo-router";
@@ -134,6 +135,7 @@ export default function Layout() {
     <KeyboardProvider>
       <TrainingConnection />
       <LiveActivityConnection />
+      <WatchSync />
       <GestureHandlerRootView
         style={{ backgroundColor: colors.background.default, flex: 1 }}
       >

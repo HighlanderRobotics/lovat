@@ -52,6 +52,7 @@
       ],
       "./plugins/with-ios-resource-targets.cjs",
       "./plugins/with-live-activities.cjs",
+      "./plugins/withLovatWatch.cjs",
       [
         "expo-splash-screen",
         {
