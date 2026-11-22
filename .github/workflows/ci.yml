@@ -237,12 +237,101 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lovat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7.4
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
       - name: Build server deployment image
         run: |
           set -o pipefail
-          docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci . 2>&1 | tee "$RUNNER_TEMP/server-image.log"
+          TIMEFORMAT='Server image build: %3R seconds'
+          { time docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci .; } 2>&1 | tee "$RUNNER_TEMP/server-image.log"
+          docker image inspect --format 'Server image size: {{.Size}} bytes' lovat-server:ci
+      - name: Smoke-test Server image against disposable PostgreSQL and Redis
+        timeout-minutes: 4
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$POSTGRES_CONTAINER" createdb -U lovat_test lovat_image_smoke
+          image=lovat-server:ci
+          container=lovat-server-image-smoke
+          opts=(
+            --network host --read-only --tmpfs /tmp
+            --env npm_config_cache=/tmp/npm
+            --env DATABASE_PRIVATE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke
+            --env REDIS_URL=redis://127.0.0.1:6379/14
+            --env AUTH0_DOMAIN=ci.example.invalid
+            --env PORT=3010
+          )
+          trap 'docker logs "$container" 2>/dev/null || true; docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+
+          # Run the same migration command Railway runs before API startup.
+          docker run --rm "${opts[@]}" "$image" sh -ec '
+            test "$(id -u)" -ne 0
+            test ! -w .
+            test ! -e node_modules/.bin/vitest
+            test ! -e node_modules/.bin/tsc
+            test ! -e ../../packages/db/node_modules/.bin/tsc
+            export DATABASE_URL="$DATABASE_PRIVATE_URL"
+            npm --prefix ../../packages/db run db:deploy
+            npm --prefix ../../packages/db run db:status
+          '
+          # Startup writes the built-in training exercise to PostgreSQL and
+          # connects to Redis before listening on /status.
+          docker run -d --name "$container" "${opts[@]}" \
+            --env DATABASE_URL=postgresql://lovat_test:lovat_test@127.0.0.1:5432/lovat_image_smoke "$image"
+          curl --fail --silent --show-error --retry 30 --retry-connrefused \
+            --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
+          docker stop --timeout 10 "$container"
+          exit_code="$(docker inspect --format '{{.State.ExitCode}}' "$container")"
+          case "$exit_code" in
+            0|143) ;;
+            *) echo "Server did not shut down on SIGTERM (exit $exit_code)"; exit 1 ;;
+          esac
+      - name: Compare Server image size and cold build time with the PR base
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 8
+        working-directory: .
+        run: |
+          # The PR checkout is GitHub's test merge; its first parent is the PR base.
+          base="$(git rev-parse HEAD^1)"
+          if git diff --quiet "$base" HEAD -- apps/server/Dockerfile; then
+            exit 0
+          fi
+          baseline="$(mktemp -d)"
+          trap 'git worktree remove "$baseline" || true' EXIT
+          git worktree add --detach "$baseline" "$base"
+
+          # Same runner and warm base image, with application layer caching disabled.
+          TIMEFORMAT='Baseline build: %3R seconds'
+          time docker build --no-cache -f "$baseline/apps/server/Dockerfile" -t lovat-server:baseline "$baseline"
+          TIMEFORMAT='Candidate build: %3R seconds'
+          time docker build --no-cache -f apps/server/Dockerfile -t lovat-server:ci .
+          docker image inspect --format '{{index .RepoTags 0}}: {{.Size}} bytes' lovat-server:baseline lovat-server:ci
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
