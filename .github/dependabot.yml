@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Suppress application dependency update PRs. Alerts stay enabled separately.
+  # Suppress automated dependency update PRs. Alerts stay enabled separately.
   # Wildcard ignores apply to security updates too; a zero PR limit alone does not.
   - package-ecosystem: npm
     directories:
@@ -24,14 +24,9 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
-    open-pull-requests-limit: 1
-    groups:
-      github-actions:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 0
     ignore:
       - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
 
   # Gradle security alerts also require dependency-graph submission.
   - package-ecosystem: gradle

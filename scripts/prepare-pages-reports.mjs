@@ -64,7 +64,10 @@ if (
 ) {
   if (!process.argv[2])
     throw new Error(
-      "Usage: node scripts/prepare-pages-reports.mjs OUTPUT_DIRECTORY",
+      "Usage: node scripts/prepare-pages-reports.mjs OUTPUT_DIRECTORY [REVISION]",
     );
-  await preparePagesReports(process.argv[2], process.env.GITHUB_SHA || "local");
+  await preparePagesReports(
+    process.argv[2],
+    process.argv[3] ?? (process.env.GITHUB_SHA || "local"),
+  );
 }
