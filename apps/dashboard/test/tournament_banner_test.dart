@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
+import 'package:scouting_dashboard_app/reusable/images/city_photo.dart';
 import 'package:scouting_dashboard_app/reusable/tournament_banner.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
 import 'package:http/http.dart' as http;
@@ -30,5 +31,19 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(Image), findsNothing);
     expect(find.byType(AspectRatio), findsOneWidget);
+  });
+
+  testWidgets('reports no photo to the host when none is available',
+      (tester) async {
+    final reports = <(CityPhoto?, String?)>[];
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: TournamentBanner(
+      tournament: Tournament('qa', 'Example tournament'),
+      api: NoLocationAPI(),
+      onPhotoResolved: (photo, location) => reports.add((photo, location)),
+    ))));
+    await tester.pumpAndSettle();
+    expect(reports, [(null, null)]);
   });
 }

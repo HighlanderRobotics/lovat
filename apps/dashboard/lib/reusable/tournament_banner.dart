@@ -3,16 +3,21 @@ import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/reusable/images/city_photo.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournaments.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+/// Reports the resolved city photo (and the location it was looked up for)
+/// so the host page can show the credit in its own footer.
+typedef CityPhotoResolved = void Function(CityPhoto? photo, String? location);
 
 class TournamentBanner extends StatefulWidget {
   const TournamentBanner({
     super.key,
     required this.tournament,
     required this.api,
+    this.onPhotoResolved,
   });
   final Tournament tournament;
   final LovatAPI api;
+  final CityPhotoResolved? onPhotoResolved;
 
   @override
   State<TournamentBanner> createState() => _TournamentBannerState();
@@ -22,23 +27,30 @@ class _TournamentBannerState extends State<TournamentBanner> {
   late Future<CityPhoto?> _photo = _load();
 
   Future<CityPhoto?> _load() async {
+    final key = widget.tournament.key;
+    CityPhoto? photo;
+    String? location;
     try {
-      final tournament = widget.tournament;
-      var location = tournament.location;
+      location = widget.tournament.location;
       // Older saved selections only retain key/name. Resolve their location
       // through the existing authenticated tournament endpoint after restart.
       if (location == null || location.trim().isEmpty) {
         final matches = await widget.api
-            .getTournaments(filter: tournament.key)
+            .getTournaments(filter: key)
             .timeout(const Duration(seconds: 8));
         for (final match in matches.tournaments) {
-          if (match.key == tournament.key) location = match.location;
+          if (match.key == key) location = match.location;
         }
       }
-      return location == null ? null : await CityPhotoLookup().find(location);
+      if (location != null) photo = await CityPhotoLookup().find(location);
     } catch (_) {
-      return null;
+      photo = null;
     }
+    // Ignore results for a tournament this banner has already moved past.
+    if (mounted && widget.tournament.key == key) {
+      widget.onPhotoResolved?.call(photo, location);
+    }
+    return photo;
   }
 
   @override
@@ -112,26 +124,6 @@ class _TournamentBannerState extends State<TournamentBanner> {
                     ),
                   ),
                 ),
-                if (photo != null)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      onPressed: () => launchUrl(Uri.parse(photo.source)),
-                      child: Text(
-                        'Photo: ${photo.credit}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              height: 1.2,
-                            ),
-                      ),
-                    ),
-                  ),
               ],
             );
           },
