@@ -1,17 +1,28 @@
 # Lovat architecture
 
+[Developer docs](README.md) · [Local development](development/README.md) · [Deployment](deployment/README.md)
+
 ## Responsibilities
 
 - Collection captures match events and post-match observations, keeps reports offline, and uploads them.
-- Server authenticates callers, validates and stores reports, imports event data, caches analysis, and exposes the API.
+- Server authenticates callers, validates and stores reports, caches analysis, and exposes the API. It can enqueue imports when a route needs fresh data.
+- Worker consumes queued import jobs and refreshes the tournament catalog from The Blue Alliance. Scheduled imports do not run inside API startup.
 - Dashboard consumes the authenticated API for analysis, scouting management, predictions, and picklists.
 - Website serves public pages and selected Slack, contact, verification, and operational routes.
-
 - Learn serves static user guides for Dashboard and Collection.
 
 ## Primary data flow
 
-Collection submits a report to Server. Server validates the event sequence and identity, writes durable rows to PostgreSQL, computes analysis, and caches reusable results in Redis. Dashboard reads the resulting API views. The Blue Alliance supplies external schedules and results.
+```text
+Collection ── reports ──▶ Server API ── analysis ──▶ Dashboard
+                              │
+                              ├── PostgreSQL (reports, event data, job queue)
+                              └── Redis (cache)
+
+The Blue Alliance ── external event data ──▶ Worker ──▶ PostgreSQL
+```
+
+The API validates report events and identity before writing durable rows. Dashboard reads authenticated views rather than connecting directly to the database. See [Worker jobs](../apps/worker/README.md) for the import schedule and ownership.
 
 ## External services
 
@@ -31,4 +42,4 @@ Reports are associated with the scouter's source team. Analysis may expose own-t
 
 ## Repository boundaries
 
-`packages/db` owns the Prisma schema, migration history, generated types, and PostgreSQL client. Server consumes `@lovat/db` through a local package dependency. The separate Support backend is its next intended consumer. Each service owns its own connection pool and authorization; sharing models does not grant access to another team’s records. Browser and mobile clients continue to use APIs. Applications must not import source files across `apps/*` boundaries. See [database setup and deployment](../packages/db/README.md).
+`packages/db` owns the Prisma schema, migration history, generated types, and PostgreSQL client. Server and Worker consume `@lovat/db`; the separate Support backend is another intended consumer. Each service owns its own connection pool and authorization; sharing models does not grant access to another team’s records. Browser and mobile clients continue to use APIs. Applications must not import source files across `apps/*` boundaries. See [database setup and deployment](../packages/db/README.md).
