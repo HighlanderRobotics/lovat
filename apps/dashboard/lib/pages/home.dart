@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
 import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/liquid_glass_app_bar.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_matches.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_user_profile.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
@@ -73,9 +74,10 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Builder(
           builder: (context) => Scaffold(
-                appBar: AppBar(
-                  title: const Text("Home"),
+                appBar: const LiquidGlassAppBar(
+                  title: Text("Home"),
                 ),
+                extendBodyBehindAppBar: dataLoaded && error == null,
                 drawer: const GlobalNavigationDrawer(),
                 body: error != null
                     ? FriendlyErrorView(errorMessage: error, onRetry: fetchData)
