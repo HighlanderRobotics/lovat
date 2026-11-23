@@ -1,0 +1,78 @@
+name: Collection Android debug build
+
+on:
+  pull_request:
+    paths:
+      - 'apps/collection/package.json'
+      - 'apps/collection/package-lock.json'
+      - 'apps/collection/.npmrc'
+      - 'apps/collection/.nvmrc'
+      - 'apps/collection/app.json'
+      - 'apps/collection/assets/*.png'
+      - 'apps/collection/patches/**'
+      - 'apps/collection/plugins/**'
+      - 'apps/collection/android/**'
+      - '.github/workflows/collection-android-debug.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: apps/collection
+
+jobs:
+  debug:
+    name: Clean arm64 debug build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/collection/.nvmrc
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Generate Android and compile debug once from clean inputs
+        env:
+          CI: '1'
+          EXPO_NO_DOTENV: '1'
+          EXPO_PUBLIC_API_URL: http://127.0.0.1:9877
+        run: |
+          evidence="$RUNNER_TEMP/collection-android-debug"
+          mkdir -p "$evidence"
+          git rev-parse HEAD > "$evidence/source-sha.txt"
+          {
+            test ! -e android
+            test ! -e node_modules
+            npm ci
+            node -e 'for (const name of process.argv.slice(1)) console.log(name, require("./node_modules/" + name + "/package.json").version)' \
+              expo react-native react-native-reanimated react-native-worklets
+            ./node_modules/.bin/expo prebuild --platform android --no-install
+            # LVT-217 failed on the first debug link of this ABI. No retry or build cache.
+            (cd android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a --no-daemon --no-build-cache --stacktrace)
+          } 2>&1 | tee "$evidence/build.log"
+      - name: Verify the debug APK signature and native libraries
+        run: |
+          evidence="$RUNNER_TEMP/collection-android-debug"
+          apk=android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify "$apk"
+          zipinfo -1 "$apk" > "$evidence/apk-entries.txt"
+          grep -Fx 'lib/arm64-v8a/libreanimated.so' "$evidence/apk-entries.txt"
+          grep -Fx 'lib/arm64-v8a/libworklets.so' "$evidence/apk-entries.txt"
+          cp "$apk" "$evidence/collection-arm64-debug.apk"
+          (cd "$evidence" && sha256sum collection-arm64-debug.apk > apk.sha256)
+      - name: Retain debug diagnostics and verified APK, when built
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: collection-arm64-debug-${{ github.sha }}
+          path: ${{ runner.temp }}/collection-android-debug/
+          if-no-files-found: warn
+          retention-days: 14

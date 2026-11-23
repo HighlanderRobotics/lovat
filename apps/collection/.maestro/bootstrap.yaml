@@ -3,6 +3,13 @@ appId: com.frc8033.lovatcollection
 - launchApp:
     clearState: true
 - openLink: "lovat-collection://set-url?u=http%3A%2F%2F127.0.0.1%3A9877"
+# A fresh iOS simulator may show the system handoff before the app's OK alert.
+- runFlow:
+    when:
+      platform: iOS
+      visible: '^Open in [“"]Collection[”"][?]$'
+    commands:
+      - tapOn: "^Open$"
 - tapOn:
     text: "OK"
     optional: true
