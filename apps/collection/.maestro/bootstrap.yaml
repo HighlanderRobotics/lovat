@@ -16,10 +16,24 @@ appId: com.frc8033.lovatcollection
             visible: '^Open in [“"]Collection[”"][?]$'
           commands:
             - tapOn: "^Open$"
+            # iOS can dismiss the handoff without surfacing the route's alert.
+            # Give the first delivery time, then resend only from the welcome screen.
+            - extendedWaitUntil:
+                visible: "^API URL updated$"
+                timeout: 3000
+                optional: true
+            - runFlow:
+                when:
+                  visible: "^Begin$"
+                  notVisible: '^(Open in [“"]Collection[”"][?]|API URL updated)$'
+                commands:
+                  - openLink: "lovat-collection://set-url?u=http%3A%2F%2F127.0.0.1%3A9877"
       - extendedWaitUntil:
           visible: "^API URL updated$"
           timeout: 30000
       - tapOn: "^OK$"
+      - assertNotVisible: "^API URL updated$"
+      - assertVisible: "^Begin$"
 - runFlow:
     when:
       platform: Android
