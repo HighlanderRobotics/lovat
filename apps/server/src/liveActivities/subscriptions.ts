@@ -35,7 +35,16 @@ export type Subscription = {
   fingerprint?: string;
   lastSentAt?: number;
   startSentAt?: number;
+  /** When the activity holding `updateToken` first registered. */
+  activityStartedAt?: number;
+  /** An activity this server replaced; its late token uploads are ignored. */
+  retiredActivityId?: string;
 };
+
+export const REGISTRATION_TTL_MS = 8 * 60 * 60 * 1000;
+// iOS ends a Live Activity after eight hours. Replace it with a push-to-start
+// activity before then so a full competition day stays on the Lock Screen.
+export const ACTIVITY_ROTATE_AFTER_MS = 7.5 * 60 * 60 * 1000;
 
 export const subscriptionKey = (installationId: string): string =>
   `live-activity:${installationId}`;
@@ -61,6 +70,69 @@ export async function saveSubscription(record: Subscription): Promise<void> {
     JSON.stringify(record),
     remaining,
   );
+}
+
+/** Starts a replacement activity, then ends the old one. */
+async function rotateActivity(
+  record: Subscription,
+  state: ScoutingActivityState,
+  fingerprint: string,
+): Promise<void> {
+  const attributes = {
+    tournamentKey: record.tournamentKey,
+    scouterUuid: record.scouterUuid,
+    mascotStyle: record.mascotStyle ?? "plain",
+  };
+  const status = await sendActivityPush(
+    record.startToken!,
+    record.environment,
+    activityPushPayload("start", state, attributes),
+    10,
+  );
+  const latest = await readSubscription(record.installationId);
+  const unchanged =
+    latest &&
+    latest.updateToken === record.updateToken &&
+    latest.startToken === record.startToken;
+
+  if (status === 410 || status === 400) {
+    // Keep updating the current activity; only the start token is unusable.
+    if (unchanged) await saveSubscription({ ...latest, startToken: undefined });
+    return;
+  }
+  if (status !== 200) {
+    console.error(`Live Activity push rejected (${status})`);
+    return;
+  }
+
+  // Start first: if the end fails, the scout still has the new activity.
+  try {
+    await sendActivityPush(
+      record.updateToken!,
+      record.environment,
+      activityPushPayload("end", state),
+      10,
+    );
+  } catch {
+    console.error("Live Activity retirement failed");
+  }
+
+  if (unchanged) {
+    const now = Date.now();
+    await saveSubscription({
+      ...latest,
+      updateToken: undefined,
+      activityId: undefined,
+      activityStartedAt: undefined,
+      retiredActivityId: latest.activityId,
+      startSentAt: now,
+      fingerprint,
+      lastState: state,
+      lastSentAt: now,
+      // The replacement may only upload its token when iOS next wakes the app.
+      expiresAt: Math.max(latest.expiresAt, now + REGISTRATION_TTL_MS),
+    });
+  }
 }
 
 let running = false;
@@ -106,6 +178,15 @@ export async function refreshLiveActivities(): Promise<void> {
         }
 
         const fingerprint = JSON.stringify({ ...finalState, updatedAt: 0 });
+        if (
+          event === "update" &&
+          record.startToken &&
+          record.activityStartedAt &&
+          Date.now() - record.activityStartedAt >= ACTIVITY_ROTATE_AFTER_MS
+        ) {
+          await rotateActivity(record, finalState, fingerprint);
+          continue;
+        }
         if (
           event === "update" &&
           record.fingerprint === fingerprint &&

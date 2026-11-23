@@ -6,6 +6,7 @@ import { AppError } from "../lib/errors.js";
 import { backgroundActivitiesReady } from "./apns.js";
 import { scoutingActivityState } from "./schedule.js";
 import {
+  REGISTRATION_TTL_MS,
   readSubscription,
   saveSubscription,
   subscriptionInput,
@@ -73,6 +74,20 @@ liveActivityRoutes.post("/live-activities", async (req, res) => {
   }
 
   const sameTournament = previous?.tournamentKey === input.tournamentKey;
+  if (
+    sameTournament &&
+    input.kind === "update" &&
+    input.activityId &&
+    input.activityId === previous?.retiredActivityId
+  ) {
+    // A replaced activity's token would point updates at an ended activity.
+    res.json({ backgroundReady: backgroundActivitiesReady() });
+    return;
+  }
+  const sameActivity =
+    sameTournament &&
+    input.activityId !== undefined &&
+    input.activityId === previous?.activityId;
   await saveSubscription({
     ...(sameTournament ? previous : {}),
     ...owner,
@@ -80,12 +95,18 @@ liveActivityRoutes.post("/live-activities", async (req, res) => {
     tournamentKey: input.tournamentKey,
     environment: input.environment,
     mascotStyle: input.mascotStyle,
-    expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+    expiresAt: Math.max(
+      sameTournament ? (previous?.expiresAt ?? 0) : 0,
+      Date.now() + REGISTRATION_TTL_MS,
+    ),
     ...(input.kind === "start"
       ? { startToken: input.token }
       : {
           updateToken: input.token,
           activityId: input.activityId,
+          // Token rotations keep the original start time for the 8-hour limit.
+          activityStartedAt:
+            (sameActivity && previous?.activityStartedAt) || Date.now(),
           startSentAt: undefined,
         }),
   });

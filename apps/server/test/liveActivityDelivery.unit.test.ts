@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { buildActivityState } from "../src/liveActivities/state.js";
 
 const mocks = vi.hoisted(() => ({
@@ -29,7 +29,7 @@ vi.mock("../src/liveActivities/apns.js", async (importOriginal) => ({
   backgroundActivitiesReady: mocks.ready,
   sendActivityPush: mocks.send,
 }));
-const { refreshLiveActivities } =
+const { ACTIVITY_ROTATE_AFTER_MS, refreshLiveActivities } =
   await import("../src/liveActivities/subscriptions.js");
 const state = buildActivityState(
   [
@@ -176,4 +176,62 @@ it("uses low priority for an unchanged heartbeat after three minutes", async () 
   await refreshLiveActivities();
   expect(mocks.send).toHaveBeenCalledTimes(1);
   expect(mocks.send.mock.calls[0][3]).toBe(5);
+});
+
+describe("eight-hour activity limit", () => {
+  const aged = (overrides: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      ...record(),
+      startToken: "start-token",
+      activityId: "old-activity",
+      activityStartedAt: Date.now() - ACTIVITY_ROTATE_AFTER_MS - 1000,
+      ...overrides,
+    });
+
+  it("starts a replacement before iOS ends the activity, then ends the old one", async () => {
+    mocks.records.set(key, aged());
+    await refreshLiveActivities();
+    expect(mocks.send).toHaveBeenCalledTimes(2);
+    expect(mocks.send.mock.calls[0][0]).toBe("start-token");
+    expect(mocks.send.mock.calls[0][2].aps.event).toBe("start");
+    expect(mocks.send.mock.calls[1][0]).toBe("update-token");
+    expect(mocks.send.mock.calls[1][2].aps.event).toBe("end");
+
+    const saved = JSON.parse(mocks.records.get(key)!);
+    expect(saved.updateToken).toBeUndefined();
+    expect(saved.retiredActivityId).toBe("old-activity");
+    expect(saved.startSentAt).toEqual(expect.any(Number));
+    expect(saved.expiresAt).toBeGreaterThan(Date.now() + 7 * 60 * 60 * 1000);
+
+    // Waits for the replacement's token instead of starting duplicates.
+    await refreshLiveActivities();
+    expect(mocks.send).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps updating a younger activity", async () => {
+    mocks.records.set(
+      key,
+      aged({ activityStartedAt: Date.now() - 60 * 60 * 1000 }),
+    );
+    await refreshLiveActivities();
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+    expect(mocks.send.mock.calls[0][2].aps.event).toBe("update");
+  });
+
+  it("keeps updating when the device has no push-to-start token", async () => {
+    mocks.records.set(key, aged({ startToken: undefined }));
+    await refreshLiveActivities();
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+    expect(mocks.send.mock.calls[0][2].aps.event).toBe("update");
+  });
+
+  it("drops only an invalid start token and keeps the current activity", async () => {
+    mocks.records.set(key, aged());
+    mocks.send.mockResolvedValueOnce(410);
+    await refreshLiveActivities();
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+    const saved = JSON.parse(mocks.records.get(key)!);
+    expect(saved.startToken).toBeUndefined();
+    expect(saved.updateToken).toBe("update-token");
+  });
 });

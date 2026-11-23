@@ -133,24 +133,40 @@ private final class ScoutingActivityCoordinator {
   }
 
   private func observe(_ activity: Activity<ScoutingActivityAttributes>) {
-    guard !activity.attributes.preview, observers[activity.id] == nil else { return }
+    // Ended activities (including ones the server replaced before iOS's 8-hour
+    // limit) must not re-register their tokens over the replacement's.
+    guard !activity.attributes.preview, observers[activity.id] == nil,
+          activity.activityState == .active || activity.activityState == .stale else { return }
     observers[activity.id] = Task { [weak self] in
       for await token in activity.pushTokenUpdates {
         await self?.register(token: token, kind: "update", activityId: activity.id)
       }
     }
     observers[activity.id + ".state"] = Task { [weak self] in
+      var ended = false
       for await state in activity.activityStateUpdates {
         if Task.isCancelled { break }
+        if state == .ended { ended = true }
         if state == .dismissed {
-          self?.dismissed = true
-          await self?.unregister()
+          // Only a swipe on a live activity opts out. iOS later removes ended
+          // activities too, and a replacement may already be showing.
+          if !ended, self?.hasOtherLiveActivity(than: activity.id) == false {
+            self?.dismissed = true
+            await self?.unregister()
+          }
           break
         }
       }
     }
     if let token = activity.pushToken {
       Task { await register(token: token, kind: "update", activityId: activity.id) }
+    }
+  }
+
+  private func hasOtherLiveActivity(than id: String) -> Bool {
+    Activity<ScoutingActivityAttributes>.activities.contains {
+      $0.id != id && !$0.attributes.preview &&
+      ($0.activityState == .active || $0.activityState == .stale)
     }
   }
 

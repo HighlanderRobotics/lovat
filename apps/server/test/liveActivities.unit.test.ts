@@ -225,6 +225,51 @@ describe("device ownership and assignment selection", () => {
     );
   });
 
+  it("tracks each activity's start time across token rotations", async () => {
+    const saved = () => JSON.parse([...mocks.values.values()][0]);
+    const post = (extra: Record<string, unknown>) =>
+      request(app)
+        .post("/live-activities")
+        .set(headers)
+        .send({ ...body, ...extra })
+        .expect(200);
+
+    await post({});
+    const startedAt = saved().activityStartedAt;
+    expect(startedAt).toEqual(expect.any(Number));
+    mocks.values.set(
+      [...mocks.values.keys()][0],
+      JSON.stringify({ ...saved(), activityStartedAt: startedAt - 1000 }),
+    );
+    await post({ token: "b".repeat(64) });
+    expect(saved().activityStartedAt).toBe(startedAt - 1000);
+    await post({ token: "c".repeat(64), activityId: "replacement" });
+    expect(saved().activityStartedAt).toBeGreaterThanOrEqual(startedAt);
+  });
+
+  it("ignores late token uploads from an activity the server replaced", async () => {
+    await request(app).post("/live-activities").set(headers).send(body);
+    const storedKey = [...mocks.values.keys()][0];
+    mocks.values.set(
+      storedKey,
+      JSON.stringify({
+        ...JSON.parse(mocks.values.get(storedKey)!),
+        updateToken: undefined,
+        activityId: undefined,
+        retiredActivityId: "activity",
+        startSentAt: 1,
+      }),
+    );
+    await request(app)
+      .post("/live-activities")
+      .set(headers)
+      .send({ ...body, token: "d".repeat(64) })
+      .expect(200);
+    const saved = JSON.parse(mocks.values.get(storedKey)!);
+    expect(saved.updateToken).toBeUndefined();
+    expect(saved.startSentAt).toBe(1);
+  });
+
   it("selects the team at the scout's assigned station, never the scout's source team", async () => {
     mocks.scouterScheduleShift.findMany.mockResolvedValue([
       {

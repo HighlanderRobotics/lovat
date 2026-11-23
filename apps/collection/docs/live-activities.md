@@ -97,7 +97,18 @@ assignments use APNs priority 10; unchanged heartbeats use priority 5. Actual
 timeliness depends on provider updates, worker imports, APNs delivery, and iOS budgets;
 this isn't a buzzer-time guarantee. Apple may delay or drop pushes. Activities
 mark data stale after five minutes without an update and invite the user to
-open Collection. A completed schedule ends the activity immediately. Disabling,
+open Collection. A completed schedule ends the activity immediately.
+
+iOS ends any Live Activity after eight hours, which is shorter than a full
+competition day. Server records when each activity first registered its update
+token. After 7.5 hours it sends a push-to-start for a replacement, then ends the
+old activity, and extends the registration so it doesn't expire before the
+replacement uploads its token. Late token uploads from the replaced activity are
+ignored. This requires a push-to-start token (iOS 17.2+); on older iOS the
+activity ends at eight hours and returns the next time Collection is opened.
+The replacement start shows the standard "Scouting shift" alert. Collection
+ignores the removal of ended or replaced activities, so only swiping away a
+live activity suppresses recreation. Disabling,
 resetting, changing scout/tournament/server, or entering training retires the old
 activity and registration. Dismissing an activity suppresses recreation until the
 user refreshes real assignments in Debug, re-enables activities, or changes
