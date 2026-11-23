@@ -34,9 +34,43 @@ Run in production `main.dart` on Android, iOS and the deployed candidate browser
 The release owner obtains sandbox credentials privately. Do not replace Auth0
 with a fake token or change a production Auth0 tenant for this check.
 
+### Build a sandbox browser candidate
+
+For the isolated preview **Dashboard web build only**, set all of these public
+build variables in the approved preview build environment:
+
+| Variable | Required value |
+| --- | --- |
+| `LOVAT_SANDBOX_AUTH0_DOMAIN` | Hostname of the approved separate Auth0 tenant, without `https://` or a path |
+| `LOVAT_SANDBOX_AUTH0_WEB_CLIENT_ID` | Public client identifier of its Dashboard single-page application, never a client secret |
+| `LOVAT_SANDBOX_AUTH0_AUDIENCE` | Exact audience accepted by the sandbox API |
+| `LOVAT_API_BASE` | Exact HTTPS origin of the isolated sandbox API |
+| `LOVAT_WEBSITE_URL` | Existing preview Website build origin |
+
+The Dashboard Docker build rejects partial or invalid settings before compiling.
+For a local build, run `dart run tool/check_sandbox_web_auth.dart` with the
+variables exported from `apps/dashboard`, then pass those same variables as
+`--dart-define=NAME=value` arguments to `flutter build web --release`.
+Without any sandbox Auth0 overrides the existing identity behavior is unchanged.
+Sandbox builds pin the API origin and do not honor a stored server or server
+setup link; use a fresh browser profile on the exact deployed preview origin.
+
+Before opening the preview, verify that the sandbox API uses isolated Postgres
+and Redis and that its `AUTH0_DOMAIN` matches the approved tenant. The current
+API verifies a fixed audience, `https://api.lovat.app`; register that API
+identifier in the separate sandbox tenant and use it as the browser audience.
+It identifies the token audience, not the destination URL. Do not change
+production issuer/audience settings. In the sandbox Auth0 SPA, allow only the
+exact preview origin/URL for web origins, callbacks and logout, and ensure the
+sandbox API CORS policy allows that origin. Use only disposable sandbox accounts
+with distinct teams and synthetic data. Native sandbox builds and their callback
+configuration are separate and are not provided by these browser settings.
+
+### Record the smoke
+
 | Check | Expected result | Outcome / evidence |
 | --- | --- | --- |
-| Clean install/private browser, choose sandbox server and sign in | Real Auth0 page opens; callback returns to the same app/origin; correct sandbox account appears | Pending |
+| Clean install/private browser, confirm sandbox server and sign in | Real Auth0 page opens; callback returns to the same app/origin; correct sandbox account appears | Pending |
 | Cancel login and retry | Returns safely; no authenticated data until successful login | Pending |
 | Background browser during login, then complete callback | App resumes once with the correct account, without a stuck spinner or duplicate navigation | Pending |
 | Select tournament, inspect analysis, reorder a synthetic picklist and reopen it | Chosen tournament and saved order survive reload | Pending |

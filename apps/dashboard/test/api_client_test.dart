@@ -21,6 +21,24 @@ void main() {
       buildSignature: '',
     );
   });
+  test('sandbox client ignores server changes before sending its token',
+      () async {
+    final api = LovatAPI(
+      'https://api.sandbox.example',
+      isBaseUrlLocked: true,
+      tokenProvider: () async => 'synthetic',
+      client: MockClient((request) async {
+        expect(request.url.origin, 'https://api.sandbox.example');
+        expect(request.headers['authorization'], 'Bearer synthetic');
+        return http.Response('{}', 200);
+      }),
+    );
+    addTearDown(api.dispose);
+    api.baseUrl = kProductionBaseUrl;
+    expect(api.baseUrl, 'https://api.sandbox.example');
+    expect((await api.get('/event'))!.statusCode, 200);
+  });
+
   test(
     'GET sends identity/version headers and reuses an ETag/304 body',
     () async {

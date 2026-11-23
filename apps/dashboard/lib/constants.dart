@@ -1,6 +1,7 @@
 import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:auth0_flutter/auth0_flutter_web.dart';
 import 'package:scouting_dashboard_app/pages/picklist/picklist_models.dart';
+import 'package:scouting_dashboard_app/web_auth_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Picklists
@@ -46,10 +47,8 @@ const websiteBaseUrl = String.fromEnvironment(
   defaultValue: 'https://lovat.app',
 );
 
-const auth0Domain = 'lovat.us.auth0.com';
-
-final auth0 = Auth0(auth0Domain, "PaUUK4Sjmcdy5oueW7geI2rgMfuWd1G4");
-final auth0Web = Auth0Web(auth0Domain, "FR7SUG9t0wXb5ZVo51G0ewnsK7PPSyJ9");
+final auth0 = Auth0(productionAuth0Domain, "PaUUK4Sjmcdy5oueW7geI2rgMfuWd1G4");
+final auth0Web = Auth0Web(dashboardWebAuth.domain, dashboardWebAuth.clientId);
 
 extension StringExtension on String {
   String get hyphenated => replaceAll(" ", "-");
