@@ -22,7 +22,7 @@ appId: com.frc8033.lovatcollection
     timeout: 20000
 - tapOn: "Synthetic Scout"
 - extendedWaitUntil:
-    visible: "2026 Synthetic Event"
+    visible: "^2026 Synthetic Event(, Local fixture)?$"
     timeout: 20000
-- tapOn: "2026 Synthetic Event"
+- tapOn: "^2026 Synthetic Event(, Local fixture)?$"
 - assertVisible: "Scout this match"
