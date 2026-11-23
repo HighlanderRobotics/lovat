@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../lib/web_auth_config.dart';
+import 'package:scouting_dashboard_app/web_auth_config.dart';
 
 void main() {
   try {
