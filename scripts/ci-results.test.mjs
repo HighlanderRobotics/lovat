@@ -6,6 +6,7 @@ function fixture(selected = []) {
     changes: { result: "success", outputs: {} },
     structure: { result: "success" },
     "railway-config": { result: "success" },
+    codeql: { result: "success" },
   };
   for (const [job, selector] of Object.entries(jobSelectors)) {
     needs.changes.outputs[selector] = String(selected.includes(selector));
@@ -24,6 +25,26 @@ test("an applicable suite cannot silently skip, fail, cancel, or disappear", () 
     needs.contracts.result = result;
     assert.throws(() => requireCiResults(needs), /contracts/);
   }
+});
+test("image failures and unavailable CodeQL results fail the deployment gate", () => {
+  for (const result of ["skipped", "failure", "cancelled", undefined]) {
+    const needs = fixture(["web-images"]);
+    needs["web-images"].result = result;
+    assert.throws(() => requireCiResults(needs), /web-images/);
+    needs["web-images"].result = "success";
+    needs.codeql.result = result;
+    assert.throws(() => requireCiResults(needs), /codeql/);
+  }
+});
+test("all three selected Server jobs must succeed independently", () => {
+  for (const job of ["server", "server-unit", "server-image"]) {
+    for (const result of ["skipped", "failure", "cancelled", undefined]) {
+      const needs = fixture(["server"]);
+      needs[job].result = result;
+      assert.throws(() => requireCiResults(needs), new RegExp(job));
+    }
+  }
+  requireCiResults(fixture(["server"]));
 });
 test("main publication requires all report producers even without changed files", () => {
   assert.throws(() => requireCiResults(fixture(), true), /required/);

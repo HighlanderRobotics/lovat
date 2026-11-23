@@ -2,7 +2,7 @@ import { Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
-import { allTeamNumbers } from "../../analysis/analysisConstants.js";
+import { getAllTeamNumbers } from "../../analysis/analysisConstants.js";
 import { arrayToRule } from "../../../lib/migrateDataSources.js";
 
 export const addTeamSource = async (
@@ -58,7 +58,7 @@ export const addTeamSource = async (
         data: {
           teamSourceRule: arrayToRule<number>(
             params.data.teamSource,
-            await allTeamNumbers,
+            await getAllTeamNumbers(),
           ),
         },
       });

@@ -5,7 +5,8 @@ export const partial = "lovat-apps";
 
 // Railway omits platform defaults from stored config: sleeping defaults to false,
 // restart policy to ON_FAILURE, and retry count to 10. Do not re-declare those
-// defaults, which otherwise produce a perpetual no-op plan.
+// defaults, which otherwise produce a perpetual no-op plan. Explicit sleeping
+// settings below preserve the non-default live production/staging/preview policy.
 export default defineRailway((ctx) => {
   if (!ctx.environment?.trim()) {
     throw new Error(
@@ -14,12 +15,14 @@ export default defineRailway((ctx) => {
   }
 
   const production = ctx.environment === "production";
+  const waitForCi = process.env.RAILWAY_WAIT_FOR_CI;
+  if (waitForCi !== undefined && waitForCi !== "true" && waitForCi !== "false") {
+    throw new Error("RAILWAY_WAIT_FOR_CI must be true or false");
+  }
   const branch = production
     ? "main"
     : (process.env.RAILWAY_CONFIG_BRANCH ??
-      (ctx.environment === "staging"
-        ? "offseason/mock-game-charged-up"
-        : undefined));
+      (ctx.environment === "staging" ? "main" : undefined));
 
   if (!branch?.trim()) {
     throw new Error(
@@ -31,7 +34,7 @@ export default defineRailway((ctx) => {
     github("HighlanderRobotics/lovat", {
       branch,
       rootDirectory,
-      checkSuites: false,
+      checkSuites: waitForCi === "true",
     });
   const keep = (...names: string[]) =>
     Object.fromEntries(names.map((name) => [name, preserve()]));
@@ -46,6 +49,7 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
@@ -61,6 +65,7 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
@@ -109,9 +114,10 @@ export default defineRailway((ctx) => {
         },
       },
       restartPolicyMaxRetries: 20,
+      sleepApplication: true,
       healthcheckPath: "/status",
       healthcheckTimeout: 1200,
-      ...(ctx.environment === "staging"
+      ...(!production
         ? { limitOverride: { containers: { cpu: 2, memoryBytes: 2147483648 } } }
         : {}),
     },
@@ -136,14 +142,31 @@ export default defineRailway((ctx) => {
     },
     deploy: {
       healthcheckPath: "/healthz",
+      sleepApplication: true,
       healthcheckTimeout: 120,
       restartPolicyMaxRetries: 3,
     },
   });
 
+  // Production uses event-aware windows. An explicit empty Cron restores continuous mode.
+  const configuredCron = process.env.RAILWAY_WORKER_CRON;
+  const workerCron =
+    configuredCron?.trim() ?? (production ? "0 */6 * * *" : undefined);
+  const cronMode =
+    process.env.RAILWAY_WORKER_MODE ??
+    (production && configuredCron === undefined ? "scheduled" : "batch");
+  if (workerCron && !["batch", "scheduled"].includes(cronMode)) {
+    throw new Error("RAILWAY_WORKER_MODE must be batch or scheduled");
+  }
+  if (workerCron && cronMode === "scheduled" && workerCron !== "0 */6 * * *") {
+    throw new Error("Scheduled event mode requires six-hour Cron: 0 */6 * * *");
+  }
   const worker = service("worker", {
     source: source("/"),
-    env: keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+    env: {
+      ...keep("DATABASE_URL", "TBA_KEY", "WORKER_CONCURRENCY"),
+      WORKER_MODE: workerCron ? cronMode : "continuous",
+    },
     build: {
       builder: "DOCKERFILE",
       dockerfilePath: "apps/worker/Dockerfile",
@@ -152,8 +175,13 @@ export default defineRailway((ctx) => {
     deploy: {
       runtime: "V2",
       startCommand: "bun index.ts",
-      healthcheckPath: "/health",
-      healthcheckTimeout: 120,
+      ...(workerCron
+        ? { cronSchedule: workerCron, restartPolicyType: "NEVER" as const }
+        : {
+            cronSchedule: null,
+            healthcheckPath: "/health",
+            healthcheckTimeout: 120,
+          }),
       drainingSeconds: 60,
       multiRegionConfig: {
         "us-west2": {

@@ -263,19 +263,35 @@ const teamLowerBound = 3300; // Total 3468 as of 2024 season
 const swrConstant = 300;
 const ttlConstant = 200;
 
-// Caching this for later
-const allTeamNumbers = (async () => {
-  return (await prismaClient.team.findMany()).map((team) => team.number);
-})();
-const allTournaments = (async () => {
+// Keep the catalog snapshots process-local, but do not query PostgreSQL at
+// import time or initiate a query until a caller actually needs the data.
+function lazyCatalog<T>(load: () => Promise<T[]>): () => Promise<T[]> {
+  let snapshot: Promise<T[]> | undefined;
+
+  return () => {
+    snapshot ??= load().catch((error) => {
+      snapshot = undefined;
+      throw error;
+    });
+    return snapshot;
+  };
+}
+
+const getAllTeamNumbers = lazyCatalog(async () => {
+  return (await prismaClient.team.findMany({ select: { number: true } })).map(
+    (team) => team.number,
+  );
+});
+const getAllTournaments = lazyCatalog(async () => {
   return (
     await prismaClient.tournament.findMany({
+      select: { key: true },
       orderBy: [
         { date: "asc" }, // Most recent last
       ],
     })
   ).map((tnmt) => tnmt.key);
-})();
+});
 
 const multiplerBaseAnalysis = 4;
 export {
@@ -300,8 +316,8 @@ export {
   swrConstant,
   ttlConstant,
   metricsToNumber,
-  allTeamNumbers,
-  allTournaments,
+  getAllTeamNumbers,
+  getAllTournaments,
   breakdownPos,
   breakdownNeg,
   breakdownToEnum,
