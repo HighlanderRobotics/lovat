@@ -210,3 +210,104 @@ class _TeamLookupFlagState extends State<TeamLookupFlag> {
     );
   }
 }
+
+/// Team lookup shown inside another page, such as Home's team search: the
+/// team's flag and the Categories, Breakdowns and Notes tabs.
+class TeamLookupView extends StatefulWidget {
+  const TeamLookupView({super.key, required this.team});
+
+  final int team;
+
+  @override
+  State<TeamLookupView> createState() => _TeamLookupViewState();
+}
+
+class _TeamLookupViewState extends State<TeamLookupView> {
+  int flagChangeCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(26, 16, 26, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    "Team ${widget.team}",
+                    style: const TextStyle(
+                      fontSize: 24,
+                      height: 32 / 24,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                      '/edit_team_lookup_flag',
+                      arguments: EditTeamLookupFlagArgs(
+                        team: widget.team,
+                        onChange: (_) => setState(() => flagChangeCount += 1),
+                      ),
+                    );
+                  },
+                  child: TeamLookupFlag(
+                    team: widget.team.toString(),
+                    key: Key('flag-$flagChangeCount'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TabBar(
+            tabs: const [
+              Tab(text: "Categories"),
+              Tab(text: "Breakdowns"),
+              Tab(text: "Notes"),
+            ],
+            labelColor: scheme.primary,
+            labelStyle: Theme.of(context).textTheme.titleSmall,
+            unselectedLabelColor: scheme.onSurfaceVariant,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorWeight: 3,
+            indicatorPadding: const EdgeInsets.fromLTRB(2, 46, 2, 0),
+            indicator: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(3),
+                topRight: Radius.circular(3),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ColoredBox(
+              color: scheme.surface,
+              child: TabBarView(
+                children: [
+                  TeamLookupCategoriesTab(
+                    key: ValueKey('categories-${widget.team}'),
+                    team: widget.team,
+                  ),
+                  TeamLookupBreakdownsTab(
+                    key: ValueKey('breakdowns-${widget.team}'),
+                    team: widget.team,
+                  ),
+                  TeamLookupNotesTab(
+                    key: ValueKey('notes-${widget.team}'),
+                    team: widget.team,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

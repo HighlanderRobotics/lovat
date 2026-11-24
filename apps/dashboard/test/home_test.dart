@@ -51,21 +51,15 @@ void main() {
     await Tournament.clearCurrent();
   });
 
-  testWidgets('top bar search opens team lookup for the typed team',
-      (tester) async {
+  testWidgets('team lookup opens in place and the X closes it', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await Tournament('test-event', 'Test Event').storeAsCurrent();
-    Object? arguments;
     await tester.pumpWidget(MaterialApp(
       theme: ThemeData(splashFactory: InkRipple.splashFactory),
-      home: HomePage(api: TournamentTestAPI()),
-      routes: {
-        '/team_lookup': (context) {
-          arguments = ModalRoute.of(context)!.settings.arguments;
-          return Scaffold(
-              appBar: AppBar(), body: const Text('Team lookup page'));
-        },
-      },
+      home: HomePage(
+        api: TournamentTestAPI(),
+        teamLookupBuilder: (team) => Text('Lookup for $team'),
+      ),
     ));
     await tester.pumpAndSettle();
     expect(find.text('Lovat'), findsOneWidget);
@@ -78,23 +72,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Look up team'), findsOneWidget);
 
-    // Closing search clears it and shows the home page again.
-    await tester.tap(find.byTooltip('Close search'));
+    // Picking a result shows the lookup on this page, not a new one.
+    await tester.tap(find.text('Look up team'));
     await tester.pumpAndSettle();
-    expect(find.text('Lovat'), findsOneWidget);
+    expect(find.text('Lookup for 1678'), findsOneWidget);
     expect(find.text('Look up team'), findsNothing);
+    expect(find.byType(HomePage), findsOneWidget);
+    expect(find.byTooltip('Close search'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Search teams'));
+    // Typing another number shows results again; Enter swaps the team.
+    await tester.enterText(find.byType(TextField), '254');
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '1678');
+    expect(find.text('Lookup for 1678'), findsNothing);
     await tester.testTextInput.receiveAction(TextInputAction.search);
     await tester.pumpAndSettle();
-    expect(find.text('Team lookup page'), findsOneWidget);
-    expect(arguments, {'team': 1678});
+    expect(find.text('Lookup for 254'), findsOneWidget);
 
-    await tester.pageBack();
+    // The X closes the lookup and returns to the home content.
+    await tester.tap(find.byTooltip('Close search'));
     await tester.pumpAndSettle();
+    expect(find.text('Lookup for 254'), findsNothing);
     expect(find.text('Lovat'), findsOneWidget);
+    expect(find.text('Matches'), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox());
     await Tournament.clearCurrent();
   });

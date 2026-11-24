@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 import 'package:scouting_dashboard_app/pages/match_schedule.dart';
+import 'package:scouting_dashboard_app/pages/team_lookup/team_lookup.dart';
 import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
 import 'package:scouting_dashboard_app/reusable/images/city_photo.dart';
 import 'package:scouting_dashboard_app/reusable/tournament_banner.dart';
@@ -28,9 +29,13 @@ import 'package:url_launcher/url_launcher.dart';
 const bool showUpcomingEnteredTournaments = false;
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.api});
+  const HomePage({super.key, this.api, this.teamLookupBuilder});
 
   final LovatAPI? api;
+
+  /// Builds the team lookup shown after a search; defaults to
+  /// [TeamLookupView]. Tests replace it to avoid live requests.
+  final Widget Function(int team)? teamLookupBuilder;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -55,6 +60,9 @@ class _HomePageState extends State<HomePage> {
   String? cityPhotoLocation;
   String initials = '';
   bool searching = false;
+
+  /// Team shown in place of the home content after a search.
+  int? lookupTeam;
   final searchController = TextEditingController();
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -77,303 +85,351 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  /// Closes search and any team lookup, returning to the home content.
   void closeSearch() {
     setState(() {
       searching = false;
+      lookupTeam = null;
       searchController.clear();
     });
   }
 
-  /// Opens the team lookup page for [team] and leaves search.
+  /// Shows team lookup for [team] on this page, under the search bar.
   void openTeam(int team) {
-    closeSearch();
-    Navigator.of(context).pushNamed("/team_lookup", arguments: {'team': team});
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      lookupTeam = team;
+      searchController.text = '$team';
+    });
+  }
+
+  /// While searching or looking up a team, show search results unless the
+  /// field still holds the team being shown.
+  bool get showingResults {
+    final query = searchController.text.trim();
+    return searching && query.isNotEmpty && query != lookupTeam?.toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Heebo'),
-      ),
-      child: Builder(
-          builder: (context) => Scaffold(
-                key: scaffoldKey,
-                appBar: HomeTopBar(
-                  initials: initials,
-                  searching: searching,
-                  controller: searchController,
-                  onAvatarPressed: () => scaffoldKey.currentState?.openDrawer(),
-                  onSearchOpened: () => setState(() => searching = true),
-                  onSearchClosed: closeSearch,
-                  onSubmitted: (value) {
-                    final team = int.tryParse(value.trim());
-                    if (team != null && team > 0) openTeam(team);
-                  },
-                ),
-                drawer: const GlobalNavigationDrawer(),
-                bottomNavigationBar: const AppTabBar(current: AppTab.home),
-                body: searching && searchController.text.trim().isNotEmpty
-                    ? TeamSearchResults(
-                        query: searchController.text,
-                        teams: topTeams,
-                        onSelected: openTeam,
-                      )
-                    : error != null
-                        ? FriendlyErrorView(
-                            errorMessage: error, onRetry: fetchData)
-                        : !dataLoaded
-                            ? const Center(child: CircularProgressIndicator())
-                            : ScrollablePageBody(
-                                padding: const EdgeInsets.all(26),
-                                children: [
-                                  Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
+    return PopScope(
+      canPop: !searching,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) closeSearch();
+      },
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Heebo'),
+        ),
+        child: Builder(
+            builder: (context) => Scaffold(
+                  key: scaffoldKey,
+                  appBar: HomeTopBar(
+                    initials: initials,
+                    searching: searching,
+                    controller: searchController,
+                    onAvatarPressed: () =>
+                        scaffoldKey.currentState?.openDrawer(),
+                    onSearchOpened: () => setState(() => searching = true),
+                    onSearchClosed: closeSearch,
+                    onSubmitted: (value) {
+                      final team = int.tryParse(value.trim());
+                      if (team != null && team > 0) openTeam(team);
+                    },
+                  ),
+                  drawer: const GlobalNavigationDrawer(),
+                  bottomNavigationBar: const AppTabBar(current: AppTab.home),
+                  body: showingResults
+                      ? TeamSearchResults(
+                          query: searchController.text,
+                          teams: topTeams,
+                          onSelected: openTeam,
+                        )
+                      : searching && lookupTeam != null
+                          ? KeyedSubtree(
+                              key: ValueKey('lookup-$lookupTeam'),
+                              child:
+                                  widget.teamLookupBuilder?.call(lookupTeam!) ??
+                                      TeamLookupView(team: lookupTeam!),
+                            )
+                          : error != null
+                              ? FriendlyErrorView(
+                                  errorMessage: error, onRetry: fetchData)
+                              : !dataLoaded
+                                  ? const Center(
+                                      child: CircularProgressIndicator())
+                                  : ScrollablePageBody(
+                                      padding: const EdgeInsets.fromLTRB(26, 10, 26, 26),
                                       children: [
-                                        if (t != null)
-                                          TournamentBanner(
-                                            tournament: t!,
-                                            api: widget.api ?? lovatAPI,
-                                            onPhotoResolved: (photo, location) {
-                                              setState(() {
-                                                cityPhoto = photo;
-                                                cityPhotoLocation = location;
-                                              });
-                                            },
-                                          )
-                                        else
-                                          const Text("No Selected Tournament"),
-                                        const SizedBox(height: 6),
-                                        for (final notice in notices)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 8),
-                                            child: Text(notice),
-                                          ),
-                                        if (notices.isNotEmpty)
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: TextButton(
-                                              onPressed: fetchData,
-                                              child: const Text(
-                                                  "Retry unavailable data"),
-                                            ),
-                                          ),
-                                        GestureDetector(
-                                          onTap: team == null
-                                              ? null
-                                              : () {
-                                                  Navigator.of(context)
-                                                      .pushNamed("/team_lookup",
-                                                          arguments: {
-                                                        'team': team
-                                                      });
-                                                },
-                                          child: Row(
+                                        Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
                                             children: [
-                                              Text(
-                                                team == null
-                                                    ? "Team status"
-                                                    : "$team's status",
-                                                style: const TextStyle(
-                                                  fontSize: 20,
-                                                  height: 1.6,
-                                                  fontWeight: FontWeight.w500,
+                                              if (t != null)
+                                                TournamentBanner(
+                                                  tournament: t!,
+                                                  api: widget.api ?? lovatAPI,
+                                                  onPhotoResolved:
+                                                      (photo, location) {
+                                                    setState(() {
+                                                      cityPhoto = photo;
+                                                      cityPhotoLocation =
+                                                          location;
+                                                    });
+                                                  },
+                                                )
+                                              else
+                                                const Text(
+                                                    "No Selected Tournament"),
+                                              const SizedBox(height: 10),
+                                              for (final notice in notices)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 8),
+                                                  child: Text(notice),
+                                                ),
+                                              if (notices.isNotEmpty)
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: TextButton(
+                                                    onPressed: fetchData,
+                                                    child: const Text(
+                                                        "Retry unavailable data"),
+                                                  ),
+                                                ),
+                                              GestureDetector(
+                                                onTap: team == null
+                                                    ? null
+                                                    : () {
+                                                        Navigator.of(context)
+                                                            .pushNamed(
+                                                                "/team_lookup",
+                                                                arguments: {
+                                                              'team': team
+                                                            });
+                                                      },
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      team == null
+                                                          ? "Team status"
+                                                          : "$team's status",
+                                                      style: const TextStyle(
+                                                        fontSize: 20,
+                                                        height: 1.6,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    if (team != null) ...const [
+                                                      SizedBox(width: 3),
+                                                      HomeSectionChevron(),
+                                                    ],
+                                                  ],
                                                 ),
                                               ),
-                                              if (team != null) ...const [
-                                                SizedBox(width: 3),
-                                                HomeSectionChevron(),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                  spacing: 10,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    Expanded(
+                                                        child: HomeStatusTile(
+                                                            label: const Text(
+                                                                "Rank"),
+                                                            value: Text(teamTournamentStatus
+                                                                        ?.rank ==
+                                                                    null
+                                                                ? "N/A"
+                                                                : ordinal(
+                                                                    teamTournamentStatus!
+                                                                        .rank!)))),
+                                                    Expanded(
+                                                        child: HomeStatusTile(
+                                                            label: const Text(
+                                                                "Ranking points"),
+                                                            value: Text(
+                                                                (teamTournamentStatus
+                                                                            ?.rankingPoints ??
+                                                                        "N/A")
+                                                                    .toString()))),
+                                                    Expanded(
+                                                        child: HomeStatusTile(
+                                                            label: const Text(
+                                                                "Matches played"),
+                                                            value: Text(
+                                                                "${teamTournamentStatus?.matchesPlayed ?? 'N/A'} of ${teamTournamentStatus?.matchesTotal ?? 'N/A'}"))),
+                                                  ]),
+                                              const SizedBox(height: 10),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Navigator
+                                                      .pushNamedAndRemoveUntil(
+                                                          context,
+                                                          "/match_schedule",
+                                                          (route) => false);
+                                                },
+                                                child: const Row(
+                                                  children: [
+                                                    Text("Matches",
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          height: 1.6,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )),
+                                                    SizedBox(width: 3),
+                                                    HomeSectionChevron(),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              HomePageMatch(match1: match1),
+                                              const SizedBox(height: 14),
+                                              HomePageMatch(
+                                                match1: match2,
+                                                isTeamMatch: true,
+                                                teamNumber: team,
+                                              ),
+                                              const SizedBox(height: 10),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Navigator.pushNamed(context,
+                                                      "/tournament_teams",
+                                                      arguments: {
+                                                        "tournament": t,
+                                                        "api": widget.api
+                                                      });
+                                                },
+                                                child: const Row(
+                                                  children: [
+                                                    Text("Teams",
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          height: 1.6,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )),
+                                                    SizedBox(width: 3),
+                                                    HomeSectionChevron(),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              TournamentTopTeams(
+                                                  rankings: topTeams),
+                                              const SizedBox(height: 10),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Navigator
+                                                      .pushNamedAndRemoveUntil(
+                                                          context,
+                                                          "/scouters",
+                                                          (route) => false);
+                                                },
+                                                child: const Row(
+                                                  children: [
+                                                    Text("Scouters",
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          height: 1.6,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )),
+                                                    SizedBox(width: 3),
+                                                    HomeSectionChevron(),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              HomeScouters(
+                                                schedule: schedule,
+                                                nextMatchOrdinal:
+                                                    nextMatchOrdinal,
+                                              ),
+                                              if (showUpcomingEnteredTournaments) ...[
+                                                const SizedBox(height: 10),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    Navigator
+                                                        .pushNamedAndRemoveUntil(
+                                                            context,
+                                                            "/match_schedule",
+                                                            (route) => false);
+                                                  },
+                                                  child: const Row(
+                                                    children: [
+                                                      Text(
+                                                          "Upcoming Entered Tournaments",
+                                                          style: TextStyle(
+                                                            fontSize: 20,
+                                                            height: 1.6,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          )),
+                                                      SizedBox(width: 3),
+                                                      HomeSectionChevron(),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                UpcomingTeamTournaments(
+                                                    api: widget.api),
                                               ],
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                            spacing: 10,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              Expanded(
-                                                  child: HomeStatusTile(
-                                                      label: const Text("Rank"),
-                                                      value: Text(
-                                                          teamTournamentStatus
-                                                                      ?.rank ==
-                                                                  null
-                                                              ? "N/A"
-                                                              : ordinal(
-                                                                  teamTournamentStatus!
-                                                                      .rank!)))),
-                                              Expanded(
-                                                  child: HomeStatusTile(
-                                                      label: const Text(
-                                                          "Ranking points"),
-                                                      value: Text(
-                                                          (teamTournamentStatus
-                                                                      ?.rankingPoints ??
-                                                                  "N/A")
-                                                              .toString()))),
-                                              Expanded(
-                                                  child: HomeStatusTile(
-                                                      label: const Text(
-                                                          "Matches played"),
-                                                      value: Text(
-                                                          "${teamTournamentStatus?.matchesPlayed ?? 'N/A'} of ${teamTournamentStatus?.matchesTotal ?? 'N/A'}"))),
+                                              const SizedBox(height: 10),
+                                              const Text(
+                                                "Tournaments this week",
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    height: 1.6,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              UpcomingWeekTournaments(
+                                                  api: widget.api),
+                                              if (cityPhoto != null) ...[
+                                                const SizedBox(height: 24),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: TextButton(
+                                                    style: TextButton.styleFrom(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 2),
+                                                      minimumSize: Size.zero,
+                                                      tapTargetSize:
+                                                          MaterialTapTargetSize
+                                                              .shrinkWrap,
+                                                      visualDensity:
+                                                          VisualDensity.compact,
+                                                    ),
+                                                    onPressed: () => launchUrl(
+                                                        Uri.parse(
+                                                            cityPhoto!.source)),
+                                                    child: Text(
+                                                      cityPhotoLocation == null
+                                                          ? 'Photo: ${cityPhoto!.credit}'
+                                                          : 'Photo of $cityPhotoLocation: ${cityPhoto!.credit}',
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                      style: const TextStyle(
+                                                          fontSize: 10,
+                                                          height: 1.2),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ]),
-                                        const SizedBox(height: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.pushNamedAndRemoveUntil(
-                                                context,
-                                                "/match_schedule",
-                                                (route) => false);
-                                          },
-                                          child: const Row(
-                                            children: [
-                                              Text("Matches",
-                                                  style: TextStyle(
-                                                    fontSize: 20,
-                                                    height: 1.6,
-                                                    fontWeight: FontWeight.w500,
-                                                  )),
-                                              SizedBox(width: 3),
-                                              HomeSectionChevron(),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        HomePageMatch(match1: match1),
-                                        const SizedBox(height: 14),
-                                        HomePageMatch(
-                                          match1: match2,
-                                          isTeamMatch: true,
-                                          teamNumber: team,
-                                        ),
-                                        const SizedBox(height: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.pushNamed(
-                                                context, "/tournament_teams",
-                                                arguments: {
-                                                  "tournament": t,
-                                                  "api": widget.api
-                                                });
-                                          },
-                                          child: const Row(
-                                            children: [
-                                              Text("Teams",
-                                                  style: TextStyle(
-                                                    fontSize: 20,
-                                                    height: 1.6,
-                                                    fontWeight: FontWeight.w500,
-                                                  )),
-                                              SizedBox(width: 3),
-                                              HomeSectionChevron(),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        TournamentTopTeams(rankings: topTeams),
-                                        const SizedBox(height: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.pushNamedAndRemoveUntil(
-                                                context,
-                                                "/scouters",
-                                                (route) => false);
-                                          },
-                                          child: const Row(
-                                            children: [
-                                              Text("Scouters",
-                                                  style: TextStyle(
-                                                    fontSize: 20,
-                                                    height: 1.6,
-                                                    fontWeight: FontWeight.w500,
-                                                  )),
-                                              SizedBox(width: 3),
-                                              HomeSectionChevron(),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        HomeScouters(
-                                          schedule: schedule,
-                                          nextMatchOrdinal: nextMatchOrdinal,
-                                        ),
-                                        if (showUpcomingEnteredTournaments) ...[
-                                          const SizedBox(height: 10),
-                                          GestureDetector(
-                                            onTap: () {
-                                              Navigator.pushNamedAndRemoveUntil(
-                                                  context,
-                                                  "/match_schedule",
-                                                  (route) => false);
-                                            },
-                                            child: const Row(
-                                              children: [
-                                                Text(
-                                                    "Upcoming Entered Tournaments",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      height: 1.6,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    )),
-                                                SizedBox(width: 3),
-                                                HomeSectionChevron(),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          UpcomingTeamTournaments(
-                                              api: widget.api),
-                                        ],
-                                        const SizedBox(height: 10),
-                                        const Text(
-                                          "Tournaments this week",
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              height: 1.6,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        UpcomingWeekTournaments(
-                                            api: widget.api),
-                                        if (cityPhoto != null) ...[
-                                          const SizedBox(height: 24),
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: TextButton(
-                                              style: TextButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 2),
-                                                minimumSize: Size.zero,
-                                                tapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                              ),
-                                              onPressed: () => launchUrl(
-                                                  Uri.parse(cityPhoto!.source)),
-                                              child: Text(
-                                                cityPhotoLocation == null
-                                                    ? 'Photo: ${cityPhoto!.credit}'
-                                                    : 'Photo of $cityPhotoLocation: ${cityPhoto!.credit}',
-                                                textAlign: TextAlign.right,
-                                                style: const TextStyle(
-                                                    fontSize: 10, height: 1.2),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ]),
-                                ],
-                              ),
-              )),
+                                      ],
+                                    ),
+                )),
+      ),
     );
   }
 
