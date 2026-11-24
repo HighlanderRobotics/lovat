@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { figmaDimensionsToFieldInsets } from "../../util";
 import { DraggableContainer } from "../DraggableContainer";
 import {
@@ -12,7 +19,14 @@ import { useReportStateStore } from "../../reportStateStore";
 import { MatchEventPosition } from "../../MatchEventPosition";
 import { MatchEventType } from "../../MatchEventType";
 import * as Haptics from "expo-haptics";
-import { Animated, Easing, TextInput, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  StyleProp,
+  TextInput,
+  TextStyle,
+  View,
+} from "react-native";
 import { colors } from "../../../colors";
 import { Icon } from "../../../components/Icon";
 import { GamePhase } from "../../ReportState";
@@ -22,6 +36,32 @@ const ACTIVE_OPACITY = 0.2;
 const TELEOP_SCALE = 1.28;
 const CHECKMARK_DURATION_MS = 200;
 
+type CountDisplayHandle = {
+  setText: (value: string) => void;
+};
+
+const CountDisplay = forwardRef<
+  CountDisplayHandle,
+  { style: StyleProp<TextStyle> }
+>(({ style }, ref) => {
+  const [text, setText] = useState("");
+
+  useImperativeHandle(ref, () => ({ setText }), []);
+
+  return (
+    <TextInput
+      pointerEvents="none"
+      editable={false}
+      showSoftInputOnFocus={false}
+      selectTextOnFocus={false}
+      value={text}
+      style={style}
+    />
+  );
+});
+
+CountDisplay.displayName = "CountDisplay";
+
 export function ScoreFuelInHubAction() {
   const scoringMode = useScoringModeStore((state) => state.value);
   const gamePhase = useReportStateStore((state) => state.gamePhase);
@@ -29,9 +69,9 @@ export function ScoreFuelInHubAction() {
   const [showCheckmark, setShowCheckmark] = useState(false);
 
   // textinput is used to allow direct manipulation
-  const textContainerRef = useRef<TextInput>(null);
+  const textContainerRef = useRef<CountDisplayHandle>(null);
   const updateTextDisplay = useCallback((newValue: string) => {
-    textContainerRef.current?.setNativeProps({ text: newValue });
+    textContainerRef.current?.setText(newValue);
   }, []);
 
   const hubOpacity = useRef(new Animated.Value(1)).current;
@@ -116,11 +156,7 @@ export function ScoreFuelInHubAction() {
       >
         <Hub />
       </Animated.View>
-      <TextInput
-        pointerEvents="none"
-        editable={false}
-        showSoftInputOnFocus={false}
-        selectTextOnFocus={false}
+      <CountDisplay
         ref={textContainerRef}
         style={{
           position: "absolute",
@@ -128,7 +164,6 @@ export function ScoreFuelInHubAction() {
           right: 0,
           top: 0,
           bottom: 0,
-          alignItems: "center",
           textAlign: "center",
           fontFamily: "Heebo_500Medium",
           fontSize: 36,
@@ -181,9 +216,9 @@ function GeneralisedFeedAction({
     (fieldOrientation === FieldOrientation.Sinister);
 
   // textinput is used to allow direct manipulation
-  const textContainerRef = useRef<TextInput>(null);
+  const textContainerRef = useRef<CountDisplayHandle>(null);
   const updateTextDisplay = useCallback((newValue: string) => {
-    textContainerRef.current?.setNativeProps({ text: newValue });
+    textContainerRef.current?.setText(newValue);
   }, []);
 
   const { onStart, onMove, onEnd, isCounting, forceStop } =
@@ -229,11 +264,7 @@ function GeneralisedFeedAction({
           backgroundColor: colors.secondaryContainer.default,
         }}
       >
-        <TextInput
-          pointerEvents="none"
-          editable={false}
-          showSoftInputOnFocus={false}
-          selectTextOnFocus={false}
+        <CountDisplay
           ref={textContainerRef}
           style={{
             position: "absolute",
@@ -241,7 +272,6 @@ function GeneralisedFeedAction({
             right: 0,
             top: 0,
             bottom: 0,
-            alignItems: "center",
             textAlign: "center",
             fontFamily: "Heebo_500Medium",
             fontSize: 36,

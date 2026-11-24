@@ -6,6 +6,7 @@ import type {
   ReviewCommentInfo,
   ReviewGitHub,
   ReviewInfo,
+  SummaryCommentInfo,
 } from "./types.js";
 
 export interface GitHubApiOptions {
@@ -71,6 +72,7 @@ interface RawReviewComment {
 
 interface RawReview {
   id: number;
+  node_id?: string;
   body?: string;
   user?: RawUser;
 }
@@ -161,6 +163,7 @@ export class GitHubApi implements ReviewGitHub {
       path: comment.path ?? "",
       line: comment.line ?? null,
       userType: comment.user?.type ?? "Unknown",
+      userLogin: comment.user?.login ?? "",
     }));
   }
 
@@ -173,7 +176,55 @@ export class GitHubApi implements ReviewGitHub {
       id: review.id,
       body: review.body ?? "",
       userType: review.user?.type ?? "Unknown",
+      userLogin: review.user?.login ?? "",
+      ...(review.node_id === undefined ? {} : { nodeId: review.node_id }),
     }));
+  }
+
+  async listSummaryComments(): Promise<SummaryCommentInfo[]> {
+    const comments = await this.listPaginated<RawReview>(
+      this.repoPath(`/issues/${this.options.pullNumber}/comments`),
+    );
+    return comments.map((comment) => ({
+      id: comment.id,
+      body: comment.body ?? "",
+      userType: comment.user?.type ?? "Unknown",
+      userLogin: comment.user?.login ?? "",
+    }));
+  }
+
+  async createSummaryComment(body: string): Promise<void> {
+    await this.requestJson(
+      this.repoPath(`/issues/${this.options.pullNumber}/comments`),
+      { method: "POST", body: { body }, retry: false },
+    );
+  }
+
+  async updateSummaryComment(id: number, body: string): Promise<void> {
+    await this.requestJson(
+      this.repoPath(`/issues/comments/${id}`),
+      { method: "PATCH", body: { body }, retry: true },
+    );
+  }
+
+  async minimizeReview(nodeId: string): Promise<void> {
+    const result = await this.requestJson<{
+      data?: { minimizeComment?: { minimizedComment?: { isMinimized?: boolean } } };
+      errors?: unknown[];
+    }>(this.apiUrl.endsWith("/api/v3")
+      ? `${this.apiUrl.slice(0, -3)}/graphql`
+      : "/graphql", {
+      method: "POST",
+      retry: true,
+      body: {
+        query: "mutation($id: ID!) { minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) { minimizedComment { isMinimized } } }",
+        variables: { id: nodeId },
+      },
+    });
+    if (result?.errors?.length ||
+        result?.data?.minimizeComment?.minimizedComment?.isMinimized !== true) {
+      throw new GitHubApiError("GitHub could not minimize the superseded review.", 200);
+    }
   }
 
   async getFileAtRef(path: string, ref: string): Promise<string | null> {
@@ -207,8 +258,8 @@ export class GitHubApi implements ReviewGitHub {
     );
   }
 
-  async createReview(input: CreateReviewInput): Promise<void> {
-    await this.requestJson(
+  async createReview(input: CreateReviewInput): Promise<ReviewInfo> {
+    const review = await this.requestJson<RawReview>(
       this.repoPath(`/pulls/${this.options.pullNumber}/reviews`),
       {
         method: "POST",
@@ -225,6 +276,14 @@ export class GitHubApi implements ReviewGitHub {
         },
       },
     );
+    if (!review) throw new Error("GitHub returned an empty review.");
+    return {
+      id: review.id,
+      body: review.body ?? input.body,
+      userType: review.user?.type ?? "Unknown",
+      userLogin: review.user?.login ?? "",
+      ...(review.node_id === undefined ? {} : { nodeId: review.node_id }),
+    };
   }
 
   private repoPath(suffix: string): string {

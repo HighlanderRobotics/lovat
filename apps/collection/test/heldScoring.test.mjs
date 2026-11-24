@@ -53,6 +53,8 @@ function fixture(mode, startType = 0, stopType = 1) {
     useState: (value) => [value, () => {}],
     useCallback: (fn) => fn,
     useEffect: (fn) => effects.push(fn),
+    forwardRef: (render) => render,
+    useImperativeHandle: () => {},
   };
   const exports = {};
   runInNewContext(compiled, {

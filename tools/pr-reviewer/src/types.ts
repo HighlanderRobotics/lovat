@@ -102,12 +102,22 @@ export interface ReviewCommentInfo {
   path: string;
   line: number | null;
   userType: string;
+  userLogin: string;
 }
 
 export interface ReviewInfo {
   id: number;
   body: string;
   userType: string;
+  userLogin: string;
+  nodeId?: string;
+}
+
+export interface SummaryCommentInfo {
+  id: number;
+  body: string;
+  userType: string;
+  userLogin: string;
 }
 
 export interface InlineReviewComment {
@@ -131,8 +141,12 @@ export interface ReviewGitHub {
   listPullRequestFiles(): Promise<PullRequestFile[]>;
   listReviewComments(): Promise<ReviewCommentInfo[]>;
   listReviews(): Promise<ReviewInfo[]>;
+  listSummaryComments(): Promise<SummaryCommentInfo[]>;
+  createSummaryComment(body: string): Promise<void>;
+  updateSummaryComment(id: number, body: string): Promise<void>;
+  minimizeReview(nodeId: string): Promise<void>;
   getFileAtRef(path: string, ref: string): Promise<string | null>;
-  createReview(input: CreateReviewInput): Promise<void>;
+  createReview(input: CreateReviewInput): Promise<ReviewInfo>;
 }
 
 export interface DiffLineMap {

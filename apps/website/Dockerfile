@@ -1,14 +1,15 @@
-FROM node:20.19.6-bookworm-slim AS build
+FROM node:24.21.0-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/apps/website
 COPY apps/website/package.json apps/website/package-lock.json ./
+COPY apps/website/scripts/patch-magnolia.mjs ./scripts/patch-magnolia.mjs
 RUN npm ci
 COPY apps/website/ ./
 COPY CHANGELOG.md /app/CHANGELOG.md
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM node:20.19.6-bookworm-slim
+FROM node:24.21.0-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080
 COPY --from=build --chown=node:node /app/apps/website/build ./build

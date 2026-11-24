@@ -2,7 +2,8 @@
 
 Automated, OpenRouter-powered review for pull requests in this repository. The
 reviewer reads changed diff lines, asks a model for structured findings, and
-publishes a GitHub review with inline comments where GitHub accepts a position.
+updates one persistent summary comment. New findings also create a GitHub review
+with inline comments where GitHub accepts a position.
 
 The tool lives in `tools/pr-reviewer` and has its own `package.json` and
 lockfile. It is not part of a root workspace and does not change any
@@ -45,7 +46,8 @@ unset.
 
 Workflow permissions are limited to `contents: read` and `pull-requests: write`.
 The reviewer uses the workflow token to read the pull request and file contents
-and to create a review. It does not need `checks: write`, `contents: write`, or
+and to create/update summary comments, create reviews, and minimize superseded
+reviews. It does not need `checks: write`, `contents: write`, or
 access to any other secret.
 
 ## Configuration
@@ -64,7 +66,7 @@ being ignored. All fields are optional because the tool applies defaults.
 | `excludedPaths` | built-in list | Gitignore-like globs. An explicit list **replaces** the defaults. |
 | `categories` | all | Allowed categories: `BUG`, `SECURITY`, `PERFORMANCE`, `DATABASE`, `TYPE_SAFETY`, `ARCHITECTURE`. |
 | `temperature` | `0.1` | Sampling temperature. |
-| `maxOutputTokens` | `4096` | Per-request output limit. |
+| `maxOutputTokens` | `16384` | Per-request limit shared by reasoning and the final JSON review. |
 | `maxInputTokens` | unset | Optional cap used to shrink the per-request diff budget. |
 | `requestTimeoutMs` | `120000` | Timeout for one OpenRouter request. |
 | `maxRetries` | `3` | Retries for timeouts, network failures, rate limits, and transient server errors. |
@@ -80,6 +82,12 @@ from the configuration file.
 the model's system prompt and is authoritative for project conventions. Keep it
 focused on durable rules; it is truncated if it grows beyond 40,000 characters.
 
+Reasoning effort is set to `low` on each request. The output budget includes
+both reasoning and the final JSON; the 16,384-token default gives reasoning
+models more room to produce findings. A `finish_reason` of `length` fails with
+`output_limit` even when content is empty, rather than repeating the same
+request as an empty-response retry. See [OpenRouter reasoning budgets](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
+
 ## How findings are published
 
 The model returns JSON that is validated with Zod. Each valid finding is mapped
@@ -87,30 +95,50 @@ to a changed line in the patch:
 
 - Findings on an added or changed line become inline review comments.
 - Removed lines use the old-file line number and the `LEFT` side.
-- Findings that do not land on a valid changed line appear in the review
-  summary instead.
+- Findings that do not land on a valid changed line appear in the persistent
+  summary and the new-findings review instead.
 - If GitHub rejects one or more inline positions with `422`, the whole review is
-  retried with no inline comments and every finding moves into the summary.
+  retried with no inline comments and full finding details in its body. Every
+  finding also appears in the persistent summary.
 
-The review summary records the model, severity counts, token usage, estimated
-cost when OpenRouter reports it, excluded files, filtered findings, and review
-limitations. It is posted with `event: COMMENT`, never as an approval or a
-request for changes.
+One persistent bot comment records the latest reviewed commit, all current
+findings with full details, model, severity counts, token usage, estimated cost,
+excluded files, and limitations. Later runs edit that comment in place, including
+clean results and failures, instead of adding another summary to the PR feed.
+
+A new review is submitted only when there are newly discovered findings. It
+contains only those findings and uses `event: COMMENT`, never approval or a
+request for changes. Unchanged findings and clean runs do not create reviews.
+After the new result has been published successfully, older Lovat reviews are
+minimized as `OUTDATED`; their comments and discussions are preserved. The
+new-findings review from the current run stays expanded. A failure never
+minimizes earlier reviews. Minimization failures are logged as warnings and do
+not invalidate a successfully published result.
+
+Summary updates and cleanup only target marked posts authored by
+`github-actions[bot]`, leaving people and other bots alone. The first successful
+run after this change also minimizes legacy Lovat reviews. Superseded workflow
+commits and closed PRs are checked before publishing so a slow model response
+does not knowingly overwrite a newer result.
 
 ### Duplicate suppression
 
 Each finding has a stable fingerprint derived from the repository, pull request,
-file, category, and normalized finding text. The latest successful bot review
-stores the fingerprints of every finding still present.
+file, category, and normalized finding text. The persistent summary
+stores the fingerprints of every finding still present, plus the last review ID
+represented by that state.
 
 - A finding already in that state is not posted inline again.
 - A finding that disappears from the state is considered fixed. If it returns in
   a later revision, it is reported again.
+- Legacy review state is read when no persistent summary exists. A newer
+  review's state also recovers publication if posting findings succeeded but
+  updating the summary failed.
 - If no state marker exists, fingerprints are recovered from inline comment
   markers as a fallback.
 
-State lives in hidden HTML comments inside the bot review body. It is not
-security-sensitive and is not used for authorization.
+State lives in hidden HTML comments inside the persistent summary and bot
+review bodies. It is not security-sensitive and is not used for authorization.
 
 ## Security and limits
 
@@ -131,8 +159,10 @@ security-sensitive and is not used for authorization.
 
 A review failure is visible:
 
-1. The reviewer tries to publish a failed-review summary explaining that the
-   pull request was **not** reviewed.
+1. The reviewer tries to update the persistent summary with the unreviewed
+   commit, error, and workflow-run link; it creates that comment if absent.
+   It does not post a new failed review. The last successful result remains
+   available in a collapsed section, clearly labeled as an earlier review.
 2. It preserves the previous state so a later successful review can still
    suppress known findings.
 3. The workflow exits non-zero, so the failed job is visible in Actions.

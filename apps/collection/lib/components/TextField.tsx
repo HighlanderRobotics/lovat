@@ -1,7 +1,12 @@
 import { KeyboardTypeOptions } from "react-native";
 import { colors } from "../colors";
 import { TextInput } from "react-native";
-import { forwardRef, ForwardRefRenderFunction, useState } from "react";
+import {
+  ComponentRef,
+  forwardRef,
+  ForwardRefRenderFunction,
+  useState,
+} from "react";
 
 type TextInputProps = {
   density?: "comfortable" | "compact";
@@ -21,7 +26,10 @@ type TextInputProps = {
   onBlur?: () => void;
 };
 
-const TextField: ForwardRefRenderFunction<TextInput, TextInputProps> = (
+const TextField: ForwardRefRenderFunction<
+  ComponentRef<typeof TextInput>,
+  TextInputProps
+> = (
   {
     density = "comfortable",
     placeholder = "",

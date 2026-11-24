@@ -72,6 +72,11 @@ export const PreMatchActions = () => {
       {buttonPositions.map(({ position, edgeInsets }) => (
         <FieldElement key={position} edgeInsets={edgeInsets}>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Start position ${MatchEventPosition[position]}`}
+            accessibilityState={{
+              selected: reportState.startPosition === position,
+            }}
             disabled={!poseEnabled}
             style={{
               width: "100%",

@@ -3,6 +3,8 @@ build/
 coverage/
 .expo/
 
+test-report/
+.maestro/results/
 ios/
 android/
 watch/.build/

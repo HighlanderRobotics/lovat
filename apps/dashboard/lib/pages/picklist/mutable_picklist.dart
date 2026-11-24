@@ -221,6 +221,10 @@ class MutablePicklistFlagRow extends StatefulWidget {
 
 class _MutablePicklistFlagRowState extends State<MutablePicklistFlagRow> {
   Future<void> loadData() async {
+    // Cached data can be available synchronously while this row is building.
+    // Publish it after the frame so the parent can safely update its state.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
     final flagPaths =
         widget.flagConfigurations.map((e) => e.type.path).toList();
 
@@ -235,6 +239,7 @@ class _MutablePicklistFlagRowState extends State<MutablePicklistFlagRow> {
     }
 
     final flags = await lovatAPI.getFlags(flagPaths, widget.team);
+    if (!mounted) return;
 
     widget.onLoad(flags.asMap().map(
           (key, value) => MapEntry(

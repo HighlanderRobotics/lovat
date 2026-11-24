@@ -13,7 +13,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.0",
+        "image": "macos-tahoe-26.6-xcode-27.0",
         "simulator": true
       }
     },
@@ -24,7 +24,7 @@
         "buildType": "apk"
       },
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.0"
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     },
     "preview": {
@@ -38,7 +38,7 @@
         "buildType": "apk"
       },
       "ios": {
-        "image": "macos-sequoia-15.6-xcode-16.4"
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     },
     "staging": {
@@ -46,16 +46,38 @@
         "EXPO_PUBLIC_API_URL": "https://lovat-server-staging.up.railway.app"
       },
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.0"
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     },
     "production": {
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.0"
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      }
+    },
+    "training-testflight": {
+      "extends": "production",
+      "node": "24.6.0",
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      },
+      "env": {
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_API_URL": "https://api.lovat.app"
+      }
+    },
+    "native-smoke-ios": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.0"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6467335014"
+      }
+    }
   }
 }

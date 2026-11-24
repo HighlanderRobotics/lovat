@@ -1,0 +1,18 @@
+appId: com.frc8033.lovatcollection
+---
+- scrollUntilVisible:
+    element:
+      text: "Submit"
+    direction: DOWN
+- tapOn: "Submit"
+- extendedWaitUntil:
+    visible: "Upload failed"
+    timeout: 20000
+- tapOn: "Done"
+- stopApp
+- launchApp:
+    clearState: false
+- tapOn: "history"
+- tapOn:
+    text: ".*1234.*"
+- assertVisible: "Upload"

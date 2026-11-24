@@ -14,21 +14,38 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"start": "node build",
-		"test:training": "node --test scripts/training.test.mjs scripts/training-playback.test.mjs"
+		"test:training": "node --test scripts/training.test.mjs scripts/training-playback.test.mjs",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"typecheck:test": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.test.json",
+		"test:e2e": "playwright test",
+		"test:image": "bash test/image.sh",
+		"test:ci": "npm run typecheck:test && npm run test:coverage && npm run test:changelog && npm run test:training",
+		"postinstall": "node scripts/patch-magnolia.mjs",
+		"posttest:coverage": "node scripts/prepare-test-report.mjs"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "4.11.0",
+		"@playwright/test": "1.56.1",
 		"@sveltejs/adapter-netlify": "^4.0.0",
 		"@sveltejs/adapter-node": "5.2.12",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@testing-library/jest-dom": "6.9.1",
+		"@testing-library/svelte": "5.2.8",
 		"@types/gtag.js": "^0.0.18",
+		"@types/node": "20.19.25",
 		"@types/qrcode": "^1.5.2",
 		"@types/ua-parser-js": "^0.7.37",
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
 		"@typescript-eslint/parser": "^8.0.0",
+		"@vitest/coverage-v8": "3.2.7",
+		"@vitest/ui": "3.2.7",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.46.1",
+		"jsdom": "26.1.0",
 		"marked": "18.1.0",
 		"prettier": "^3.0.0",
 		"prettier-plugin-svelte": "^3.0.0",
@@ -37,7 +54,8 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"vite": "^5.0.0",
-		"vite-imagetools": "^5.0.8"
+		"vite-imagetools": "^5.0.8",
+		"vitest": "3.2.7"
 	},
 	"type": "module",
 	"dependencies": {
@@ -46,5 +64,8 @@
 		"qrcode": "^1.5.3",
 		"ua-parser-js": "^1.0.36",
 		"zod": "^4.6.5"
+	},
+	"overrides": {
+		"playwright-core": "1.56.1"
 	}
 }

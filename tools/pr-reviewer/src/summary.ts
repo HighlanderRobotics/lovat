@@ -5,23 +5,30 @@ import type {
   ReviewFinding,
   ReviewInfo,
   Severity,
+  SummaryCommentInfo,
 } from "./types.js";
 import { SEVERITIES } from "./types.js";
 import { redactSecrets } from "./redact.js";
 
 export const SUMMARY_MARKER = "<!-- lovat-review:summary -->";
+export const SUMMARY_COMMENT_MARKER = "<!-- lovat-review:persistent-summary -->";
 const STATE_PATTERN = /<!-- lovat-review:state ([A-Za-z0-9+/=]+) -->/;
 const FINDING_PATTERN = /<!-- lovat-review:finding ([a-f0-9]{16}) -->/g;
+const PREVIOUS_RESULT_START = "<!-- lovat-review:previous-result-start -->";
+const PREVIOUS_RESULT_END = "<!-- lovat-review:previous-result-end -->";
 
 export interface ReviewState {
   version: 1;
   fingerprints: string[];
+  /** Last review represented by this state, for recovery after partial publishing. */
+  lastReviewId?: number;
 }
 
 export function encodeState(state: ReviewState): string {
   const payload = JSON.stringify({
     v: state.version,
     fingerprints: [...new Set(state.fingerprints)].sort(),
+    ...(state.lastReviewId === undefined ? {} : { lastReviewId: state.lastReviewId }),
   });
   return `<!-- lovat-review:state ${Buffer.from(payload, "utf8").toString("base64")} -->`;
 }
@@ -36,7 +43,7 @@ export function decodeState(body: string): ReviewState | null {
     ) as unknown;
 
     if (typeof parsed !== "object" || parsed === null) return null;
-    const record = parsed as { v?: unknown; fingerprints?: unknown };
+    const record = parsed as { v?: unknown; fingerprints?: unknown; lastReviewId?: unknown };
 
     if (record.v !== 1 || !Array.isArray(record.fingerprints)) return null;
     if (record.fingerprints.length > 1_000) return null;
@@ -48,25 +55,47 @@ export function decodeState(body: string): ReviewState | null {
       return null;
     }
 
-    return { version: 1, fingerprints: record.fingerprints };
+    if (record.lastReviewId !== undefined &&
+        (!Number.isSafeInteger(record.lastReviewId) || Number(record.lastReviewId) < 0)) return null;
+    return {
+      version: 1,
+      fingerprints: record.fingerprints,
+      ...(record.lastReviewId === undefined ? {} : { lastReviewId: record.lastReviewId as number }),
+    };
   } catch {
     return null;
   }
 }
 
+export function isReviewerPost(post: { userType: string; userLogin: string }): boolean {
+  return post.userType === "Bot" && post.userLogin === "github-actions[bot]";
+}
+
+export function findSummaryComment(
+  comments: readonly SummaryCommentInfo[],
+): SummaryCommentInfo | undefined {
+  return [...comments]
+    .filter((comment) => isReviewerPost(comment) && comment.body.includes(SUMMARY_COMMENT_MARKER))
+    .sort((left, right) => left.id - right.id)[0];
+}
+
 export function findPreviousState(
   reviews: readonly ReviewInfo[],
+  summary?: SummaryCommentInfo,
 ): ReviewState | null {
+  const summaryState = summary && isReviewerPost(summary) ? decodeState(summary.body) : null;
   const botReviews = [...reviews]
-    .filter((review) => review.userType === "Bot" && review.body.includes(SUMMARY_MARKER))
+    .filter((review) => isReviewerPost(review) && review.body.includes(SUMMARY_MARKER))
     .sort((left, right) => left.id - right.id);
 
   for (let index = botReviews.length - 1; index >= 0; index -= 1) {
-    const state = decodeState(botReviews[index]!.body);
-    if (state) return state;
+    const review = botReviews[index]!;
+    if (summaryState && review.id <= (summaryState.lastReviewId ?? 0)) break;
+    const state = decodeState(review.body);
+    if (state) return { ...state, lastReviewId: review.id };
   }
 
-  return null;
+  return summaryState;
 }
 
 /**
@@ -77,8 +106,9 @@ export function findPreviousState(
 export function collectPriorFingerprints(
   reviews: readonly ReviewInfo[],
   comments: readonly ReviewCommentInfo[],
+  summary?: SummaryCommentInfo,
 ): Set<string> {
-  const state = findPreviousState(reviews);
+  const state = findPreviousState(reviews, summary);
 
   if (state) {
     return new Set(state.fingerprints);
@@ -87,7 +117,7 @@ export function collectPriorFingerprints(
   const fingerprints = new Set<string>();
 
   for (const comment of comments) {
-    if (comment.userType !== "Bot") continue;
+    if (!isReviewerPost(comment)) continue;
     for (const match of comment.body.matchAll(FINDING_PATTERN)) {
       if (match[1]) fingerprints.add(match[1]);
     }
@@ -103,6 +133,7 @@ export interface CompletedSummaryInput {
   findings: readonly ReviewFinding[];
   previouslyReported: ReadonlySet<string>;
   inlineFallback: boolean;
+  fullFindingDetails?: boolean;
   details: readonly string[];
   limitations: readonly string[];
   state: ReviewState;
@@ -116,6 +147,8 @@ export function renderCompletedSummary(input: CompletedSummaryInput): string {
     "## Lovat AI review",
     "",
     `**Status:** completed · **Model:** \`${input.model}\` · **Findings:** ${total}`,
+    "",
+    `**Reviewed commit:** \`${input.pullRequest.headSha}\``,
     "",
     `${formatSeverityCount("Critical", counts.CRITICAL)} · ${formatSeverityCount("High", counts.HIGH)} · ${formatSeverityCount("Medium", counts.MEDIUM)} · ${formatSeverityCount("Low", counts.LOW)}`,
     "",
@@ -146,7 +179,7 @@ export function renderCompletedSummary(input: CompletedSummaryInput): string {
           renderFinding(
             finding,
             input.previouslyReported.has(finding.fingerprint),
-            input.inlineFallback,
+            input.inlineFallback || input.fullFindingDetails === true,
           ),
         );
       }
@@ -175,6 +208,24 @@ export function renderCompletedSummary(input: CompletedSummaryInput): string {
   lines.push("", encodeState(input.state));
 
   return lines.join("\n");
+}
+
+export function renderNewFindingsReview(input: {
+  findings: readonly ReviewFinding[];
+  headSha: string;
+  state: ReviewState;
+  inlineFallback: boolean;
+}): string {
+  return [
+    SUMMARY_MARKER,
+    `**Lovat AI review:** ${input.findings.length} new finding(s) at \`${input.headSha}\`.`,
+    "",
+    "The persistent Lovat AI review comment contains the latest complete result.",
+    "",
+    ...input.findings.map((finding) => renderFinding(finding, false, input.inlineFallback)),
+    "",
+    encodeState(input.state),
+  ].join("\n");
 }
 
 function renderFinding(
@@ -228,6 +279,8 @@ export interface FailureSummaryInput {
   runUrl?: string;
   state?: ReviewState | null;
   knownSecrets?: readonly string[];
+  headSha?: string;
+  previousSummary?: string;
 }
 
 export function renderFailureSummary(input: FailureSummaryInput): string {
@@ -238,10 +291,12 @@ export function renderFailureSummary(input: FailureSummaryInput): string {
     "",
     `**Status:** failed · **Model:** \`${input.model}\``,
     "",
-    "The automated review did not complete, so no findings were published. This is not a clean review.",
+    "The automated review did not complete. The latest commit has not been fully reviewed. This is not a clean review.",
     "",
     `**Error:** ${safeMessage}`,
   ];
+
+  if (input.headSha) lines.push("", `**Unreviewed commit:** \`${input.headSha}\``);
 
   if (input.runUrl) {
     lines.push("", `[View the workflow run](${input.runUrl})`);
@@ -254,6 +309,24 @@ export function renderFailureSummary(input: FailureSummaryInput): string {
 
   if (input.state) {
     lines.push("", encodeState(input.state));
+  }
+
+  // Retain the last successful result once, rather than nesting failure bodies
+  // on each retry. Its commit label keeps earlier findings distinct from a
+  // successful review of the current commit.
+  const previous = input.previousSummary;
+  if (previous) {
+    const start = previous.indexOf(PREVIOUS_RESULT_START);
+    const end = previous.indexOf(PREVIOUS_RESULT_END, start);
+    const result = start >= 0 && end > start
+      ? previous.slice(start + PREVIOUS_RESULT_START.length, end).trim()
+      : previous.includes("**Status:** completed")
+        ? previous.replace(SUMMARY_COMMENT_MARKER, "").trim()
+        : null;
+    if (result) {
+      lines.push("", "<details>", "<summary>Last successful result (earlier review)</summary>", "",
+        PREVIOUS_RESULT_START, result, PREVIOUS_RESULT_END, "", "</details>");
+    }
   }
 
   return lines.join("\n");

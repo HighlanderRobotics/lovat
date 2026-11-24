@@ -9,6 +9,7 @@ import type {
   ReviewCommentInfo,
   ReviewGitHub,
   ReviewInfo,
+  SummaryCommentInfo,
 } from "../src/types.js";
 import type { DiffLineMap } from "../src/types.js";
 
@@ -133,6 +134,12 @@ export class FakeGitHub implements ReviewGitHub {
   contents = new Map<string, string>();
   createdReviews: CreateReviewInput[] = [];
   createReviewFailures: Error[] = [];
+  summaryComments: SummaryCommentInfo[] = [];
+  createdSummaryComments: string[] = [];
+  updatedSummaryComments: string[] = [];
+  minimizedReviews: string[] = [];
+  minimizeFailure?: Error;
+  summaryFailure?: Error;
   private nextId = 1;
 
   constructor(options: {
@@ -158,23 +165,50 @@ export class FakeGitHub implements ReviewGitHub {
   }
 
   async listReviews(): Promise<ReviewInfo[]> {
-    return this.reviews;
+    return [...this.reviews];
   }
 
   async getFileAtRef(path: string, _ref: string): Promise<string | null> {
     return this.contents.get(path) ?? null;
   }
 
-  async createReview(input: CreateReviewInput): Promise<void> {
+  async listSummaryComments(): Promise<SummaryCommentInfo[]> {
+    return this.summaryComments;
+  }
+
+  async createSummaryComment(body: string): Promise<void> {
+    if (this.summaryFailure) throw this.summaryFailure;
+    this.createdSummaryComments.push(body);
+    this.summaryComments.push({ id: this.nextId++, body, userType: "Bot", userLogin: "github-actions[bot]" });
+  }
+
+  async updateSummaryComment(id: number, body: string): Promise<void> {
+    if (this.summaryFailure) throw this.summaryFailure;
+    const comment = this.summaryComments.find((comment) => comment.id === id);
+    if (!comment) throw new Error("Unknown summary comment");
+    comment.body = body;
+    this.updatedSummaryComments.push(body);
+  }
+
+  async minimizeReview(nodeId: string): Promise<void> {
+    if (this.minimizeFailure) throw this.minimizeFailure;
+    this.minimizedReviews.push(nodeId);
+  }
+
+  async createReview(input: CreateReviewInput): Promise<ReviewInfo> {
     const failure = this.createReviewFailures.shift();
     if (failure) throw failure;
 
     this.createdReviews.push(input);
-    this.reviews.push({
+    const review = {
       id: this.nextId++,
+      nodeId: `review-${this.nextId}`,
       body: input.body,
       userType: "Bot",
-    });
+      userLogin: "github-actions[bot]",
+    };
+    this.reviews.push(review);
+    return review;
   }
 }
 

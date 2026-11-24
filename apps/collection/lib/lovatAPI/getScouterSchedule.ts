@@ -12,6 +12,7 @@ const scouterScheduleResponseSchema = z.object({
       matchType: z.number(),
       matchNumber: z.number(),
       scouters: z.record(
+        z.string(),
         z.object({
           team: z.number(),
           alliance: z.union([z.literal("red"), z.literal("blue")]),
@@ -42,7 +43,12 @@ type ScouterScheduleScouterEntry = {
 export async function getScouterSchedule(): Promise<
   ScouterSchedule | undefined
 > {
-  const tournamentKey = useTournamentStore.getState().value!.key;
+  const tournament = useTournamentStore.getState().value;
+  if (!tournament) {
+    return undefined;
+  }
+
+  const tournamentKey = tournament.key;
   const response = await get("/collection/schedules/" + tournamentKey);
 
   if (!response.ok) {

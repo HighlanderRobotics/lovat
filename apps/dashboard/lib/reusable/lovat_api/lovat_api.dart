@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,12 +7,47 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:scouting_dashboard_app/constants.dart';
+import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/response_cache.dart';
+import 'package:scouting_dashboard_app/web_auth_config.dart';
 
 class LovatAPI {
-  LovatAPI(this.baseUrl);
+  LovatAPI(
+    String baseUrl, {
+    http.Client? client,
+    Future<String?> Function()? tokenProvider,
+    this.isBaseUrlLocked = false,
+  })  : _baseUrl = baseUrl,
+        _client = client,
+        _tokenProvider = tokenProvider;
 
-  String baseUrl;
+  String _baseUrl;
+  final bool isBaseUrlLocked;
+  final http.Client? _client;
+  final Future<String?> Function()? _tokenProvider;
+  String? _lastToken;
+  bool _hasCacheIdentity = false;
+  int _cacheGeneration = 0;
+
+  String get baseUrl => _baseUrl;
+  set baseUrl(String value) {
+    if (isBaseUrlLocked || value == _baseUrl) return;
+    _baseUrl = value;
+    _invalidateCache();
+    unawaited(cache.flush());
+  }
+
+  void _invalidateCache() {
+    _cacheGeneration++;
+    cache.clear();
+    QueryCache.clearAll();
+  }
+
+  void dispose() {
+    cache.dispose();
+    _client?.close();
+  }
+
   bool _isAuthenticating = false;
   final ResponseCache cache = ResponseCache();
 
@@ -35,7 +71,7 @@ class LovatAPI {
 
   Future<Credentials?> _doInitialize() async {
     final credentials = await auth0Web.onLoad(
-      audience: "https://api.lovat.app",
+      audience: dashboardWebAuth.audience,
       scopes: {'openid', 'profile', 'email', 'offline_access'},
     );
     _webSdkInitialized = true;
@@ -63,7 +99,7 @@ class LovatAPI {
         await ensureWebSdkInitialized();
 
         final credentials = await auth0Web.loginWithPopup(
-          audience: "https://api.lovat.app",
+          audience: dashboardWebAuth.audience,
           scopes: {'openid', 'profile', 'email', 'offline_access'},
         );
 
@@ -72,7 +108,7 @@ class LovatAPI {
         final newCredentials = await auth0
             .webAuthentication(scheme: "com.frc8033.lovatdashboard")
             .login(
-          audience: "https://api.lovat.app",
+          audience: productionAuth0Audience,
           scopes: {'openid', 'profile', 'email', 'offline_access'},
         );
 
@@ -107,8 +143,9 @@ class LovatAPI {
           return (await login()).accessToken;
         }
 
-        final newCredentials = await auth0.api
-            .renewCredentials(refreshToken: credentials.refreshToken!);
+        final newCredentials = await auth0.api.renewCredentials(
+          refreshToken: credentials.refreshToken!,
+        );
 
         await auth0.credentialsManager.storeCredentials(newCredentials);
 
@@ -122,7 +159,17 @@ class LovatAPI {
   }
 
   Future<Map<String, String>> _getHeaders({bool jsonBody = false}) async {
-    final token = await getAccessToken();
+    final token = _tokenProvider == null
+        ? await getAccessToken()
+        : await _tokenProvider!();
+    // A token stays in memory only. Persisted cached responses are never reused
+    // before this client establishes its authenticated identity.
+    if (!_hasCacheIdentity || token != _lastToken) {
+      _invalidateCache();
+      await cache.flush();
+      _lastToken = token;
+      _hasCacheIdentity = true;
+    }
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
     return {
@@ -139,20 +186,26 @@ class LovatAPI {
     final uri = Uri.parse(baseUrl + path).replace(queryParameters: query);
     final key = uri.toString();
 
-    final cachedEntry = cache.get(key);
     final headers = await _getHeaders();
+    final generation = _cacheGeneration;
+    final cachedEntry = cache.get(key);
     if (cachedEntry?.etag != null) {
       headers['If-None-Match'] = cachedEntry!.etag!;
     }
 
-    final response = await http.get(uri, headers: headers);
+    final response = await (_client?.get ?? http.get)(uri, headers: headers);
 
-    if (response.statusCode == 304 && cachedEntry != null) {
-      return http.Response.bytes(utf8.encode(cachedEntry.body), 200,
-          headers: {'content-type': 'application/json'});
+    if (response.statusCode == 304 &&
+        cachedEntry != null &&
+        generation == _cacheGeneration) {
+      return http.Response.bytes(
+        utf8.encode(cachedEntry.body),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
     }
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 && generation == _cacheGeneration) {
       final etag = response.headers['etag'] ?? response.headers['ETag'];
       cache.put(key, response.body, etag: etag);
     }
@@ -160,15 +213,16 @@ class LovatAPI {
     return response;
   }
 
-  http.Response? getCachedResponse(
-    String path, {
-    Map<String, String>? query,
-  }) {
+  http.Response? getCachedResponse(String path, {Map<String, String>? query}) {
+    if (!_hasCacheIdentity) return null;
     final key = _cacheKey(path, query: query);
     final entry = cache.get(key);
     if (entry == null) return null;
-    return http.Response.bytes(utf8.encode(entry.body), 200,
-        headers: {'content-type': 'application/json'});
+    return http.Response.bytes(
+      utf8.encode(entry.body),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
   }
 
   T? getCachedData<T>(
@@ -176,6 +230,7 @@ class LovatAPI {
     Map<String, String>? query,
     required T Function(dynamic json) parser,
   }) {
+    if (!_hasCacheIdentity) return null;
     final key = _cacheKey(path, query: query);
     final entry = cache.get(key);
     if (entry == null) return null;
@@ -187,6 +242,7 @@ class LovatAPI {
   }
 
   DateTime? getCachedTimestamp(String path, {Map<String, String>? query}) {
+    if (!_hasCacheIdentity) return null;
     final key = _cacheKey(path, query: query);
     final entry = cache.get(key);
     if (entry == null) return null;
@@ -208,7 +264,7 @@ class LovatAPI {
   }) async {
     final uri = Uri.parse(baseUrl + path).replace(queryParameters: query);
 
-    return await http.post(
+    return await (_client?.post ?? http.post)(
       uri,
       body: body != null ? jsonEncode(body) : null,
       headers: await _getHeaders(jsonBody: body != null),
@@ -222,7 +278,7 @@ class LovatAPI {
   }) async {
     final uri = Uri.parse(baseUrl + path).replace(queryParameters: query);
 
-    return await http.put(
+    return await (_client?.put ?? http.put)(
       uri,
       body: body != null ? jsonEncode(body) : null,
       headers: await _getHeaders(jsonBody: body != null),
@@ -236,7 +292,7 @@ class LovatAPI {
   }) async {
     final uri = Uri.parse(baseUrl + path).replace(queryParameters: query);
 
-    return await http.delete(
+    return await (_client?.delete ?? http.delete)(
       uri,
       body: body != null ? jsonEncode(body) : null,
       headers: await _getHeaders(jsonBody: body != null),
@@ -253,11 +309,17 @@ class LovatAPIException implements Exception {
   String toString() => message;
 }
 
-const kProductionBaseUrl = "https://api.lovat.app";
+const kProductionBaseUrl = productionApiBase;
 
 const kDefaultBaseUrl = String.fromEnvironment(
-  'LOVAT_API_BASE',
+  apiBaseKey,
   defaultValue: kProductionBaseUrl,
 );
 
-final lovatAPI = LovatAPI(kDefaultBaseUrl);
+// The application uses this default instance. Test entrypoints may replace the
+// service with an ordinary injected client/token provider; no runtime bypass flag exists.
+final _sandboxWebApiOrigin = kIsWeb ? dashboardWebAuth.sandboxApiOrigin : null;
+LovatAPI lovatAPI = LovatAPI(
+  _sandboxWebApiOrigin ?? kDefaultBaseUrl,
+  isBaseUrlLocked: _sandboxWebApiOrigin != null,
+);

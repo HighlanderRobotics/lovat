@@ -3,7 +3,7 @@ import prismaClient from "../../../prismaClient.js";
 import {
   accuracyToPercentageInterpolated,
   accuracyToPercentage,
-  allTeamNumbers,
+  getAllTeamNumbers,
   autoEnd,
   endgameToPoints,
   Metric,
@@ -74,10 +74,10 @@ const config = {
     const metric = args.metric;
     return {
       key: ["averageAllTeamFast", String(metric)],
-      teamDependencies: await allTeamNumbers,
       tournamentDependencies: [],
     };
   },
+  loadTeamDependencies: getAllTeamNumbers,
   calculateAnalysis: async (
     args: { metric: Metric },
     ctx: { user: { teamSourceRule: unknown; tournamentSourceRule: unknown } },

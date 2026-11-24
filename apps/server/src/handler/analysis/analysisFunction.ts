@@ -31,6 +31,7 @@ export type AnalysisFunctionConfig<
       createKey: (
         params: z.infer<T>,
       ) => Promise<CreateKeyResult> | CreateKeyResult;
+      loadTeamDependencies?: () => Promise<number[]>;
     }
   | {
       shouldCache: false;
@@ -117,13 +118,16 @@ export async function runAnalysis<T extends z.ZodObject, R extends z.ZodType>(
   if (!cacheRow) {
     const result = await config.calculateAnalysis(passedArgs, context);
     const rounded = roundAllNumbers(result);
+    const dependencies = config.loadTeamDependencies
+      ? await config.loadTeamDependencies()
+      : (teamDependencies ?? []);
 
     await kv.set(key, JSON.stringify(rounded));
     try {
       await prismaClient.cachedAnalysis.create({
         data: {
           key,
-          teamDependencies: teamDependencies ?? [],
+          teamDependencies: dependencies,
           tournamentDependencies: tournamentDependencies ?? [],
         },
       });

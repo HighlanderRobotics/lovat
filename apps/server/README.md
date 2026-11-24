@@ -23,6 +23,38 @@ npm run dev
 
 Fill the local `.env` without committing it. PostgreSQL and Redis are required to start the service; external integrations are optional only when the exercised code path permits.
 
+## Request telemetry
+
+Request analytics use an allowlist with no payloads or extra person lookups.
+See the [event contract and PostHog privacy review](docs/request-telemetry.md) for
+route grouping, dashboard migration and historical-data remediation.
+
+## Health and shutdown
+
+Use `/live` for process liveness and `/ready` to check completed initialization,
+drain state and Redis. Neither probes PostgreSQL; verify SQL explicitly when
+releasing or diagnosing. `/status` retains its legacy response. See
+[health and shutdown](docs/health-and-shutdown.md) for verification and rollback.
+
+## Redis cache maintenance
+
+Every Redis key uses `REDIS_KEY_PREFIX` (default `lovat:`). The example local
+configuration uses database 1 and prefix `lovat:local:`. Use distinct prefixes
+for environments sharing a database; changing a prefix makes previous keys
+inaccessible without deleting them.
+
+Startup preserves existing keys. To delete only keys in the configured namespace:
+
+```bash
+npm run cache:reset
+```
+
+Stop all Server instances and drain requests before a complete reset. An online
+reset removes scanned keys, but concurrent requests can repopulate the cache.
+Dependency metadata is retained so analyses finishing after a reset remain
+available for normal invalidation. Foreign keys and legacy unprefixed keys are
+never deleted. Configure the same Redis URL and prefix as the Server.
+
 ## Checks
 
 ```bash
@@ -101,9 +133,11 @@ when a report is available. Download and extract the artifact, then serve its
 directory with a static HTTP server; opening `index.html` directly from disk
 cannot load the compressed test data reliably.
 
-Successful server CI runs on main can publish the report to GitHub Pages.
-See [test report hosting](../../docs/test-report-hosting.md) for the one-time
-Pages settings, public URL, and optional `tests.lovat.app` custom domain.
+Successful main CI runs publish the combined report site to GitHub Pages. The
+[Server report](https://highlanderrobotics.github.io/lovat/server/) now lives at
+`/lovat/server/`; `/lovat/` lists all application reports. See
+[test report hosting](../../docs/test-report-hosting.md) for publishing settings
+and the complete directory layout.
 
 ## Optional database restore
 
@@ -124,15 +158,15 @@ Railway must use the repository root and `apps/server/Dockerfile` so the shared 
 
 ### Railway service configuration
 
-Keep **Root Directory** set to `/` so Docker can copy `packages/db`. Set
-**Config File** to `/apps/server/railway.json`; that file selects
-`apps/server/Dockerfile`. Update this Railway setting before deploying the
-relocation commit, since there is no longer a root `railway.json`.
+Keep **Root Directory** set to `/` so Docker can copy `packages/db`.
+The `api` service in [Railway IaC](../../.railway/railway.ts) selects
+`apps/server/Dockerfile`, the private database migration/start command, and
+`/ready` healthcheck and 15-second drain window. Node runs directly to receive termination signals. Clear the legacy **Config File** path during the
+[one-time cutover](../../.railway/README.md), then plan and apply the IaC file.
 Clear any old Dockerfile-path override pointing to `Dockerfile.server`.
 
 The Dockerfile-specific `apps/server/Dockerfile.dockerignore` filters the
-repository-root build context. Database migration, startup, environment
-variables, and healthcheck behavior remain defined in the moved config.
+repository-root build context.
 
 Build locally from the repository root:
 
@@ -140,12 +174,38 @@ Build locally from the repository root:
 docker build -f apps/server/Dockerfile -t lovat-server .
 ```
 
+The image runs as the unprivileged `node` user. The build copies both npm
+lockfiles before installing dependencies, builds the shared Prisma client and
+API, and ships the compiled code, static assets, and production dependencies.
+The default Docker entrypoint uses Tini to forward shutdown signals to Node.
+Prisma's CLI, schema, and migrations stay in the image because Railway runs
+`npm --prefix ../../packages/db run db:deploy` before starting the API.
+Do not give the Docker build database credentials. Supply them at runtime.
+
+Keep the exact Node patch and Debian slim variant pinned in the Dockerfile.
+Update the Server `.nvmrc`, package engine, and CI runtime along with the image
+when updating Node. Rebuild to pick up Debian/OpenSSL updates, and rerun the
+migration and startup smoke check before shipping any base-image change.
+The tag pins the Node release, not the operating-system image digest.
+
+CI logs the image size in bytes and build time. To compare a Dockerfile change
+against its base branch, build both checkouts on the same machine and platform
+with the same Docker version and base-image cache. For a cold build, use
+`--no-cache` in both checkouts. For a source-edit rebuild, build once, edit a
+Server source file, then time a second build with caching enabled:
+
+```sh
+time docker build --no-cache -f apps/server/Dockerfile -t lovat-server:compare .
+docker image inspect --format '{{.Size}}' lovat-server:compare
+```
+
 ### Development without a Blue Alliance key
 
 In development, an empty `TBA_KEY` skips initial and scheduled Blue Alliance
 imports so a fresh local database can start without an external API key.
 PostgreSQL, Redis, and authentication remain enabled. Set `TBA_KEY` and restart
-for real team, tournament, and match imports. Routes that call Blue Alliance
+for real team and match refreshes. Tournament imports run in the separate
+worker, which automatically refreshes the current UTC season every six hours. Routes that call Blue Alliance
 directly still require the key. Production keeps its existing import behavior.
 
 ### Practice match imports from Nexus

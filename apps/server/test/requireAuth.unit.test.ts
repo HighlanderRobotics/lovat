@@ -166,9 +166,7 @@ describe("authentication dependencies and failures", () => {
       .set("X-Lovat-Error-Format", "json-v1")
       .auth(apiKey, { type: "bearer" });
     expect(res.status).toBe(401);
-    expect(res.text).toBe(
-      "Invalid API key. API keys were rotated recently. Please check your email for your replacement API key.",
-    );
+    expect(res.text).toBe("Invalid API key");
   });
 
   it.each(["Redis", "user database"])(

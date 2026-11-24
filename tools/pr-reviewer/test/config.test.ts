@@ -21,6 +21,7 @@ describe("resolveConfig", () => {
     expect(config.model).toBe("test/model");
     expect(config.maxDiffCharacters).toBe(80_000);
     expect(config.maxFindings).toBe(20);
+    expect(config.maxOutputTokens).toBe(16_384);
     expect(config.minimumConfidence).toBe(0.75);
     expect(config.categories).toEqual([...CATEGORIES]);
     expect(config.excludedPaths).toEqual([...DEFAULT_EXCLUDED_PATHS]);

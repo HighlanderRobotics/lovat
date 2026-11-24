@@ -51,6 +51,8 @@ const rows = () => [
 beforeEach(() => {
   vi.resetAllMocks();
   db.get.mockResolvedValue(null);
+  db.team.findMany.mockResolvedValue([]);
+  db.tournament.findMany.mockResolvedValue([]);
   db.teamMatchData.findMany.mockResolvedValue(rows());
   db.scoutReport.findUniqueOrThrow.mockResolvedValue(report);
   db.$queryRawUnsafe.mockResolvedValue([]);

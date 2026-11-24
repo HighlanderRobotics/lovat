@@ -78,6 +78,7 @@ describe("OpenRouterClient", () => {
     ]);
     expect(body.temperature).toBe(0.1);
     expect(body.max_tokens).toBe(2_000);
+    expect(body.reasoning).toEqual({ effort: "low" });
     expect(body.response_format).toMatchObject({ type: "json_schema" });
   });
 
@@ -196,7 +197,7 @@ describe("OpenRouterClient", () => {
     expect(calls).toHaveLength(2);
   });
 
-  it("logs empty-response metadata without logging response content", async () => {
+  it("reports reasoning-only truncation without retrying or logging reasoning", async () => {
     const { sleep } = noSleep();
     const logs: string[] = [];
     const logger = {
@@ -204,13 +205,13 @@ describe("OpenRouterClient", () => {
       warn: (message: string) => logs.push(`warn:${message}`),
       error: (message: string) => logs.push(`error:${message}`),
     };
-    const { fetchImpl } = scriptedFetch([
+    const { fetchImpl, calls } = scriptedFetch([
       jsonResponse({
         choices: [
           {
             finish_reason: "length",
             native_finish_reason: "max_tokens",
-            message: { content: "", reasoning: "internal reasoning" },
+            message: { content: null, reasoning: "internal reasoning" },
           },
         ],
         usage: {
@@ -223,12 +224,14 @@ describe("OpenRouterClient", () => {
       completion(modelResponse([])),
     ]);
 
-    await client(fetchImpl, { maxRetries: 1, sleep, logger }).review({
-      systemPrompt: "s",
-      userPrompt: "u",
-      batchIndex: 0,
-      batchCount: 1,
-    });
+    await expect(
+      client(fetchImpl, { maxRetries: 1, sleep, logger }).review({
+        systemPrompt: "s",
+        userPrompt: "u",
+        batchIndex: 0,
+        batchCount: 1,
+      }),
+    ).rejects.toMatchObject({ code: "output_limit", retryable: false });
 
     const output = logs.join("\n");
     expect(output).toContain("finish_reason=length");
@@ -236,8 +239,9 @@ describe("OpenRouterClient", () => {
     expect(output).toContain("content_chars=0");
     expect(output).toContain("reasoning_chars=18");
     expect(output).toContain("reasoning_tokens=4096");
-    expect(output).toContain("OpenRouter retrying in");
+    expect(output).not.toContain("OpenRouter retrying in");
     expect(output).not.toContain("internal reasoning");
+    expect(calls).toHaveLength(1);
   });
 
   it("rejects output-limit truncation without retrying", async () => {

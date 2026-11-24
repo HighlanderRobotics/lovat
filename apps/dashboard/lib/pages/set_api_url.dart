@@ -17,6 +17,7 @@ class _SetAPIUrlPageState extends State<SetAPIUrlPage> {
   bool connected = false;
 
   Future<void> setAPIUrl() async {
+    if (lovatAPI.isBaseUrlLocked) return;
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setString('api_base_url', widget.apiBaseUrl);
@@ -36,6 +37,7 @@ class _SetAPIUrlPageState extends State<SetAPIUrlPage> {
 
   @override
   Widget build(BuildContext context) {
+    final locked = lovatAPI.isBaseUrlLocked;
     return Scaffold(
       body: PageBody(
         child: Column(
@@ -43,17 +45,21 @@ class _SetAPIUrlPageState extends State<SetAPIUrlPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              connected
-                  ? "Connected to development server"
-                  : "Connecting to development server",
+              locked
+                  ? "Sandbox server is fixed"
+                  : connected
+                      ? "Connected to development server"
+                      : "Connecting to development server",
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             Text(
-              "Lovat Dashboard will send API requests to ${Uri.parse(widget.apiBaseUrl).host}. You can reset it to the default server in settings.",
+              locked
+                  ? "This sandbox build only connects to ${Uri.parse(lovatAPI.baseUrl).host}."
+                  : "Lovat Dashboard will send API requests to ${Uri.parse(widget.apiBaseUrl).host}. You can reset it to the default server in settings.",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             FilledButton(
-              onPressed: connected
+              onPressed: connected || locked
                   ? () {
                       Navigator.of(context).pushNamedAndRemoveUntil(
                           "/loading", (route) => false);

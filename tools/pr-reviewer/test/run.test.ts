@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { GitHubApiError } from "../src/github.js";
 import { runReview, type RunReviewInput } from "../src/run.js";
-import { decodeState } from "../src/summary.js";
+import { decodeState, encodeState } from "../src/summary.js";
 import type { ModelReviewRequest, PullRequestFile } from "../src/types.js";
 import {
   FakeGitHub,
@@ -70,9 +70,12 @@ describe("runReview lifecycle", () => {
         body: expect.stringContaining("Missing null check"),
       },
     ]);
-    expect(review.body).toContain("## Lovat AI review");
-    expect(review.body).toContain("Looks reasonable.");
-    expect(decodeState(review.body)).not.toBeNull();
+    expect(github.summaryComments).toHaveLength(1);
+    const summary = github.summaryComments[0]!;
+    expect(summary.body).toContain("## Lovat AI review");
+    expect(summary.body).toContain("Looks reasonable.");
+    expect(summary.body).toContain("**Reviewed commit:** `head-sha`");
+    expect(decodeState(summary.body)).not.toBeNull();
 
     expect(model.calls).toHaveLength(1);
     expect(model.calls[0]!.systemPrompt).toContain(guide);
@@ -126,9 +129,10 @@ describe("runReview lifecycle", () => {
     expect(second.findings).toBe(1);
     expect(second.inlineComments).toBe(0);
     expect(second.suppressed).toBe(1);
-    expect(github.createdReviews).toHaveLength(2);
-    expect(github.createdReviews[1]!.comments).toEqual([]);
-    expect(github.createdReviews[1]!.body).toContain(
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.summaryComments).toHaveLength(1);
+    expect(github.updatedSummaryComments).toHaveLength(1);
+    expect(github.summaryComments[0]!.body).toContain(
       "previously reported, not repeated inline",
     );
   });
@@ -227,7 +231,7 @@ describe("runReview lifecycle", () => {
 
     const types = model.calls.map((call: ModelReviewRequest) => call.batchIndex);
     expect(types).toEqual([...types].sort((a, b) => a - b));
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.summaryComments[0]!.body).toContain(
       `Review batches: ${outcome.batches}`,
     );
   });
@@ -251,12 +255,12 @@ describe("runReview lifecycle", () => {
     expect(draftModel.calls).toHaveLength(0);
   });
 
-  it("publishes a visible failed review and preserves prior state", async () => {
+  it("updates the persistent summary on failure and preserves prior state", async () => {
     const github = new FakeGitHub();
     const successModel = new FakeModel(modelResponse([rawFinding({ line: 12 })]));
     await runReview(input(github, successModel));
 
-    const previousState = decodeState(github.createdReviews[0]!.body);
+    const previousState = decodeState(github.summaryComments[0]!.body);
     expect(previousState).not.toBeNull();
 
     const failingModel = new FakeModel(() => {
@@ -274,12 +278,19 @@ describe("runReview lifecycle", () => {
       expect(outcome.error).not.toContain("sk-or-v1-abcdefghijklmnopqrstuvwxyz");
     }
 
-    expect(github.createdReviews).toHaveLength(2);
-    const failure = github.createdReviews[1]!;
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.summaryComments).toHaveLength(1);
+    const failure = github.summaryComments[0]!;
     expect(failure.body).toContain("## Lovat AI review failed");
     expect(failure.body).not.toContain("sk-or-v1-abcdefghijklmnopqrstuvwxyz");
-    expect(failure.comments).toEqual([]);
+    expect(failure.body).toContain("**Unreviewed commit:** `head-sha`");
+    expect(github.minimizedReviews).toEqual([]);
     expect(decodeState(failure.body)).toEqual(previousState);
+    expect(failure.body).toContain("Last successful result (earlier review)");
+    expect(failure.body).toContain("Missing null check");
+    await runReview(input(github, failingModel));
+    expect(github.summaryComments[0]!.body.match(/Last successful result/g)).toHaveLength(1);
+    expect(github.createdReviews).toHaveLength(1);
   });
 
   it("fails visibly when the model returns malformed JSON", async () => {
@@ -289,7 +300,7 @@ describe("runReview lifecycle", () => {
     const outcome = await runReview(input(github, model));
 
     expect(outcome.status).toBe("failed");
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.summaryComments[0]!.body).toContain(
       "## Lovat AI review failed",
     );
   });
@@ -310,7 +321,7 @@ describe("runReview lifecycle", () => {
     expect(outcome.inlineComments).toBe(0);
     expect(github.createdReviews).toHaveLength(1);
     expect(github.createdReviews[0]!.comments).toEqual([]);
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.summaryComments[0]!.body).toContain(
       "GitHub rejected one or more inline comment positions",
     );
     expect(github.createdReviews[0]!.body).toContain(
@@ -332,11 +343,11 @@ describe("runReview lifecycle", () => {
 
     expect(outcome.batches).toBe(0);
     expect(model.calls).toHaveLength(0);
-    expect(github.createdReviews).toHaveLength(1);
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.createdReviews).toHaveLength(0);
+    expect(github.summaryComments[0]!.body).toContain(
       "No high-confidence issues were found",
     );
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.summaryComments[0]!.body).toContain(
       "Files excluded by configuration: 1",
     );
   });
@@ -351,7 +362,7 @@ describe("runReview lifecycle", () => {
     const outcome = await runReview(input(github, model));
 
     expect(outcome.status).toBe("completed");
-    expect(github.createdReviews[0]!.body).toContain(
+    expect(github.summaryComments[0]!.body).toContain(
       "GitHub did not return a patch for 1 file(s)",
     );
   });
@@ -379,7 +390,149 @@ describe("runReview lifecycle", () => {
     if (outcome.status !== "completed") return;
 
     expect(outcome.findings).toBe(1);
-    const body = github.createdReviews[0]!.body;
+    const body = github.summaryComments[0]!.body;
     expect(body).toContain("Findings below the 0.75 confidence threshold: 1");
+  });
+});
+
+describe("persistent review publishing", () => {
+  it("keeps clean results and repeated failures in one comment without reviews", async () => {
+    const github = new FakeGitHub();
+    await runReview(input(github, new FakeModel(modelResponse([]))));
+    const failingModel = new FakeModel(() => { throw new Error("offline"); });
+    for (let index = 0; index < 2; index += 1) {
+      const outcome = await runReview(input(github, failingModel, { runUrl: "https://github.com/org/repo/actions/runs/7" }));
+      expect(outcome.status).toBe("failed");
+    }
+    expect(github.summaryComments).toHaveLength(1);
+    expect(github.createdSummaryComments).toHaveLength(1);
+    expect(github.updatedSummaryComments).toHaveLength(2);
+    expect(github.createdReviews).toHaveLength(0);
+    expect(github.summaryComments[0]!.body).toContain("View the workflow run");
+    expect(github.minimizedReviews).toEqual([]);
+  });
+
+  it("minimizes legacy Lovat reviews after replacing the summary, leaving other authors alone", async () => {
+    const github = new FakeGitHub();
+    const body = `<!-- lovat-review:summary -->\n${encodeState({ version: 1, fingerprints: [] })}`;
+    github.reviews = [
+      { id: 10, nodeId: "legacy-lovat", body, userType: "Bot", userLogin: "github-actions[bot]" },
+      { id: 11, nodeId: "human", body, userType: "User", userLogin: "student" },
+      { id: 12, nodeId: "other-bot", body, userType: "Bot", userLogin: "another[bot]" },
+      { id: 13, nodeId: "unmarked", body: "Another workflow's review", userType: "Bot", userLogin: "github-actions[bot]" },
+    ];
+    const minimize = github.minimizeReview.bind(github);
+    github.minimizeReview = async (id) => {
+      expect(github.summaryComments[0]!.body).toContain("**Status:** completed");
+      await minimize(id);
+    };
+    const outcome = await runReview(input(github, new FakeModel(modelResponse([]))));
+    expect(outcome.status).toBe("completed");
+    expect(github.minimizedReviews).toEqual(["legacy-lovat"]);
+    expect(github.createdReviews).toHaveLength(0);
+  });
+
+  it("keeps the new review expanded and includes full active finding details in the summary", async () => {
+    const github = new FakeGitHub();
+    const model = new FakeModel([
+      modelResponse([rawFinding()]),
+      modelResponse([rawFinding(), rawFinding({ title: "New issue", line: 13 })]),
+    ]);
+    await runReview(input(github, model));
+    expect(github.minimizedReviews).toEqual([]);
+    await runReview(input(github, model));
+    expect(github.minimizedReviews).toEqual([github.reviews[0]!.nodeId]);
+    expect(github.createdReviews[1]!.body).toContain("New issue");
+    expect(github.createdReviews[1]!.body).not.toContain("Missing null check");
+    const body = github.summaryComments[0]!.body;
+    expect(body).toContain("Missing null check");
+    expect(body).toContain("New issue");
+    expect(body).toContain("The report can be null when the id is unknown");
+  });
+
+  it("logs a cleanup permission failure without failing the published review", async () => {
+    const github = new FakeGitHub();
+    const model = new FakeModel(modelResponse([rawFinding()]));
+    await runReview(input(github, model));
+    github.minimizeFailure = new GitHubApiError("forbidden", 403);
+    const warnings: string[] = [];
+    const outcome = await runReview(input(github, model, {
+      logger: { ...silentLogger, warn: (message) => warnings.push(message) },
+    }));
+    expect(outcome.status).toBe("completed");
+    expect(github.summaryComments[0]!.body).toContain("**Status:** completed");
+    expect(warnings.join("\n")).toContain("Could not minimize superseded AI review");
+  });
+
+  it("does not minimize reviews until summary publication succeeds, and recovers duplicate state", async () => {
+    const github = new FakeGitHub();
+    const model = new FakeModel(modelResponse([rawFinding()]));
+    github.summaryFailure = new Error("summary unavailable");
+    const failed = await runReview(input(github, model));
+    expect(failed.status).toBe("failed");
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.minimizedReviews).toEqual([]);
+    github.summaryFailure = undefined;
+    const recovered = await runReview(input(github, model));
+    expect(recovered.status).toBe("completed");
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.summaryComments).toHaveLength(1);
+    expect(github.minimizedReviews).toEqual([github.reviews[0]!.nodeId]);
+  });
+
+  it("recovers newer review state when updating an existing summary failed", async () => {
+    const github = new FakeGitHub();
+    const clean = new FakeModel(modelResponse([]));
+    await runReview(input(github, clean));
+    github.summaryFailure = new Error("summary unavailable");
+    const findings = new FakeModel(modelResponse([rawFinding()]));
+    await runReview(input(github, findings));
+    expect(github.createdReviews).toHaveLength(1);
+    github.summaryFailure = undefined;
+    const recovered = await runReview(input(github, findings));
+    expect(recovered.status).toBe("completed");
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.summaryComments).toHaveLength(1);
+    expect(decodeState(github.summaryComments[0]!.body)?.fingerprints).toHaveLength(1);
+  });
+
+  it("ignores spoofed persistent summary markers from people and other bots", async () => {
+    const github = new FakeGitHub();
+    const body = "<!-- lovat-review:persistent-summary -->";
+    github.summaryComments.push(
+      { id: 5, body, userType: "User", userLogin: "student" },
+      { id: 6, body, userType: "Bot", userLogin: "another[bot]" },
+    );
+    await runReview(input(github, new FakeModel(modelResponse([]))));
+    expect(github.createdSummaryComments).toHaveLength(1);
+    expect(github.updatedSummaryComments).toHaveLength(0);
+    expect(github.summaryComments.slice(0, 2).map((comment) => comment.body)).toEqual([body, body]);
+  });
+
+  it("reports positionless findings once and updates their full details in the summary", async () => {
+    const github = new FakeGitHub();
+    const model = new FakeModel(modelResponse([rawFinding({ line: 100 })]));
+    await runReview(input(github, model));
+    await runReview(input(github, model));
+    expect(github.createdReviews).toHaveLength(1);
+    expect(github.createdReviews[0]!.comments).toHaveLength(0);
+    expect(github.createdReviews[0]!.body).toContain("The report can be null");
+    expect(github.summaryComments).toHaveLength(1);
+    expect(github.summaryComments[0]!.body).toContain("The report can be null");
+  });
+
+  it("does not publish stale successes or stale failures after a new push", async () => {
+    for (const fail of [false, true]) {
+      const github = new FakeGitHub();
+      const model = new FakeModel(() => {
+        github.pullRequest = { ...github.pullRequest, headSha: "new-head" };
+        if (fail) throw new Error("old request failed");
+        return modelResult(modelResponse([rawFinding()]));
+      });
+      await runReview(input(github, model));
+      expect(github.summaryComments).toHaveLength(0);
+      expect(github.createdReviews).toHaveLength(0);
+      expect(github.minimizedReviews).toHaveLength(0);
+    }
   });
 });
