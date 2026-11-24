@@ -110,6 +110,10 @@ to the plan as well. For a continuously running Worker, use
 Railway evaluates workflow conclusions and can ignore a cancelled workflow when
 another workflow passed. Keep the `main` CI workflow free of superseding-run
 cancellation. Verify the aggregate outcome and deployed SHA for each promotion.
+Test-report publishing runs separately after CI, but its GitHub check suite may
+still attach to the deployment SHA. Verify suite association, a publishing
+failure, and cancellation behavior in an isolated environment before enabling
+the live gate. See [Pages and Railway validation](../docs/test-report-hosting.md#railway-isolation-is-not-assumed).
 
 The November 20 read-only production audit found the API already had sleeping
 enabled. The graph now preserves that setting alongside the Worker's existing

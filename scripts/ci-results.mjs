@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 export const jobSelectors = {
   reviewer: "reviewer",
   server: "server",
+  "server-unit": "server",
+  "server-image": "server",
   worker: "worker",
   collection: "collection",
   "dashboard-format": "dashboard",
@@ -16,6 +18,8 @@ export const jobSelectors = {
 };
 const reportJobs = new Set([
   "server",
+  "server-unit",
+  "server-image",
   "collection",
   "dashboard",
   "dashboard-browser",

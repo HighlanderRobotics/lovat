@@ -4,7 +4,7 @@ import {
   parseStoredSourceRule,
   dataSourceRuleToArray,
 } from "../../analysis/dataSourceRule.js";
-import { allTournaments } from "../../analysis/analysisConstants.js";
+import { getAllTournaments } from "../../analysis/analysisConstants.js";
 import z from "zod";
 
 export const getTournamentSource = async (
@@ -17,7 +17,7 @@ export const getTournamentSource = async (
       .send(
         dataSourceRuleToArray(
           parseStoredSourceRule(z.string(), req.user.tournamentSourceRule),
-          await allTournaments,
+          await getAllTournaments(),
         ),
       );
   }

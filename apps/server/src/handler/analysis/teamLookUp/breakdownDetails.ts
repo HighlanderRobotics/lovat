@@ -1,8 +1,8 @@
 import { analysisReportsSql } from "../reportReliability.js";
 import z from "zod";
 import {
-  allTeamNumbers,
-  allTournaments,
+  getAllTeamNumbers,
+  getAllTournaments,
   breakdownNeg,
   breakdownPos,
   dashboardToServer,
@@ -23,6 +23,8 @@ export const breakdownDetails = createAnalysisHandler({
   },
   usesDataSource: true,
   shouldCache: true,
+  // Only the viewer's own team can see scout names.
+  usesViewerTeam: true,
   createKey: async ({ params }) => {
     return {
       key: [
@@ -69,11 +71,11 @@ export const breakdownDetails = createAnalysisHandler({
       queryStr,
       dataSourceRuleToArray(
         parseStoredSourceRule(z.number(), ctx.user.teamSourceRule),
-        await allTeamNumbers,
+        await getAllTeamNumbers(),
       ),
       dataSourceRuleToArray(
         parseStoredSourceRule(z.string(), ctx.user.tournamentSourceRule),
-        await allTournaments,
+        await getAllTournaments(),
       ),
     );
 

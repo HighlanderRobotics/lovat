@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Suppress automated version and security-update PRs. Alerts stay enabled separately.
+  # Suppress automated dependency update PRs. Alerts stay enabled separately.
   # Wildcard ignores apply to security updates too; a zero PR limit alone does not.
   - package-ecosystem: npm
     directories:
@@ -23,7 +23,7 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 0
     ignore:
       - dependency-name: "*"
