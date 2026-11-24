@@ -51,6 +51,16 @@ afterEach(() => {
 });
 it("balances three scouters across qualification teams and emits shift and lunch breaks", async () => {
   const csv = await generateSchedule("2026test");
+  expect(mocks.fetch).toHaveBeenCalledWith(
+    "https://www.thebluealliance.com/api/v3/event/2026test",
+    expect.objectContaining({ redirect: "error" }),
+  );
+  for (const suffix of ["matches", "teams"]) {
+    expect(mocks.http).toHaveBeenCalledWith(
+      `https://www.thebluealliance.com/api/v3/event/2026test/${suffix}`,
+      expect.objectContaining({ maxRedirects: 0 }),
+    );
+  }
   const rows = csv!.split("\n");
   expect(rows[0]).toBe(
     "Match Number,Scouter 1,Team,Scouter 2,Team,Scouter 3,Team,Expected Time",

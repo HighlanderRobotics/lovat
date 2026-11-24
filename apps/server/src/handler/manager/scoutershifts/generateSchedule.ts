@@ -5,6 +5,7 @@ import prismaClient from "../../../prismaClient.js";
 // import { join } from "path";
 // import { homedir } from "os";
 import { Request, Response } from "express";
+import { tbaEventUrl } from "../../../lib/tbaEventUrl.js";
 
 const shiftScouterEx = [
   ["Christian", "Oren", "Ben"],
@@ -22,7 +23,6 @@ export const generateSchedule = async (
 
   // console.log("generating schedule for " + tournamentKey);
 
-  const url = "https://www.thebluealliance.com/api/v3";
   const tournamentRow = await prismaClient.tournament.findUnique({
     where: {
       key: tournamentKey,
@@ -33,7 +33,8 @@ export const generateSchedule = async (
     throw "tournament not found when trying to insert tournament matches";
   }
 
-  const eventResponse = await fetch(`${url}/event/${tournamentKey}`, {
+  const eventResponse = await fetch(tbaEventUrl(tournamentKey, "event"), {
+    redirect: "error",
     headers: { "X-TBA-Auth-Key": process.env.TBA_KEY },
   });
 
@@ -52,12 +53,14 @@ export const generateSchedule = async (
   let teamsResponse = null;
   // console.log("fetching matches for " + tournamentKey);
   try {
-    matchesResponse = await axios.get(`${url}/event/${tournamentKey}/matches`, {
+    matchesResponse = await axios.get(tbaEventUrl(tournamentKey, "matches"), {
+      maxRedirects: 0,
       headers: {
         "X-TBA-Auth-Key": process.env.TBA_KEY,
       },
     });
-    teamsResponse = await axios.get(`${url}/event/${tournamentKey}/teams`, {
+    teamsResponse = await axios.get(tbaEventUrl(tournamentKey, "teams"), {
+      maxRedirects: 0,
       headers: {
         "X-TBA-Auth-Key": process.env.TBA_KEY,
       },
