@@ -66,11 +66,11 @@ void main() {
     )));
     await tester.pumpAndSettle();
     expect(find.text('API Weekend Event'), findsOneWidget);
-    expect(find.text('Oct 24 – Oct 25'), findsOneWidget);
+    expect(find.text('10/24 – 10/25/2026'), findsOneWidget);
     expect(find.text('Glendale'), findsOneWidget);
     expect(tester.getTopLeft(find.text('Glendale')).dx,
         greaterThan(tester.getTopLeft(find.text('API Weekend Event')).dx));
-    expect(tester.getTopLeft(find.text('Oct 24 – Oct 25')).dy,
+    expect(tester.getTopLeft(find.text('10/24 – 10/25/2026')).dy,
         greaterThan(tester.getTopLeft(find.text('Glendale')).dy));
     expect(tester.getSize(find.byType(UpcomingTournamentCard)).height,
         lessThanOrEqualTo(60));

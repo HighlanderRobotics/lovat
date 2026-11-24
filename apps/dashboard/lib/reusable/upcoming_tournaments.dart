@@ -102,6 +102,18 @@ class _UpcomingWeekTournamentsState extends State<UpcomingWeekTournaments> {
   }
 }
 
+/// "10/24/2026", or "10/24 – 10/25/2026" for a multi-day event.
+String tournamentDateText(DateTime start, DateTime? end) {
+  final full = DateFormat('MM/dd/yyyy');
+  if (end == null || _calendarDate(end) == _calendarDate(start)) {
+    return full.format(start);
+  }
+  final first = start.year == end.year
+      ? DateFormat('MM/dd').format(start)
+      : full.format(start);
+  return "$first – ${full.format(end)}";
+}
+
 class UpcomingTournamentCard extends StatelessWidget {
   const UpcomingTournamentCard({super.key, required this.tournament});
 
@@ -109,50 +121,43 @@ class UpcomingTournamentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final start = tournament.date!;
-    final end = tournament.endDate;
-    final format = DateFormat('MMM d');
-    final date = end != null && _calendarDate(end) != _calendarDate(start)
-        ? "${format.format(start)} – ${format.format(end)}"
-        : format.format(start);
+    final location = tournament.location?.trim();
     return Container(
-      constraints: const BoxConstraints(minHeight: 56),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
         children: [
           Expanded(
-            flex: 3,
             child: Text(
               tournament.localized,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: 16,
+                height: 18 / 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFFE0E0E0),
+              ),
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: DefaultTextStyle(
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          DefaultTextStyle(
+            style: const TextStyle(fontSize: 10, color: Color(0xFFB8B8B8)),
+            textAlign: TextAlign.right,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (tournament.location?.trim().isNotEmpty == true) ...[
-                    Text(tournament.location!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right),
-                    const SizedBox(height: 3),
-                  ],
-                  FittedBox(fit: BoxFit.scaleDown, child: Text(date)),
+                  if (location?.isNotEmpty == true)
+                    Text(location!,
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                      tournamentDateText(tournament.date!, tournament.endDate)),
                 ],
               ),
             ),

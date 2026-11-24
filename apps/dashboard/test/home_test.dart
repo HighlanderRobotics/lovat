@@ -35,7 +35,7 @@ void main() {
       },
     ));
     await tester.pumpAndSettle();
-    final weekly = find.text('Upcoming Tournaments This Week');
+    final weekly = find.text('Tournaments this week');
     expect(find.ancestor(of: weekly, matching: find.byType(GestureDetector)),
         findsNothing);
     await tester.ensureVisible(find.text('Teams'));
@@ -109,41 +109,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('off-duty count follows inclusive shift ranges and scout IDs',
+  testWidgets('scouter cards show who is up next by inclusive shift ranges',
       (tester) async {
-    const first = Scout(name: 'Alex', id: 'first');
-    const second = Scout(name: 'Alex', id: 'second');
+    const alexKim = Scout(name: 'Alex Kim', id: 'first');
+    const alexLee = Scout(name: 'Alex Lee', id: 'second');
+    const sam = Scout(name: 'Sam', id: 'third');
+    ServerScoutingShift shift(String id, int start, int end, List<Scout> a,
+            [List<Scout> b = const []]) =>
+        ServerScoutingShift(
+          id: id,
+          start: start,
+          end: end,
+          team1: a,
+          team2: b,
+          team3: [],
+          team4: [],
+          team5: [],
+          team6: [],
+        );
     final schedule = ServerScoutSchedule(hash: 'test', shifts: [
-      ServerScoutingShift(
-        id: 'shift-one',
-        start: 1,
-        end: 2,
-        team1: [first],
-        team2: [first, second],
-        team3: [],
-        team4: [],
-        team5: [],
-        team6: [],
-      ),
-      ServerScoutingShift(
-        id: 'shift-two',
-        start: 3,
-        end: 4,
-        team1: [],
-        team2: [],
-        team3: [],
-        team4: [],
-        team5: [],
-        team6: [second],
-      ),
+      shift('one', 1, 2, [alexKim], [alexKim, alexLee]),
+      shift('two', 3, 4, [alexLee]),
+      shift('three', 6, 7, [alexKim, sam]),
     ]);
 
     Future<void> showMatch(int? ordinal, {bool hasSchedule = true}) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: ScoutersCard(
-            onDuty: false,
-            lastCompletedMatch: null,
+          body: HomeScouters(
             schedule: hasSchedule ? schedule : null,
             nextMatchOrdinal: ordinal,
           ),
@@ -151,17 +144,48 @@ void main() {
       ));
     }
 
-    await showMatch(2);
-    expect(find.text('Next Match'), findsOneWidget);
-    expect(find.text('2 Scouters'), findsOneWidget);
+    // Scouters on duty for the match being played are left out.
+    await showMatch(1);
+    expect(find.byType(HomeScouterCard), findsOneWidget);
+    expect(find.text('Sam'), findsOneWidget);
+    expect(find.text('Up in 5 matches'), findsOneWidget);
     await showMatch(3);
-    expect(find.text('1 Scouters'), findsOneWidget);
+    expect(find.text('Alex K'), findsOneWidget);
+    expect(find.text('Sam'), findsOneWidget);
+    expect(find.text('Alex L'), findsNothing);
+    expect(find.text('Up in 3 matches'), findsNWidgets(2));
     await showMatch(5);
-    expect(find.text('0 Scouters'), findsOneWidget);
+    expect(find.text('Up in 1 match'), findsNWidgets(2));
+    await showMatch(8);
+    expect(find.text('No more scouting shifts.'), findsOneWidget);
     await showMatch(3, hasSchedule: false);
-    expect(find.text('Schedule unavailable'), findsOneWidget);
+    expect(find.text('The scouter schedule is unavailable.'), findsOneWidget);
     await showMatch(null);
-    expect(find.text('No upcoming matches'), findsOneWidget);
+    expect(find.text('No upcoming matches.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('ordinal ranks', () {
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 101, 111].map(ordinal), [
+      '1st',
+      '2nd',
+      '3rd',
+      '4th',
+      '11th',
+      '12th',
+      '13th',
+      '21st',
+      '22nd',
+      '23rd',
+      '101st',
+      '111th'
+    ]);
+  });
+
+  test('scouter names shorten to first name and last initial', () {
+    expect(shortScouterName('Collin Cameron'), 'Collin C');
+    expect(shortScouterName('  Leo  van Kirk '), 'Leo K');
+    expect(shortScouterName('Sam'), 'Sam');
   });
 
   test('rankings sort with null ranks last', () {
@@ -295,7 +319,7 @@ void main() {
   });
 
   testWidgets(
-      'match status changes from Completed to Up next in the same badge',
+      'match status changes from Completed to Now playing in the same badge',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -305,7 +329,7 @@ void main() {
         ),
       ),
     ));
-    expect(find.text('Completed'), findsOneWidget);
+    expect(find.text('COMPLETED'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -314,8 +338,22 @@ void main() {
         ),
       ),
     ));
-    expect(find.text('Completed'), findsNothing);
-    expect(find.text('Up next'), findsOneWidget);
+    expect(find.text('COMPLETED'), findsNothing);
+    expect(find.text('NOW PLAYING'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('team match badge names the team', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: HomePageMatch(
+          match1: MatchScheduleMatch.fromJson(matchFixture(0, 9), 'test-event'),
+          isTeamMatch: true,
+          teamNumber: 8033,
+        ),
+      ),
+    ));
+    expect(find.text('NEXT FOR 8033'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -335,7 +373,7 @@ void main() {
           find.text('No more upcoming matches for your team'), findsOneWidget);
       expect(find.textContaining('at test-event'), findsNothing);
       expect(find.text('8033'), findsNothing);
-      expect(find.text('Completed'), findsNothing);
+      expect(find.text('COMPLETED'), findsNothing);
       expect(tester.takeException(), isNull);
     }
   });
@@ -400,12 +438,16 @@ void main() {
     api.pendingSchedule = null;
     await Tournament('new-event', 'New event').storeAsCurrent();
     await tester.pumpAndSettle();
-    expect(find.text('Qualifier 7'), findsNWidgets(2));
+    // The team plays in the current match and has none after it.
+    expect(find.text('Qualifier 7'), findsOneWidget);
+    expect(find.byType(NoUpcomingTeamMatches), findsOneWidget);
     expect(find.textContaining('at old-event'), findsNothing);
 
     pending.complete(http.Response(jsonEncode([matchFixture(1, 1)]), 200));
     await tester.pumpAndSettle();
-    expect(find.text('Qualifier 7'), findsNWidgets(2));
+    // The team plays in the current match and has none after it.
+    expect(find.text('Qualifier 7'), findsOneWidget);
+    expect(find.byType(NoUpcomingTeamMatches), findsOneWidget);
     expect(find.textContaining('at old-event'), findsNothing);
 
     await Tournament.clearCurrent();

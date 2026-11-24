@@ -44,7 +44,6 @@ class _HomePageState extends State<HomePage> {
   List<String> notices = [];
   MatchScheduleMatch? match1;
   MatchScheduleMatch? match2;
-  MatchScheduleMatch? lastCompletedMatch;
   int? nextMatchOrdinal;
   TeamTournamentStatus? teamTournamentStatus;
   List<TeamRanking> topTeams = [];
@@ -122,14 +121,31 @@ class _HomePageState extends State<HomePage> {
                                               "Retry unavailable data"),
                                         ),
                                       ),
-                                    Text(
-                                      team == null
-                                          ? "Team status"
-                                          : "$team's status",
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        height: 1.6,
-                                        fontWeight: FontWeight.w500,
+                                    GestureDetector(
+                                      onTap: team == null
+                                          ? null
+                                          : () {
+                                              Navigator.of(context).pushNamed(
+                                                  "/team_lookup",
+                                                  arguments: {'team': team});
+                                            },
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            team == null
+                                                ? "Team status"
+                                                : "$team's status",
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              height: 1.6,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (team != null) ...const [
+                                            SizedBox(width: 3),
+                                            HomeSectionChevron(),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -141,11 +157,13 @@ class _HomePageState extends State<HomePage> {
                                           Expanded(
                                               child: HomeStatusTile(
                                                   label: const Text("Rank"),
-                                                  value: Text(
-                                                      (teamTournamentStatus
-                                                                  ?.rank ??
-                                                              "N/A")
-                                                          .toString()))),
+                                                  value: Text(teamTournamentStatus
+                                                              ?.rank ==
+                                                          null
+                                                      ? "N/A"
+                                                      : ordinal(
+                                                          teamTournamentStatus!
+                                                              .rank!)))),
                                           Expanded(
                                               child: HomeStatusTile(
                                                   label: const Text(
@@ -237,26 +255,9 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: ScoutersCard(
-                                            onDuty: true,
-                                            lastCompletedMatch:
-                                                lastCompletedMatch,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: ScoutersCard(
-                                            onDuty: false,
-                                            lastCompletedMatch:
-                                                lastCompletedMatch,
-                                            schedule: schedule,
-                                            nextMatchOrdinal: nextMatchOrdinal,
-                                          ),
-                                        ),
-                                      ],
+                                    HomeScouters(
+                                      schedule: schedule,
+                                      nextMatchOrdinal: nextMatchOrdinal,
                                     ),
                                     if (showUpcomingEnteredTournaments) ...[
                                       const SizedBox(height: 10),
@@ -285,7 +286,7 @@ class _HomePageState extends State<HomePage> {
                                     ],
                                     const SizedBox(height: 10),
                                     const Text(
-                                      "Upcoming Tournaments This Week",
+                                      "Tournaments this week",
                                       style: TextStyle(
                                           fontSize: 20,
                                           height: 1.6,
@@ -337,7 +338,6 @@ class _HomePageState extends State<HomePage> {
       t = Tournament.currentSync;
       match1 = null;
       match2 = null;
-      lastCompletedMatch = null;
       nextMatchOrdinal = null;
       teamTournamentStatus = null;
       notices = [];
@@ -404,10 +404,6 @@ class _HomePageState extends State<HomePage> {
       }
       final teamMatches = matches.where((match) =>
           match.allTeamInfo.any((info) => info.teamNumber == teamNumber));
-      MatchScheduleMatch? latestCompleted;
-      for (final match in matches) {
-        if (match.isFinished) latestCompleted = match;
-      }
       // Shift ranges use one-based play order across qualifiers and eliminations.
       final nextMatchIndex = matches.indexWhere((match) => !match.isFinished);
 
@@ -419,10 +415,13 @@ class _HomePageState extends State<HomePage> {
         notices = messages;
         topTeams = teams;
         schedule = shifts;
-        lastCompletedMatch = latestCompleted;
         nextMatchOrdinal = nextMatchIndex < 0 ? null : nextMatchIndex + 1;
-        match1 = selectHomeMatch(matches);
-        match2 = selectHomeMatch(teamMatches, includeLastCompleted: false);
+        final current = selectHomeMatch(matches);
+        match1 = current;
+        // When the team is in the match being played, show its following one.
+        match2 = selectHomeMatch(
+            teamMatches.where((match) => !identical(match, current)),
+            includeLastCompleted: false);
         dataLoaded = true;
       });
     } catch (e) {
@@ -448,6 +447,28 @@ MatchScheduleMatch? selectHomeMatch(Iterable<MatchScheduleMatch> matches,
     last = match;
   }
   return includeLastCompleted ? last : null;
+}
+
+/// 1 -> "1st", 2 -> "2nd", 11 -> "11th", 23 -> "23rd".
+String ordinal(int n) {
+  final lastTwo = n % 100;
+  if (lastTwo >= 11 && lastTwo <= 13) return '${n}th';
+  return switch (n % 10) {
+    1 => '${n}st',
+    2 => '${n}nd',
+    3 => '${n}rd',
+    _ => '${n}th',
+  };
+}
+
+/// Badge text for a home match card.
+String homeMatchBadge(MatchScheduleMatch match,
+    {required bool isTeamMatch, int? teamNumber}) {
+  if (match.isFinished) return "Completed";
+  if (isTeamMatch) {
+    return teamNumber == null ? "Next for your team" : "Next for $teamNumber";
+  }
+  return "Now playing";
 }
 
 class HomeStatusTile extends StatelessWidget {
@@ -561,24 +582,20 @@ class HomePageMatch extends StatelessWidget {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .secondaryContainer,
+                            color: const Color(0xFF424242),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            match1!.isFinished
-                                ? "Completed"
-                                : isTeamMatch && teamNumber != null
-                                    ? "Up next for $teamNumber"
-                                    : "Up next",
-                            style: TextStyle(
+                            homeMatchBadge(match1!,
+                                    isTeamMatch: isTeamMatch,
+                                    teamNumber: teamNumber)
+                                .toUpperCase(),
+                            style: const TextStyle(
                               fontSize: 10,
+                              height: 1,
                               letterSpacing: 0.4,
                               fontWeight: FontWeight.w500,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSecondaryContainer,
+                              color: Color(0xFFE0E0E0),
                             ),
                           ),
                         ),
@@ -730,89 +747,146 @@ class TournamentTopTeams extends StatelessWidget {
   }
 }
 
-class ScoutersCard extends StatelessWidget {
-  const ScoutersCard({
+/// A scouter whose next shift has not started yet.
+class UpcomingScouter {
+  const UpcomingScouter({required this.scout, required this.matchesAway});
+
+  final Scout scout;
+
+  /// Matches between the one being played and the start of the shift.
+  final int matchesAway;
+}
+
+/// Scouters who are off duty for [currentMatchOrdinal], ordered by how soon
+/// their next shift starts. Shift ranges are one-based and inclusive.
+List<UpcomingScouter> upcomingScouters(
+    ScoutSchedule schedule, int currentMatchOrdinal) {
+  List<Scout> scoutsIn(ScoutingShift shift) => [
+        ...shift.team1,
+        ...shift.team2,
+        ...shift.team3,
+        ...shift.team4,
+        ...shift.team5,
+        ...shift.team6,
+      ];
+
+  final onDuty = <String>{};
+  final soonest = <String, UpcomingScouter>{};
+  for (final shift in schedule.shifts) {
+    final scouts = scoutsIn(shift);
+    if (shift.start <= currentMatchOrdinal &&
+        currentMatchOrdinal <= shift.end) {
+      onDuty.addAll(scouts.map((scout) => scout.id));
+    } else if (shift.start > currentMatchOrdinal) {
+      final away = shift.start - currentMatchOrdinal;
+      for (final scout in scouts) {
+        final existing = soonest[scout.id];
+        if (existing == null || away < existing.matchesAway) {
+          soonest[scout.id] = UpcomingScouter(scout: scout, matchesAway: away);
+        }
+      }
+    }
+  }
+  return soonest.values
+      .where((scouter) => !onDuty.contains(scouter.scout.id))
+      .toList()
+    ..sort((a, b) {
+      final order = a.matchesAway.compareTo(b.matchesAway);
+      return order != 0 ? order : a.scout.name.compareTo(b.scout.name);
+    });
+}
+
+/// "Collin Cameron" -> "Collin C".
+String shortScouterName(String name) {
+  final parts = name.trim().split(RegExp(r'\s+'));
+  if (parts.length < 2 || parts.last.isEmpty) return name.trim();
+  return '${parts.first} ${parts.last[0]}';
+}
+
+class HomeScouters extends StatelessWidget {
+  const HomeScouters({
     super.key,
-    required this.onDuty,
-    required this.lastCompletedMatch,
-    this.schedule,
-    this.nextMatchOrdinal,
+    required this.schedule,
+    required this.nextMatchOrdinal,
   });
-  final bool onDuty;
-  final MatchScheduleMatch? lastCompletedMatch;
+
   final ServerScoutSchedule? schedule;
+
+  /// One-based play order of the match being played, if any remain.
   final int? nextMatchOrdinal;
 
   @override
   Widget build(BuildContext context) {
-    final completedMatchCount = lastCompletedMatch?.allTeamInfo
-            .expand((team) => team.scouters)
-            .map((scouter) => scouter.name)
-            .toSet()
-            .length ??
-        0;
-    final nextMatchScouterIds = <String>{};
-    if (!onDuty && schedule != null && nextMatchOrdinal != null) {
-      for (final shift in schedule!.shifts) {
-        if (shift.start <= nextMatchOrdinal! &&
-            nextMatchOrdinal! <= shift.end) {
-          nextMatchScouterIds.addAll([
-            ...shift.team1,
-            ...shift.team2,
-            ...shift.team3,
-            ...shift.team4,
-            ...shift.team5,
-            ...shift.team6,
-          ].map((scouter) => scouter.id));
-        }
-      }
-    }
-    final String countText;
-    if (onDuty) {
-      countText = lastCompletedMatch == null
-          ? "No completed matches"
-          : "$completedMatchCount Scouters";
+    final String? emptyText;
+    var scouters = <UpcomingScouter>[];
+    if (schedule == null) {
+      emptyText = "The scouter schedule is unavailable.";
     } else if (nextMatchOrdinal == null) {
-      countText = "No upcoming matches";
-    } else if (schedule == null) {
-      countText = "Schedule unavailable";
+      emptyText = "No upcoming matches.";
     } else {
-      countText = "${nextMatchScouterIds.length} Scouters";
+      scouters = upcomingScouters(schedule!, nextMatchOrdinal!);
+      emptyText = scouters.isEmpty ? "No more scouting shifts." : null;
     }
+    if (emptyText != null) {
+      return HomeScouterCard(title: emptyText);
+    }
+    final shown = scouters.take(2).toList();
+    return Row(
+      spacing: 10,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final scouter in shown)
+          Expanded(
+            child: HomeScouterCard(
+              title: shortScouterName(scouter.scout.name),
+              subtitle: scouter.matchesAway == 1
+                  ? "Up in 1 match"
+                  : "Up in ${scouter.matchesAway} matches",
+            ),
+          ),
+        if (shown.length == 1) const Expanded(child: SizedBox()),
+      ],
+    );
+  }
+}
 
+class HomeScouterCard extends StatelessWidget {
+  const HomeScouterCard({super.key, required this.title, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(7),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    onDuty ? "On Duty" : "Next Match",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 18 / 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    countText,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFB8B8B8),
-                    ),
-                  ),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 18 / 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFFE0E0E0),
             ),
-          ],
-        ),
+          ),
+          if (subtitle != null)
+            Text(
+              subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, color: Color(0xFFB8B8B8)),
+            ),
+        ],
       ),
     );
   }
