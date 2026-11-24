@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_team_rankings.dart';
 
 const _accent = Color(0xFFB59AFF);
@@ -196,7 +197,7 @@ class _HomeTopBarState extends State<HomeTopBar>
                               FadeTransition(opacity: animation, child: child),
                         ),
                         child: Icon(
-                          widget.searching ? Icons.close : Icons.search,
+                          widget.searching ? LucideIcons.x : LucideIcons.search,
                           key: ValueKey(widget.searching),
                           size: 24,
                           color: _primaryText,
@@ -233,7 +234,8 @@ class _Avatar extends StatelessWidget {
               height: 40,
               child: Center(
                 child: initials.isEmpty
-                    ? const Icon(Icons.person, size: 22, color: _primaryText)
+                    ? const Icon(LucideIcons.user,
+                        size: 22, color: _primaryText)
                     : Text(
                         initials,
                         style: const TextStyle(
@@ -341,14 +343,14 @@ class TeamSearchResults extends StatelessWidget {
           if (ranking?.rankingPoints != null) '${ranking!.rankingPoints} RP',
         ];
         return ListTile(
-          leading: const Icon(Icons.groups),
+          leading: const Icon(LucideIcons.users),
           title: Text('${result.number}'),
           subtitle: Text(ranking == null
               ? 'Look up team'
               : details.isEmpty
                   ? 'At this tournament'
                   : details.join(' · ')),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const Icon(LucideIcons.chevronRight),
           onTap: () => onSelected(result.number),
         );
       },

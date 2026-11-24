@@ -6,10 +6,15 @@ class ScrollablePageBody extends StatelessWidget {
     required this.children,
     this.padding = const EdgeInsets.fromLTRB(24, 16, 24, 16),
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag,
+    this.physics,
   });
   final List<Widget> children;
   final EdgeInsets padding;
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+
+  /// Use [AlwaysScrollableScrollPhysics] so short pages can still be pulled
+  /// to refresh.
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
@@ -31,29 +36,30 @@ class ScrollablePageBody extends StatelessWidget {
           return false;
         },
         child: SingleChildScrollView(
+            physics: physics,
             child: SafeArea(
-          child: Padding(
-            padding: padding,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth > 800
-                          ? 800
-                          : constraints.maxWidth,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        )),
+              child: Padding(
+                padding: padding,
+                child: LayoutBuilder(builder: (context, constraints) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth > 800
+                              ? 800
+                              : constraints.maxWidth,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: children,
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            )),
       ),
     );
   }

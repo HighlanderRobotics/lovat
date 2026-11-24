@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,8 @@ import 'package:scouting_dashboard_app/reusable/lovat_api/get_matches.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/get_tournament_status.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/lovat_api.dart';
+import 'package:scouting_dashboard_app/reusable/friendly_error_view.dart';
+import 'package:scouting_dashboard_app/reusable/stale_data.dart';
 import 'package:scouting_dashboard_app/reusable/models/scout_schedule.dart';
 
 void main() {
@@ -97,6 +100,122 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await Tournament.clearCurrent();
+  });
+
+  group('out-of-date data', () {
+    late DateTime clock;
+    Future<TournamentTestAPI> pumpHome(WidgetTester tester,
+        {required bool live,
+        List<Map<String, dynamic>> tournaments = const []}) async {
+      SharedPreferences.setMockInitialValues({});
+      await Tournament('test-event', 'Test Event').storeAsCurrent();
+      clock = DateTime(2026, 3, 14, 10);
+      final api = TournamentTestAPI()
+        ..showMatches = !live
+        ..liveMatches = live
+        ..tournaments = tournaments;
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(splashFactory: InkRipple.splashFactory),
+        home: HomePage(api: api, now: () => clock),
+      ));
+      await tester.pumpAndSettle();
+      return api;
+    }
+
+    Future<void> age(WidgetTester tester, Duration by) async {
+      clock = clock.add(by);
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+    }
+
+    bool bannerShown(WidgetTester tester) =>
+        tester.widget<StaleDataBanner>(find.byType(StaleDataBanner)).visible;
+
+    testWidgets('appears after five minutes and pull down refreshes',
+        (tester) async {
+      final api = await pumpHome(tester, live: true);
+      expect(bannerShown(tester), isFalse);
+      await age(tester, const Duration(minutes: 4));
+      expect(bannerShown(tester), isFalse);
+      await age(tester, const Duration(minutes: 1));
+      expect(bannerShown(tester), isTrue);
+      expect(find.text('Data may be out of date'), findsOneWidget);
+
+      final before = api.matchRequests;
+      await tester.fling(
+          find.byType(SingleChildScrollView), const Offset(0, 600), 1500);
+      await tester.pumpAndSettle();
+      expect(api.matchRequests, before + 1);
+      expect(bannerShown(tester), isFalse);
+      // The page stayed on screen while reloading.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      await Tournament.clearCurrent();
+    });
+
+    testWidgets('tapping the pop-up refreshes; a failed refresh keeps data',
+        (tester) async {
+      final api = await pumpHome(tester, live: true);
+      await age(tester, staleAfter);
+      api.failMatches = true;
+      await tester.tap(find.text('Data may be out of date'));
+      await tester.pumpAndSettle();
+      // Match failures become a notice, not an error page.
+      expect(find.byType(FriendlyErrorView), findsNothing);
+      expect(find.text('Matches'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      await Tournament.clearCurrent();
+    });
+
+    testWidgets('an ended event stays quiet despite an unplayed match',
+        (tester) async {
+      // Like MadTown Throwdown: ended days ago, one match never finished.
+      final api = await pumpHome(tester, live: true, tournaments: [
+        {
+          'key': 'test-event',
+          'name': 'Test Event',
+          'date': '2026-03-06',
+          'endDate': '2026-03-08T00:00:00.000Z',
+        }
+      ]);
+      await age(tester, const Duration(hours: 1));
+      expect(bannerShown(tester), isFalse);
+      final before = api.matchRequests;
+      await tester.fling(
+          find.byType(SingleChildScrollView), const Offset(0, 600), 1500);
+      await tester.pumpAndSettle();
+      expect(api.matchRequests, before);
+      await tester.pumpWidget(const SizedBox());
+      await Tournament.clearCurrent();
+    });
+
+    testWidgets('a mouse drag can pull to refresh', (tester) async {
+      final api = await pumpHome(tester, live: true);
+      await age(tester, staleAfter);
+      final before = api.matchRequests;
+      await tester.drag(
+          find.byType(SingleChildScrollView), const Offset(0, 600),
+          kind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
+      expect(api.matchRequests, before + 1);
+      expect(bannerShown(tester), isFalse);
+      await tester.pumpWidget(const SizedBox());
+      await Tournament.clearCurrent();
+    });
+
+    testWidgets('not shown or pullable before or after the event',
+        (tester) async {
+      final api = await pumpHome(tester, live: false);
+      await age(tester, const Duration(hours: 1));
+      expect(bannerShown(tester), isFalse);
+      final before = api.matchRequests;
+      await tester.fling(
+          find.byType(SingleChildScrollView), const Offset(0, 600), 1500);
+      await tester.pumpAndSettle();
+      expect(api.matchRequests, before);
+      await tester.pumpWidget(const SizedBox());
+      await Tournament.clearCurrent();
+    });
   });
 
   testWidgets('status tiles stay equal and compact on a phone', (tester) async {
@@ -525,6 +644,16 @@ class TournamentTestAPI extends LovatAPI {
   TournamentTestAPI() : super('https://example.invalid');
 
   bool showMatches = false;
+
+  /// Matches for an event in progress: one finished, one still to play.
+  bool liveMatches = false;
+
+  /// Makes match requests fail, e.g. to test a failed refresh.
+  bool failMatches = false;
+  int matchRequests = 0;
+
+  /// Tournaments returned by the tournaments endpoint, e.g. with dates.
+  List<Map<String, dynamic>> tournaments = [];
   Completer<http.Response?>? pendingSchedule;
   int statusCode = 404;
   int scheduleCode = 200;
@@ -534,7 +663,9 @@ class TournamentTestAPI extends LovatAPI {
   Future<http.Response?> get(String path, {Map<String, String>? query}) async {
     paths.add(path);
     if (path == '/v1/manager/tournaments') {
-      return http.Response('{"tournaments":[],"count":0}', 200);
+      return http.Response(
+          jsonEncode({'tournaments': tournaments, 'count': tournaments.length}),
+          200);
     }
     if (path == '/v1/manager/profile') {
       return http.Response(
@@ -553,7 +684,17 @@ class TournamentTestAPI extends LovatAPI {
       return http.Response('Tournament or teams not found', 404);
     }
     if (path.startsWith('/v1/manager/matches/')) {
+      matchRequests += 1;
       if (pendingSchedule != null) return pendingSchedule!.future;
+      if (failMatches) throw Exception('Offline');
+      if (liveMatches) {
+        return http.Response(
+            jsonEncode([
+              matchFixture(0, 1, finished: true),
+              matchFixture(0, 2),
+            ]),
+            200);
+      }
       if (showMatches) {
         return http.Response(
             jsonEncode([

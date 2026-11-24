@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
 
 const _accent = Color(0xFFB59AFF);
@@ -7,13 +8,13 @@ const _blob = Color(0x2EB59AFF);
 
 /// The Rewrite design's bottom tabs.
 enum AppTab {
-  home('Home', Icons.home_outlined, '/home'),
-  scouting('Scouting', Icons.query_stats, '/match_schedule',
+  home('Home', LucideIcons.house, '/home'),
+  scouting('Scouting', LucideIcons.chartNoAxesCombined, '/match_schedule',
       needsTournament: true),
-  forms('Forms', Icons.assignment_outlined, null),
-  picklists('Picklists', Icons.format_list_numbered, '/picklists',
+  forms('Forms', LucideIcons.clipboardList, null),
+  picklists('Picklists', LucideIcons.listOrdered, '/picklists',
       needsTournament: true),
-  strategy('Strategy', Icons.psychology_outlined, '/match_predictor_opener');
+  strategy('Strategy', LucideIcons.brain, '/match_predictor_opener');
 
   const AppTab(this.label, this.icon, this.route,
       {this.needsTournament = false});

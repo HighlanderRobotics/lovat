@@ -286,6 +286,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  lucide_icons_flutter:
+    dependency: "direct main"
+    description:
+      name: lucide_icons_flutter
+      sha256: d2ad72b8059ee0ad578d0aeb72bf4e7841c0126f360a8aa37f06e305e1fc7e4b
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
   matcher:
     dependency: transitive
     description:
@@ -748,5 +756,5 @@ packages:
     source: hosted
     version: "0.6.0"
 sdks:
-  dart: ">=3.9.0-0 <=3.27.3"
+  dart: ">=3.11.0-0 <=3.27.3"
   flutter: ">=3.32.0"
