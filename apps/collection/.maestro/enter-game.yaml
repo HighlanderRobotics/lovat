@@ -1,6 +1,12 @@
 appId: com.frc8033.lovatcollection
 ---
 - tapOn: "Scout this match"
+# On iOS the app rotates its interface, but XCUITest can remain in portrait.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
 - extendedWaitUntil:
     visible: "Start position Hub"
     timeout: 20000

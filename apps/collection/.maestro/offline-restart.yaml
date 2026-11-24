@@ -13,6 +13,16 @@ appId: com.frc8033.lovatcollection
 - launchApp:
     clearState: false
 - tapOn: "history"
-- tapOn:
-    text: ".*1234.*"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          text: ".*1234.*"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: "^(Qualifier 1, )?1234 • .+$"
+      - assertVisible: "^1234 in Q1$"
 - assertVisible: "Upload"

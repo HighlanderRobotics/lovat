@@ -108,7 +108,7 @@ Tests execute real Zustand stores, AsyncStorage persistence, report serializatio
 
 The manual **Collection native candidate tests** workflow can build a fresh standalone synthetic Android APK when both inputs
 are empty, or accepts an APK artifact run/name and requires that artifact's source SHA to match the selected workflow revision. A failed native flow fails the workflow and retains JUnit/logs. It is a candidate/release check, not a required PR test until Android build stability is proven (LVT-217). The test build runs locally on GitHub with template test signing and loopback-only
-fixture networking; it does not start cloud builds or publish releases. Use the existing `native-smoke-ios` EAS simulator profile for iOS candidates; run the same flows with a reachable local fixture, omitting Android airplane/ADB commands. iOS has no simulator airplane mode.
+fixture networking; it does not start EAS builds or publish releases. Select `platform: ios` with no APK inputs to build and run the same journey on a clean GitHub iOS simulator. The simulator verifies a loopback API outage and app restart, not physical airplane mode, camera/QR or signed-device acceptance.
 
 Before a release, the release owner must run the candidate checks and record the build SHA/version, then manually verify camera permission grant/deny, physical-device multi-code QR transfer, background/restart persistence, and the iOS system/browser permission prompts. Unit/component tests do not claim to validate native camera, signing, installation or permissions. Native flows require a candidate device/build and are documented separately from the automated Pages suite. Related: LVT-259/260/261/262 and LVT-273.
 

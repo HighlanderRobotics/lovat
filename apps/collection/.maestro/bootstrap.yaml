@@ -3,9 +3,44 @@ appId: com.frc8033.lovatcollection
 - launchApp:
     clearState: true
 - openLink: "lovat-collection://set-url?u=http%3A%2F%2F127.0.0.1%3A9877"
-- tapOn:
-    text: "OK"
-    optional: true
+# The first-use handoff can take longer to appear than runFlow's condition wait.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: '^(Open in [“"]Collection[”"][?]|API URL updated)$'
+          timeout: 30000
+      - runFlow:
+          when:
+            visible: '^Open in [“"]Collection[”"][?]$'
+          commands:
+            - tapOn: "^Open$"
+            # iOS can dismiss the handoff without surfacing the route's alert.
+            # Give the first delivery time, then resend only from the welcome screen.
+            - extendedWaitUntil:
+                visible: "^API URL updated$"
+                timeout: 3000
+                optional: true
+            - runFlow:
+                when:
+                  visible: "^Begin$"
+                  notVisible: '^(Open in [“"]Collection[”"][?]|API URL updated)$'
+                commands:
+                  - openLink: "lovat-collection://set-url?u=http%3A%2F%2F127.0.0.1%3A9877"
+      - extendedWaitUntil:
+          visible: "^API URL updated$"
+          timeout: 30000
+      - tapOn: "^OK$"
+      - assertNotVisible: "^API URL updated$"
+      - assertVisible: "^Begin$"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          text: "OK"
+          optional: true
 - tapOn: "Begin"
 - tapOn: "Code"
 - inputText: "SYNTHETIC"
@@ -15,7 +50,7 @@ appId: com.frc8033.lovatcollection
     timeout: 20000
 - tapOn: "Synthetic Scout"
 - extendedWaitUntil:
-    visible: "2026 Synthetic Event"
+    visible: "^2026 Synthetic Event(, Local fixture)?$"
     timeout: 20000
-- tapOn: "2026 Synthetic Event"
+- tapOn: "^2026 Synthetic Event(, Local fixture)?$"
 - assertVisible: "Scout this match"

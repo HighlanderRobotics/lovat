@@ -59,18 +59,24 @@ The Android runner verifies airplane/offline, real process restart, saved Histor
 reconnect/retry and one preserved UUID. Failures remain failures, with diagnostics.
 Do not use a personal device: bootstrap intentionally clears app storage.
 
-For iOS, build the existing `native-smoke-ios` EAS simulator profile with Xcode 27
-from that same source SHA, record the run URL, version and artifact hash, install
-on a disposable simulator, and run `.maestro/bootstrap.yaml`,
-`.maestro/enter-game.yaml`, `.maestro/record-match.yaml`, `.maestro/end-match.yaml`,
-`.maestro/offline-restart.yaml` and `.maestro/reconnect.yaml` in that order,
-each in a separate Maestro invocation against the synthetic fixture
-(`node test/native/fixture-api.mjs`). Stop the fixture before `enter-game.yaml`
-and restart it before reconnect; iOS simulators have no airplane-mode API.
-Retain Maestro JUnit/screenshots and the fixture submission ledger. This iOS
-procedure is a pending operator check until its actual build/run evidence is
-attached; a build profile alone is not a passed native test. Physical-device
-rows above still apply after a simulator pass.
+For iOS, dispatch the same workflow with `platform: ios` and leave the APK
+inputs blank. It builds an unsigned, standalone app at the selected SHA and
+installs it on a fresh iOS 27 simulator. The app records a synthetic report
+while the loopback fixture is stopped, shows the upload failure and retains
+the report across a process restart. Reconnect must submit exactly once with
+the same UUID recorded before the outage. Retain the run, build hashes,
+Maestro JUnit, screenshots and fixture ledger.
+
+The [GitHub Xcode 27 runner](https://github.com/actions/runner-images/blob/main/README.md)
+is a public preview; runner availability is not a pass. This proves a
+simulator endpoint outage and restart, not airplane mode, local-network
+permission prompts, camera/QR transfer or a signed install/upgrade. Those
+physical-device rows still apply even after a simulator pass.
+
+For changes to the iOS harness, marking a same-repository PR ready for
+review can also run the iOS job against its exact head commit. This is
+optional evidence, not a required PR check; it never starts Android and
+does not rerun on every push. A release candidate still needs its own run.
 
 On Android CI, `scripts/prepare-native-android.py` runs before the shared
 `record-match.yaml` and `end-match.yaml` Maestro flows. It acknowledges only
@@ -86,6 +92,7 @@ assertion. Outpost intake exists in every phase, so the flow does not race the
 real Auto timer. Failed idle capture cannot reuse an old snapshot. Each stage
 retains its JUnit result and diagnostics.
 
-If CI cannot boot/install, attach its failure and run the same journey on a
-physical test device. Record that separate result explicitly. Attach redacted
-synthetic screenshots only; never publish real notes, strategy or login tokens.
+If CI cannot boot/install, keep the simulator check pending and attach its
+failure. Run and record the appropriate physical-device matrix separately.
+Attach redacted synthetic screenshots only; never publish real notes,
+strategy or login tokens.

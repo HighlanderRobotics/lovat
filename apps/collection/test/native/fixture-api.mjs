@@ -3,6 +3,13 @@ import process from "node:process";
 import { createServer } from "node:http";
 import { appendFile } from "node:fs/promises";
 const scout = "22222222-2222-4222-8222-222222222222";
+const match = {
+  tournamentKey: "2026test",
+  teamNumber: 1234,
+  matchNumber: 1,
+  matchType: "QUALIFICATION",
+};
+const alliance = "red";
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   let body = "";
@@ -44,7 +51,7 @@ const server = createServer(async (req, res) => {
       JSON.stringify({
         tournaments: [
           {
-            key: "2026test",
+            key: match.tournamentKey,
             name: "Synthetic Event",
             location: "Local fixture",
             date: "2026-01-01",
@@ -54,34 +61,49 @@ const server = createServer(async (req, res) => {
     );
     return;
   }
-  if (url.pathname === "/collection/schedules/2026test") {
+  if (url.pathname === `/collection/schedules/${match.tournamentKey}`) {
     res.end(
       JSON.stringify({
         hash: "synthetic",
         data: [
           {
             matchType: 0,
-            matchNumber: 1,
-            scouters: { [scout]: { team: 1234, alliance: "red" } },
+            matchNumber: match.matchNumber,
+            scouters: { [scout]: { team: match.teamNumber, alliance } },
           },
         ],
       }),
     );
     return;
   }
-  if (url.pathname === "/v1/manager/matchschedule/2026test") {
+  if (url.pathname === `/v1/manager/matchschedule/${match.tournamentKey}`) {
     res.end(
       JSON.stringify({
-        tournamentKey: "2026test",
+        tournamentKey: match.tournamentKey,
         matches: [
           {
             matchType: 0,
-            matchNumber: 1,
-            teams: [{ number: 1234, alliance: "red" }],
+            matchNumber: match.matchNumber,
+            teams: [{ number: match.teamNumber, alliance }],
           },
         ],
       }),
     );
+    return;
+  }
+  if (req.method === "GET" && url.pathname === "/v1/manager/checkmatch") {
+    if (
+      url.searchParams.get("tournamentKey") === match.tournamentKey &&
+      url.searchParams.get("teamNumber") === String(match.teamNumber) &&
+      url.searchParams.get("matchNumber") === String(match.matchNumber) &&
+      url.searchParams.get("isElim") === "false" &&
+      url.searchParams.get("matchType") === match.matchType
+    ) {
+      res.end(JSON.stringify({ match, alliance }));
+      return;
+    }
+    res.statusCode = 404;
+    res.end(JSON.stringify({ code: "MATCH_NOT_FOUND" }));
     return;
   }
   if (
