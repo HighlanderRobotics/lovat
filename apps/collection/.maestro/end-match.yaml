@@ -2,3 +2,9 @@ appId: com.frc8033.lovatcollection
 ---
 - tapOn: "End match"
 - tapOn: "End match"
+# Match controls are landscape; the post-match form uses portrait.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - setOrientation: PORTRAIT
