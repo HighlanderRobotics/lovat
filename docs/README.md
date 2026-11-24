@@ -12,6 +12,7 @@ For instructions on using Lovat rather than developing it, start at [Lovat Learn
 | Change how Collection drafts or uploads reports | [Collection reports in progress](collection-reports-in-progress.md) |
 | Understand the 2026 training workflow | [Scouting training](training-2026.md) |
 | Validate a change or find test results | [Testing and CI](testing/README.md) |
+| Triage dependency alerts without automated PRs | [Manual vulnerability triage](ci-workflow-security.md#manual-vulnerability-triage) |
 
 ## Operate Lovat
 

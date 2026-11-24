@@ -58,6 +58,7 @@ jobs:
         run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color=false
       - run: node --test scripts/ci-selection.test.mjs scripts/ci-results.test.mjs scripts/prepare-contract-report.test.mjs
       - run: node --test scripts/prepare-pages-reports.test.mjs
+      - run: node --test scripts/deployment-smoke.test.mjs
       - run: python3 -m unittest discover -s scripts -p railway_preview_qr_test.py
 
   railway-config:
@@ -237,12 +238,186 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true') }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lovat_test
+          POSTGRES_PASSWORD: lovat_test
+          POSTGRES_DB: lovat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lovat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7.4
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
       - name: Build server deployment image
         run: |
           set -o pipefail
-          docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci . 2>&1 | tee "$RUNNER_TEMP/server-image.log"
+          TIMEFORMAT='Server image build: %3R seconds'
+          { time docker build --progress=plain -f apps/server/Dockerfile -t lovat-server:ci .; } 2>&1 | tee "$RUNNER_TEMP/server-image.log"
+          docker image inspect --format 'Server image size: {{.Size}} bytes' lovat-server:ci
+      - name: Rehearse the release gate and smoke-test the Server image
+        timeout-minutes: 6
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          set -o pipefail
+          docker exec "$POSTGRES_CONTAINER" createdb -U lovat_test lovat_image_smoke
+          image="$(docker image inspect --format '{{.Id}}' lovat-server:ci)"
+          container=lovat-server-image-smoke
+          database=127.0.0.1:5432/lovat_image_smoke
+          migration_url="postgresql://lovat_test:lovat_test@$database"
+          runtime_url="postgresql://lovat_image_runtime:lovat_image_runtime@$database"
+          opts=(
+            --network host --read-only --tmpfs /tmp
+            --env npm_config_cache=/tmp/npm
+            --env REDIS_URL=redis://127.0.0.1:6379/14
+            --env AUTH0_DOMAIN=ci.example.invalid
+            --env PORT=3010
+            --env "RAILWAY_GIT_COMMIT_SHA=$GITHUB_SHA"
+          )
+          trap 'docker logs "$container" 2>/dev/null || true; docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+
+          image_sql() {
+            docker exec -i "$POSTGRES_CONTAINER" psql -X -qAt -v ON_ERROR_STOP=1 \
+              -U lovat_test -d lovat_image_smoke "$@"
+          }
+
+          # Model the proposed Railway pre-deploy/start split locally. The same
+          # immutable image runs both commands; a failed migration must not start it.
+          migrate() {
+            docker run --rm "${opts[@]}" --env "DATABASE_PRIVATE_URL=$1" "$image" \
+              sh -c 'export DATABASE_URL="$DATABASE_PRIVATE_URL"; exec npm --prefix ../../packages/db run db:deploy'
+          }
+          start_candidate() {
+            docker run -d --name "$container" "${opts[@]}" --env "DATABASE_PRIVATE_URL=$runtime_url" "$image" \
+              sh -c 'export DATABASE_URL="$DATABASE_PRIVATE_URL"; exec npm start'
+          }
+          promote_if_migrated() {
+            migrate "$1" || return "$?"
+            shift
+            "$@"
+          }
+          migration_history() {
+            image_sql -c 'SELECT id, migration_name, checksum, finished_at FROM public._prisma_migrations ORDER BY id;'
+          }
+
+          docker run --rm "${opts[@]}" "$image" sh -ec '
+            test "$(id -u)" -ne 0
+            test ! -w .
+            test ! -e node_modules/.bin/vitest
+            test ! -e node_modules/.bin/tsc
+            test ! -e ../../packages/db/node_modules/.bin/tsc
+          '
+          if promote_if_migrated "postgresql://lovat_test:invalid-test-password@$database" start_candidate \
+            > "$RUNNER_TEMP/migration-gate-rejection.log" 2>&1; then
+            cat "$RUNNER_TEMP/migration-gate-rejection.log"
+            echo "The candidate was promoted despite invalid migration credentials."
+            exit 1
+          fi
+          # A Docker/setup error is not a passing negative test: require Prisma's
+          # PostgreSQL authentication failure and no runtime or history table.
+          cat "$RUNNER_TEMP/migration-gate-rejection.log"
+          grep -F 'P1000' "$RUNNER_TEMP/migration-gate-rejection.log" >/dev/null
+          if docker container inspect "$container" >/dev/null 2>&1; then
+            echo "The rejected candidate started a container."
+            exit 1
+          fi
+          image_sql -c "SELECT to_regclass('public._prisma_migrations') IS NULL;" | grep -Fx t
+
+          prepare_runtime() {
+            docker run --rm "${opts[@]}" --env "DATABASE_URL=$migration_url" "$image" \
+              npm --prefix ../../packages/db run db:status || return "$?"
+            # The CI runtime role must be able to seed/read the app, but not run
+            # migrations. This role is only created in the disposable CI database.
+            image_sql <<'SQL' || return "$?"
+          CREATE ROLE lovat_image_runtime LOGIN PASSWORD 'lovat_image_runtime';
+          GRANT USAGE ON SCHEMA public TO lovat_image_runtime;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO lovat_image_runtime;
+          GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO lovat_image_runtime;
+          REVOKE ALL ON TABLE public._prisma_migrations FROM lovat_image_runtime;
+          SQL
+            image_sql -c "SELECT NOT has_schema_privilege('lovat_image_runtime', 'public', 'CREATE')
+              AND NOT has_table_privilege('lovat_image_runtime', 'public._prisma_migrations', 'SELECT');" | grep -Fx t || return "$?"
+            migration_history > "$RUNNER_TEMP/migration-history.before"
+            test -s "$RUNNER_TEMP/migration-history.before"
+          }
+          start_after_prepare() {
+            prepare_runtime || return "$?"
+            start_candidate
+          }
+          promote_if_migrated "$migration_url" start_after_prepare
+          curl --fail --silent --show-error --retry 30 --retry-connrefused \
+            --retry-delay 1 --max-time 2 http://127.0.0.1:3010/ready | grep -Fx '{"status":"ready"}'
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/version |
+            jq -e --arg sha "$GITHUB_SHA" '.gitCommit == $sha'
+          # Server startup writes this built-in exercise to PostgreSQL before readiness.
+          image_sql -c "SELECT count(*) FROM public.\"Match\" WHERE key = '2026joh_qm19';" | grep -Fx 1
+          migration_history > "$RUNNER_TEMP/migration-history.after"
+          diff -u "$RUNNER_TEMP/migration-history.before" "$RUNNER_TEMP/migration-history.after"
+
+          # Cold-start the same image under the same runtime role, retaining
+          # the existing Docker default command/shutdown contract checks.
+          docker rm -f "$container"
+          docker run -d --name "$container" "${opts[@]}" --env "DATABASE_URL=$runtime_url" "$image"
+          curl --fail --silent --show-error --retry 30 --retry-connrefused \
+            --retry-delay 1 --max-time 2 http://127.0.0.1:3010/status | grep -Fx 'Server running'
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/swaggerTheme.css >/dev/null
+          migration_history > "$RUNNER_TEMP/migration-history.after-restart"
+          diff -u "$RUNNER_TEMP/migration-history.before" "$RUNNER_TEMP/migration-history.after-restart"
+
+          # Probe for the first time with the disposable database stopped.
+          # A cached successful SQL probe cannot hide a startup/readiness dependency.
+          docker stop --timeout 10 "$POSTGRES_CONTAINER"
+          curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/live | grep -Fx '{"status":"live"}'
+          for probe in 1 2; do
+            echo "Redis-only readiness probe $probe with PostgreSQL stopped"
+            curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3010/ready | grep -Fx '{"status":"ready"}'
+            # Expire the one-second readiness cache before the next probe.
+            if [ "$probe" -eq 1 ]; then sleep 1.1; fi
+          done
+
+          docker stop --timeout 15 "$container"
+          exit_code="$(docker inspect --format '{{.State.ExitCode}}' "$container")"
+          if [ "$exit_code" -ne 0 ]; then
+            echo "Server did not shut down cleanly on SIGTERM (exit $exit_code)"
+            exit 1
+          fi
+      - name: Compare Server image size and cold build time with the PR base
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 8
+        working-directory: .
+        run: |
+          # The PR checkout is GitHub's test merge; its first parent is the PR base.
+          base="$(git rev-parse HEAD^1)"
+          if git diff --quiet "$base" HEAD -- apps/server/Dockerfile; then
+            exit 0
+          fi
+          baseline="$(mktemp -d)"
+          trap 'git worktree remove "$baseline" || true' EXIT
+          git worktree add --detach "$baseline" "$base"
+
+          # Same runner and warm base image, with application layer caching disabled.
+          TIMEFORMAT='Baseline build: %3R seconds'
+          time docker build --no-cache -f "$baseline/apps/server/Dockerfile" -t lovat-server:baseline "$baseline"
+          TIMEFORMAT='Candidate build: %3R seconds'
+          time docker build --no-cache -f apps/server/Dockerfile -t lovat-server:ci .
+          docker image inspect --format '{{index .RepoTags 0}}: {{.Size}} bytes' lovat-server:baseline lovat-server:ci
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
@@ -371,54 +546,6 @@ jobs:
           path: ${{ github.workspace }}/contract-report/
           if-no-files-found: error
           retention-days: 14
-
-  test-report:
-    name: Publish test reports
-    needs:
-      [
-        server,
-        website,
-        website-browser,
-        learn,
-        dashboard,
-        dashboard-browser,
-        gate,
-      ]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TEST_REPORT_PAGES_ENABLED == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: test-report-pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 22.20.0
-      - name: Download this run's public reports
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: "*-report"
-          path: downloaded-test-reports
-      - name: Stage app report directories
-        run: node scripts/stage-pages-reports.mjs downloaded-test-reports public-test-reports
-      - name: Validate and index reports from this run
-        run: node scripts/prepare-pages-reports.mjs public-test-reports
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
-      - name: Package all public test reports
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
-        with:
-          path: public-test-reports/
-      - name: Deploy test reports
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 
   collection:
     name: Collection

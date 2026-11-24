@@ -5,8 +5,8 @@ import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 
 import { arrayToRule } from "../../../lib/migrateDataSources.js";
 import {
-  allTeamNumbers,
-  allTournaments,
+  getAllTeamNumbers,
+  getAllTournaments,
 } from "../../analysis/analysisConstants.js";
 
 export const updateSettings = async (
@@ -33,10 +33,13 @@ export const updateSettings = async (
         id: req.user.id,
       },
       data: {
-        teamSourceRule: arrayToRule(params.teamSource, await allTeamNumbers),
+        teamSourceRule: arrayToRule(
+          params.teamSource,
+          await getAllTeamNumbers(),
+        ),
         tournamentSourceRule: arrayToRule(
           params.tournamentSource,
-          await allTournaments,
+          await getAllTournaments(),
         ),
       },
     });

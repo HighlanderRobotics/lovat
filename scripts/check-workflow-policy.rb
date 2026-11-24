@@ -78,9 +78,57 @@ trusted_jobs.each do |file, policy|
   end
 end
 
+pages_file = 'test-reports-pages.yml'
+pages = workflows.fetch(pages_file)
+pages_jobs = pages.fetch('jobs')
+qualify = pages_jobs.fetch('qualify')
+publish = pages_jobs.fetch('publish')
+pages_conditions = <<~CONDITION.split.join(' ')
+  vars.TEST_REPORT_PAGES_ENABLED == 'true' &&
+  github.event.workflow_run.event == 'push' &&
+  github.event.workflow_run.conclusion == 'success' &&
+  github.event.workflow_run.head_branch == 'main' &&
+  github.event.workflow_run.path == '.github/workflows/ci.yml' &&
+  github.event.workflow_run.head_repository.id == github.event.repository.id
+CONDITION
+pages_trigger = pages.fetch('on') { pages.fetch(true) }
+unless pages_trigger == { 'workflow_run' => { 'workflows' => ['CI'], 'types' => ['completed'], 'branches' => ['main'] } } &&
+       pages.fetch('permissions') == { 'contents' => 'read' } &&
+       pages_jobs.keys == %w[qualify publish] &&
+       !qualify.key?('permissions') &&
+       qualify.fetch('if').split.join(' ') == pages_conditions &&
+       publish.fetch('needs') == 'qualify' &&
+       publish.fetch('if') == "${{ needs.qualify.outputs.current == 'true' }}" &&
+       publish.fetch('permissions') == { 'contents' => 'read', 'actions' => 'read', 'pages' => 'write', 'id-token' => 'write' }
+  errors << "#{pages_file}: allow Pages writes only after successful same-repo main CI"
+end
+
+publish_steps = publish.fetch('steps')
+checkouts = publish_steps.select { |step| step.fetch('uses', '').start_with?('actions/checkout@') }
+downloads = publish_steps.select { |step| step.fetch('uses', '').start_with?('actions/download-artifact@') }
+deployments = publish_steps.select { |step| step.fetch('uses', '').start_with?('actions/deploy-pages@') }
+unless checkouts.map { |step| step.fetch('with') } == [
+  { 'ref' => '${{ github.event.workflow_run.head_sha }}', 'persist-credentials' => false }
+] && downloads.map { |step| step.fetch('with') } == [
+  {
+    'run-id' => '${{ github.event.workflow_run.id }}',
+    'github-token' => '${{ github.token }}',
+    'path' => '${{ runner.temp }}/downloaded-test-reports',
+    'pattern' => '*-report'
+  }
+] && deployments.map { |step| step.fetch('if') } == ["${{ steps.deploy-source.outputs.current == 'true' }}"]
+  errors << "#{pages_file}: publish only the exact triggering CI artifacts using trusted code and current source"
+end
+if pages_jobs.values.flat_map { |job| job.fetch('steps') }.any? { |step| step.fetch('run', '').match?(/\$\{\{[^}]*github\.event\b/m) }
+  errors << "#{pages_file}: keep event data out of inline shell expressions"
+end
+if workflows.fetch('ci.yml').fetch('jobs').values.any? { |job| job.fetch('permissions', {})['pages'] == 'write' }
+  errors << 'ci.yml: publish Pages only outside the tested-commit CI workflow'
+end
+
 workflows.each do |file, workflow|
   privileged_events = workflow_events(workflow) & %w[pull_request_target issue_comment workflow_run]
-  next if privileged_events.empty? || trusted_jobs.key?(file)
+  next if privileged_events.empty? || trusted_jobs.key?(file) || file == pages_file
 
   errors << "#{file}: review the privilege policy before adding #{privileged_events.join(', ')}"
 end
