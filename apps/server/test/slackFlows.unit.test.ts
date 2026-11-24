@@ -188,13 +188,22 @@ for (const action of ["subscribe", "unsubscribe"]) {
     expect(db.slackSubscription.deleteMany).not.toHaveBeenCalled();
   });
   it(`${action} rejects unknown options`, async () => {
-    expect((await command(`${action} unknown`)).body).toContain(
-      "not a valid argument",
+    const result = await command(`${action} unrecognized-option`);
+    expect(result.body).toBe(
+      `Invalid argument for /lovat ${action}. Use no-leave or break.`,
     );
+    expect(result.headers["Content-Type"]).toBe("text/plain; charset=utf-8");
+    expect(db.slackSubscription.upsert).not.toHaveBeenCalled();
+    expect(db.slackSubscription.deleteMany).not.toHaveBeenCalled();
   });
 }
 it("rejects unrecognized commands and invalid payloads", async () => {
-  expect((await command("unknown")).statusCode).toBe(400);
+  const result = await command("unknown extra-input");
+  expect(result.statusCode).toBe(400);
+  expect(result.body).toBe(
+    "Unknown /lovat command. Try /lovat help or /lovat team set (team code).",
+  );
+  expect(result.headers["Content-Type"]).toBe("text/plain; charset=utf-8");
   await expect(invoke(processCommand)).rejects.toThrow();
 });
 it("reports workspace lookup failure", async () => {

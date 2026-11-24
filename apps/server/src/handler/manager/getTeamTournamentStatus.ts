@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prismaClient from "../../prismaClient.js";
 import z from "zod";
+import { tbaEventUrl } from "../../lib/tbaEventUrl.js";
 
 export const getTeamTournamentStatus = async (
   req: Request,
@@ -53,8 +54,9 @@ export const getTeamTournamentStatus = async (
     };
 
     const tbaResponse = await fetch(
-      `https://www.thebluealliance.com/api/v3/event/${params.tournamentKey}/teams/statuses`,
+      tbaEventUrl(params.tournamentKey, "teamStatuses"),
       {
+        redirect: "error",
         headers: {
           "X-TBA-Auth-Key": process.env.TBA_KEY,
         },

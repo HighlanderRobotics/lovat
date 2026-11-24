@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prismaClient from "../../../prismaClient.js";
 import z from "zod";
+import { tbaEventUrl } from "../../../lib/tbaEventUrl.js";
 
 const tbaTeamStatusSchema = z.object({
   qual: z
@@ -24,8 +25,9 @@ const fetchTbaTeamStatuses = async (
 ): Promise<Record<string, TbaTeamStatus>> => {
   try {
     const tbaResponse = await fetch(
-      `https://www.thebluealliance.com/api/v3/event/${tournamentKey}/teams/statuses`,
+      tbaEventUrl(tournamentKey, "teamStatuses"),
       {
+        redirect: "error",
         headers: process.env.TBA_KEY?.trim()
           ? { "X-TBA-Auth-Key": process.env.TBA_KEY.trim() }
           : {},

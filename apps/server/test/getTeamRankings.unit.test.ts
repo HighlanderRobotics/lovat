@@ -231,7 +231,7 @@ describe("getTeamRankings", () => {
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "https://www.thebluealliance.com/api/v3/event/2026fixture/teams/statuses",
-      { headers: { "X-TBA-Auth-Key": "test-tba-key" } },
+      { redirect: "error", headers: { "X-TBA-Auth-Key": "test-tba-key" } },
     );
   });
 

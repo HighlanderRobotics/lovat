@@ -23,6 +23,7 @@ import {
 } from "../dataSourceRule.js";
 import { averageManyFast } from "../coreAnalysis/averageManyFast.js";
 import { reportReliabilityFilter } from "../reportReliabilityFilter.js";
+import { tbaEventUrl } from "../../../lib/tbaEventUrl.js";
 
 interface AggregatedTeamData {
   teamNumber: number;
@@ -194,10 +195,10 @@ export const getTeamCSV = async (
     if (datapoints.length === 0) {
       // No TeamMatchData found - try to fetch teams from TBA and get their reports from all tournaments
       try {
-        const url = "https://www.thebluealliance.com/api/v3";
         const teamsResponse = await axios.get(
-          `${url}/event/${params.data.tournamentKey}/teams/simple`,
+          tbaEventUrl(params.data.tournamentKey, "simpleTeams"),
           {
+            maxRedirects: 0,
             headers: {
               "X-TBA-Auth-Key": process.env.TBA_KEY,
             },

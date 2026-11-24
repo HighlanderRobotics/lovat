@@ -64,6 +64,12 @@ afterEach(() => vi.restoreAllMocks());
 it("returns webcasts, rankings, alliance predictions, and a same-phase team timeline", async () => {
   const result = await run();
   expect(result.statusCode).toBe(200);
+  for (const suffix of ["", "/rankings"]) {
+    expect(db.get).toHaveBeenCalledWith(
+      `https://www.thebluealliance.com/api/v3/event/2026test${suffix}`,
+      expect.objectContaining({ maxRedirects: 0 }),
+    );
+  }
   expect(result.body).toMatchObject({
     webcasts: [{ type: "youtube", channel: "test" }],
     matches: {
