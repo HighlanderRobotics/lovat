@@ -16,6 +16,24 @@
 
 Lovat records match observations, keeps reports available offline, and turns submitted data into analysis, predictions, and picklists for scouting and strategy teams.
 
+## Download the apps
+
+The version badges show the public iOS App Store release. Google Play versions can differ.
+
+**Collection** [![Collection iOS App Store version](https://img.shields.io/itunes/v/6467335014?label=App%20Store&color=6246A3)](https://apps.apple.com/us/app/lovat-collection/id6467335014)
+
+<p>
+  <a href="https://apps.apple.com/us/app/lovat-collection/id6467335014"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us" alt="Download Lovat Collection on the App Store" height="40" align="middle"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.frc8033.lovatcollection"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get Lovat Collection on Google Play" height="60" align="middle"></a>
+</p>
+
+**Dashboard** [![Dashboard iOS App Store version](https://img.shields.io/itunes/v/6467466592?label=App%20Store&color=6246A3)](https://apps.apple.com/us/app/lovat-dashboard/id6467466592)
+
+<p>
+  <a href="https://apps.apple.com/us/app/lovat-dashboard/id6467466592"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us" alt="Download Lovat Dashboard on the App Store" height="40" align="middle"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.frc8033.lovatdashboard"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get Lovat Dashboard on Google Play" height="60" align="middle"></a>
+</p>
+
 ## Applications
 
 | App | What it does | Stack |
