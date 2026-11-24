@@ -16,6 +16,8 @@ export const getNotes = createAnalysisHandler({
   },
   usesDataSource: true,
   shouldCache: true,
+  // Only the viewer's own team can see scout names.
+  usesViewerTeam: true,
   createKey: async ({ params }) => {
     return {
       key: ["getNotes", params.team.toString()],

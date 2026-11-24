@@ -9,11 +9,17 @@ import { reportError, runBackgroundTask } from "../../lib/errors.js";
 const isExpectedSessionError = (error: unknown): boolean =>
   error instanceof TrainingError && error.status >= 400 && error.status < 500;
 
-export function attachTrainingSockets(server: Server): void {
+export function attachTrainingSockets(server: Server): {
+  close(): Promise<void>;
+  terminate(): void;
+} {
   const wss = new WebSocketServer({ noServer: true, maxPayload: 2048 });
+  let draining = false;
+  let activeUpdates = 0;
+  const updateWaiters: (() => void)[] = [];
   const counts = new Map<string, number>();
   server.on("upgrade", (req, socket, head) => {
-    if (req.url !== "/collection/training/socket") {
+    if (draining || req.url !== "/collection/training/socket") {
       socket.destroy();
       return;
     }
@@ -61,10 +67,11 @@ export function attachTrainingSockets(server: Server): void {
         let busy = false,
           lastHeartbeat = 0;
         const send = async () => {
-          if (busy || ws.readyState !== WebSocket.OPEN) {
+          if (draining || busy || ws.readyState !== WebSocket.OPEN) {
             return;
           }
           busy = true;
+          activeUpdates += 1;
           try {
             if (Date.now() - lastPong > 15_000) {
               ws.terminate();
@@ -94,11 +101,15 @@ export function attachTrainingSockets(server: Server): void {
             ws.close(1008, "Session unavailable");
           } finally {
             busy = false;
+            activeUpdates -= 1;
+            if (activeUpdates === 0) {
+              updateWaiters.splice(0).forEach((resolve) => resolve());
+            }
           }
         };
         await send();
         clearTimeout(timeout);
-        if (ws.readyState === WebSocket.OPEN) {
+        if (!draining && ws.readyState === WebSocket.OPEN) {
           poll = setInterval(() => {
             void runBackgroundTask(send, "Training socket polling failed");
           }, 1000);
@@ -124,9 +135,35 @@ export function attachTrainingSockets(server: Server): void {
     });
   });
   server.once("close", () => {
-    for (const client of wss.clients) {
-      client.terminate();
+    // HTTP close does not wait for upgraded sockets. During process shutdown
+    // the controller owns their close handshake and deadline.
+    if (!draining) {
+      for (const client of wss.clients) {
+        client.terminate();
+      }
+      wss.close();
     }
-    wss.close();
   });
+  return {
+    close: () => {
+      draining = true;
+      for (const client of wss.clients) {
+        client.close(1001, "Server restarting");
+      }
+      const updatesDone =
+        activeUpdates === 0
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => updateWaiters.push(resolve));
+      const clientsDone = new Promise<void>((resolve) =>
+        wss.close(() => resolve()),
+      );
+      return Promise.all([updatesDone, clientsDone]).then(() => undefined);
+    },
+    terminate: () => {
+      draining = true;
+      for (const client of wss.clients) {
+        client.terminate();
+      }
+    },
+  };
 }

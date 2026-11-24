@@ -1,0 +1,99 @@
+name: Publish test reports
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: Qualify successful main CI
+    if: >-
+      vars.TEST_REPORT_PAGES_ENABLED == 'true' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.path == '.github/workflows/ci.yml' &&
+      github.event.workflow_run.head_repository.id == github.event.repository.id
+    runs-on: ubuntu-latest
+    outputs:
+      current: ${{ steps.source.outputs.current }}
+    steps:
+      - name: Check current source revision
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT_SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$REPORT_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$REPORT_SOURCE_SHA" == "$main_sha" ]]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping reports from superseded CI revision $REPORT_SOURCE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  publish:
+    name: Deploy successful CI reports to Pages
+    needs: qualify
+    if: ${{ needs.qualify.outputs.current == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: test-report-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      REPORT_SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.20.0
+      - name: Download the successful main CI run's report artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: "*-report"
+          path: ${{ runner.temp }}/downloaded-test-reports
+      - name: Stage app report directories
+        run: node scripts/stage-pages-reports.mjs "$RUNNER_TEMP/downloaded-test-reports" "$RUNNER_TEMP/public-test-reports"
+      - name: Validate and index the complete report set
+        run: node scripts/prepare-pages-reports.mjs "$RUNNER_TEMP/public-test-reports" "$REPORT_SOURCE_SHA"
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - name: Package all public test reports
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: ${{ runner.temp }}/public-test-reports/
+      - name: Recheck source revision after waiting for the publish slot
+        id: deploy-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$REPORT_SOURCE_SHA" == "$main_sha" ]]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping reports from superseded CI revision $REPORT_SOURCE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Deploy test reports
+        id: deployment
+        if: ${{ steps.deploy-source.outputs.current == 'true' }}
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

@@ -184,6 +184,10 @@ export default function Home() {
           >
             <View style={{ alignItems: "stretch", flex: 1, maxWidth: 450 }}>
               <View
+                // Checking changes pointerEvents as Home is replaced. Keep the
+                // native parent stable so Fabric cannot flatten/reparent its
+                // children during Android's outgoing screen transition.
+                collapsable={false}
                 style={{ flex: 1 }}
                 pointerEvents={checkingMatch ? "none" : "auto"}
               >

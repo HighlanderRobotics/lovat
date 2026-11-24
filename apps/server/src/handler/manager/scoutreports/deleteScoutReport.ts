@@ -3,6 +3,7 @@ import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { shutdownWork } from "../../../lib/shutdownWork.js";
 
 export const deleteScoutReport = async (
   req: AuthenticatedRequest,
@@ -63,9 +64,13 @@ export const deleteScoutReport = async (
       });
 
       // Collect all affected cached analyses
-      invalidateCache(
-        reportRow.teamMatchData.teamNumber,
-        reportRow.teamMatchData.tournamentKey,
+      void shutdownWork.track(
+        () =>
+          invalidateCache(
+            reportRow.teamMatchData.teamNumber,
+            reportRow.teamMatchData.tournamentKey,
+          ),
+        "Failed to invalidate deleted report cache",
       );
 
       res.status(200).send("Data deleted successfully");

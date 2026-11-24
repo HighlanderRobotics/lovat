@@ -7,8 +7,8 @@ const db = vi.hoisted(() => ({
 const send = vi.hoisted(() => vi.fn());
 vi.mock("../src/prismaClient.js", () => ({ default: db }));
 vi.mock("../src/handler/analysis/analysisConstants.js", () => ({
-  allTeamNumbers: Promise.resolve([8033, 254, 1678, 971]),
-  allTournaments: Promise.resolve(["a", "b", "c", "d"]),
+  getAllTeamNumbers: async () => [8033, 254, 1678, 971],
+  getAllTournaments: async () => ["a", "b", "c", "d"],
 }));
 vi.mock("../src/handler/manager/onboarding/resendEmail.js", () => ({
   sendVerificationEmail: send,

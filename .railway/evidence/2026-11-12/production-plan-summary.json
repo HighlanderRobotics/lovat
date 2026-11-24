@@ -1,0 +1,42 @@
+{
+  "observedDate": "2026-11-12",
+  "context": {
+    "projectId": "c210dce8-37af-4bf0-b1e0-7e28b30597c6",
+    "projectName": "lovat",
+    "environmentId": "9f0088a8-9fe7-4afa-b634-cd1db046f045",
+    "environmentName": "production",
+    "configEtag": "836fda7d45c69402d150c376dee636579517a957916eaa058e908dfd19463de8"
+  },
+  "ownership": {
+    "service.api": "lovat-apps",
+    "service.dashboard": "lovat-apps",
+    "service.learn": "lovat-apps",
+    "service.website": "lovat-apps",
+    "service.worker": "lovat-apps"
+  },
+  "baselineChanges": [
+    {
+      "summary": "Update dashboard deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    },
+    {
+      "summary": "Update website deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    },
+    {
+      "summary": "Update learn deploy.sleepApplication",
+      "severity": "safe",
+      "kind": "resource.update",
+      "details": ["deploy.sleepApplication (true \u2192 null)"]
+    }
+  ],
+  "baselineDiagnostics": [],
+  "note": "Read-only plan; no apply, staged patch or deployment was requested.",
+  "alignedChanges": [],
+  "alignedDiagnostics": [],
+  "alignedConfigEtag": "836fda7d45c69402d150c376dee636579517a957916eaa058e908dfd19463de8"
+}

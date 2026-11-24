@@ -2,6 +2,7 @@
   "worker": [
     "apps/worker/**",
     "packages/db/**",
+    ".railway/railway.ts",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
     "docs/testing/fixtures/**",
@@ -11,6 +12,7 @@
   "server": [
     "apps/server/**",
     "packages/db/**",
+    ".railway/railway.ts",
     ".github/workflows/ci.yml",
     ".github/ci-filters.json",
     "docs/testing/fixtures/**",
@@ -53,6 +55,19 @@
     "scripts/ci-results.*",
     "scripts/ci-selection.*"
   ],
+  "web-images": [
+    "apps/dashboard/**",
+    "apps/learn/**",
+    "apps/website/**",
+    "CHANGELOG.md",
+    ".railway/**",
+    ".github/workflows/ci.yml",
+    ".github/workflows/web-hosting.yml",
+    ".github/ci-filters.json",
+    "scripts/test-web-hosting.mjs",
+    "scripts/ci-results.*",
+    "scripts/ci-selection.*"
+  ],
   "reviewer": [
     "tools/pr-reviewer/**",
     ".github/workflows/ai-review.yml",
@@ -66,6 +81,7 @@
     "docs/testing/fixtures/**",
     "apps/server/**",
     "packages/db/**",
+    ".railway/railway.ts",
     "apps/collection/lib/collection/**",
     "apps/collection/lib/lovatAPI/collectionRequests.ts",
     "apps/collection/lib/storage/scoutReportMigrations.ts",
