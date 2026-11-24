@@ -1,3 +1,4 @@
+import 'package:scouting_dashboard_app/reusable/app_tab_bar.dart';
 import 'package:chips_input/chips_input.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -404,6 +405,7 @@ class _MatchSchedulePageState extends State<MatchSchedulePage> {
                           ),
       ),
       drawer: const GlobalNavigationDrawer(),
+      bottomNavigationBar: const AppTabBar(current: AppTab.scouting),
     );
   }
 

@@ -51,6 +51,54 @@ void main() {
     await Tournament.clearCurrent();
   });
 
+  testWidgets('top bar search opens team lookup for the typed team',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await Tournament('test-event', 'Test Event').storeAsCurrent();
+    Object? arguments;
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData(splashFactory: InkRipple.splashFactory),
+      home: HomePage(api: TournamentTestAPI()),
+      routes: {
+        '/team_lookup': (context) {
+          arguments = ModalRoute.of(context)!.settings.arguments;
+          return Scaffold(
+              appBar: AppBar(), body: const Text('Team lookup page'));
+        },
+      },
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Lovat'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+
+    await tester.tap(find.byTooltip('Search teams'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lovat'), findsNothing);
+    await tester.enterText(find.byType(TextField), '1678');
+    await tester.pumpAndSettle();
+    expect(find.text('Look up team'), findsOneWidget);
+
+    // Closing search clears it and shows the home page again.
+    await tester.tap(find.byTooltip('Close search'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lovat'), findsOneWidget);
+    expect(find.text('Look up team'), findsNothing);
+
+    await tester.tap(find.byTooltip('Search teams'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '1678');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(find.text('Team lookup page'), findsOneWidget);
+    expect(arguments, {'team': 1678});
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Lovat'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await Tournament.clearCurrent();
+  });
+
   testWidgets('status tiles stay equal and compact on a phone', (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(

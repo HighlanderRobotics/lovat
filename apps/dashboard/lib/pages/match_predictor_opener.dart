@@ -1,3 +1,4 @@
+import 'package:scouting_dashboard_app/reusable/app_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scouting_dashboard_app/datatypes.dart';
@@ -102,6 +103,7 @@ class _MatchPredictorOpenerPageState extends State<MatchPredictorOpenerPage> {
         )
       ].withSpaceBetween(height: 10)),
       drawer: const GlobalNavigationDrawer(),
+      bottomNavigationBar: const AppTabBar(current: AppTab.strategy),
     );
   }
 

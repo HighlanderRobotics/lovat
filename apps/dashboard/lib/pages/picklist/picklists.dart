@@ -1,3 +1,4 @@
+import 'package:scouting_dashboard_app/reusable/app_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scouting_dashboard_app/pages/picklist/picklist_models.dart';
@@ -75,6 +76,7 @@ class _PicklistsPageState extends State<PicklistsPage> {
                 )
               : null,
           drawer: const GlobalNavigationDrawer(),
+          bottomNavigationBar: const AppTabBar(current: AppTab.picklists),
         );
       }),
     );

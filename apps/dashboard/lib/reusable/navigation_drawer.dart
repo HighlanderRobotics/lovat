@@ -172,16 +172,6 @@ class _GlobalNavigationDrawerState extends State<GlobalNavigationDrawer> {
                 ),
               ],
               const SectionHeader(title: "Analysis & Strategy"),
-              DrawerDestination(
-                label: "Team Lookup",
-                onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, "/team_lookup", (route) => false);
-                },
-                isSelected:
-                    ModalRoute.of(context)?.settings.name == "/team_lookup",
-                icon: Icons.search,
-              ),
               if (selectedTournament != null)
                 DrawerDestination(
                   label: "Picklist",
