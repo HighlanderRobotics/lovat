@@ -1,9 +1,4 @@
 {
-  "workflow": [
-    ".github/workflows/codeql.yml",
-    ".github/codeql-filters.json",
-    "scripts/codeql-matrix*.mjs"
-  ],
   "actions": [".github/workflows/**", ".github/actions/**"],
   "javascript": [
     "**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,svelte,astro}",

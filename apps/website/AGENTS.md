@@ -1,6 +1,6 @@
 # Website agent instructions
 
-- Use Node.js 20.19.6 from `.nvmrc` and install with `npm ci`.
+- Use Node.js 24.21.0 from `.nvmrc` and install with `npm ci`.
 - Run `npm run check`, `npm run lint`, and `npm run build` when relevant, and report the documented baseline failures separately.
 - Builds require no private values; server routes read provider-managed private environment values at runtime.
 - Treat Slack signature verification, contact forms, account deletion, redirects, and signed Server requests as security-sensitive.

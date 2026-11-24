@@ -41,3 +41,8 @@ dependency-audit.json
 
 test-report/
 .maestro/results/
+
+/candidate/
+
+# Native test helper bytecode
+__pycache__/

@@ -1,0 +1,31 @@
+appId: com.frc8033.lovatcollection
+---
+# Shared installed-app flow; Android dismisses its system hint before this flow.
+- tapOn: "Start position Hub"
+- assertVisible:
+    text: "Start position Hub"
+    selected: true
+- assertVisible:
+    text: "Start match"
+    enabled: true
+- tapOn:
+    text: "Start match"
+    enabled: true
+- assertNotVisible: "Start position Hub"
+- assertVisible:
+    text: "Undo"
+    enabled: false
+- tapOn: "Open outpost actions"
+- tapOn: "Intake from outpost"
+- assertVisible:
+    text: "Undo"
+    enabled: true
+- tapOn: "Undo"
+- assertVisible:
+    text: "Undo"
+    enabled: false
+- tapOn: "Open outpost actions"
+- tapOn: "Intake from outpost"
+- assertVisible:
+    text: "Undo"
+    enabled: true

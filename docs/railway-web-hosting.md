@@ -25,7 +25,7 @@ Use the PR environment created for the GitHub pull request. Add these services o
 - API link variables: BASE_URL=https://${{RAILWAY_PUBLIC_DOMAIN}} and LOVAT_WEBSITE=https://${{website.RAILWAY_PUBLIC_DOMAIN}} for OpenAPI, Slack callbacks, and verification emails.
 - Website integration variables: SLACK_SIGNING_SECRET, SLACK_WEBHOOK and RESEND_KEY. Populate only sandbox integration credentials for PRs. Missing credentials intentionally prevent external operations. The build requires no secrets because private values are read at runtime.
 - API: CORS_ALLOWED_ORIGINS=https://${{dashboard.RAILWAY_PUBLIC_DOMAIN}}. This adds only the exact preview origin to the existing lovat.app allowlist.
-- Auth0: authorize the exact Dashboard PR domain in the web application's Allowed Web Origins / Callback URLs / Logout URLs as appropriate. Do not allow arbitrary Railway domains. The existing web client ID is in apps/dashboard/lib/constants.dart. Login is not validated until this setup and an interactive sign-in complete.
+- Auth0: for a real login rehearsal, configure the separate sandbox tenant and exact preview URLs using the [Dashboard sandbox browser guide](../apps/dashboard/docs/manual-release-checks.md#build-a-sandbox-browser-candidate). Do not add arbitrary Railway domains or modify production tenant settings for a PR. Login is not validated until an operator completes the interactive sign-in.
 
 Verify the PR API has isolated Postgres and Redis before using forms or authentication. Check outgoing integration variables and scheduled jobs inherited from the base environment. Keep normal NODE_ENV=production; do not bypass CORS by enabling development mode.
 

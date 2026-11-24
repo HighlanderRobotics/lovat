@@ -3,6 +3,7 @@ import prismaClient from "../../../prismaClient.js";
 import z from "zod";
 import { AuthenticatedRequest } from "../../../lib/middleware/requireAuth.js";
 import { invalidateCache } from "../../../lib/clearCache.js";
+import { shutdownWork } from "../../../lib/shutdownWork.js";
 
 export const deleteScouter = async (
   req: AuthenticatedRequest,
@@ -117,7 +118,10 @@ export const deleteScouter = async (
       (report) => report.teamMatchData.tournamentKey,
     );
 
-    invalidateCache(teamsScouted, tournamentsScouted);
+    void shutdownWork.track(
+      () => invalidateCache(teamsScouted, tournamentsScouted),
+      "Failed to invalidate deleted scouter cache",
+    );
 
     res.status(200).send("Scouter deleted");
   }

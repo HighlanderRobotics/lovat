@@ -49,10 +49,9 @@ export function codeqlMatrix(changes, forceAll = false) {
   ) {
     throw new TypeError("Changed CodeQL filters must be an array of strings");
   }
-  const all = forceAll || changes.includes("workflow");
   return {
     include: jobs
-      .filter((job) => all || changes.includes(job.filter))
+      .filter((job) => forceAll || changes.includes(job.filter))
       .map(({ filter: _filter, ...job }) => job),
   };
 }
