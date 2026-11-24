@@ -17,6 +17,8 @@ export const processCommand = async (
       })
       .parse(req.body);
 
+    res.set("Content-Type", "text/plain; charset=utf-8");
+
     const body = params.text.trim().split(/\s+/);
 
     const action = body[0];
@@ -58,7 +60,7 @@ export const processCommand = async (
         res
           .status(200)
           .send(
-            `'${body[1]} 'is not a valid argument for '/lovat subscribe'. Acceptable arguments are 'no-leave' and 'break'`,
+            "Invalid argument for /lovat subscribe. Use no-leave or break.",
           );
         return;
       }
@@ -121,7 +123,7 @@ export const processCommand = async (
         res
           .status(200)
           .send(
-            `'${body[1]}' is not a valid argument for '/lovat subscribe'. Acceptable arguments are 'no-leave' and 'break'`,
+            "Invalid argument for /lovat unsubscribe. Use no-leave or break.",
           );
         return;
       }
@@ -151,7 +153,7 @@ export const processCommand = async (
       res
         .status(400)
         .send(
-          `${body[1]} is not a valid argument for '/lovat team'. Try /lovat team set (team code)`,
+          "Unknown /lovat command. Try /lovat help or /lovat team set (team code).",
         );
     }
   }

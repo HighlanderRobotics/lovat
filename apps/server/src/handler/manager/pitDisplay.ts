@@ -6,6 +6,7 @@ import { AuthenticatedRequest } from "../../lib/middleware/requireAuth.js";
 import { matchPredictionLogic } from "../analysis/predictions/matchPredictionLogic.js";
 import { MatchType } from "@lovat/db";
 import { MatchEnumToAbrivation } from "./managerConstants.js";
+import { tbaEventUrl } from "../../lib/tbaEventUrl.js";
 
 export const pitDisplay = async (
   req: AuthenticatedRequest,
@@ -49,19 +50,19 @@ export const pitDisplay = async (
 
     const headers = { "X-TBA-Auth-Key": process.env.TBA_KEY };
     await axios
-      .get(
-        `https://www.thebluealliance.com/api/v3/event/${params.data.tournamentKey}`,
-        { headers },
-      )
+      .get(tbaEventUrl(params.data.tournamentKey, "event"), {
+        headers,
+        maxRedirects: 0,
+      })
       .then(async (response) => {
         data.webcasts = response.data.webcasts;
       });
 
     await axios
-      .get(
-        `https://www.thebluealliance.com/api/v3/event/${params.data.tournamentKey}/rankings`,
-        { headers },
-      )
+      .get(tbaEventUrl(params.data.tournamentKey, "rankings"), {
+        headers,
+        maxRedirects: 0,
+      })
       .then(async (response) => {
         const mappedData = response.data.rankings.map((teamInfo) => ({
           type: "team",
