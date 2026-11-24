@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from 'magnolia-ui-svelte';
+	import { Button } from '@highlanderrobotics/magnolia-svelte';
 	import type { PageData } from './$types';
 
 	const appStoreLink = 'https://apps.apple.com/us/app/lovat-collection/id6467335014';

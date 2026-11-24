@@ -14,7 +14,7 @@
 	/>
 </svelte:head>
 
-<main>
+<article>
 	<header>
 		<h1>Changelog</h1>
 		<nav aria-label="Changelog by year">
@@ -49,10 +49,10 @@
 			{/each}
 		</section>
 	{/each}
-</main>
+</article>
 
 <style>
-	main {
+	article {
 		max-width: 800px;
 		margin: 0 auto;
 		padding: 40px 24px 64px;

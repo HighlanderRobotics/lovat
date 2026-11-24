@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { dashboardUrl } from '$lib/siteUrls';
-	import { Button } from 'magnolia-ui-svelte';
+	import { Button } from '@highlanderrobotics/magnolia-svelte';
 </script>
 
 <svelte:head>

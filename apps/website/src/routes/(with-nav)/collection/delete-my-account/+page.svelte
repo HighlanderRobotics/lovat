@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Button, TextField } from 'magnolia-ui-svelte';
+	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte';
 
 	let submitClicked = false;
 </script>
@@ -41,7 +41,7 @@
 		<p>We will use this to send updates about the deletion of your account.</p>
 
 		<div class="submit">
-			<Button disabled={submitClicked}>Submit</Button>
+			<Button type="submit" disabled={submitClicked}>Submit</Button>
 		</div>
 	</form>
 </section>

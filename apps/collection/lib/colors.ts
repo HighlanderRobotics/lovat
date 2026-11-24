@@ -1,3 +1,6 @@
+import { tokens } from "@highlanderrobotics/magnolia-tokens";
+const theme = tokens.themes.dark;
+
 export type ColorSet = {
   default: string;
   hover: string;
@@ -6,30 +9,30 @@ export type ColorSet = {
 
 export const colors = {
   victoryPurple: {
-    default: "#b59aff",
-    hover: "#bbaaf0",
-    faded: "#564b75",
+    default: theme.primary,
+    hover: theme.primaryHover,
+    faded: theme.primaryDisabled,
   },
   gray: {
-    default: "#424242",
-    hover: "#585858",
-    faded: "#2d2d2d",
+    default: theme.secondary,
+    hover: theme.secondaryHover,
+    faded: theme.secondaryDisabled,
   },
   danger: {
-    default: "#b13b3b",
-    hover: "#ab5858",
-    faded: "#563333",
+    default: theme.danger,
+    hover: theme.dangerHover,
+    faded: theme.dangerDisabled,
   },
   secondaryContainer: {
-    default: "#292929",
+    default: theme.surface,
   },
   background: {
-    default: "#1f1f1f",
+    default: theme.background,
   },
   onBackground: {
-    default: "#e0e0e0",
+    default: theme.onBackground,
   },
   body: {
-    default: "#b8b8b8",
+    default: theme.muted,
   },
 } as const satisfies Record<string, Partial<ColorSet>>;

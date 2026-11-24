@@ -8,6 +8,53 @@ test.beforeEach(async ({ context, baseURL }) => {
 	});
 });
 
+test('legacy Website colors resolve through the released Magnolia theme', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/download');
+	const colors = await page
+		.locator('.mg-root')
+		.first()
+		.evaluate((root) => {
+			const style = getComputedStyle(root);
+			const aliases = [
+				'victory-purple',
+				'secondary-container',
+				'on-background',
+				'body',
+				'background',
+				'danger',
+				'light-gray',
+				'light-gray-hover',
+				'placeholder',
+				'surface-container',
+				'outline-variant'
+			];
+			return Object.fromEntries(
+				aliases.map((name) => [name, style.getPropertyValue(`--${name}`).trim()])
+			);
+		});
+	expect(colors).toEqual({
+		'victory-purple': '#b59aff',
+		'secondary-container': '#292929',
+		'on-background': '#e0e0e0',
+		body: '#b8b8b8',
+		background: '#1f1f1f',
+		danger: '#b13b3b',
+		'light-gray': '#424242',
+		'light-gray-hover': '#585858',
+		placeholder: '#a3a3a3',
+		'surface-container': '#292929',
+		'outline-variant': '#929292'
+	});
+	await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(31, 31, 31)');
+	await expect(page.locator('h1')).toHaveCSS('color', 'rgb(224, 224, 224)');
+	await expect(page.locator('.app-card').first()).toHaveCSS('background-color', 'rgb(41, 41, 41)');
+	await expect(page.locator('.app-card').first()).toHaveCSS(
+		'border-top-color',
+		'rgb(146, 146, 146)'
+	);
+});
+
 for (const path of ['/', '/about', '/download', '/privacy', '/changelog', '/contact']) {
 	test(`SSR, hydration and accessibility: ${path}`, async ({ page, request }) => {
 		const ssr = await request.get(path);
