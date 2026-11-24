@@ -1,5 +1,10 @@
 appId: com.frc8033.lovatcollection
 ---
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - assertVisible: "^1234 in Q1$"
 - tapOn: "Upload"
 - extendedWaitUntil:
     notVisible: "Uploading"
@@ -9,8 +14,18 @@ appId: com.frc8033.lovatcollection
 - launchApp:
     clearState: false
 - tapOn: "history"
-- tapOn:
-    text: ".*1234.*"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          text: ".*1234.*"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: "^(Qualifier 1, )?1234 • .+$"
+      - assertVisible: "^1234 in Q1$"
 - assertNotVisible: "Upload"
 - tapOn: "Back"
 - tapOn: "Back"
