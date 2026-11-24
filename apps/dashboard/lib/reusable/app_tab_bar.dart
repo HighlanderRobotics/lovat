@@ -3,6 +3,7 @@ import 'package:scouting_dashboard_app/datatypes.dart';
 
 const _accent = Color(0xFFB59AFF);
 const _inactive = Color(0xFFB7B7B7);
+const _blob = Color(0x2EB59AFF);
 
 /// The Rewrite design's bottom tabs.
 enum AppTab {
@@ -50,7 +51,22 @@ class AppTabBar extends StatelessWidget {
             content: Text('Choose a tournament in Settings first.')));
       return;
     }
-    Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+    // Tabs switch in place instead of sliding like a pushed page.
+    final builder =
+        context.findAncestorWidgetOfExactType<MaterialApp>()?.routes?[route];
+    if (builder == null) {
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+      return;
+    }
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder<void>(
+        settings: RouteSettings(name: route),
+        pageBuilder: (context, _, __) => builder(context),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+      (route) => false,
+    );
   }
 
   @override
@@ -98,26 +114,40 @@ class _TabItem extends StatelessWidget {
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: SizedBox(
           height: 52,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(tab.icon, size: 24, color: color),
-              const SizedBox(height: 2),
-              Text(
-                tab.label,
-                maxLines: 1,
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: selected ? 16 / 13 : 18 / 13,
-                  fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                  color: color,
-                ),
+          child: Center(
+            // The blob sits behind the selected tab; text and icon keep the
+            // same size and weight as the other tabs.
+            child: AnimatedContainer(
+              key: ValueKey('tab-blob-${tab.name}'),
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: selected ? _blob : const Color(0x00B59AFF),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(tab.icon, size: 24, color: color),
+                  const SizedBox(height: 2),
+                  Text(
+                    tab.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 18 / 13,
+                      fontWeight: FontWeight.w400,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

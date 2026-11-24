@@ -49,8 +49,9 @@ String profileInitials(String? name) {
 }
 
 /// The Rewrite design's home top bar: avatar, "Lovat" and a search action.
-/// Searching swaps the title for a "Search teams" field.
-class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
+/// Opening search slides a "Search teams" field out from the search button;
+/// closing slides it back in.
+class HomeTopBar extends StatefulWidget implements PreferredSizeWidget {
   const HomeTopBar({
     super.key,
     required this.initials,
@@ -70,8 +71,48 @@ class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSearchClosed;
   final ValueChanged<String> onSubmitted;
 
+  static const slideDuration = Duration(milliseconds: 240);
+
   @override
   Size get preferredSize => const Size.fromHeight(60);
+
+  @override
+  State<HomeTopBar> createState() => _HomeTopBarState();
+}
+
+class _HomeTopBarState extends State<HomeTopBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _slide = AnimationController(
+    vsync: this,
+    duration: HomeTopBar.slideDuration,
+    value: widget.searching ? 1 : 0,
+  );
+  late final Animation<double> _curve = CurvedAnimation(
+    parent: _slide,
+    curve: Curves.easeOutCubic,
+    reverseCurve: Curves.easeInCubic,
+  );
+  final _focus = FocusNode();
+
+  @override
+  void didUpdateWidget(HomeTopBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searching == oldWidget.searching) return;
+    if (widget.searching) {
+      _slide.forward();
+      _focus.requestFocus();
+    } else {
+      _focus.unfocus();
+      _slide.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _slide.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Material(
@@ -89,32 +130,78 @@ class HomeTopBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 44,
                     child: Center(
                       child: _Avatar(
-                          initials: initials, onPressed: onAvatarPressed),
+                          initials: widget.initials,
+                          onPressed: widget.onAvatarPressed),
                     ),
                   ),
                   Expanded(
-                    child: searching
-                        ? _SearchField(
-                            controller: controller, onSubmitted: onSubmitted)
-                        : const Text(
-                            'Lovat',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Heebo',
-                              fontSize: 30,
-                              fontWeight: FontWeight.w500,
-                              color: _accent,
+                    child: AnimatedBuilder(
+                      animation: _curve,
+                      builder: (context, _) => Stack(
+                        alignment: Alignment.center,
+                        clipBehavior: Clip.none,
+                        children: [
+                          if (_curve.value < 1)
+                            Opacity(
+                              opacity: 1 - _curve.value,
+                              child: const Text(
+                                'Lovat',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Heebo',
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w500,
+                                  color: _accent,
+                                ),
+                              ),
                             ),
-                          ),
+                          if (_curve.value > 0)
+                            // Grows leftward from the search button's side.
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: FractionallySizedBox(
+                                widthFactor: _curve.value,
+                                child: Opacity(
+                                  opacity: Curves.easeOut
+                                      .transform(_curve.value.clamp(0, 1)),
+                                  child: _SearchField(
+                                    controller: widget.controller,
+                                    focusNode: _focus,
+                                    autofocus: widget.searching,
+                                    onSubmitted: widget.onSubmitted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 62,
                     height: 44,
                     child: IconButton(
-                      tooltip: searching ? 'Close search' : 'Search teams',
-                      onPressed: searching ? onSearchClosed : onSearchOpened,
-                      icon: Icon(searching ? Icons.close : Icons.search,
-                          size: 24, color: _primaryText),
+                      tooltip:
+                          widget.searching ? 'Close search' : 'Search teams',
+                      onPressed: widget.searching
+                          ? widget.onSearchClosed
+                          : widget.onSearchOpened,
+                      icon: AnimatedSwitcher(
+                        duration: HomeTopBar.slideDuration,
+                        transitionBuilder: (child, animation) =>
+                            RotationTransition(
+                          turns: Tween<double>(begin: 0.75, end: 1)
+                              .animate(animation),
+                          child:
+                              FadeTransition(opacity: animation, child: child),
+                        ),
+                        child: Icon(
+                          widget.searching ? Icons.close : Icons.search,
+                          key: ValueKey(widget.searching),
+                          size: 24,
+                          color: _primaryText,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -163,48 +250,62 @@ class _Avatar extends StatelessWidget {
       );
 }
 
+/// Matches the design's Field: 44pt tall, 8pt corners, a 2pt accent outline
+/// (1pt border plus 1pt inner line), a 3pt accent glow and a dark fill.
 class _SearchField extends StatelessWidget {
-  const _SearchField({required this.controller, required this.onSubmitted});
+  const _SearchField({
+    required this.controller,
+    required this.focusNode,
+    required this.autofocus,
+    required this.onSubmitted,
+  });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool autofocus;
   final ValueChanged<String> onSubmitted;
 
+  static const _text = TextStyle(
+    fontFamily: 'Roboto',
+    fontSize: 15,
+    height: 22 / 15,
+    fontWeight: FontWeight.w400,
+    color: _primaryText,
+  );
+
   @override
-  Widget build(BuildContext context) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: _accent),
-    );
-    return Container(
-      height: 44,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [BoxShadow(color: Color(0x2EB59AFF), spreadRadius: 3)],
-      ),
-      child: TextField(
-        controller: controller,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        textInputAction: TextInputAction.search,
-        onSubmitted: onSubmitted,
-        cursorColor: _accent,
-        style:
-            const TextStyle(fontSize: 15, height: 22 / 15, color: _primaryText),
-        decoration: InputDecoration(
-          hintText: 'Search teams',
-          hintStyle: const TextStyle(fontSize: 15, color: _tertiaryText),
-          filled: true,
-          fillColor: const Color(0xFF161616),
-          isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          border: border,
-          enabledBorder: border,
-          focusedBorder: border,
+  Widget build(BuildContext context) => Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          // rgba(0,0,0,0.3) over the bar's #1F1F1F, kept opaque so the glow
+          // does not tint the field.
+          color: const Color(0xFF161616),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _accent, width: 2),
+          boxShadow: const [
+            BoxShadow(color: Color(0x2EB59AFF), spreadRadius: 3),
+          ],
         ),
-      ),
-    );
-  }
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.search,
+          onSubmitted: onSubmitted,
+          cursorColor: _accent,
+          cursorWidth: 1,
+          cursorHeight: 17,
+          style: _text,
+          maxLines: 1,
+          decoration: InputDecoration.collapsed(
+            hintText: 'Search teams',
+            hintStyle: _text.copyWith(color: _tertiaryText),
+          ),
+        ),
+      );
 }
 
 /// Results shown under the top bar while searching.

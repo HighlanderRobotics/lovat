@@ -65,4 +65,41 @@ void main() {
     ));
     expect(find.text('Team numbers only contain digits'), findsOneWidget);
   });
+
+  testWidgets('search field slides out from the search button and back',
+      (tester) async {
+    Widget bar(bool searching) => MaterialApp(
+          home: Scaffold(
+            appBar: HomeTopBar(
+              initials: 'CC',
+              searching: searching,
+              controller: TextEditingController(),
+              onAvatarPressed: () {},
+              onSearchOpened: () {},
+              onSearchClosed: () {},
+              onSubmitted: (_) {},
+            ),
+          ),
+        );
+    await tester.pumpWidget(bar(false));
+    expect(find.byType(TextField), findsNothing);
+
+    await tester.pumpWidget(bar(true));
+    await tester.pump(HomeTopBar.slideDuration ~/ 3);
+    final partway = tester.getRect(find.byType(TextField));
+    await tester.pumpAndSettle();
+    final open = tester.getRect(find.byType(TextField));
+    // It grows leftward, keeping its right edge by the search button.
+    expect(partway.width, lessThan(open.width));
+    expect(partway.right, closeTo(open.right, 1));
+    expect(find.text('Lovat'), findsNothing);
+
+    await tester.pumpWidget(bar(false));
+    await tester.pump(HomeTopBar.slideDuration ~/ 3);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(tester.getRect(find.byType(TextField)).width, lessThan(open.width));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('Lovat'), findsOneWidget);
+  });
 }

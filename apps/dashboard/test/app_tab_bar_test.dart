@@ -38,7 +38,18 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
     final home = tester.widget<Text>(find.text('Home'));
+    final forms = tester.widget<Text>(find.text('Forms'));
     expect(home.style?.color, const Color(0xFFB59AFF));
+    // Selected tabs are highlighted by the blob, not by bigger text.
+    expect(home.style?.fontSize, forms.style?.fontSize);
+    expect(home.style?.fontWeight, forms.style?.fontWeight);
+    expect(tester.getSize(find.text('Home')).height,
+        tester.getSize(find.text('Forms')).height);
+    BoxDecoration blob(String tab) => tester
+        .widget<AnimatedContainer>(find.byKey(ValueKey('tab-blob-$tab')))
+        .decoration! as BoxDecoration;
+    expect(blob('home').color, const Color(0x2EB59AFF));
+    expect(blob('forms').color!.a, 0);
 
     await tester.tap(find.text('Picklists'));
     await tester.pumpAndSettle();
@@ -57,6 +68,26 @@ void main() {
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
     expect(find.text('Home page'), findsOneWidget);
+    await Tournament.clearCurrent();
+  });
+
+  testWidgets('switching tabs does not slide', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await Tournament('test-event', 'Test Event').storeAsCurrent();
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Strategy'));
+    // One frame later the new page is fully in place and the old one gone.
+    await tester.pump();
+    expect(find.text('Strategy page'), findsOneWidget);
+    expect(find.text('Home page'), findsNothing);
+    expect(tester.getTopLeft(find.text('Strategy page')).dx, 0);
+    expect(
+        ModalRoute.of(tester.element(find.text('Strategy page')))
+            ?.settings
+            .name,
+        '/match_predictor_opener');
     await Tournament.clearCurrent();
   });
 
