@@ -3,6 +3,29 @@ import { test } from "node:test";
 import { createRailwayContext } from "railway/iac";
 import config, { partial } from "./railway.ts";
 
+test("Wait for CI requires an explicit setting when rendering a plan", (t) => {
+  const previous = process.env.RAILWAY_WAIT_FOR_CI;
+  t.after(() => {
+    if (previous === undefined) delete process.env.RAILWAY_WAIT_FOR_CI;
+    else process.env.RAILWAY_WAIT_FOR_CI = previous;
+  });
+  const context = createRailwayContext({ environment: "production" });
+  const sourceSettings = () =>
+    config(context).resources.map((app) => app.source.checkSuites);
+
+  delete process.env.RAILWAY_WAIT_FOR_CI;
+  assert(sourceSettings().every((enabled) => enabled === false));
+  process.env.RAILWAY_WAIT_FOR_CI = "true";
+  assert(sourceSettings().every((enabled) => enabled === true));
+  process.env.RAILWAY_WAIT_FOR_CI = "false";
+  assert(sourceSettings().every((enabled) => enabled === false));
+  process.env.RAILWAY_WAIT_FOR_CI = "yes";
+  assert.throws(
+    () => config(context),
+    /RAILWAY_WAIT_FOR_CI must be true or false/,
+  );
+});
+
 for (const environment of ["production", "staging"]) {
   test(`${environment} retains deployment contracts`, () => {
     const graph = config(
@@ -20,7 +43,10 @@ for (const environment of ["production", "staging"]) {
     for (const resource of graph.resources) {
       assert.equal(resource.build.builder, "DOCKERFILE");
       assert(resource.build.watchPatterns.includes("/.railway/**"));
-      assert.notEqual(resource.deploy.sleepApplication, true);
+      assert.equal(
+        resource.deploy.sleepApplication,
+        resource.name === "worker" ? undefined : true,
+      );
       assert.equal(
         resource.deploy.restartPolicyType ?? "ON_FAILURE",
         resource.name === "worker" && environment === "production"
@@ -29,12 +55,7 @@ for (const environment of ["production", "staging"]) {
       );
       // Keep source connections and credential values during adoption.
       assert.equal(resource.source.repo, "HighlanderRobotics/lovat");
-      assert.equal(
-        resource.source.branch,
-        environment === "production"
-          ? "main"
-          : "offseason/mock-game-charged-up",
-      );
+      assert.equal(resource.source.branch, "main");
       assert(Object.keys(resource.variables).length > 0);
       for (const [name, value] of Object.entries(resource.variables)) {
         assert.deepEqual(
@@ -106,6 +127,34 @@ test("refuses preview plans without an explicit source branch", () => {
     if (previous === undefined) delete process.env.RAILWAY_CONFIG_BRANCH;
     else process.env.RAILWAY_CONFIG_BRANCH = previous;
   }
+});
+
+test("preview retains inherited sleeping and API limits without owning databases", (t) => {
+  const previous = process.env.RAILWAY_CONFIG_BRANCH;
+  process.env.RAILWAY_CONFIG_BRANCH =
+    "jackshim415/lvt-334-server-redact-request-analytics-and";
+  t.after(() => {
+    if (previous === undefined) {
+      delete process.env.RAILWAY_CONFIG_BRANCH;
+    } else {
+      process.env.RAILWAY_CONFIG_BRANCH = previous;
+    }
+  });
+  const graph = config(
+    createRailwayContext({ environment: "lovat-pr-128", projectName: "lovat" }),
+  );
+  assert.equal(graph.resources.length, 5);
+  for (const resource of graph.resources) {
+    assert.equal(resource.source.branch, process.env.RAILWAY_CONFIG_BRANCH);
+    assert.equal(
+      resource.deploy.sleepApplication,
+      resource.name === "worker" ? undefined : true,
+    );
+  }
+  const api = graph.resources.find((r) => r.name === "api");
+  assert.deepEqual(api.deploy.limitOverride, {
+    containers: { cpu: 2, memoryBytes: 2147483648 },
+  });
 });
 
 test("offseason cron uses a finite batch without a health listener or restarts", () => {

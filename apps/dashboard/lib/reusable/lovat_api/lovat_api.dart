@@ -9,17 +9,20 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:scouting_dashboard_app/constants.dart';
 import 'package:scouting_dashboard_app/reusable/stale_refresh_builder.dart';
 import 'package:scouting_dashboard_app/reusable/lovat_api/response_cache.dart';
+import 'package:scouting_dashboard_app/web_auth_config.dart';
 
 class LovatAPI {
   LovatAPI(
     String baseUrl, {
     http.Client? client,
     Future<String?> Function()? tokenProvider,
+    this.isBaseUrlLocked = false,
   })  : _baseUrl = baseUrl,
         _client = client,
         _tokenProvider = tokenProvider;
 
   String _baseUrl;
+  final bool isBaseUrlLocked;
   final http.Client? _client;
   final Future<String?> Function()? _tokenProvider;
   String? _lastToken;
@@ -28,7 +31,7 @@ class LovatAPI {
 
   String get baseUrl => _baseUrl;
   set baseUrl(String value) {
-    if (value == _baseUrl) return;
+    if (isBaseUrlLocked || value == _baseUrl) return;
     _baseUrl = value;
     _invalidateCache();
     unawaited(cache.flush());
@@ -68,7 +71,7 @@ class LovatAPI {
 
   Future<Credentials?> _doInitialize() async {
     final credentials = await auth0Web.onLoad(
-      audience: "https://api.lovat.app",
+      audience: dashboardWebAuth.audience,
       scopes: {'openid', 'profile', 'email', 'offline_access'},
     );
     _webSdkInitialized = true;
@@ -96,7 +99,7 @@ class LovatAPI {
         await ensureWebSdkInitialized();
 
         final credentials = await auth0Web.loginWithPopup(
-          audience: "https://api.lovat.app",
+          audience: dashboardWebAuth.audience,
           scopes: {'openid', 'profile', 'email', 'offline_access'},
         );
 
@@ -105,7 +108,7 @@ class LovatAPI {
         final newCredentials = await auth0
             .webAuthentication(scheme: "com.frc8033.lovatdashboard")
             .login(
-          audience: "https://api.lovat.app",
+          audience: productionAuth0Audience,
           scopes: {'openid', 'profile', 'email', 'offline_access'},
         );
 
@@ -306,13 +309,17 @@ class LovatAPIException implements Exception {
   String toString() => message;
 }
 
-const kProductionBaseUrl = "https://api.lovat.app";
+const kProductionBaseUrl = productionApiBase;
 
 const kDefaultBaseUrl = String.fromEnvironment(
-  'LOVAT_API_BASE',
+  apiBaseKey,
   defaultValue: kProductionBaseUrl,
 );
 
 // The application uses this default instance. Test entrypoints may replace the
 // service with an ordinary injected client/token provider; no runtime bypass flag exists.
-LovatAPI lovatAPI = LovatAPI(kDefaultBaseUrl);
+final _sandboxWebApiOrigin = kIsWeb ? dashboardWebAuth.sandboxApiOrigin : null;
+LovatAPI lovatAPI = LovatAPI(
+  _sandboxWebApiOrigin ?? kDefaultBaseUrl,
+  isBaseUrlLocked: _sandboxWebApiOrigin != null,
+);

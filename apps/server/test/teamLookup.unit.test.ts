@@ -4,7 +4,7 @@ import { invoke, testUser } from "./helpers/handlerHarness.js";
 const db = vi.hoisted(() => ({
   team: { findUnique: vi.fn() },
   scoutReport: { count: vi.fn(), findMany: vi.fn() },
-  cachedAnalysis: { create: vi.fn() },
+  cachedAnalysis: { create: vi.fn(), findUnique: vi.fn() },
   $queryRawUnsafe: vi.fn(),
   get: vi.fn(),
   set: vi.fn(),
@@ -22,8 +22,8 @@ vi.mock("../src/handler/analysis/analysisConstants.js", () => ({
   metricsCategory: [1, 2],
   metricToName: { 1: "autoPoints", 2: "feedingRate" },
   MetricsBreakdown: { roles: "robotRoles", climb: "endgameClimb" },
-  allTeamNumbers: Promise.resolve([8033, 254]),
-  allTournaments: Promise.resolve(["2026test"]),
+  getAllTeamNumbers: async () => [8033, 254],
+  getAllTournaments: async () => ["2026test"],
   dashboardToServer: {
     roles: "robotRoles",
     feeders: "feederTypes",
@@ -278,6 +278,51 @@ it("preserves own-team scouter names in breakdown details", async () => {
     },
   ]);
 });
+it.each([
+  { handler: getNotes, params: { team: "254" }, name: "notes" },
+  {
+    handler: breakdownDetails,
+    params: { team: "254", breakdown: "moving" },
+    name: "breakdown details",
+  },
+])(
+  "isolates $name when the same viewer changes teams",
+  async ({ handler, params }) => {
+    const redis = new Map<string, string>();
+    db.get.mockImplementation(async (key: string) => redis.get(key) ?? null);
+    db.set.mockImplementation(async (key: string, value: string) =>
+      redis.set(key, value),
+    );
+    db.cachedAnalysis.findUnique.mockResolvedValue({ key: "registered" });
+    db.scoutReport.findMany.mockResolvedValue([note(8033)]);
+    db.$queryRawUnsafe.mockImplementation(async (sql: string) => [
+      {
+        breakdown: true,
+        key: "m1",
+        tournament: "Test",
+        sourceteam: "8033",
+        scouter: sql.includes('teamScouter."sourceTeamNumber" = 8033')
+          ? "Private name"
+          : null,
+      },
+    ]);
+
+    const initial = await run(handler, { params });
+    expect(initial.headers["X-Lovat-Cache"]).toBe("miss");
+    expect(JSON.stringify(initial.body)).toContain("Private name");
+    const repeat = await run(handler, { params });
+    expect(repeat.headers["X-Lovat-Cache"]).toBe("hit");
+    expect(repeat.body).toEqual(JSON.parse(JSON.stringify(initial.body)));
+
+    const afterTeamChange = await run(handler, {
+      params,
+      user: { ...testUser, teamNumber: 971 },
+    });
+    expect(afterTeamChange.headers["X-Lovat-Cache"]).toBe("miss");
+    expect(JSON.stringify(afterTeamChange.body)).not.toContain("Private name");
+    expect([...redis.keys()]).toHaveLength(2);
+  },
+);
 it.each(["invalid", "null", "[]"])(
   "treats missing or malformed flags as an empty list (%s)",
   async (flags) => {

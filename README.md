@@ -1,102 +1,42 @@
-# Lovat
+<h1 align="center">
+  <img src="apps/collection/assets/splash.png" alt="Lovat" width="560">
+</h1>
+
+<p align="center">FIRST Robotics Competition scouting by Highlander Robotics, Team 8033.</p>
+
+<p align="center">
+  <a href="https://lovat.app">Website</a> ·
+  <a href="https://dashboard.lovat.app">Dashboard</a> ·
+  <a href="https://learn.lovat.app">User guides</a> ·
+  <a href="docs/README.md">Developer docs</a>
+</p>
 
 [![CI](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
-[![Tests (CI workflow)](https://img.shields.io/github/actions/workflow/status/HighlanderRobotics/lovat/ci.yml?branch=main&label=Tests)](https://github.com/HighlanderRobotics/lovat/actions/workflows/ci.yml?query=branch%3Amain)
 [![CodeQL](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/HighlanderRobotics/lovat/actions/workflows/codeql.yml?query=branch%3Amain)
 
-Lovat is Highlander Robotics Team 8033's scouting system for FIRST Robotics Competition events. It collects match observations, analyzes team performance, supports scouting operations, and presents data for match strategy and alliance selection.
+Lovat records match observations, keeps reports available offline, and turns submitted data into analysis, predictions, and picklists for scouting and strategy teams.
 
 ## Applications
 
-| Path | Purpose | Technology |
-|---|---|---|
-| [`apps/collection`](apps/collection) | Field-side match collection, offline history, and report upload | Expo, React Native, TypeScript |
-| [`apps/server`](apps/server) | API, authentication, storage, imports, caching, and analysis | Node.js, Express, TypeScript, Prisma, PostgreSQL, Redis |
-| [`apps/dashboard`](apps/dashboard) | Analysis, scouting management, predictions, and picklists | Flutter and Dart |
-| [`apps/website`](apps/website) | Public site and selected operational routes | SvelteKit and TypeScript |
-| [`apps/learn`](apps/learn) | User guides for Dashboard and Collection | Astro, Starlight, MDX, Svelte |
+| App | What it does | Stack |
+| --- | --- | --- |
+| [Collection](apps/collection/README.md) | Records matches on iOS and Android, works offline, and uploads reports. | Expo, React Native, TypeScript |
+| [Dashboard](apps/dashboard/README.md) | Analyzes reports and manages scouting schedules, predictions, and picklists. | Flutter, Dart |
+| [Server / API](apps/server/README.md) | Authenticates clients, validates and stores reports, and serves analysis. | Node.js, Express, Prisma, PostgreSQL, Redis |
+| [Worker](apps/worker/README.md) | Runs background jobs, including tournament, match, and results imports from The Blue Alliance. | Bun, TypeScript, PostgreSQL |
+| [Website](apps/website/README.md) | Serves the public site and selected integrations. | SvelteKit, TypeScript |
+| [Learn](apps/learn/README.md) | Publishes app guides and API onboarding. | Astro, Starlight, MDX |
 
-## Data flow
-
-```text
-Collection ── reports ──> Server <── schedules and results ── The Blue Alliance
-                            │
-                            ├── PostgreSQL: durable data
-                            ├── Redis: analysis cache
-                            └── authenticated API ──> Dashboard
-
-Website provides public pages and selected operational integrations.
-```
-
-See [`docs/architecture.md`](docs/architecture.md) for boundaries and cross-application contracts.
-
-## Prerequisites
-
-- Server: Node.js 22.20.0, PostgreSQL, and Redis.
-- Collection: Node.js 24.6.0 and Expo/EAS tooling.
-- Dashboard: Flutter; CI versions are documented in its local instructions.
-- Website: Node.js 20.19.6.
-- Learn: Node.js 22 and npm.
-- macOS and Xcode are required for local iOS builds.
-
-Each application retains its own lockfile. Install dependencies inside the application directory.
-
-## Commands
-
-```bash
-./scripts/check-structure.sh
-./scripts/check-all.sh
-```
-
-Application development commands:
-
-```bash
-cd apps/server && npm run dev
-cd apps/collection && npm start
-cd apps/dashboard && flutter run -d chrome
-cd apps/website && npm run dev
-cd apps/learn && npm run dev
-```
-
-Several applications require environment files or external services for full runtime behavior. Copy only committed `.env.example` files and never commit credentials.
+[Shared database package](packages/db/README.md) · [Architecture and data flow](docs/architecture.md)
 
 ## Working here
 
-Read [`AGENTS.md`](AGENTS.md) and the nearest app-local `AGENTS.md` before editing. Keep changes within the app that owns the behavior. Update all affected producers and consumers together when a shared contract changes.
+1. Read [AGENTS.md](AGENTS.md) and the nearest app-local instructions before editing.
+2. Follow the app's README or the [local development guide](docs/development/README.md) for tools, environment variables, and commands. Each app keeps its own lockfile.
+3. Run the affected app's checks and `./scripts/check-structure.sh` from the repo root.
 
-## Pull request review
-
-Internal pull requests receive an automated OpenRouter review when they are opened, updated, reopened, or marked ready for review. The reviewer lives in [`tools/pr-reviewer`](tools/pr-reviewer), follows [`CODE_REVIEW.md`](CODE_REVIEW.md), and is configured by [`.lovat-review.json`](.lovat-review.json). Fork pull requests and drafts are skipped by default. Maintainers configure the `OPENROUTER_API_KEY` secret and may override the model with the `OPENROUTER_MODEL` variable. See the [reviewer README](tools/pr-reviewer/README.md) for setup, permissions, and limits.
-
-## Linear MCP
-
-This repository configures Linear as a project-scoped MCP server for Codex. Authentication is stored per user and is never committed.
-
-After cloning the repository, trust the project when Codex prompts you, then authenticate:
-
-```bash
-codex mcp login linear
-```
-
-Run `codex mcp get linear` to verify the server configuration, or use `/mcp` inside an interactive Codex session. Start a new Codex session if one was already open when you authenticated.
-
-## Deployment
-
-The [server test overview](https://highlanderrobotics.github.io/lovat/) can be
-published by CI after successful server checks on main. See
-[test report hosting](docs/test-report-hosting.md) for setup.
-
-- Server: Railway, repository root `/`, config `/.railway/railway.ts`, Dockerfile `apps/server/Dockerfile` (includes `packages/db`). See [database deployment requirements](packages/db/README.md).
-- Dashboard: Netlify web deployment and GitHub Actions Android artifact.
-- Collection: EAS, project root `apps/collection`.
-- Website: Netlify, base directory `apps/website`.
-
-- Learn: static site; base directory `apps/learn`, build `npm run build`, output `dist`.
+[Testing and CI](docs/testing/README.md) · [Deployment and previews](docs/deployment/README.md) · [All developer docs](docs/README.md)
 
 ## History
 
-See the [changelog](CHANGELOG.md) for changes grouped by month and feature across Lovat's full history
-and the [complete commit archive](docs/history/README.md) for all retained main
-and tagged application history, beginning in December 2022.
-
-This repository combines formerly separate repositories, including `MangoSwirl/lovat-learn` (see [Learn import](docs/migration/learn-import.md)). Default-branch histories and namespaced release tags are retained. Original-to-rewritten maps and migration evidence are in [`docs/migration`](docs/migration); the source repositories remain the record for old pull requests and feature branches.
+[Changelog](CHANGELOG.md) · [Retained commit archive](docs/history/README.md) · [Monorepo migration and source maps](docs/migration/README.md)

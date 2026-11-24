@@ -14,7 +14,30 @@ import path from "path";
 import { getVersion } from "./handler/manager/version.js";
 import { AppError, errorHandler, errorResponses } from "./lib/errors.js";
 
+import { runtimeHealth } from "./lib/runtimeHealth.js";
+
 export const app = express();
+
+// Health probes bypass parsing, analytics and rate limits, and expose no errors.
+app.get("/live", (_req, res) => {
+  res.set("Cache-Control", "no-store").json({ status: "live" });
+});
+app.get("/ready", async (_req, res) => {
+  const ready = await runtimeHealth.ready();
+  res
+    .set("Cache-Control", "no-store")
+    .status(ready ? 200 : 503)
+    .json({
+      status: ready ? "ready" : "not_ready",
+    });
+});
+app.use((_req, res, next) => {
+  if (runtimeHealth.isStopping()) {
+    res.set("Connection", "close").status(503).json({ status: "not_ready" });
+    return;
+  }
+  next();
+});
 
 app.set("trust proxy", 1);
 app.use(errorResponses);
