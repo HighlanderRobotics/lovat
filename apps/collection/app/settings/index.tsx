@@ -77,6 +77,12 @@ export default function Settings() {
               <TrainingModeSelector />
               <QRCodeSizeLink />
               <CustomAPIUrlEditor />
+              <Button
+                variant="secondary"
+                onPress={() => router.push("/settings/third-party-notices")}
+              >
+                Third-Party Notices
+              </Button>
               <View
                 style={{
                   marginTop: 50,

@@ -29,6 +29,8 @@ The following are **not cleared for inclusion in the proposed first-party grant*
 - The Website pins legacy [`magnolia-ui-svelte` at `852aee5`](https://github.com/HighlanderRobotics/magnolia-ui-svelte/tree/852aee5fd375aaaa31a2324135a1b8d9f711de46). That revision has no license file or manifest declaration. Verify permission for that revision and its local patch, or switch to a cleared release. A license on the new Magnolia repository does not resolve this by itself.
 - Keep team branding, private reports, external datasets, and match media out of the code grant. Review demo fixtures separately.
 
+Collection exposes its bundled font notices offline at **Settings → Third-Party Notices**. The text files above are canonical; run `node scripts/generate-third-party-notices.mjs` from `apps/collection` after editing them. A test checks that the imported JSON preserves both texts byte for byte.
+
 ## Before applying the license
 
 - [ ] Confirm the choice, copyright holders, and authority to license existing contributions across the [imported repositories](../migration/source-revisions.md) and later monorepo work. Record team/mentor approval and any needed permissions or exclusions.
