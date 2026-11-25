@@ -1,7 +1,9 @@
 import { json, text, type Handle } from '@sveltejs/kit';
 
 /**
- * CSRF protection copied from sveltekit but with the ability to turn it off for specific routes.
+ * CSRF protection adapted from SvelteKit 1.25.2 to support a route allowlist.
+ * Upstream: https://github.com/sveltejs/kit/tree/c4a5f6cda41cc2e034e8b2a97d42b5f00568d29c
+ * MIT notice: static/notices/SvelteKit-MIT.txt (served at /notices/SvelteKit-MIT.txt).
  */
 const csrf =
 	(allowedPaths: string[]): Handle =>
