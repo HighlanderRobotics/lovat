@@ -13,9 +13,9 @@ export const nativeScheme = 'com.frc8033.lovatdashboard';
 
 export const authScopes = 'openid profile email offline_access';
 
-const env = import.meta.env as Record<string, string | undefined>;
-
-export const websiteBaseUrl = env.LOVAT_WEBSITE_URL || 'https://lovat.app';
+// Read each variable by name: touching import.meta.env as a whole object would
+// make Vite inline every LOVAT_* variable present at build time.
+export const websiteBaseUrl = import.meta.env.LOVAT_WEBSITE_URL || 'https://lovat.app';
 
 const hostname = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
 
@@ -79,13 +79,13 @@ export function resolveWebAuth(input: {
 }
 
 export const webAuth = resolveWebAuth({
-	domain: env.LOVAT_SANDBOX_AUTH0_DOMAIN,
-	clientId: env.LOVAT_SANDBOX_AUTH0_WEB_CLIENT_ID,
-	audience: env.LOVAT_SANDBOX_AUTH0_AUDIENCE,
-	apiBase: env.LOVAT_API_BASE
+	domain: import.meta.env.LOVAT_SANDBOX_AUTH0_DOMAIN,
+	clientId: import.meta.env.LOVAT_SANDBOX_AUTH0_WEB_CLIENT_ID,
+	audience: import.meta.env.LOVAT_SANDBOX_AUTH0_AUDIENCE,
+	apiBase: import.meta.env.LOVAT_API_BASE
 });
 
-export const defaultApiBase = env.LOVAT_API_BASE || productionApiBase;
+export const defaultApiBase = import.meta.env.LOVAT_API_BASE || productionApiBase;
 
 export const appVersion: string = __APP_VERSION__;
 export const buildNumber: string = __BUILD_NUMBER__;

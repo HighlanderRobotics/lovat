@@ -28,7 +28,7 @@ npm run tauri:build  # native bundles
 
 ```bash
 node tool/dev-api.mjs
-LOVAT_API_BASE=http://127.0.0.1:9879 LOVAT_DEV_TOKEN=dev npm run dev
+LOVAT_API_BASE=http://127.0.0.1:9879 DEV_LOVAT_TOKEN=dev npm run dev
 ```
 
 Onboarding still expects a real sign-in; to skip it, set `localStorage.onboardingVersion = '1'` in the browser console.

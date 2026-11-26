@@ -2,7 +2,7 @@
 // never paste real scouting data into this file.
 //
 //   node tool/dev-api.mjs            # listens on http://127.0.0.1:9879
-//   LOVAT_API_BASE=http://127.0.0.1:9879 LOVAT_DEV_TOKEN=dev npm run dev
+//   LOVAT_API_BASE=http://127.0.0.1:9879 DEV_LOVAT_TOKEN=dev npm run dev
 
 import http from 'node:http';
 

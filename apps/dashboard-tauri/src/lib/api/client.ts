@@ -197,9 +197,9 @@ export class LovatAPI {
 // Sandbox web builds are pinned to their sandbox API; nothing may override it.
 const sandboxOrigin = isTauri ? undefined : webAuth.sandboxApiOrigin;
 
-// `vite dev` only: a fixed token for tool/dev-api.mjs. Production builds
-// drop this branch entirely because import.meta.env.DEV is false.
-const devToken = import.meta.env.DEV ? (import.meta.env as Record<string, string | undefined>).LOVAT_DEV_TOKEN : undefined;
+// `vite dev` only: a fixed token for tool/dev-api.mjs. vite.config.ts defines
+// this as an empty string for every build, so no token can ship.
+const devToken = __DEV_TOKEN__ || undefined;
 
 export const lovatAPI = new LovatAPI(
 	sandboxOrigin ?? defaultApiBase,
