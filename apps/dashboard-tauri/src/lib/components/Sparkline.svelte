@@ -85,6 +85,9 @@
 
 <style>
 	.chart {
+		width: 100%;
+		max-width: 640px;
+		margin: 0 auto;
 		aspect-ratio: 364 / 229;
 		border-radius: 10px;
 		background: var(--surface-high);

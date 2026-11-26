@@ -10,6 +10,7 @@ Repository-wide workflow rules belong in this root file. Nested `AGENTS.md` file
 
 - `apps/server`: Express, Prisma, PostgreSQL, and Redis service.
 - `apps/dashboard`: Flutter analysis and scouting-management client.
+- `apps/dashboard-tauri`: in-progress Tauri + Svelte rewrite of the Dashboard (web, desktop, mobile).
 - `apps/collection`: Expo and React Native scouting client.
 - `apps/website`: SvelteKit public site and operational routes.
 - `apps/learn`: Astro/Starlight user guides for Dashboard and Collection.

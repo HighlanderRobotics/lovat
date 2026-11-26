@@ -67,6 +67,9 @@
 
 <style>
 	.player {
+		width: 100%;
+		max-width: 520px;
+		margin: 0 auto;
 		background: var(--surface-high);
 		border-radius: 10px;
 		padding: 10px 10px 3px;

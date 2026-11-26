@@ -50,6 +50,8 @@
 		color: var(--on-surface);
 		width: min(560px, calc(100vw - 48px));
 		max-height: calc(100vh - 48px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 	dialog::backdrop {
 		background: rgba(0, 0, 0, 0.5);

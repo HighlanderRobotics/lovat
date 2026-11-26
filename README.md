@@ -42,6 +42,7 @@ The version badges show the public iOS App Store release. Google Play versions c
 | --- | --- | --- |
 | [Collection](apps/collection/README.md) | Records matches on iOS and Android, works offline, and uploads reports. | Expo, React Native, TypeScript |
 | [Dashboard](apps/dashboard/README.md) | Analyzes reports and manages scouting schedules, predictions, and picklists. | Flutter, Dart |
+| [Dashboard (Tauri)](apps/dashboard-tauri/README.md) | In-progress rewrite of the Dashboard for web, desktop, and mobile. | Svelte, TypeScript, Tauri, Rust |
 | [Server / API](apps/server/README.md) | Authenticates clients, validates and stores reports, and serves analysis. | Node.js, Express, Prisma, PostgreSQL, Redis |
 | [Worker](apps/worker/README.md) | Runs background jobs, including tournament, match, and results imports from The Blue Alliance. | Bun, TypeScript, PostgreSQL |
 | [Website](apps/website/README.md) | Serves the public site and selected integrations. | SvelteKit, TypeScript |

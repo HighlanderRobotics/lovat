@@ -9,7 +9,9 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"test": "vitest run",
-		"tauri": "tauri"
+		"tauri": "tauri",
+		"tauri:dev": "tauri dev",
+		"tauri:build": "tauri build"
 	},
 	"dependencies": {
 		"@auth0/auth0-spa-js": "^2.30.0",
@@ -38,5 +40,8 @@
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*"
+	},
+	"engines": {
+		"node": ">=22.17"
 	}
 }

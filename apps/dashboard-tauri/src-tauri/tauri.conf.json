@@ -1,0 +1,75 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Lovat Dashboard",
+  "version": "../package.json",
+  "identifier": "com.frc8033.lovatdashboard",
+  "build": {
+    "frontendDist": "../build",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Lovat Dashboard",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 360,
+        "minHeight": 560,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: blob: https://avatars.frc.sh",
+        "font-src": "'self'",
+        "media-src": "'self' blob: mediastream:",
+        "connect-src": "'self' ipc: http://ipc.localhost https://api.frc-colors.com"
+      },
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    },
+    "category": "Productivity",
+    "shortDescription": "Lovat scouting dashboard for FRC teams",
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "infoPlist": "Info.plist"
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "com.frc8033.lovatdashboard"
+        ]
+      },
+      "mobile": [
+        {
+          "scheme": [
+            "com.frc8033.lovatdashboard"
+          ],
+          "appLink": false
+        }
+      ]
+    }
+  }
+}

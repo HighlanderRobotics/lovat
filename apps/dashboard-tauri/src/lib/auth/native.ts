@@ -90,17 +90,26 @@ async function runLogin(): Promise<StoredCredentials> {
 	const state = randomString(16);
 	const redirect = redirectUri();
 
+	let unlisten: (() => void) | undefined;
 	const callback = new Promise<URL>((resolve, reject) => {
 		const timeout = setTimeout(() => reject(new Error('Sign-in timed out')), 5 * 60 * 1000);
 		onOpenUrl((urls) => {
 			for (const raw of urls) {
-				const url = new URL(raw);
+				let url: URL;
+				try {
+					url = new URL(raw);
+				} catch {
+					continue;
+				}
+				// Ignore stale or foreign redirects; only this attempt's state counts.
 				if (url.searchParams.get('state') !== state) continue;
 				clearTimeout(timeout);
 				resolve(url);
 			}
-		}).catch(reject);
-	});
+		})
+			.then((stop) => (unlisten = stop))
+			.catch(reject);
+	}).finally(() => unlisten?.());
 
 	const authorize = new URL(`https://${productionAuth0Domain}/authorize`);
 	authorize.search = new URLSearchParams({

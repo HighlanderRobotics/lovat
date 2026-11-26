@@ -95,6 +95,10 @@
 	.number:hover {
 		text-decoration: underline;
 	}
+	.reports,
+	.open {
+		text-decoration: none;
+	}
 	.reports {
 		color: var(--on);
 		display: inline-flex;

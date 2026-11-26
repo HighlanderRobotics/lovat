@@ -86,12 +86,12 @@
 {:else if !query.data}
 	<div class="page-body columns">
 		{#each [0, 1] as i (i)}
-			<div class="stack column" class:hidden-narrow={i !== tab} style="gap: 15px">
+			<div class="column" class:hidden-narrow={i !== tab}><div class="stack" style="gap: 15px">
 				<div class="skeleton" style="height: 94px"></div>
 				<div class="skeleton" style="height: 40px"></div>
 				<div class="skeleton" style="height: 160px"></div>
 				<div class="skeleton" style="height: 72px"></div>
-			</div>
+			</div></div>
 		{/each}
 	</div>
 {:else}
@@ -142,6 +142,9 @@
 		gap: 16px;
 		max-width: 1200px;
 	}
+	.hidden-narrow {
+		display: none;
+	}
 	@media (min-width: 900px) {
 		.columns {
 			grid-template-columns: 1fr 1fr;
@@ -150,14 +153,6 @@
 			display: none;
 		}
 		.hidden-narrow {
-			display: flex !important;
-		}
-	}
-	.hidden-narrow {
-		display: none !important;
-	}
-	@media (min-width: 900px) {
-		.column {
 			display: block;
 		}
 	}
