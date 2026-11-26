@@ -203,8 +203,11 @@
 {/snippet}
 
 {#snippet next(label: string, disabled: boolean, run: () => void)}
-	{#if error}<p class="error">{error}</p>{/if}
-	<button class="btn btn-filled" disabled={disabled || busy} onclick={run}>{busy ? '…' : label}</button>
+	<!-- Pinned to the viewport so long lists never push it off screen. -->
+	<div class="actions">
+		{#if error}<p class="error">{error}</p>{/if}
+		<button class="btn btn-filled" disabled={disabled || busy} onclick={run}>{busy ? '…' : label}</button>
+	</div>
 {/snippet}
 
 <div class="onboarding">
@@ -249,7 +252,7 @@
 					{/if}
 				{/if}
 			</div>
-			<button
+			<div class="actions"><button
 				class="btn btn-tonal"
 				disabled={busy}
 				onclick={() =>
@@ -258,7 +261,7 @@
 						team = null;
 						go('teamDataSettings');
 					}, 'Error setting not on team')}>I'm not on a team</button
-			>
+			></div>
 		</div>
 	{:else if phase === 'registerTeamChoice'}
 		<div class="step fill">
@@ -419,14 +422,16 @@
 					>
 				{/each}
 			</div>
-			{#if error}<p class="error">{error}</p>{/if}
-			<button
-				class="btn btn-tonal"
-				onclick={() => {
-					currentTournament.set(null);
-					complete();
-				}}>I'm not at a tournament</button
-			>
+			<div class="actions">
+				{#if error}<p class="error">{error}</p>{/if}
+				<button
+					class="btn btn-tonal"
+					onclick={() => {
+						currentTournament.set(null);
+						complete();
+					}}>I'm not at a tournament</button
+				>
+			</div>
 		</div>
 	{/if}
 </div>
@@ -543,6 +548,17 @@
 	.code {
 		font-family: 'Roboto Mono', monospace;
 		letter-spacing: 4px;
+	}
+	.actions {
+		position: sticky;
+		bottom: 0;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin: 0 -24px;
+		padding: 16px 24px calc(16px + var(--safe-bottom));
+		background: linear-gradient(transparent, var(--surface) 24px);
 	}
 	.error {
 		color: var(--error);
