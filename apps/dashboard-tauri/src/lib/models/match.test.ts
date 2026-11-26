@@ -25,4 +25,13 @@ describe('GameMatchIdentity', () => {
 		expect(match.getLocalizedDescription({ includeTournament: false })).toBe('Qualifier 3');
 		expect(match.getLocalizedDescription({ abbreviateName: true, includeTournament: false })).toBe('QM3');
 	});
+
+	it("accepts The Blue Alliance's playoff keys", () => {
+		const semi = GameMatchIdentity.fromLongKey('2026mttd_sf3m1_4');
+		expect(semi.type).toBe(MatchType.elimination);
+		expect(semi.number).toBe(3);
+		const final = GameMatchIdentity.fromLongKey('2026mttd_f1m2');
+		expect(final.getSpecificName()).toBe('Match 15 - Finals 2');
+		expect(() => GameMatchIdentity.fromLongKey('2026mttd_zz')).toThrow();
+	});
 });

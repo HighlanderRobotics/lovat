@@ -87,10 +87,26 @@ class GameMatchIdentity {
     return "Match";
   }
 
-  /// Create a match from a long match key such as `2022cc_qm14_1`
+  /// Create a match from a long match key such as `2022cc_qm14_1`.
+  ///
+  /// Reports from other sources can carry The Blue Alliance's playoff keys
+  /// (`sf3m1`, `f1m2`); these map onto Lovat's double-elimination numbering
+  /// (rounds 1-13, then finals 14-16).
   factory GameMatchIdentity.fromLongKey(String longKey,
       {String? tournamentName}) {
     List<String> elements = longKey.split("_");
+
+    final playoff = RegExp(r'^(qf|sf|f)(\d+)m(\d+)$').firstMatch(elements[1]);
+    if (playoff != null) {
+      final set = int.parse(playoff.group(2)!);
+      final game = int.parse(playoff.group(3)!);
+      return GameMatchIdentity(
+        MatchType.elimination,
+        playoff.group(1) == 'f' ? 13 + game : set,
+        elements[0],
+        tournamentName: tournamentName,
+      );
+    }
 
     return GameMatchIdentity(
       MatchTypeExtension.fromShortName(

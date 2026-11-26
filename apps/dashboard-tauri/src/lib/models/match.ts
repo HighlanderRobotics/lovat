@@ -72,15 +72,23 @@ export class GameMatchIdentity {
 		return 'Match';
 	}
 
-	/** Parse a long match key such as `2022cc_qm14_1`. */
+	/**
+	 * Parse a long match key such as `2022cc_qm14_1`. Lovat's own keys use
+	 * `qm`, `em` and `pm`; reports from other sources can carry The Blue
+	 * Alliance's playoff keys (`sf3m1`, `f1m2`), which map onto Lovat's
+	 * double-elimination numbering (rounds 1-13, then finals 14-16).
+	 */
 	static fromLongKey(longKey: string, tournamentName?: string | null) {
-		const [tournamentKey, match] = longKey.split('_');
-		return new GameMatchIdentity(
-			matchTypeFromShortName(match.replace(/\d/g, '')),
-			Number.parseInt(match.replace(/[a-zA-Z]/g, ''), 10),
-			tournamentKey,
-			tournamentName
-		);
+		const [tournamentKey, match = ''] = longKey.split('_');
+		const playoff = /^(qf|sf|f)(\d+)m(\d+)$/.exec(match);
+		if (playoff) {
+			const [, level, set, game] = playoff;
+			const number = level === 'f' ? 13 + Number(game) : Number(set);
+			return new GameMatchIdentity(MatchType.elimination, number, tournamentKey, tournamentName);
+		}
+		const simple = /^([a-z]+)(\d+)$/.exec(match);
+		if (!simple) throw new Error(`Unrecognized match key ${longKey}`);
+		return new GameMatchIdentity(matchTypeFromShortName(simple[1]), Number(simple[2]), tournamentKey, tournamentName);
 	}
 
 	toMediumKey() {
