@@ -58,8 +58,31 @@ The web build reuses the existing web client and needs the hosting origin in its
 
 `Dockerfile` and `Caddyfile` mirror the Flutter web image: build with `LOVAT_API_BASE` and `LOVAT_WEBSITE_URL` (required), serve `build/` with SPA fallback and `/healthz`. Railway is not wired to this app yet.
 
+## Android
+
+`src-tauri/gen/android` is the generated Android Studio project (`applicationId` `com.frc8033.lovatdashboard`, with a `.debug` suffix for debug builds). Setup on macOS:
+
+- Android Studio's SDK in `~/Library/Android/sdk` with platform-tools, an Android platform, build-tools, the emulator, and NDK 27.
+- Rust from `rustup` (Homebrew's `rust` cannot add targets), plus the Android targets: `rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android`.
+- These variables, using Android Studio's bundled JDK:
+
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+```
+
+Then start an emulator from Android Studio's Device Manager and run:
+
+```bash
+npm run tauri android dev                                 # live reload on the emulator
+npx tauri android build --debug --apk --target aarch64    # standalone debug APK
+```
+
+The manifest requests the camera for QR scanning (optional hardware). The deep-link plugin registers the `com.frc8033.lovatdashboard` URL scheme for the Auth0 redirect, which still needs the `android` callback URL added in Auth0.
+
 ## Native notes
 
 - macOS camera access for QR scanning uses `src-tauri/Info.plist`. Signed, hardened builds also need the `com.apple.security.device.camera` entitlement.
 - Deep links only reach the app from a bundled build on macOS; `tauri dev` cannot receive the Auth0 redirect there.
-- Mobile targets are configured (`identifier` and URL scheme match the Flutter app) but `tauri android init` / `tauri ios init` have not been run.
+- iOS has not been initialized yet (`tauri ios init`).
