@@ -38,9 +38,29 @@ async function writeCredentials(credentials: StoredCredentials | null) {
 	await s.save();
 }
 
+/** macOS and iOS (including iPadOS, which reports itself as a Mac). */
+const isApple = () => ['macos', 'ios'].includes(operatingSystem());
+
 function redirectUri() {
-	// Same shape auth0_flutter registers: SCHEME://DOMAIN/PLATFORM/BUNDLE/callback
-	return `${nativeScheme}://${productionAuth0Domain}/${operatingSystem()}/${nativeScheme}/callback`;
+	// Same shape auth0_flutter registers: SCHEME://DOMAIN/PLATFORM/BUNDLE/callback.
+	// Apple platforms share the iOS URL: the in-app sheet only matches the
+	// scheme, and this is the URL the Auth0 client already allows.
+	const platform = isApple() ? 'ios' : operatingSystem();
+	return `${nativeScheme}://${productionAuth0Domain}/${platform}/${nativeScheme}/callback`;
+}
+
+/**
+ * Apple platforms: Apple's in-app sign-in sheet returns the redirect directly.
+ * Elsewhere: the system browser hands the redirect back through the app's URL scheme.
+ */
+async function authorize(authorizeUrl: string, state: string): Promise<URL> {
+	if (isApple()) {
+		const { invoke } = await import('@tauri-apps/api/core');
+		const url = new URL(await invoke<string>('web_auth', { url: authorizeUrl, callbackScheme: nativeScheme }));
+		if (url.searchParams.get('state') !== state) throw new Error('Sign-in returned an unexpected state');
+		return url;
+	}
+	return browserAuthorize(authorizeUrl, state);
 }
 
 function base64Url(bytes: Uint8Array) {
@@ -81,15 +101,11 @@ async function tokenRequest(body: Record<string, string>): Promise<StoredCredent
 
 let loginInFlight: Promise<StoredCredentials> | null = null;
 
-async function runLogin(): Promise<StoredCredentials> {
+async function browserAuthorize(authorizeUrl: string, state: string): Promise<URL> {
 	const [{ openUrl }, { onOpenUrl }] = await Promise.all([
 		import('@tauri-apps/plugin-opener'),
 		import('@tauri-apps/plugin-deep-link')
 	]);
-	const verifier = randomString(48);
-	const state = randomString(16);
-	const redirect = redirectUri();
-
 	let unlisten: (() => void) | undefined;
 	const callback = new Promise<URL>((resolve, reject) => {
 		const timeout = setTimeout(() => reject(new Error('Sign-in timed out')), 5 * 60 * 1000);
@@ -110,9 +126,17 @@ async function runLogin(): Promise<StoredCredentials> {
 			.then((stop) => (unlisten = stop))
 			.catch(reject);
 	}).finally(() => unlisten?.());
+	await openUrl(authorizeUrl);
+	return callback;
+}
 
-	const authorize = new URL(`https://${productionAuth0Domain}/authorize`);
-	authorize.search = new URLSearchParams({
+async function runLogin(): Promise<StoredCredentials> {
+	const verifier = randomString(48);
+	const state = randomString(16);
+	const redirect = redirectUri();
+
+	const authorizeUrl = new URL(`https://${productionAuth0Domain}/authorize`);
+	authorizeUrl.search = new URLSearchParams({
 		response_type: 'code',
 		client_id: nativeClientId,
 		redirect_uri: redirect,
@@ -122,9 +146,8 @@ async function runLogin(): Promise<StoredCredentials> {
 		code_challenge: await challengeFor(verifier),
 		code_challenge_method: 'S256'
 	}).toString();
-	await openUrl(authorize.toString());
 
-	const url = await callback;
+	const url = await authorize(authorizeUrl.toString(), state);
 	const error = url.searchParams.get('error');
 	if (error) throw new Error(url.searchParams.get('error_description') ?? error);
 	const code = url.searchParams.get('code');

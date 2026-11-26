@@ -2,8 +2,12 @@
 // frontend; Rust only provides plugins: HTTP without CORS, Auth0 deep-link
 // callbacks, credential storage, and native save dialogs.
 
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+mod web_auth;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[allow(unused_mut)] // only desktop builds add the single-instance plugin
     let mut builder = tauri::Builder::default();
 
     // On Windows and Linux, the OS starts a second process for the Auth0
@@ -26,6 +30,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .invoke_handler(handlers())
         .setup(|app| {
             #[cfg(any(windows, target_os = "linux"))]
             {
@@ -44,4 +49,14 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running the Lovat Dashboard");
+}
+
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+fn handlers<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static {
+    tauri::generate_handler![web_auth::web_auth]
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "ios")))]
+fn handlers<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static {
+    tauri::generate_handler![]
 }
