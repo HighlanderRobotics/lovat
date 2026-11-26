@@ -1,4 +1,4 @@
-import { isTauri } from '$lib/config';
+import { isTauri } from '#lib/config.ts';
 
 type AuthModule = typeof import('./web');
 

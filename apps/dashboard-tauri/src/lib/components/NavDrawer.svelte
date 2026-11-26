@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { session } from '$lib/session.svelte';
-	import { currentTournament } from '$lib/tournament.svelte';
-	import { ui } from '$lib/ui.svelte';
+	import { session } from '#lib/session.svelte.ts';
+	import { currentTournament } from '#lib/tournament.svelte.ts';
+	import { ui } from '#lib/ui.svelte.ts';
 	import Icon from './Icon.svelte';
 
 	const tournament = $derived(currentTournament.value);
@@ -30,8 +31,10 @@
 	]);
 
 	$effect(() => {
-		session.loadCached();
-		void session.refresh();
+		untrack(() => {
+			session.loadCached();
+			void session.refresh();
+		});
 	});
 
 	const close = () => (ui.drawerOpen = false);

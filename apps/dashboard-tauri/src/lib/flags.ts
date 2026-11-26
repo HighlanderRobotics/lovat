@@ -1,7 +1,7 @@
 // Team "flags" (tags): small colored badges showing one statistic per team.
 
-import { abbreviatedNameWithUnits, formatMetric, metricCategories } from '$lib/metrics';
-import { prefs } from '$lib/storage';
+import { abbreviatedNameWithUnits, formatMetric, metricCategories } from '#lib/metrics.ts';
+import { prefs } from '#lib/storage.ts';
 
 export interface FlagType {
 	path: string;

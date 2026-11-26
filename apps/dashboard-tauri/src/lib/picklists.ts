@@ -1,8 +1,8 @@
 // Locally saved picklist weight configurations (the Flutter `picklists` pref).
 
-import type { ConfiguredPicklist, PicklistWeight } from '$lib/api/endpoints';
-import { picklistWeights } from '$lib/metrics';
-import { prefs } from '$lib/storage';
+import type { ConfiguredPicklist, PicklistWeight } from '#lib/api/endpoints.ts';
+import { picklistWeights } from '#lib/metrics.ts';
+import { prefs } from '#lib/storage.ts';
 
 interface StoredPicklist {
 	title: string;

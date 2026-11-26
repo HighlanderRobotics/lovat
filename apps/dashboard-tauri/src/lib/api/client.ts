@@ -1,6 +1,6 @@
-import { auth } from '$lib/auth';
-import { appVersion, buildNumber, defaultApiBase, isTauri, operatingSystem, webAuth } from '$lib/config';
-import { prefs } from '$lib/storage';
+import { auth } from '#lib/auth/index.ts';
+import { appVersion, buildNumber, defaultApiBase, isTauri, operatingSystem, webAuth } from '#lib/config.ts';
+import { prefs } from '#lib/storage.ts';
 import { ResponseCache } from './cache';
 import { queryCache } from './query.svelte';
 

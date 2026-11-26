@@ -2,14 +2,14 @@
 // and status handling mirror apps/dashboard/lib/reusable/lovat_api.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { AutoPath } from '$lib/models/autoPath';
-import { GameMatchIdentity, type Alliance, MatchType } from '$lib/models/match';
+import { AutoPath } from '#lib/models/autoPath.ts';
+import { GameMatchIdentity, type Alliance, MatchType } from '#lib/models/match.ts';
 import {
 	scoutReportAnalysisFromJson,
 	scoutReportEventFromList,
 	type ScoutReportEvent,
 	type SingleScoutReportAnalysis
-} from '$lib/models/scoutReport';
+} from '#lib/models/scoutReport.ts';
 import {
 	scoutFromJson,
 	userProfileFromJson,
@@ -18,9 +18,9 @@ import {
 	type RegistrationStatusResponse,
 	type Scout,
 	type Team
-} from '$lib/models/types';
-import { prefs } from '$lib/storage';
-import { currentTournament, tournamentFromJson, type Tournament } from '$lib/tournament.svelte';
+} from '#lib/models/types.ts';
+import { prefs } from '#lib/storage.ts';
+import { currentTournament, tournamentFromJson, type Tournament } from '#lib/tournament.svelte.ts';
 import { LovatAPIException, apiErrorFromBody, lovatAPI as api, raise } from './client';
 import type { CachedQuery } from './query.svelte';
 

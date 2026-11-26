@@ -10,7 +10,7 @@ import {
 	operatingSystem,
 	productionAuth0Audience,
 	productionAuth0Domain
-} from '$lib/config';
+} from '#lib/config.ts';
 
 interface StoredCredentials {
 	accessToken: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { goBack, ui } from '$lib/ui.svelte';
+	import { goBack, ui } from '#lib/ui.svelte.ts';
 	import Icon from './Icon.svelte';
 	import LinearProgress from './LinearProgress.svelte';
 

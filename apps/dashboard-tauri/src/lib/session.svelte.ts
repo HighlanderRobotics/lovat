@@ -1,5 +1,5 @@
-import { getCachedUserProfile, getUserProfile } from '$lib/api/endpoints';
-import type { LovatUserProfile } from '$lib/models/types';
+import { getCachedUserProfile, getUserProfile } from '#lib/api/endpoints.ts';
+import type { LovatUserProfile } from '#lib/models/types.ts';
 
 /** The signed-in user's profile, shown from cache and refreshed on demand. */
 class Session {

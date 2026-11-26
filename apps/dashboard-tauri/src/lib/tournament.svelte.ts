@@ -1,4 +1,4 @@
-import { prefs } from '$lib/storage';
+import { prefs } from '#lib/storage.ts';
 
 export interface Tournament {
 	key: string;

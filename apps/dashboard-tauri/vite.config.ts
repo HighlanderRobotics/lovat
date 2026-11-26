@@ -10,8 +10,7 @@ export default defineConfig({
 	plugins: [
 		sveltekit({
 			// The Dashboard is a client-only SPA in both the browser and Tauri.
-			adapter: adapter({ fallback: 'index.html' }),
-			alias: { $lib: 'src/lib' }
+			adapter: adapter({ fallback: 'index.html' })
 		})
 	],
 	// Keep the Flutter build's variable names so hosting config is shared.

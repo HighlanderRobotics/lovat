@@ -1,7 +1,7 @@
 // 2026 season metric definitions, ported from apps/dashboard/lib/metrics.dart.
 // These paths are a cross-app contract with the Server analysis endpoints.
 
-import type { PicklistWeight } from '$lib/api/endpoints';
+import type { PicklistWeight } from '#lib/api/endpoints.ts';
 
 export function numToStringRounded(value: number | null | undefined): string {
 	if (value === null || value === undefined || Number.isNaN(value)) return '--';

@@ -1,5 +1,5 @@
 import type { Auth0Client } from '@auth0/auth0-spa-js';
-import { authScopes, webAuth } from '$lib/config';
+import { authScopes, webAuth } from '#lib/config.ts';
 
 let clientPromise: Promise<Auth0Client> | null = null;
 

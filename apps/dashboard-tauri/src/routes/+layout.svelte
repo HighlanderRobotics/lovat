@@ -1,11 +1,11 @@
 <script lang="ts">
 	import '../app.css';
 	import { page } from '$app/state';
-	import { initializeApi } from '$lib/api/client';
-	import NavDrawer from '$lib/components/NavDrawer.svelte';
-	import ToastHost from '$lib/components/ToastHost.svelte';
-	import { sanitizeStoredFlags } from '$lib/flags';
-	import { ensureDefaultPicklists } from '$lib/picklists';
+	import { initializeApi } from '#lib/api/client.ts';
+	import NavDrawer from '#lib/components/NavDrawer.svelte';
+	import ToastHost from '#lib/components/ToastHost.svelte';
+	import { sanitizeStoredFlags } from '#lib/flags.ts';
+	import { ensureDefaultPicklists } from '#lib/picklists.ts';
 
 	let { children } = $props();
 

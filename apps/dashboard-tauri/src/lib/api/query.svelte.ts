@@ -3,7 +3,8 @@
 // the refetch fails with data on screen, the data stays and a toast offers a
 // retry.
 
-import { toast } from '$lib/toast.svelte';
+import { untrack } from 'svelte';
+import { toast } from '#lib/toast.svelte.ts';
 
 export interface CachedQuery<T> {
 	key: unknown[];
@@ -123,14 +124,15 @@ export class QueryState<T> {
 }
 
 /**
- * Reactive query bound to a component. `getQuery` is re-read whenever its
- * reactive inputs change, refetching only when the key differs.
+ * Reactive query bound to a component. It refetches whenever `getQuery`'s
+ * reactive inputs change, and clears shown data only when the key differs.
  */
 export function useQuery<T>(getQuery: () => CachedQuery<T> | null): QueryState<T> {
 	const state = new QueryState<T>();
 	$effect(() => {
 		const query = getQuery();
-		if (query) state.run(query);
+		// Only the query's inputs are dependencies, not the state it writes.
+		if (query) untrack(() => state.run(query));
 	});
 	return state;
 }
