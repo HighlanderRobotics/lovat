@@ -53,6 +53,10 @@
     "macOS": {
       "minimumSystemVersion": "11.0",
       "infoPlist": "Info.plist"
+    },
+    "iOS": {
+      "developmentTeam": "W4MBZ59CH2",
+      "minimumSystemVersion": "15.0"
     }
   },
   "plugins": {

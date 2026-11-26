@@ -85,4 +85,4 @@ The manifest requests the camera for QR scanning (optional hardware). The deep-l
 
 - macOS camera access for QR scanning uses `src-tauri/Info.plist`. Signed, hardened builds also need the `com.apple.security.device.camera` entitlement.
 - Deep links only reach the app from a bundled build on macOS; `tauri dev` cannot receive the Auth0 redirect there.
-- iOS has not been initialized yet (`tauri ios init`).
+- iOS: `src-tauri/gen/apple` is the generated Xcode project, signed with the Piedmont Makers team (`W4MBZ59CH2`, set in `tauri.conf.json`). It needs `rustup target add aarch64-apple-ios aarch64-apple-ios-sim`, then `npx tauri ios build --debug --target aarch64 --export-method debugging` (or `npm run tauri ios dev`). It shares the Flutter app's bundle ID, so installing it on a phone replaces the Flutter Dashboard there.
