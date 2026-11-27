@@ -54,6 +54,7 @@ function hasButton(node) {
     if(body)box(body.node,'body');
     if(system)roles[system.node.id]={kind:'system'};
     if(header)box(header.node,'header');
+    if(frame.id==='5775:10069'){const search=all.find(x=>x.node.name==='Search wrap');if(search)box(search.node,'header');}
     if(nav)box(nav.node,'nav');
     for(const [i,item] of footers.entries()){box(item,'footer');roles[item.id].bottom=Math.max(0,frame.height-bounds[item.id].y-bounds[item.id].h);roles[item.id].transitionName='footer-'+i;}
     if(body)roles[body.node.id].bottom=footer?bounds[footer.id].h+roles[footer.id].bottom:nav?bounds[nav.node.id].h:0;

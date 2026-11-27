@@ -128,18 +128,26 @@ body { touch-action:pan-x pan-y; }
 @media (pointer:coarse) {
   .design-frame .design-field-input input { font-size:16px; }
 }
-::view-transition-old(root) { animation:screen-out 160ms ease both; }
-::view-transition-new(root) { animation:screen-in 220ms cubic-bezier(.2,.8,.2,1) both; }
-::view-transition-old(page-content) { animation:content-out 160ms ease both; }
-::view-transition-new(page-content) { animation:content-in 220ms cubic-bezier(.2,.8,.2,1) both; }
-::view-transition-group(bottom-navigation),
-::view-transition-group(page-header),
-::view-transition-group(footer-0),
-::view-transition-group(footer-1) { animation-duration:220ms; animation-timing-function:cubic-bezier(.2,.8,.2,1); }
-@keyframes screen-out { to { opacity:0; } }
-@keyframes screen-in { from { opacity:0; } }
-@keyframes content-out { to { opacity:0; transform:translateX(-8px); } }
-@keyframes content-in { from { opacity:0; transform:translateX(8px); } }
+/* Only incoming content animates; headers and bottom controls never fade out. */
+.design-viewport:not(.reference-mode) [data-layout-role="body"] > :not([data-layout-role="footer"]) {
+  animation:content-arrive 160ms ease-out;
+}
+@keyframes content-arrive { from { opacity:.85; } to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) {
-  ::view-transition-group(*) { animation:none !important; }
+  .design-viewport [data-layout-role="body"] > * { animation:none !important; }
+}
+.design-viewport:not(.reference-mode) {
+  position:fixed;inset:0;overflow:hidden;box-sizing:border-box;
+}
+.design-viewport.keyboard-open [data-layout-role="footer"],
+.design-viewport.keyboard-open [data-layout-role="nav"] { visibility:hidden;pointer-events:none; }
+.design-choice-row > .mg2-choice-field, .design-choice-row > .mg2-choice { width:100%; }
+.design-choice-row .mg2-choice { min-height:44px;width:100%;gap:11px;padding:0; }
+.design-viewport:not(.reference-mode) [data-toast] { position:fixed !important;top:auto !important;bottom:12px;z-index:30; }
+.design-choice-row.compact .mg2-choice > span:last-child {
+  position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+}
+/* The reference reset must not erase Magnolia's unchecked input outline. */
+.design-choice-row input:not(:checked) + .mg2-choice-box {
+  border:1px solid var(--mg-v2-color-fg-disabled,#7c7c7c);
 }

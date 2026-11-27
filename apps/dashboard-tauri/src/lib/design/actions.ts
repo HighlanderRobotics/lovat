@@ -99,8 +99,6 @@ export function destination(
   if (node.name === "lucide/copy") return to(id === "15445" ? 15445 : 10766);
   if (node.name === "TableRow")
     return to(id === "15322" ? 15503 : id === "15503" ? 15604 : 15322);
-  if (node.name === "Checkbox" && Number(id) >= 14879 && Number(id) <= 14968)
-    return to(id === "14879" ? 14922 : 14879);
   const globals: Record<string, number> = {
     "At tournament": 14810,
     "Team Source": 15945,
@@ -165,18 +163,6 @@ export function destination(
           : 10457,
     );
   if (node.name === "SelectableCard") {
-    if (id === "14183")
-      return to(
-        label === "Rating"
-          ? 14235
-          : label === "Photo"
-            ? 14284
-            : label === "Single select"
-              ? 14305
-              : label === "Multiple Select"
-                ? 14394
-                : 14265,
-      );
     if (id === "10144")
       return to(
         label.startsWith("Rate")

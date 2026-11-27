@@ -18,7 +18,9 @@ The Figma screen catalog is at `/design`; `/forms` opens the new Forms mock.
 `npm run build:mock` builds all 91 reference states with local assets and no
 sign-in. The ordinary `npm run build` retains live Auth0/API behavior and uses
 Magnolia v2 for shared top bars, dialogs, tabs, empty states, and progress views.
-See [the screen implementation notes](src/lib/design/README.md) for mock behavior.
+See [the screen implementation notes](src/lib/design/README.md) for architecture,
+interaction state, mobile layout decisions, verification, and the remaining API
+integration work.
 
 ```bash
 npm run build:mock
@@ -27,8 +29,9 @@ npm run tauri -- ios build --debug --target aarch64-sim --config src-tauri/tauri
 ```
 
 The native mock keeps `com.frc8033.lovatdashboard`. A simulator `.app` is for local
-testing. An unsigned device archive must be signed with the existing app's
-distribution credentials and assigned an available build number before upload.
+testing. A development-signed device build can be installed on the registered
+iPhone by cable. TestFlight requires an App Store distribution export and an
+available build number; no upload is part of this local build.
 
 ```bash
 npm ci

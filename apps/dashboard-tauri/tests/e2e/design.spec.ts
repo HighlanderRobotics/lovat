@@ -61,7 +61,10 @@ test('Home opens Forms, a template, and question options', async ({page}) => {
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
   await page.getByRole('button',{name:'DCMP Pit Scouting Created by Collin C · 45 responses'}).click();
   await page.getByRole('button',{name:'Add new question',exact:true}).click();
-  await page.getByRole('button',{name:'Photo',exact:true}).click();
+  await page.getByRole('radio',{name:'Photo',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeEnabled();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14183');
+  await page.getByRole('button',{name:'Options',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
   await page.getByRole('button',{name:'Save changes',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14514');
@@ -70,7 +73,7 @@ test('Home opens Forms, a template, and question options', async ({page}) => {
 test('API key create, rename, and delete confirmations navigate to their success states', async ({page}) => {
   await page.goto('/design/5775-15322');
   await page.getByRole('button',{name:'Create a new key',exact:true}).click();
-  await page.locator('input').last().fill('Local preview');
+  await page.getByRole('textbox',{name:'Name',exact:true}).fill('Local preview');
   await page.getByRole('button',{name:'Create',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15445');
   await page.getByRole('button',{name:'Done',exact:true}).click();
@@ -117,20 +120,101 @@ test('mobile zoom gestures are blocked and ordinary touch scrolling is preserved
   expect(result).toEqual([true,true,false]);
 });
 
-test('screen navigation animates and respects reduced motion', async ({page}) => {
+test('screen changes keep the shell visible and respect reduced motion', async ({page}) => {
   for(const reduced of [false,true]) {
     await page.emulateMedia({reducedMotion:reduced?'reduce':'no-preference'});
     await page.goto('/');
-    await page.evaluate(()=>{
-      const original=document.startViewTransition.bind(document);
-      (window as unknown as {transitions:number}).transitions=0;
-      document.startViewTransition=((update:()=>Promise<void>)=>{
-        (window as unknown as {transitions:number}).transitions++;
-        return original(update);
-      }) as typeof document.startViewTransition;
-    });
     await page.locator('[data-design-name="TabBarItem"]').filter({hasText:'Forms'}).click();
     await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
-    expect(await page.evaluate(()=>(window as unknown as {transitions:number}).transitions)).toBe(reduced?0:1);
+    await expect(page.locator('[data-layout-role="nav"]')).toHaveCSS('opacity','1');
+    const animation=await page.locator('[data-layout-role="body"] > *').first().evaluate(e=>getComputedStyle(e).animationName);
+    expect(animation).toBe(reduced?'none':'content-arrive');
   }
+});
+
+test('selectors change values, retain selection, and support bulk selection', async ({page}) => {
+  await page.goto('/design/5775-14810');
+  const tournaments=page.getByRole('radio');
+  await tournaments.nth(2).check();
+  await expect(tournaments.nth(2)).toBeChecked();
+  await expect(tournaments.first()).not.toBeChecked();
+  await page.getByRole('button',{name:'Apply changes',exact:true}).click();
+  await page.getByRole('button',{name:/^At tournament/}).click();
+  await expect(page.getByRole('radio').nth(2)).toBeChecked();
+  await page.goto('/design/5775-15945');
+  const teams=page.getByRole('checkbox');
+  await teams.nth(1).check();
+  await expect(teams.nth(1)).toBeChecked();
+  await teams.first().uncheck();
+  await expect(teams.first()).not.toBeChecked();
+  await page.getByRole('button',{name:'Select all',exact:true}).click();
+  expect(await teams.evaluateAll(inputs=>inputs.every(e=>(e as HTMLInputElement).checked))).toBe(true);
+  await page.getByRole('button',{name:'Just my team',exact:true}).click();
+  expect(await teams.evaluateAll(inputs=>inputs.filter(e=>(e as HTMLInputElement).checked).length)).toBe(1);
+});
+
+test('search starts empty, filters Forms, and stays below the header', async ({page}) => {
+  await page.goto('/forms');
+  const search=page.getByRole('textbox',{name:'Search forms'});
+  await expect(search).toHaveValue('');
+  await expect(search).toHaveAttribute('placeholder','Search forms');
+  const header=await page.locator('[data-figma-node="5775:10088"]').boundingBox();
+  const box=await search.boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(header!.y+header!.height);
+  await search.fill('SF Pit');
+  await expect(page.getByRole('button',{name:/^SF Pit Scouting/})).toBeVisible();
+  await expect(page.getByRole('button',{name:/^DCMP Pit Scouting/})).toBeHidden();
+});
+
+test('checkboxes and required switches update without navigating or remounting', async ({page}) => {
+  await page.goto('/design/5775-14879');
+  await page.getByRole('checkbox',{name:'Leo K',exact:true}).check();
+  await page.getByRole('checkbox',{name:'Jack S',exact:true}).check();
+  await expect(page.getByRole('checkbox',{name:'Leo K',exact:true})).toBeChecked();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14879');
+  await page.goto('/design/5775-14284');
+  const toggle=page.getByRole('switch',{name:'Required'});
+  await toggle.check();await expect(toggle).toBeChecked();
+  await toggle.uncheck();await expect(toggle).not.toBeChecked();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
+});
+
+test('confirmation messages disappear after three seconds', async ({page}) => {
+  const now=new Date('2026-11-26T12:00:00Z');
+  await page.clock.install({time:now});
+  await page.clock.pauseAt(now);
+  await page.goto('/design/5775-14514');
+  await expect(page.getByText('Updated question',{exact:true})).toBeVisible();
+  await page.clock.fastForward(2999);
+  await expect(page.getByText('Updated question',{exact:true})).toBeVisible();
+  await page.clock.fastForward(1);
+  await expect(page.getByText('Updated question',{exact:true})).toBeHidden();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14514');
+});
+
+test('keyboard resizes the scrollable area without squeezing the screen', async ({page}) => {
+  await page.goto('/design/5775-10120');
+  const height=await page.locator('.design-frame').evaluate(e=>e.getBoundingClientRect().height);
+  await page.getByRole('textbox',{name:'Name',exact:true}).focus();
+  await page.evaluate(()=>{
+    Object.defineProperty(window.visualViewport,'height',{configurable:true,value:500});
+    window.visualViewport!.dispatchEvent(new Event('resize'));
+  });
+  await expect(page.locator('.design-viewport')).toHaveClass(/keyboard-open/);
+  expect(await page.locator('.design-frame').evaluate(e=>e.getBoundingClientRect().height)).toBe(height);
+  await expect(page.locator('[data-layout-role="footer"]')).toBeHidden();
+  await page.getByRole('textbox',{name:'Name',exact:true}).blur();
+  await page.evaluate(()=>{Object.defineProperty(window.visualViewport,'height',{configurable:true,value:852});window.visualViewport!.dispatchEvent(new Event('resize'));});
+  await expect(page.locator('[data-layout-role="footer"]')).toBeVisible();
+});
+
+
+test('API-key checkboxes control selection actions', async ({page}) => {
+  await page.goto('/design/5775-15322');
+  await page.getByRole('checkbox',{name:/^Select Pit Display/}).check();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15503');
+  await expect(page.getByRole('button',{name:'Rename key',exact:true})).toBeVisible();
+  await page.getByRole('checkbox',{name:/^Select Picklists/}).check();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15604');
+  await expect(page.getByRole('button',{name:'Delete 2 keys',exact:true})).toBeVisible();
 });

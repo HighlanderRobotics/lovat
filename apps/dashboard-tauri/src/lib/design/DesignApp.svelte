@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { onMount, untrack, tick } from 'svelte';
+	import { onMount, untrack, tick, setContext } from 'svelte';
 	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte/v2';
 	import manifest from './manifest.json';
 	import layouts from './layouts.json';
 	import type { ScreenLayout } from './layout.ts';
 	import NodeView from './DesignNode.svelte';
-	import type { DesignNode } from './model.ts';
+	import { textOf, type DesignNode } from './model.ts';
+	import { DesignRuntime, DESIGN_RUNTIME, prepareScene, optionScreens } from './runtime.svelte.ts';
 	import { destination } from './actions.ts';
 	import './design.css';
 
+	const runtime=new DesignRuntime();
+	setContext(DESIGN_RUNTIME,runtime);
 	const sources = import.meta.glob('./scenes/*.json', { import: 'default' });
 	const routes: Record<string, string> = {
 		'/': '5775:9807',
@@ -35,17 +38,30 @@
 	function load(target:string): DesignNode | Promise<DesignNode> {
 		const cached=cache.get(target);
 		if(cached)return cached;
-		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(node=>{cache.set(target,node);return node;});
+		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=prepareScene(source,target,runtime);cache.set(target,node);return node;});
 	}
 	const scene = $derived(frame ? load(id) : undefined);
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
 	let safeTop = $state(0);
 	let availableHeight = $state(0);
+	let keyboardInset=$state(0);
+	let stableHeight=0;
 	function measure() {
 		if (!viewport) return;
+		const focused=document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement;
+		const visual=window.visualViewport;
+		const preserving=focused || keyboardInset>80;
+		if(!preserving || !stableHeight)stableHeight=window.innerHeight;
+		const height=preserving?Math.max(stableHeight,window.innerHeight):window.innerHeight;
+		keyboardInset=preserving?Math.max(0,height-(visual?.height??height)-(visual?.offsetTop??0)):0;
 		safeTop = parseFloat(getComputedStyle(viewport).paddingTop) || 0;
-		availableHeight = (window.visualViewport?.height ?? window.innerHeight) - safeTop - (parseFloat(getComputedStyle(viewport).paddingBottom) || 0);
+		availableHeight=height-safeTop-(parseFloat(getComputedStyle(viewport).paddingBottom)||0);
+		if(keyboardInset>80)requestAnimationFrame(()=>{
+			const input=document.activeElement as HTMLElement;
+			const body=input.closest('[data-layout-role="body"]');
+			if(body){const field=input.getBoundingClientRect(),box=body.getBoundingClientRect();if(field.bottom>box.bottom-12)body.scrollTop+=field.bottom-box.bottom+12;}
+		});
 	}
 	$effect(() => {
 		const element = viewport;
@@ -68,20 +84,28 @@
 	);
 
 	let navigation = 0;
-	let activeTransition: ViewTransition | undefined;
+	runtime.onSelectionChange=(scope)=>{if(scope==='api-keys'){const count=runtime.count(scope);void open(count===0?'5775:15322':count===1?'5775:15503':'5775:15604');}};
 	async function open(target: string) {
+		if(target===id && !catalog)return;
 		const request=++navigation;
 		if(target!=='catalog')await load(target);
 		if(request!==navigation)return;
+		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
+		if(optionType)runtime.questionType=optionType;
 		const url=(target==='catalog'?'/design':`/design/${target.replace(':','-')}`)+(reference?'?reference=1':'');
-		const update=async()=>{await goto(url);await tick();};
-		if(!reference && document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-			activeTransition?.skipTransition();
-			activeTransition=document.startViewTransition(update);
-			void activeTransition.finished.catch(()=>{});
-		}else await update();
+		await goto(url);
+		await tick();
 	}
 	function activate(node: DesignNode) {
+		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
+		const scope=runtime.scope(id);
+		if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}
+		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
+		if(node.typeSave)runtime.typeDirty=false;
+		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType]);return true;}
+		if(label==='Select all'){runtime.selectAll(scope);return true;}
+		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
+		if(label==='Apply changes')runtime.apply(scope);
 		if (id === '5775:10120' && node.control === 'button') {
 			open(
 				choices['5775:10128'] === '5775:10130' ? '5775:10144' : '5775:14699',
@@ -93,15 +117,22 @@
 		return !!target;
 	}
 	onMount(() => {
+		const orientation=()=>{stableHeight=0;keyboardInset=0;measure();};
+		screen.orientation?.addEventListener('change',orientation);
 		const keyboard = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') open('catalog');
 		};
 		window.addEventListener('keydown', keyboard);
 		window.addEventListener('resize', measure);
+		document.addEventListener('focusin',measure);
+		document.addEventListener('focusout',measure);
 		window.visualViewport?.addEventListener('resize', measure);
 		return () => {
+			screen.orientation?.removeEventListener('change',orientation);
 			window.removeEventListener('keydown', keyboard);
 			window.removeEventListener('resize', measure);
+			document.removeEventListener('focusin',measure);
+			document.removeEventListener('focusout',measure);
 			window.visualViewport?.removeEventListener('resize', measure);
 		};
 	});
@@ -133,6 +164,8 @@
 	<main
 		class="design-viewport"
 		class:reference-mode={reference}
+		class:keyboard-open={keyboardInset>80}
+		style={`--keyboard-inset:${keyboardInset / scale}px`}
 		bind:this={viewport}
 		bind:clientWidth={width}
 		aria-label={frame.name}
