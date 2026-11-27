@@ -544,5 +544,83 @@
     "name": "View form (Assignments) match expanded match",
     "width": 393,
     "height": 852
+  },
+  {
+    "id": "5787:14528",
+    "name": "View form (Assignments) team",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14547",
+    "name": "View form (Assignments) match",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14566",
+    "name": "View form (Assignments) alliance",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14585",
+    "name": "View form (Assignments) alliance",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14615",
+    "name": "View form (Assignments) alliance",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14646",
+    "name": "View form (Assignments) team",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14704",
+    "name": "View form (Assignments) team",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:14760",
+    "name": "View form (Assignments) team",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:17005",
+    "name": "View question (options) rating",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:17054",
+    "name": "View question (options) short answer",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:17082",
+    "name": "View question (options) photo",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:17116",
+    "name": "View question (options) single",
+    "width": 393,
+    "height": 852
+  },
+  {
+    "id": "5787:17179",
+    "name": "View question (options) multi",
+    "width": 393,
+    "height": 852
   }
 ]

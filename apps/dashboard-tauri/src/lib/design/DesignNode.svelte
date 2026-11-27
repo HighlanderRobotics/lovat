@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
 	import { DESIGN_RUNTIME, type DesignRuntime } from './runtime.svelte.ts';
-	import { Button, TextField, Checkbox, Radio, Switch } from '@highlanderrobotics/magnolia-svelte/v2';
+	import { Button, TextField, TextArea, Checkbox, Radio, Switch, Slider } from '@highlanderrobotics/magnolia-svelte/v2';
 	import ApiKeysTable from './ApiKeysTable.svelte';
 	import TeamAssignments from './TeamAssignments.svelte';
 	import ScouterPicker from './ScouterPicker.svelte';
@@ -35,6 +35,7 @@
 	function apiText(node:DesignNode){return !reference && node.searchScope==='api-keys'?textOf(node).replace(/\b\d+(?= keys\b)/g,String(/Deleted/.test(textOf(node))?runtime.apiLastAffected:(runtime.count('api-keys')||runtime.apiLastAffected))):textOf(node);}
 	function isHidden(node:DesignNode) {
 		if(reference)return false;
+		if(node.promotionUser && runtime.promoted[node.promotionUser])return true;
 		if(node.searchTrigger && runtime.searchOpen[node.searchScope??''])return true;
 		if(node.hideForResponses && runtime.formTab==='Responses' || node.responseSummary && runtime.formTab!=='Responses')return true;
 		if(node.collapseGroup && runtime.collapsed[node.collapseGroup])return true;
@@ -50,6 +51,7 @@
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
 	let selected = $state(false);
 	function click(event: MouseEvent | KeyboardEvent, current: DesignNode) {
+        if(current.name==='DialogBackdrop'){activate({...current,label:'Cancel'});event.stopPropagation();return;}
 		if (current.choiceGroup && current.id) {
 			choose(current.choiceGroup, current.choiceValue ?? current.id);
 			event.stopPropagation();
@@ -82,12 +84,21 @@
 {/snippet}
 
 {#if typeof node === 'string'}{node}
+{:else if node.profileCopy}<p style={style}>{node.profileCopy.replaceAll('Collin C',runtime.activeMember)}</p>
+{:else if node.profileRole}<p style={style}>{runtime.promoted[runtime.activeMember]?'Scouting Lead':'Analyst'}</p>
+{:else if node.memberRole && node.memberName && runtime.promoted[node.memberName]}<p style={style}>Scouting Lead</p>
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
 {:else if node.apiTable && !reference}
 	<div style={style}><ApiKeysTable records={runtime.apiRecords??[]} selected={runtime.apiSelected} query={runtime.values['search:api-keys']??''} onselect={(id,checked)=>runtime.selectKey(id,checked)} onall={(checked)=>runtime.selectAllKeys(checked)}/></div>
+{:else if node.typeIcon && !reference}
+	<span data-icon={node.typeIcon} style={style+';display:block;width:24px;height:24px'}><span class="design-type-icon" style={`background-color:${radioSelected?'#b59aff':'#e6e6e6'};mask-image:url('${typeof node.children[0]!=='string' ? node.children[0]?.src : ''}')`}></span></span>
+{:else if node.name==='Slider' && !reference}
+	<div class="design-preview-slider"><Slider label="Rating" min={1} max={10} value={5} formatValue={(value)=>String(value)} style="width:100%"/></div>
+{:else if node.name==='Drop zone' && !reference}
+	<label class="design-photo-drop" style={style}><input type="file" accept="image/jpeg,image/png" multiple onchange={(event)=>{if(typeof node!=='string')runtime.values[`photos:${node.id}`]=Array.from(event.currentTarget.files??[]).map(file=>file.name).join(', ');}}/>{@render children(node.children)}{runtime.values[`photos:${node.id}`]??''}</label>
 {:else if node.teamAssignments && !reference}
-	<div style={style}><TeamAssignments teams={runtime.assignmentItems} people={runtime.selectedScouters} onmove={(id,assignee)=>runtime.moveTeam(id,assignee)} onadd={()=>activate({tag:'div',name:'lucide/wand',style:'',children:[]})}/></div>
+	<div style={style}><TeamAssignments teams={runtime.assignmentItems} people={runtime.selectedScouters} onmove={(id,assignee)=>runtime.moveTeam(id,assignee)} onadd={(name)=>{if(!runtime.selectedScouters.includes(name))runtime.selectedScouters=[...runtime.selectedScouters,name];}}/></div>
 {:else if node.scouterSelect && !reference}
 	<ScouterPicker selected={runtime.selectedScouters} onchange={(selected)=>runtime.selectedScouters=selected}/>
 {:else if node.searchBar && runtime.searchOpen[node.searchScope??''] && !reference}
@@ -108,7 +119,7 @@
 		{#if node.choice.kind==='checkbox'}
 			<Checkbox label={node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
 		{:else if node.choice.kind==='radio'}
-			<Radio label={node.choice.label} value={node.choice.key} name={node.choice.group} bind:group={runtime.groups[node.choice.group]} />
+			<Radio label={node.choice.label} value={node.choice.key} name={node.choice.group} group={runtime.groups[node.choice.group]??null} onchange={()=>{if(typeof node!=='string' && node.choice)runtime.groups[node.choice.group]=node.choice.key;}} />
 		{:else}
 			<Switch label={node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
 		{/if}
@@ -141,6 +152,8 @@
 	>
 		{#if !reference && runtime.buttonLabel(node)!==node.label}{runtime.buttonLabel(node)}{:else}{@render children(node.children)}{/if}
 	</Button>
+{:else if node.control === 'input' && node.multiline && editable}
+	<div class="design-textarea-host" class:description={node.label==='Description'}><TextArea label={node.label??'Notes'} value={node.inputKey?runtime.values[node.inputKey]:node.value} placeholder={node.placeholder??'Hint'} rows={4} style="width:100%" oninput={(event)=>{if(typeof node!=='string' && node.inputKey)runtime.values[node.inputKey]=event.currentTarget.value;}}/></div>
 {:else if node.control === 'input' && editable}
 	<TextField
 		class="design-field-input"
@@ -156,7 +169,7 @@
 	/>
 {:else}
 	{@const active =
-		!node.passive && (!!node.formTabValue || !!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
+		!node.passive && (node.name==='DialogBackdrop' || !!node.formTabValue || !!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
 		/^lucide\//.test(node.name) ||
 		node.name === 'Icon' ||
 		node.name === 'Action' ||

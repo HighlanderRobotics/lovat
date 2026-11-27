@@ -1,6 +1,6 @@
 # Figma preview screens
 
-These 91 screen states reproduce the visible 393px Dashboard frames on the
+These 104 screen states reproduce the visible 393px Dashboard frames on the
 `For Implementation` page in [Lovat 2027](https://www.figma.com/design/aFsGTC9XlSZIO6HEQA1Zyz/Lovat-2027?node-id=5775-3878).
 
 `manifest.json` connects each screen to its Figma node ID. `scenes/` holds the
@@ -59,7 +59,7 @@ The implementation lives on `theodoreei/dashboard-tauri-svelte` in
 `apps/dashboard-tauri`; it uses Svelte 5, TypeScript, SvelteKit/Vite, Magnolia UI
 v2, and Tauri 2/Rust. The earlier `apps/dashboard-next` experiment belongs to a
 separate worktree and is not the app being built here. The Figma file supplies
-91 reference states, including dialogs and success messages rather than 91
+104 reference states, including dialogs and success messages rather than 104
 independent destinations.
 
 `runtime.svelte.ts` adapts the reference data into interactive controls:
@@ -192,3 +192,27 @@ created fourth key. Selection counts remain correct when names or row positions
 change. The generated key shown by the mock remains fixture content; this does
 not provision real server credentials. Modal backgrounds and docks are inert so
 a search input behind a dialog cannot steal focus or reopen the keyboard.
+
+## Added response and preview screens
+
+The refreshed Figma set uses `5787` IDs. Thirteen new states cover the three
+response lists, their detail views, form settings/deletion, and five interactive
+question previews. Existing routes keep their original IDs so shared links and
+other contributors’ work remain usable. Responses tabs replace the current form
+history entry; response details push an entry. Form settings actions stay docked
+above the bottom safe area. Preview cards use the same blurred modal layer and
+return to the live editor on backdrop click or Back.
+
+Promotion updates local member roles and removes promoted users from the
+analyst picker. Add scouter opens an independent picker and creates a drop zone;
+it no longer invokes Autoassign. Assignment zones display a landing placeholder
+and animate open/closed while a team hovers. Multiple-select option editing uses
+an empty Hint field. Type icons use the supplied Figma assets as masks and take the selected
+accent colour. These mutations are session-only mock behavior.
+
+The native main window is constructed from the existing Tauri window config.
+On iOS its accessory-view builder returns `None`, removing the accessory strip
+above the software keyboard. Frontend keyboard geometry subtracts the frame’s bottom safe-area reservation
+from the keyboard inset, preventing a second blank strip above the keyboard. Actual iPhone keyboard
+appearance still requires a device check; Chromium viewport tests cannot prove
+native keyboard rendering.

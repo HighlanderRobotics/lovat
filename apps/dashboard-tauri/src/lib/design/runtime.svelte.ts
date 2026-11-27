@@ -20,6 +20,11 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  formKind = $state<'team'|'match'|'alliance'>('team');
+  activeMember = $state('Collin C');
+  promoted = $state<Record<string,boolean>>({});
+  promotionNotice = $state('');
+  promoteAnalysts(){const selected=(this.choices.analysts??[]).filter(item=>this.checks[item.key]??item.initial);for(const item of selected){this.promoted[item.label]=true;this.checks[item.key]=false;}this.promotionNotice=`Promoted ${selected.length} analyst${selected.length===1?'':'s'}`;}
   apiRecords = $state<ApiKeyRecord[]>();
   apiSelected = $state<Record<string,boolean>>({});
   apiLastAffected = $state(0);
@@ -87,7 +92,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   if(runtime.scope(frame)==='api-keys' && !runtime.apiRecords){runtime.apiRecords=apiKeysFromScene(source);for(const record of runtime.apiRecords)runtime.apiSelected[record.id]=!!record.initialSelected;}
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
-  if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':'Assignments';
+  if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':['5787:14528','5787:14547','5787:14566'].includes(frame)?'Responses':'Assignments';
   for(const node of nodes(tree)){if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));if(node.filter)runtime.filters[node.filter.group] ??= node.filter.value;}
   const scope=runtime.scope(frame);
   if(scope==='api-keys')for(const node of nodes(tree))if(node.name==='Table'){node.apiTable=true;node.style+=';width:100%;max-width:100%';}
@@ -101,15 +106,15 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
     if(node.control==='input') {
       const placeholder=/^(Search\b|Filter by\b|Enter new\b|Add scout$)/i.test(node.label??'');
       node.inputKey=/^(Search\b|Filter by\b)/i.test(node.label??'')?`search:${scope}`:`field:${node.id}`;
-      node.placeholder=placeholder?node.label:textOf(node);
+      node.placeholder ??= placeholder?node.label:textOf(node);
       runtime.values[node.inputKey] ??= placeholder?'':node.value??'';
     }
-    if(node.name==='Checkbox' || node.name==='Radio' || node.name==='Toggle') {
+    if(!node.previewRadio && (node.name==='Checkbox' || node.name==='Radio' || node.name==='Toggle')) {
       const markup=JSON.stringify(node);
       const kind=node.name==='Checkbox'?(scope==='at'?'radio':'checkbox'):'switch';
       const all=scope==='api-keys' && table?.name==='TableHeader';
       const rowName=table?textOf(nodes(table).find(child=>child.name==='Name cell')??table):'';
-      const key=all?`${scope}:all`:scope==='api-keys'?`${scope}:${rowName}`:kind==='switch'?'question:required':`${scope}:${index++}`;
+      const key=all?`${scope}:all`:scope==='api-keys'?`${scope}:${rowName}`:kind==='switch'?(label==='Accept responses'?'form:accept':'question:required'):`${scope}:${index++}`;
       const initial=kind==='switch'?markup.includes('/893af.svg'):markup.includes('/554ed.svg') || markup.includes('/2e4a4.svg');
       node.choice={kind,key,group:scope,initial,all,label:label || (all?'Select all keys':`Select ${textOf(table??node)}`)};
       if(!all)choices.push({key,label,initial});
@@ -117,6 +122,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       if(kind==='radio' && initial)runtime.groups[scope] ??= key;
     }
     node.searchScope=scope;
+    if(node.memberRole && node.memberName)node.children=[runtime.promoted[node.memberName]?'Scouting Lead':textOf(node)];
     if(node.searchBar)node.searchPlaceholder=scope==='at'||scope==='tournaments'?'Search tournaments':scope==='members'?'Search members':scope==='api-keys'?'Search API keys':scope==='analysts'?'Search users':'Search teams';
     node.searchable=!!node.searchRow || !!node.rankRow || ['ListItem','TableRow','SelectableCard'].includes(node.name) || node.id==='5494:3064' || node.name==='Checkbox' && !table && !parent?.searchRow && !!label || node.name.startsWith('Qualification ');
     if(frame==='5775:14183' && node.name==='SelectableCard')node.typeValue=label;

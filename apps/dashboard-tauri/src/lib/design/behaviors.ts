@@ -29,7 +29,7 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     child.step.minKey=`step:${steppers[0].id}`;child.step.maxKey=`step:${steppers[1].id}`;
     if(frame==='5775:14394')child.actionLabel=`${child.step.delta>0?'Increase':'Decrease'} ${index===0?'minimum':'maximum'} selections`;
   }
-  if(frame==='5775:10287'){const board=all.find(node=>node.id==='5775:10290');if(board)board.teamAssignments=true;}
+  if(frame==='5775:10287'){const board=all.find(node=>node.id==='5775:10290');if(board){board.teamAssignments=true;board.style+=';padding-top:2px';}}
   if(frame==='5775:11203'){const picker=all.find(node=>node.name==='MultiSelect');if(picker)picker.scouterSelect=true;}
   const searchIcon=all.find(node=>node.name==='lucide/search');
   for(const bar of all.filter(node=>node.name==='TopBar'))if(searchIcon || ['5775:17119','5775:17404','5775:17466'].includes(frame)) {
@@ -39,7 +39,7 @@ export function enhanceScene(tree:DesignNode, frame:string) {
   for(const list of all.filter(node=>node.name==='TabList' && /Questions Assignments Responses/.test(textOf(node)))) {
     for(const tab of list.children)if(typeof tab!=='string'){tab.formTabValue=textOf(tab);for(const child of nodes(tab).slice(1))child.passive=true;}
     const body=all.find(node=>node.children.includes(list));
-    if(body){for(const child of body.children)if(typeof child!=='string' && child!==list)child.hideForResponses=true;
+    if(body && !frame.startsWith('5787:')){for(const child of body.children)if(typeof child!=='string' && child!==list)child.hideForResponses=true;
       body.children.push({tag:'div',name:'ResponsesSummary',style:'padding:24px 12px;display:flex;flex-direction:column;gap:8px;width:100%;color:#e6e6e6',responseSummary:true,children:[{tag:'p',name:'',style:'font:500 20px/28px Roboto,sans-serif',children:['Responses']},{tag:'p',name:'',style:'font:400 15px/22px Roboto,sans-serif;color:#b7b7b7',children:['45 responses']}]});
     }
   }
@@ -74,7 +74,8 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     if(node.style.includes('height:39px') && node.style.includes('align-items:flex-end'))node.style+=';margin-left:auto;padding-right:0;min-width:96px;width:96px';
   }
   if(['5775:16503','5775:16811','5775:9807','5775:9936'].includes(frame))for(const node of all) {
-    if(node.name==='Body')node.style+=';padding-left:16px;padding-right:16px';
+    if(node.id==='5494:10967')node.name='Checkbox';
+      if(node.name==='Body')node.style+=';padding-left:16px;padding-right:16px';
     if(node.name==='MultiSelect')node.filterSelect=true;
     if(node.name.startsWith('Qualification ')){node.matchLevel='Quals';node.style+=';width:100%';}
     if(node.name.startsWith('Break '))node.style+=';width:100%';
@@ -97,19 +98,64 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       for(const child of nodes(card))if(child.name==='lucide/pencil')child.editOption={key:target.swipeKey,label};
     }
   }
+  if(frame==='5775:14350')for(const field of all.filter(n=>textOf(n)==='Placeholder' && n.tag==='p')){field.control='input';field.label='Hint';field.placeholder='Hint';field.value='';field.children=[];}
+  if(frame==='5775:14394')for(const field of all.filter(n=>n.control==='input' && n.value==='Multiple Select')){field.value='';field.label='Hint';field.placeholder='Hint';field.children=[];}
   if(frame==='5775:14394'){const title=all.find(node=>node.control==='input' && node.value?.startsWith('Have they'));if(title){title.value='What parts of their robot have broken?';title.label='Question title';title.children=[title.value];}}
   if(['5775:15010','5775:15033','5775:15059','5775:15083'].includes(frame))tree.children.push({
     tag:'div',id:'runtime:members-promote',name:'Button',control:'button',variant:'primary',label:'Promote Analysts',leftAction:true,
     style:'height:44px;width:341px;border-radius:8px;background:#b59aff;color:#1f1f1f',children:['Promote Analysts'],
   });
+
+  if(frame.startsWith('5787:')) {
+    for(const node of all) {
+      if(node.id==='5494:10967')node.name='Checkbox';
+      if(node.name==='Body')node.style+=';left:0;width:393px;padding-left:26px;padding-right:26px';
+      if(node.name==='TopBar')node.style+=';width:393px';
+      if(node.name==='Tab' && ['Team','Match','Alliance'].includes(textOf(node))){node.choiceGroup='form:target';node.choiceValue=textOf(node);node.choiceDefault='Alliance';}
+      if(node.name==='TextArea')node.style+=';height:auto';
+      if(node.previewRadio && ['Accept responses','Required'].includes(textOf(node))){node.previewRadio=false;node.name='Toggle';}
+      if(node.previewRadio){node.choice={kind:'radio',key:textOf(node),group:'preview:single',initial:false,label:textOf(node)};}
+      if(node.name==='ListItem' && /Uploaded/.test(textOf(node))){node.responseDetail=frame==='5787:14547'?'5787:14704':frame==='5787:14566'?'5787:14760':'5787:14646';}
+    }
+    // Preview cards are dialogs above the live editor, matching Figma's blurred overlay.
+    if(['5787:17005','5787:17054','5787:17082','5787:17116','5787:17179'].includes(frame)) {
+      const card=tree.children.find(child=>typeof child!=='string' && child.name==='SelectableCard');
+      if(card && typeof card!=='string')card.name='Dialog';
+    }
+  }
+  if(frame==='5775:14183')for(const card of all.filter(node=>node.name==='SelectableCard')){
+    const icon=nodes(card).find(node=>node.name.startsWith('lucide/'));
+    if(icon)icon.typeIcon=icon.name.replace('lucide/','');
+  }
+  if(/^5775:150(10|33|59|83)$/.test(frame)){
+    const names=['Collin C','Leo K','Jack S','Cassie C','Ted E','Rohan S','Gabi S','Theo C','Ronan S','Sam C','Ryan M','Kevin C'];
+    for(const [index,row] of all.filter(n=>n.id==='5494:3064').entries()){
+      const name=names[index];row.memberName=name;row.name='ListItem';for(const child of nodes(row).slice(1))child.passive=true;
+      for(const child of nodes(row))if(child.tag==='p'){
+        if(textOf(child)==='Title')child.children=[name];
+        if(textOf(child)==='Description')child.children=['Team 8033'];
+        if(textOf(child)==='Analyst'||textOf(child)==='Scouting Lead'){child.memberRole=true;child.memberName=name;}
+      }
+    }
+  }
+  if(['members','analysts'].includes(frame==='5775:14879'?'analysts':/^5775:150/.test(frame)?'members':''))for(const row of all.filter(n=>n.name==='Checkbox'||n.name==='ListItem')){
+    const label=textOf(row);const name=['Collin C','Leo K','Jack S','Cassie C','Ted E','Rohan S','Gabi S','Theo C','Ronan S','Sam C','Ryan M','Kevin C','Ed B','Jacob K'].find(name=>label.includes(name));
+    if(name){row.memberName=name;if(row.name==='Checkbox')row.promotionUser=name;else for(const child of nodes(row))if(child.tag==='p' && /^(Analyst|Admin|Lead|Scouter)$/.test(textOf(child))){child.memberRole=true;child.memberName=name;}}
+  }
   // Put dialogs above a real backdrop rather than blurring their own ancestors.
   const dialogs=all.filter(node=>node.name==='Dialog');
   if(dialogs.length) {
     for(const parent of all)parent.children=parent.children.filter(child=>typeof child==='string' || !dialogs.includes(child));
-    tree.children.push({tag:'div',name:'DialogBackdrop',style:'position:fixed;inset:0;z-index:40;background:#0003;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)',children:[]});
-    for(const dialog of dialogs){dialog.dialogSurface=true;dialog.style+=';translate:none;rotate:none;scale:none;right:auto;bottom:auto;margin:0;box-sizing:border-box';dialog.style+=';position:fixed;left:50%;top:calc((100% - var(--keyboard-inset,0px))/2);transform:translate(-50%,-50%);width:min(358px,calc(100% - 32px));max-height:calc(100% - var(--keyboard-inset,0px) - 48px);overflow-y:auto;z-index:50';tree.children.push(dialog);}
+    tree.children.push({tag:'div',name:'DialogBackdrop',actionLabel:'Close dialog',style:'position:fixed;inset:0;z-index:40;background:#0003;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)',children:[]});
+    for(const dialog of dialogs){
+      const previewTop=/top:([\d.]+)px/.exec(dialog.style)?.[1];
+      const preview=frame.startsWith('5787:17');
+      dialog.dialogSurface=true;dialog.style+=';translate:none;rotate:none;scale:none;right:auto;bottom:auto;margin:0;box-sizing:border-box';dialog.style+=';position:fixed;left:50%;top:calc((100% - var(--keyboard-inset,0px))/2);transform:translate(-50%,-50%);width:min(358px,calc(100% - 32px));max-height:calc(100% - var(--keyboard-inset,0px) - 48px);overflow-y:auto;z-index:50';
+      if(preview)dialog.style+=`;width:min(341px,calc(100% - 52px));top:clamp(12px,${previewTop??206}px,calc(100% - var(--keyboard-inset,0px) - ${frame==='5787:17179'?354:frame==='5787:17005'?112:185}px - 12px));transform:translateX(-50%)`;
+      tree.children.push(dialog);}
   }
   if(/^5775:15(?:1\d\d|2[0-5]\d)$/.test(frame)) {
+    for(const node of all)if(node.tag==='p'){if(textOf(node).includes('Collin C'))node.profileCopy=textOf(node);if(textOf(node)==='Analyst')node.profileRole=true;}
     for(const node of all)if(node.name==='TopBar'){node.profileBar=true;node.profileEdit=nodes(node).find(child=>child.name==='lucide/square-pen');node.profileEditIcon=node.profileEdit?nodes(node.profileEdit).find(child=>child.src)?.src:undefined;node.style+=';width:393px;height:44px;left:0;padding:0 4px;box-sizing:border-box';for(const child of node.children)if(typeof child!=='string' && child.name==='Bar')child.style+=';width:100%;height:44px;align-items:center';}
     for(const child of tree.children)if(typeof child!=='string') {
       if(child.tag==='p'){child.style=child.style.replace(/top:(\d+)px/,(_,top)=>`top:${Number(top)+34}px`);child.style+=';left:50%;transform:translateX(-50%);text-align:center;z-index:2';}

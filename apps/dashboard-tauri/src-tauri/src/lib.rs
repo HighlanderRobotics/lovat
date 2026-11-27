@@ -32,6 +32,11 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(handlers())
         .setup(|app| {
+            let window_config = app.config().app.windows[0].clone();
+            let window_builder = tauri::WebviewWindowBuilder::from_config(app, &window_config)?;
+            #[cfg(target_os = "ios")]
+            let window_builder = window_builder.with_input_accessory_view_builder(|_| None);
+            window_builder.build()?;
             #[cfg(any(windows, target_os = "linux"))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;

@@ -62,6 +62,7 @@
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
 	let safeTop = $state(0);
+	let safeBottom = $state(0);
 	let availableHeight = $state(0);
 	let keyboardInset=$state(0);
 	let stableHeight=0;
@@ -74,7 +75,8 @@
 		const height=preserving?Math.max(stableHeight,window.innerHeight):window.innerHeight;
 		keyboardInset=preserving?Math.max(0,height-(visual?.height??height)-(visual?.offsetTop??0)):0;
 		safeTop = parseFloat(getComputedStyle(viewport).paddingTop) || 0;
-		availableHeight=height-safeTop-(parseFloat(getComputedStyle(viewport).paddingBottom)||0);
+		safeBottom=parseFloat(getComputedStyle(viewport).paddingBottom)||0;
+		availableHeight=height-safeTop-safeBottom;
 		if(keyboardInset>80)requestAnimationFrame(()=>{
 			const input=document.activeElement as HTMLElement;
 			const body=input.closest('[data-layout-role="body"]');
@@ -140,8 +142,11 @@
 		requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;});
 	});});
 	function activate(node: DesignNode) {
+        if(node.memberName && node.name==='ListItem')runtime.activeMember=node.memberName;
+        if(node.name==='ListItem' && /^(DCMP|SF Pit|\[WIP\])/.test(textOf(node)))runtime.formKind=/Superscout/i.test(textOf(node))?'match':/Break/i.test(textOf(node))?'alliance':'team';
 		if(node.editOption){runtime.editingOption=node.editOption;void open('5775:14350');return true;}
-		if(node.formTabValue){runtime.formTab=node.formTabValue;void open(node.formTabValue==='Assignments'?'5775:10200':'5775:10144',false);return true;}
+		if(node.responseDetail){void open(node.responseDetail);return true;}
+		if(node.formTabValue){runtime.formTab=node.formTabValue;void open(node.formTabValue==='Assignments'?(runtime.formKind==='match'?'5775:11390':runtime.formKind==='alliance'?'5775:11985':'5775:10200'):node.formTabValue==='Responses'?(runtime.formKind==='match'?'5787:14547':runtime.formKind==='alliance'?'5787:14566':'5787:14528'):'5775:10144',false);return true;}
 		if(node.collapseKey){runtime.collapsed[node.collapseKey]=!runtime.collapsed[node.collapseKey];return true;}
 		if(node.filter){runtime.filters[node.filter.group]=node.filter.value;return true;}
 		if(node.backAction){if(page.state.designReturn){void open(page.state.designReturn,false);return true;}if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false,'back');}return true;}
@@ -154,7 +159,16 @@
 		if(node.name==='lucide/search'){const scope=runtime.scope(id);runtime.values[`search:${scope}`] ??= '';runtime.searchOpen[scope]=true;return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
 		const scope=runtime.scope(id);
-		if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}
+        if(/^Promote \d+ Analysts?$/.test(label)){runtime.promoteAnalysts();void open('5775:15010',false);setTimeout(()=>runtime.promotionNotice='',1500);return true;}
+        if(label==='Promote' && id==='5775:15131'){runtime.promoted[runtime.activeMember]=true;runtime.promotionNotice=`Promoted ${runtime.activeMember}`;void open('5775:15010',false);setTimeout(()=>runtime.promotionNotice='',1500);return true;}
+        if(node.name==='lucide/settings' && (/^5775:(10144|10200|10287|11390|11985)$/.test(id)||id.startsWith('5787:'))){void open('5787:14585');return true;}
+        if(node.name==='lucide/eye'){const previews:Record<string,string>={'5775:14235':'5787:17005','5775:14265':'5787:17054','5775:14284':'5787:17082','5775:14305':'5787:17116','5775:14394':'5787:17179'};void open(previews[id]??'5787:17005');return true;}
+        if(node.name==='lucide/copy' && id==='5787:14585'){runtime.promotionNotice='Copied form';setTimeout(()=>runtime.promotionNotice='',1500);return true;}
+        if(label==='Delete form'){void open('5787:14615');return true;}
+        if(label==='Delete' && id==='5787:14615'){void open('5775:10069',false);return true;}
+        if(label==='Export form data'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({form:'DCMP Break Scouting',responses:[]},null,2)],{type:'application/json'}));a.download='DCMP-Break-Scouting.json';a.click();URL.revokeObjectURL(a.href);return true;}
+        if(label==='Publish form as a template'){runtime.promotionNotice='Published form as a template';setTimeout(()=>runtime.promotionNotice='',1500);return true;}
+        if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
@@ -183,7 +197,7 @@
 		const orientation=()=>{stableHeight=0;keyboardInset=0;measure();};
 		screen.orientation?.addEventListener('change',orientation);
 		const keyboard = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') open('catalog');
+			if (event.key === 'Escape') {if(page.state.designReturn)void open(page.state.designReturn,false);else void open('catalog');}
 		};
 		window.addEventListener('keydown', keyboard);
 		window.addEventListener('resize', measure);
@@ -211,7 +225,7 @@
 {#if catalog}
 	<main class="design-catalog">
 		<h1>Lovat Dashboard</h1>
-		<p>91 Figma screens and states · local mock data</p>
+		<p>{manifest.length} Figma screens and states · local mock data</p>
 		<TextField
 			label="Find a screen"
 			placeholder="Search screens or Figma IDs"
@@ -230,7 +244,7 @@
 		class:reference-mode={reference}
 		class:profile-page={/^5775:15(?:1\d\d|2[0-5]\d)$/.test(id)}
 		class:keyboard-open={keyboardInset>80}
-		style={`--keyboard-inset:${keyboardInset / scale}px`}
+		style={`--keyboard-inset:${Math.max(0,keyboardInset-safeBottom) / scale}px`}
 		bind:this={viewport}
 		bind:clientWidth={width}
 		aria-label={frame.name}
@@ -255,6 +269,7 @@
 						/>{/key}</div>
 				{:catch}<p role="alert">Could not open this screen.</p>
 					<Button onclick={() => open('catalog')}>Screens</Button>{/await}
+				{#if runtime.promotionNotice}<div class="design-notice" role="status">{runtime.promotionNotice}</div>{/if}
 				<div class="design-motion-host" bind:this={motionHost} aria-hidden="true"></div>
 				<div class="design-dock" inert={!!page.state.designReturn} class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={dockLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
 			</div>

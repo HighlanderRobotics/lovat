@@ -19,7 +19,7 @@ test('all Figma states render with local, loaded images and no browser errors', 
     if (/^https?:/.test(request.url()) && !request.url().startsWith('http://127.0.0.1:1430/')) remoteRequests.push(request.url());
   });
   page.on('pageerror', error => errors.push(error.message));
-  expect(manifest).toHaveLength(91);
+  expect(manifest).toHaveLength(104);
   for (const frame of manifest) {
     await page.goto(`/design/${frame.id.replace(':','-')}`);
     await expect(page.locator('.design-frame [data-figma-node]').first(), frame.id).toBeVisible({timeout:15000});
@@ -30,7 +30,7 @@ test('all Figma states render with local, loaded images and no browser errors', 
     const broken = await page.locator('.design-frame img').evaluateAll(images => images.filter(image => {
       const img = image as HTMLImageElement;
       const rect = img.getBoundingClientRect();
-      return !img.naturalWidth || (!img.closest('[data-layout-role="system"]') && (!rect.width || !rect.height)) || !img.src.includes('/design-assets/');
+      return !img.naturalWidth || (!img.closest('[data-layout-role="system"]') && (!rect.width || !rect.height)) || !(img.src.includes('/design-assets/') || img.closest('.mg2-slider') && img.src.startsWith('data:image/svg+xml,'));
     }).length);
     expect(broken, frame.id).toBe(0);
   }
@@ -196,6 +196,8 @@ test('confirmation messages disappear after 1.5 seconds', async ({page}) => {
 
 test('keyboard resizes the scrollable area without squeezing the screen', async ({page}) => {
   await page.goto('/design/5775-10120');
+  await page.addStyleTag({content:'.design-viewport{padding-bottom:34px !important}'});
+  await page.evaluate(()=>window.dispatchEvent(new Event('resize')));
   const height=await page.locator('.design-frame').evaluate(e=>e.getBoundingClientRect().height);
   await page.getByRole('textbox',{name:'Name',exact:true}).focus();
   await page.evaluate(()=>{
@@ -205,6 +207,8 @@ test('keyboard resizes the scrollable area without squeezing the screen', async 
   await expect(page.locator('.design-viewport')).toHaveClass(/keyboard-open/);
   expect(await page.locator('.design-frame').evaluate(e=>e.getBoundingClientRect().height)).toBe(height);
   await expect(page.locator('[data-layout-role="footer"]')).toBeHidden();
+  const body=await page.locator('[data-layout-role="body"]').boundingBox();
+  expect(Math.abs(body!.y+body!.height-500)).toBeLessThan(1);
   await page.getByRole('textbox',{name:'Name',exact:true}).blur();
   await page.evaluate(()=>{Object.defineProperty(window.visualViewport,'height',{configurable:true,value:852});window.visualViewport!.dispatchEvent(new Event('resize'));});
   await expect(page.locator('[data-layout-role="footer"]')).toBeVisible();
@@ -320,7 +324,7 @@ test('Back skips all form tab changes and reverses the page swipe', async ({page
   await page.getByRole('button',{name:'Assignments',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10200');
   await page.getByRole('button',{name:'Responses',exact:true}).click();
-  await expect(page.getByText('45 responses',{exact:true})).toBeVisible();
+  await expect(page.getByRole('textbox',{name:'Search responses',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Questions',exact:true}).click();
   await page.getByRole('button',{name:'Back',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
@@ -503,4 +507,60 @@ test('new API keys retain identity through selection, deletion, and renaming', a
   await expect(page.getByText('Pit tools',{exact:true})).toBeVisible();
   await expect(page.getByRole('checkbox',{name:'Select Pit tools',exact:true})).toBeChecked();
   await expect(page.getByRole('button',{name:'Delete key',exact:true})).toBeVisible();
+});
+
+test('type icons use the selected accent and multiple select has an empty Hint', async ({page})=>{
+ await page.goto('/design/5775-14183');
+ const photo=page.getByRole('radio',{name:'Photo',exact:true});await photo.click();
+ await expect(photo.locator('.design-type-icon')).toHaveCSS('background-color','rgb(181, 154, 255)');
+ await page.getByRole('button',{name:'Options',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
+ await page.goto('/design/5775-14394');
+ await page.locator('[data-design-name="lucide/pencil"]').first().click();
+ await expect(page.getByRole('textbox',{name:'Hint',exact:true})).toHaveValue('');
+ await expect(page.getByRole('textbox',{name:'Hint',exact:true})).toHaveAttribute('placeholder','Hint');
+});
+
+test('promotion applies to the selected analysts and stays applied when reopened', async ({page})=>{
+ await page.goto('/design/5775-15010');
+ await page.getByRole('button',{name:'Promote Analysts',exact:true}).click();
+ const leo=page.getByRole('checkbox',{name:'Leo K',exact:true});await leo.check();
+ await page.getByRole('button',{name:/^Promote \d+ Analysts?$/}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15010');
+ await expect(page.getByRole('status')).toContainText('Promoted');
+ await page.getByRole('button',{name:'Promote Analysts',exact:true}).click();
+ await expect(page.getByRole('checkbox',{name:'Leo K',exact:true})).toHaveCount(0);
+});
+
+test('add scouter creates a drop zone and dragging displays its landing space', async ({page})=>{
+ await page.goto('/design/5775-10287');
+ await page.getByRole('button',{name:'＋ Add scouter',exact:true}).click();
+ await page.getByRole('group',{name:'Add scouter',exact:true}).getByRole('button',{name:'Leo K',exact:true}).click();
+ const zone=page.locator('[data-assignee="Leo K"]');await zone.scrollIntoViewIfNeeded();
+ await expect(zone).toBeVisible();
+ const data=await page.evaluateHandle(()=>new DataTransfer());
+ await zone.dispatchEvent('dragover',{dataTransfer:data});
+ await expect(zone.locator('.assignment-landing')).toBeVisible();
+ await expect(zone).toHaveClass(/drop-target/);
+});
+
+test('new response, form settings, and question previews are reachable', async ({page})=>{
+ await page.goto('/design/5775-10144');
+ await page.getByRole('button',{name:'Responses',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5787:14528');
+ await page.getByRole('button',{name:/8033 - Highlander Robotics.*Uploaded/}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5787:14646');
+ await page.getByRole('button',{name:'Back',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5787:14528');
+ await page.getByRole('button',{name:'settings',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Name',exact:true})).toHaveValue('DCMP Break Scouting');
+ await page.getByRole('button',{name:'Delete form',exact:true}).click();
+ await expect(page.getByRole('dialog')).toContainText('Delete DCMP Break Scouting?');
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await page.goto('/design/5775-14235');
+ await page.getByRole('button',{name:'eye',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await expect(page.getByRole('slider')).toHaveValue('5');
+ await page.getByRole('slider').fill('8');
+ await expect(page.getByRole('slider')).toHaveValue('8');
 });

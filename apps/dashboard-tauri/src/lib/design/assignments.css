@@ -25,3 +25,14 @@
 .scouter-arrow img {width:16px;height:16px;}
 .scouter-options {padding:4px;border-radius:8px;outline:1px solid #424242;background:#292929;}
 .scouter-options .mg2-choice-box {border-width:1px;}
+
+.assignment-board {padding:2px 1px 12px;}
+.assignment-add {flex:0 0 44px;min-height:44px;margin-top:1px;}
+.assignment-zone {transition:padding 140ms ease,background-color 140ms ease,outline-color 140ms ease;}
+.assignment-zone.drop-target {outline:2px solid #b59aff;background:#34323c;padding-bottom:20px;}
+.assignment-landing {grid-column:1/-1;min-height:52px;border:1px dashed #b59aff;border-radius:6px;background:#b59aff16;color:#cfbcff;display:flex;align-items:center;justify-content:center;padding:8px;font-size:12px;animation:landing-in 140ms ease;}
+@keyframes landing-in {from{min-height:0;opacity:0;transform:scaleY(.3)}to{min-height:52px;opacity:1;transform:scaleY(1)}}
+.assignment-scouter-options {padding:8px;background:#292929;border-radius:8px;display:flex;flex-direction:column;gap:4px;}
+.assignment-scouter-options button {background:transparent;color:#e6e6e6;text-align:left;padding:10px;font:inherit;border-radius:6px;}
+.assignment-scouter-options button:hover {background:#40356a;}
+@media(prefers-reduced-motion:reduce){.assignment-zone{transition:none}.assignment-landing{animation:none}}
