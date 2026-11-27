@@ -165,3 +165,22 @@ their origin. Their background is composed from the live origin presentation;
 confirmation and dismissal replace the modal entry, so Back cannot replay a
 completed dialog. Modal surfaces ignore page-body layout anchors and clear
 Figma translation properties before centering within the usable viewport.
+
+## Assignment and option interactions
+
+`TeamAssignments.svelte` renders the team fixture as a stateful assignment board.
+Teams move between scouters and Unassigned using HTML drag-and-drop, pointer
+handles (including touch), or an accessible assignment selector. Counts update
+from the actual board state. Autoassign distributes the same session data among
+selected scouters, respecting the maximum-per-person field.
+
+`ScouterPicker.svelte` starts closed and opens only through its arrow. Input
+focus does not reveal the option list. This replaces the permanently expanded
+listbox in the Figma autoassign snapshot.
+
+Swipe rows are adapted per option card, never by replacing a shared question
+container. Multiple-select retains its title, Required switch, selection-limit
+steppers, and all five reference choices. Editing an option uses the same modal
+surface with the current option value and returns to its originating type.
+These are local interactions; assignment and option persistence still requires
+server integration.

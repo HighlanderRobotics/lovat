@@ -2,6 +2,8 @@
 	import { getContext, onMount } from 'svelte';
 	import { DESIGN_RUNTIME, type DesignRuntime } from './runtime.svelte.ts';
 	import { Button, TextField, Checkbox, Radio, Switch } from '@highlanderrobotics/magnolia-svelte/v2';
+	import TeamAssignments from './TeamAssignments.svelte';
+	import ScouterPicker from './ScouterPicker.svelte';
 	import SearchBar from './SearchBar.svelte';
 	import SwipeOption from './SwipeOption.svelte';
 	import FilterPills from './FilterPills.svelte';
@@ -41,7 +43,7 @@
 	}
 	const hidden=$derived(typeof node!=='string' && isHidden(node));
 	const anchor = $derived(typeof node === 'string' ? undefined : node.dialogSurface || node.inlineFlex && layout[node.id??'']?.kind==='flow'?undefined:layout[node.id ?? '']);
-	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && (node.label==='Save changes' && (runtime.typeDirty || runtime.formDirty))?';opacity:1':''));
+	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && (/^Save (changes|assignments)$/.test(node.label??'') && (runtime.typeDirty || runtime.formDirty))?';opacity:1':''));
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
 	let selected = $state(false);
@@ -80,6 +82,10 @@
 {#if typeof node === 'string'}{node}
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.teamAssignments && !reference}
+	<div style={style}><TeamAssignments teams={runtime.assignmentItems} people={runtime.selectedScouters} onmove={(id,assignee)=>runtime.moveTeam(id,assignee)} onadd={()=>activate({tag:'div',name:'lucide/wand',style:'',children:[]})}/></div>
+{:else if node.scouterSelect && !reference}
+	<ScouterPicker selected={runtime.selectedScouters} onchange={(selected)=>runtime.selectedScouters=selected}/>
 {:else if node.searchBar && runtime.searchOpen[node.searchScope??''] && !reference}
 	<div style={style} data-layout-role="header" data-design-name="TopBar"><SearchBar placeholder={node.searchPlaceholder??'Search'} bind:value={runtime.values[`search:${node.searchScope}`]} onclose={()=>{if(typeof node!=='string'){runtime.searchOpen[node.searchScope??'']=false;runtime.values[`search:${node.searchScope}`]='';}}}/></div>
 {:else if node.profileBar && !reference}
@@ -90,7 +96,7 @@
 {:else if node.swipeKey && hidden}
 	<!-- A deleted option releases its row space. -->
 {:else if node.swipeKey && !reference}
-	<div style={style} data-swipe-option={node.swipeKey}><SwipeOption label={node.swipeLabel??'Option'} ondelete={()=>{if(typeof node!=='string' && node.swipeKey){runtime.deleted[node.swipeKey]=true;runtime.formDirty=true;}}}>{@render children(node.children)}</SwipeOption></div>
+	<div style={style} data-swipe-option={node.swipeKey}><SwipeOption label={runtime.optionLabels[node.swipeKey]??node.swipeLabel??'Option'} ondelete={()=>{if(typeof node!=='string' && node.swipeKey){runtime.deleted[node.swipeKey]=true;runtime.formDirty=true;}}}>{@render children(node.children)}</SwipeOption></div>
 {:else if node.filterSelect && !reference}
 	<FilterPills selected={runtime.matchLevels} onchange={(values)=>runtime.matchLevels=values}/>
 {:else if node.choice && !reference}
@@ -122,7 +128,7 @@
 		variant={node.variant}
 		style={style}
 		aria-label={runtime.buttonLabel(node) || 'Add'}
-		disabled={(node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
+		disabled={node.label==='Assign' && !runtime.selectedScouters.length || (node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		onclick={(event) => {
@@ -204,6 +210,6 @@
 				}
 			: undefined}
 	>
-		{#if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
+		{#if node.optionTextKey}{runtime.optionLabels[node.optionTextKey]??textOf(node)}{:else if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
 	</svelte:element>
 {/if}

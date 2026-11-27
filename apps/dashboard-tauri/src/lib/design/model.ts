@@ -1,11 +1,11 @@
 import type { Choice } from './runtime.svelte.ts';
 
 export interface DesignNode {
-	searchRow?:boolean; searchTrigger?:boolean; rankRow?:boolean; searchBar?:boolean; searchPlaceholder?:string; profileEditIcon?:string; leftAction?:boolean; formTabValue?:string; hideForResponses?:boolean; responseSummary?:boolean; profileBar?:boolean; profileEdit?:DesignNode; inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
+	teamAssignments?:boolean; scouterSelect?:boolean; optionTextKey?:string; editOption?:{key:string;label:string}; searchRow?:boolean; searchTrigger?:boolean; rankRow?:boolean; searchBar?:boolean; searchPlaceholder?:string; profileEditIcon?:string; leftAction?:boolean; formTabValue?:string; hideForResponses?:boolean; responseSummary?:boolean; profileBar?:boolean; profileEdit?:DesignNode; inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
   filter?: {group:string;value:string}; filterItem?:{group:string;status:string};
   filterSelect?:boolean; matchLevel?:string; filterEmpty?:boolean;
   swipeKey?:string; swipeLabel?:string; dialogSurface?:boolean;
-  passive?: boolean; backAction?: boolean; step?: {key:string;delta:number}; stepperKey?:string; numberKey?:string; actionLabel?:string; typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
+  passive?: boolean; backAction?: boolean; step?: {key:string;delta:number;minKey?:string;maxKey?:string}; stepperKey?:string; numberKey?:string; actionLabel?:string; typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
 	tag: string;
 	id?: string;
 	name: string;

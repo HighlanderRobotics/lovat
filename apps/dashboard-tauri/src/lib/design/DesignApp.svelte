@@ -114,6 +114,7 @@
 		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
 		const request=++navigation;
 		const targetNode=target!=='catalog'?await load(target):undefined;
+		if(target==='5775:14350' && runtime.editingOption)runtime.values['field:5775:14381']=runtime.optionLabels[runtime.editingOption.key]??runtime.editingOption.label;
 		const modal=!!targetNode?.children.some(child=>typeof child!=='string'&&child.dialogSurface);
 		const origin=page.state.designReturn;
 		if(modal || origin)remember=false;
@@ -138,11 +139,17 @@
 		requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;});
 	});});
 	function activate(node: DesignNode) {
+		if(node.editOption){runtime.editingOption=node.editOption;void open('5775:14350');return true;}
 		if(node.formTabValue){runtime.formTab=node.formTabValue;void open(node.formTabValue==='Assignments'?'5775:10200':'5775:10144',false);return true;}
 		if(node.collapseKey){runtime.collapsed[node.collapseKey]=!runtime.collapsed[node.collapseKey];return true;}
 		if(node.filter){runtime.filters[node.filter.group]=node.filter.value;return true;}
 		if(node.backAction){if(page.state.designReturn){void open(page.state.designReturn,false);return true;}if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false,'back');}return true;}
-		if(node.step){runtime.formDirty=true;const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
+		if(node.step){
+			runtime.formDirty=true;const step=node.step;let next=(runtime.numbers[step.key]??0)+step.delta;
+			if(step.key===step.minKey)next=Math.min(next,runtime.numbers[step.maxKey!]??next);
+			if(step.key===step.maxKey)next=Math.max(next,runtime.numbers[step.minKey!]??next);
+			runtime.numbers[step.key]=Math.max(0,next);return true;
+		}
 		if(node.name==='lucide/search'){const scope=runtime.scope(id);runtime.values[`search:${scope}`] ??= '';runtime.searchOpen[scope]=true;return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
 		const scope=runtime.scope(id);
@@ -150,6 +157,8 @@
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
+		if(label==='Save' && id==='5775:14350' && runtime.editingOption){runtime.optionLabels[runtime.editingOption.key]=runtime.values['field:5775:14381'];runtime.formDirty=true;void open(page.state.designReturn??'5775:14305',false);return true;}
+		if(label==='Assign' && id==='5775:11203'){runtime.autoAssign();void open(page.state.designReturn??'5775:10287',false);return true;}
 		if(label==='Cancel' && page.state.designReturn){void open(page.state.designReturn,false);return true;}
 		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
 		if(label==='Select all'){runtime.selectAll(scope);return true;}

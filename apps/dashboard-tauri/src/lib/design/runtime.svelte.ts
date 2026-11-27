@@ -1,3 +1,4 @@
+import { teamsFromScene, type AssignmentTeam } from './assignments.ts';
 import { enhanceScene, nodes } from './behaviors.ts';
 import { textOf, type DesignNode } from './model.ts';
 
@@ -18,6 +19,10 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  assignmentItems = $state<AssignmentTeam[]>([]);
+  selectedScouters = $state<string[]>(['Jack S','Collin C']);
+  optionLabels = $state<Record<string,string>>({});
+  editingOption = $state<{key:string;label:string}>();
   searchOpen = $state<Record<string,boolean>>({});
   collapsed = $state<Record<string,boolean>>({});
   filters = $state<Record<string,string>>({});
@@ -50,6 +55,13 @@ export class DesignRuntime {
     if(node.searchScope==='api-keys' && /^Delete (key|\d+ keys)$/.test(label))return count===1?'Delete key':`Delete ${count} keys`;
     return label;
   }
+  moveTeam(id:string,assignee:string){this.assignmentItems=this.assignmentItems.map(team=>team.id===id?{...team,assignee}:team);this.formDirty=true;}
+  autoAssign(){
+    const limit=Math.max(1,Number(this.values['field:5775:11380']??10));
+    const people=this.selectedScouters;
+    this.assignmentItems=this.assignmentItems.map((team,index)=>({...team,assignee:people.length && index<limit*people.length?people[index%people.length]:'Unassigned'}));
+    this.formDirty=true;
+  }
   apply(scope:string) {
     const items=this.choices[scope]??[];
     const selected=scope==='at'?items.filter(item=>item.key===this.groups.at):items.filter(item=>this.checks[item.key]??item.initial);
@@ -61,6 +73,7 @@ export class DesignRuntime {
 export function prepareScene(source:DesignNode, frame:string, runtime:DesignRuntime):DesignNode {
   const optionType=Object.entries(optionScreens).find(([,screen])=>screen===frame)?.[0];
   if(optionType)runtime.questionType=optionType;
+  if(['5775:10287','5775:11203'].includes(frame) && !runtime.assignmentItems.length)runtime.assignmentItems=teamsFromScene(source);
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
   if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':'Assignments';
@@ -91,6 +104,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       if(kind==='radio' && initial)runtime.groups[scope] ??= key;
     }
     node.searchScope=scope;
+    if(node.searchBar)node.searchPlaceholder=scope==='at'||scope==='tournaments'?'Search tournaments':scope==='members'?'Search members':scope==='api-keys'?'Search API keys':scope==='analysts'?'Search users':'Search teams';
     node.searchable=!!node.searchRow || !!node.rankRow || ['ListItem','TableRow','SelectableCard'].includes(node.name) || node.id==='5494:3064' || node.name==='Checkbox' && !table && !parent?.searchRow && !!label || node.name.startsWith('Qualification ');
     if(frame==='5775:14183' && node.name==='SelectableCard')node.typeValue=label;
     if(frame==='5775:14183' && node.label==='Save changes')node.typeSave=true;

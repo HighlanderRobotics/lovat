@@ -216,6 +216,8 @@ test('API-key checkboxes control selection actions', async ({page}) => {
   await page.getByRole('checkbox',{name:/^Select Pit Display/}).check();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15503');
   await expect(page.getByRole('button',{name:'Rename key',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Delete key',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Delete 0 keys',exact:true})).toHaveCount(0);
   await page.getByRole('checkbox',{name:/^Select Picklists/}).check();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15604');
   await expect(page.getByRole('button',{name:'Delete 2 keys',exact:true})).toBeVisible();
@@ -402,4 +404,61 @@ test('data source summary reports a count for multiple selected teams', async ({
   await page.getByRole('checkbox',{name:'Team 5940',exact:true}).check();
   await page.getByRole('button',{name:'Apply changes',exact:true}).click();
   await expect(page.getByText('2 teams',{exact:true})).toBeVisible();
+});
+
+test('multiple-select options retain the title, limits, and every choice', async ({page}) => {
+  await page.goto('/design/5775-14394');
+  await expect(page.getByRole('textbox',{name:'Question title',exact:true})).toHaveValue('What parts of their robot have broken?');
+  for(const label of ['Shooter','Drivetrain','Intake','Hopper','Other'])await expect(page.getByRole('group',{name:`${label} option`,exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Increase minimum selections',exact:true}).click();
+  await expect(page.locator('[data-stepper="step:5775:14407"]')).toHaveText('1');
+  await page.getByRole('group',{name:'Shooter option',exact:true}).getByRole('button',{name:'pencil',exact:true}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('textbox',{name:'Yes',exact:true})).toHaveValue('Shooter');
+  await page.getByRole('textbox',{name:'Yes',exact:true}).fill('Arm');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14394');
+  await expect(page.getByText('Arm',{exact:true})).toBeVisible();
+});
+
+test('team assignments support pointer dragging between scouters', async ({page}) => {
+  await page.goto('/design/5775-10287');
+  const jack=page.getByRole('region',{name:'Jack S assignments',exact:true});
+  const collin=page.getByRole('region',{name:'Collin C assignments',exact:true});
+  await expect(jack).toBeVisible();
+  const count=await jack.locator('.assignment-team').count();
+  const handle=jack.getByRole('button',{name:/^Drag 114 /}).first();
+  const start=await handle.boundingBox(),target=await collin.boundingBox();
+  await page.mouse.move(start!.x+start!.width/2,start!.y+start!.height/2);await page.mouse.down();
+  await page.mouse.move(target!.x+target!.width/2,target!.y+30,{steps:10});await page.mouse.up();
+  await expect(jack.locator('.assignment-team')).toHaveCount(count-1);
+  await expect(collin.locator('.assignment-team')).toHaveCount(6);
+});
+
+test('autoassign picker opens only with the arrow and assignments apply', async ({page}) => {
+  await page.goto('/design/5775-10287');
+  await page.getByRole('button',{name:'wand',exact:true}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('group',{name:'Available scouters',exact:true})).toBeHidden();
+  await page.getByRole('textbox',{name:'Find scouters',exact:true}).focus();
+  await expect(page.getByRole('group',{name:'Available scouters',exact:true})).toBeHidden();
+  await page.getByRole('button',{name:'Choose scouters',exact:true}).click();
+  await expect(page.getByRole('group',{name:'Available scouters',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Assign',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10287');
+  await expect(page.getByRole('region',{name:'Unassigned assignments',exact:true}).locator('.assignment-team')).toHaveCount(0);
+});
+
+
+test('Home banner fills its container and source footers have clearance', async ({page}) => {
+  await page.goto('/');
+  const image=page.locator('[data-figma-node="5775:9819"]');await expect(image).toBeVisible();
+  const fill=await image.evaluate(e=>({image:e.getBoundingClientRect().width,parent:e.parentElement!.getBoundingClientRect().width}));
+  expect(fill.image).toBeCloseTo(fill.parent,0);
+  const crop=await image.locator('img').evaluate(e=>{const r=e.getBoundingClientRect(),p=e.parentElement!.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,clipLeft:p.left,clipRight:p.right,clipTop:p.top,clipBottom:p.bottom};});
+  expect(crop.left).toBeLessThanOrEqual(crop.clipLeft);expect(crop.right).toBeGreaterThanOrEqual(crop.clipRight);expect(crop.top).toBeLessThanOrEqual(crop.clipTop);expect(crop.bottom).toBeGreaterThanOrEqual(crop.clipBottom);
+  await page.goto('/design/5775-15945');
+  const body=page.locator('[data-layout-role="body"]');await expect(body).toBeVisible();
+  const content=await body.boundingBox(),footer=await page.locator('[data-layout-role="footer"]').boundingBox();
+  expect(footer!.y-content!.y-content!.height).toBeGreaterThanOrEqual(15);
 });

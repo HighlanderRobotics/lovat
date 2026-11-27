@@ -24,6 +24,13 @@ export function enhanceScene(tree:DesignNode, frame:string) {
   for(const icon of all.filter(node=>node.name==='lucide/search')){icon.searchTrigger=true;icon.style+=';z-index:12';}
   if(['5775:17119','5775:17404','5775:17466'].includes(frame)){const body=all.find(node=>node.name==='Body');for(const row of body?.children??[])if(typeof row!=='string' && /^\d+\s*[⁃-]/.test(textOf(row)))row.rankRow=true;}
   for(const wrapper of all)if(wrapper.style.includes('grid') && wrapper.children.some(child=>typeof child!=='string'&&child.name==='Checkbox')){wrapper.searchRow=true;wrapper.style+=';display:flex;width:100%;grid-template-columns:none;grid-template-rows:none';for(const child of wrapper.children)if(typeof child!=='string'&&child.name==='Checkbox')child.style+=';width:100%';}
+  const steppers=all.filter(node=>node.name==='Stepper');
+  if(steppers.length===2)for(const [index,stepper] of steppers.entries())for(const child of nodes(stepper))if(child.step){
+    child.step.minKey=`step:${steppers[0].id}`;child.step.maxKey=`step:${steppers[1].id}`;
+    if(frame==='5775:14394')child.actionLabel=`${child.step.delta>0?'Increase':'Decrease'} ${index===0?'minimum':'maximum'} selections`;
+  }
+  if(frame==='5775:10287'){const board=all.find(node=>node.id==='5775:10290');if(board)board.teamAssignments=true;}
+  if(frame==='5775:11203'){const picker=all.find(node=>node.name==='MultiSelect');if(picker)picker.scouterSelect=true;}
   const searchIcon=all.find(node=>node.name==='lucide/search');
   for(const bar of all.filter(node=>node.name==='TopBar'))if(searchIcon || ['5775:17119','5775:17404','5775:17466'].includes(frame)) {
     bar.searchBar=true;
@@ -72,15 +79,22 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     if(node.name.startsWith('Qualification ')){node.matchLevel='Quals';node.style+=';width:100%';}
     if(node.name.startsWith('Break '))node.style+=';width:100%';
   }
-  if(['5775:9807','5775:9936'].includes(frame)){const hero=all.find(node=>node.name==='image 7');if(hero){hero.style+=';width:100%;height:100%;object-fit:cover';for(const image of nodes(hero))if(image.tag==='img')image.style+=';width:100%;height:100%;object-fit:cover';}}
+  if(['5775:9807','5775:9936'].includes(frame)){const hero=all.find(node=>node.name==='image 7');if(hero){hero.style+=';width:100%;height:100%';}}
   if(['5775:14305','5775:14394'].includes(frame)) {
-    for(const row of all) {
-      const card=row.children.find(child=>typeof child!=='string' && child.name==='SelectableCard' && nodes(child).some(n=>n.name==='lucide/pencil')) as DesignNode|undefined;
-      if(!card)continue;
-      const parent=all.find(node=>node.children.includes(row));
-      const target=parent?.children.length===1 && /height:53px/.test(parent.style)?parent:row;
-      target.swipeKey=`option:${frame}:${textOf(card)}`;target.swipeLabel=textOf(card).split(' ').slice(0,3).join(' ');
-      target.children=[card];card.passive=true;
+    for(const card of all.filter(node=>node.name==='SelectableCard' && nodes(node).some(child=>child.name==='lucide/pencil'))) {
+      const parent=all.find(node=>node.children.includes(card));if(!parent)continue;
+      let target:DesignNode;
+      if(parent.children.every(child=>child===card || typeof child!=='string' && child.control==='button' && child.variant==='danger')) {
+        const outer=all.find(node=>node.children.includes(parent));
+        target=outer?.children.length===1 && /height:53px/.test(outer.style)?outer:parent;
+      }else {
+        target={tag:'div',id:`runtime:option:${card.id}`,name:'OptionRow',style:'width:100%;position:relative;flex-shrink:0',children:[card]};
+        parent.children.splice(parent.children.indexOf(card),1,target);
+      }
+      const title=nodes(card).find(child=>child.tag==='p');const label=textOf(title??card);
+      target.swipeKey=`option:${frame}:${card.id}`;target.swipeLabel=label;target.children=[card];card.passive=true;
+      if(title)title.optionTextKey=target.swipeKey;
+      for(const child of nodes(card))if(child.name==='lucide/pencil')child.editOption={key:target.swipeKey,label};
     }
   }
   if(frame==='5775:14394'){const title=all.find(node=>node.control==='input' && node.value?.startsWith('Have they'));if(title){title.value='What parts of their robot have broken?';title.label='Question title';title.children=[title.value];}}
