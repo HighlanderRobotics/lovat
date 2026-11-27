@@ -20,6 +20,7 @@ export class DesignRuntime {
   filters = $state<Record<string,string>>({});
   deleted = $state<Record<string,boolean>>({});
   matchLevels = $state<string[]>(['Quals','Elims']);
+  formTab = $state<string>();
   formDirty = $state(false);
   numbers = $state<Record<string,number>>({});
   scrolls:Record<string,number>={};
@@ -35,7 +36,7 @@ export class DesignRuntime {
   onSelectionChange?: (scope:string)=>void;
   count(scope:string) { return (this.choices[scope]??[]).filter(item=>this.checks[item.key]??item.initial).length; }
   checked(choice:Choice):boolean { return choice.all ? this.count(choice.group)===(this.choices[choice.group]?.length??0) : this.checks[choice.key] ?? choice.initial; }
-  setChecked(choice:Choice, checked:boolean) { if(choice.all)this.selectAll(choice.group,false,checked);else this.checks[choice.key]=checked;this.onSelectionChange?.(choice.group); }
+  setChecked(choice:Choice, checked:boolean) { if(choice.kind==='switch')this.formDirty=true; if(choice.all)this.selectAll(choice.group,false,checked);else this.checks[choice.key]=checked;this.onSelectionChange?.(choice.group); }
   selectAll(scope:string, onlyFirst=false, checked=true) {
     for(const [index,item] of (this.choices[scope]??[]).entries())this.checks[item.key]=checked && (!onlyFirst || index===0);
   }
@@ -59,6 +60,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   if(optionType)runtime.questionType=optionType;
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
+  if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':'Assignments';
   for(const node of nodes(tree)){if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));if(node.filter)runtime.filters[node.filter.group] ??= node.filter.value;}
   const scope=runtime.scope(frame);
   let index=0;
@@ -67,6 +69,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
     if(parent && !parent.style.includes('flex-direction:column') && node.style.includes('flex:1 0 0'))node.inlineFlex=true;
     const label=textOf(node);
     if(node.name==='TableRow' || node.name==='TableHeader')table=node;
+    if(node.name==='Input' && nodes(node).some(child=>child.control==='input'))node.style+=';flex:1 1 70px;min-width:70px';
     if(node.control==='input') {
       const placeholder=/^(Search\b|Filter by\b|Enter new\b|Add scout$)/i.test(node.label??'');
       node.inputKey=/^(Search\b|Filter by\b)/i.test(node.label??'')?`search:${scope}`:`field:${node.id}`;
@@ -85,7 +88,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       if(kind==='radio' && initial)runtime.groups[scope] ??= key;
     }
     node.searchScope=scope;
-    node.searchable=['ListItem','TableRow','SelectableCard','Checkbox'].includes(node.name) || node.name.startsWith('Qualification ');
+    node.searchable=['ListItem','TableRow','SelectableCard'].includes(node.name) || node.id==='5494:3064' || node.name==='Checkbox' && !table && !!label || node.name.startsWith('Qualification ');
     if(frame==='5775:14183' && node.name==='SelectableCard')node.typeValue=label;
     if(frame==='5775:14183' && node.label==='Save changes')node.typeSave=true;
     if(parent?.name==='ListItem' && ['At tournament','Team Source','Tournament Source'].some(prefix=>textOf(parent).startsWith(prefix))) {

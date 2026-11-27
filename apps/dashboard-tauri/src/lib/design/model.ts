@@ -1,7 +1,7 @@
 import type { Choice } from './runtime.svelte.ts';
 
 export interface DesignNode {
-	inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
+	formTabValue?:string; hideForResponses?:boolean; responseSummary?:boolean; profileBar?:boolean; profileEdit?:DesignNode; inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
   filter?: {group:string;value:string}; filterItem?:{group:string;status:string};
   filterSelect?:boolean; matchLevel?:string; filterEmpty?:boolean;
   swipeKey?:string; swipeLabel?:string; dialogSurface?:boolean;

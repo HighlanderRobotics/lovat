@@ -30,6 +30,7 @@
 	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,1500);return ()=>clearTimeout(timer);}});
 	function isHidden(node:DesignNode) {
 		if(reference)return false;
+		if(node.hideForResponses && runtime.formTab==='Responses' || node.responseSummary && runtime.formTab!=='Responses')return true;
 		if(node.collapseGroup && runtime.collapsed[node.collapseGroup])return true;
 		if(node.swipeKey && runtime.deleted[node.swipeKey])return true;
 		if(node.matchLevel && runtime.matchLevels.length && !runtime.matchLevels.includes(node.matchLevel))return true;
@@ -38,7 +39,7 @@
 	}
 	const hidden=$derived(typeof node!=='string' && isHidden(node));
 	const anchor = $derived(typeof node === 'string' ? undefined : node.inlineFlex && layout[node.id??'']?.kind==='flow'?undefined:layout[node.id ?? '']);
-	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && ((node.typeSave && runtime.typeDirty) || node.label==='Save changes' && runtime.formDirty)?';opacity:1':''));
+	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && (node.label==='Save changes' && (runtime.typeDirty || runtime.formDirty))?';opacity:1':''));
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
 	let selected = $state(false);
@@ -77,6 +78,11 @@
 {#if typeof node === 'string'}{node}
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.profileBar && !reference}
+	<div class="design-profile-bar" data-design-name="TopBar" data-layout-role="header" data-figma-node={node.id} style={style+';display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:0 4px'}>
+		<Button variant="tertiary" class="design-profile-action" aria-label="Back" onclick={()=>activate({...node as DesignNode,backAction:true})}><img src="/design-assets/0ccbb.svg" alt=""/></Button>
+		{#if node.profileEdit}<Button variant="tertiary" class="design-profile-action" aria-label="Edit profile" onclick={()=>activate((node as DesignNode).profileEdit!)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-7M16 3l5 5M10 14l-1 4 4-1L22 8a2 2 0 0 0-5-5z"/></svg></Button>{:else}<span style="width:44px"></span>{/if}
+	</div>
 {:else if node.swipeKey && hidden}
 	<!-- A deleted option releases its row space. -->
 {:else if node.swipeKey && !reference}
@@ -125,18 +131,18 @@
 	<TextField
 		class="design-field-input"
 		label={node.label ?? 'Value'}
-		style={style}
+		style={reference?style:'flex:1 1 0%;min-width:0;width:100%;position:relative'}
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		type={node.inputType || 'text'}
 		aria-label={node.label}
 		placeholder={node.placeholder ?? node.label}
 		value={node.inputKey ? runtime.values[node.inputKey] : node.value}
-		oninput={(event)=>{if(typeof node!=='string' && node.inputKey)runtime.values[node.inputKey]=(event.currentTarget as HTMLInputElement).value;}}
+		oninput={(event)=>{if(typeof node!=='string' && node.inputKey){runtime.values[node.inputKey]=(event.currentTarget as HTMLInputElement).value;if(node.inputKey.startsWith('field:'))runtime.formDirty=true;}}}
 	/>
 {:else}
 	{@const active =
-		!node.passive && (!!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
+		!node.passive && (!!node.formTabValue || !!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
 		/^lucide\//.test(node.name) ||
 		node.name === 'Icon' ||
 		node.name === 'Action' ||
@@ -144,7 +150,7 @@
 		['Lovat', 'Teams', 'Matches'].includes(textOf(node)))}
 	<svelte:element
 		this={node.tag}
-		style={style +
+		style={style + (node.formTabValue?`;background:${runtime.formTab===node.formTabValue?'#3c3c3c':'transparent'}`:'') +
 			(node.typeValue ? (runtime.questionType===node.typeValue ? ';background-image:none;background-color:#34323c;outline:1px solid #b59aff;outline-offset:-1px' : ';background-image:none;background-color:#262626;outline:1px solid #424242;outline-offset:-1px') : '') +
 			(node.choiceGroup && choices[node.choiceGroup]
 				? choices[node.choiceGroup] === (node.choiceValue ?? node.id)

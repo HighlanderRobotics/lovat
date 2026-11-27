@@ -106,6 +106,7 @@ test('mobile footers and navbar stay anchored while content scrolls', async ({pa
 
 test('mobile zoom gestures are blocked and ordinary touch scrolling is preserved', async ({page}) => {
   await page.goto('/');
+  await expect(page.locator('[data-layout-role="nav"]')).toBeVisible();
   await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content',/maximum-scale=1.*user-scalable=no/);
   const result=await page.evaluate(()=>{
     const gesture=new Event('gesturestart',{cancelable:true,bubbles:true});
@@ -120,15 +121,16 @@ test('mobile zoom gestures are blocked and ordinary touch scrolling is preserved
   expect(result).toEqual([true,true,false]);
 });
 
-test('screen changes keep the shell visible and respect reduced motion', async ({page}) => {
+test('page swipes keep the dock mounted and respect reduced motion', async ({page}) => {
   for(const reduced of [false,true]) {
     await page.emulateMedia({reducedMotion:reduced?'reduce':'no-preference'});
     await page.goto('/');
+    await page.locator('[data-layout-role="nav"]').evaluate(e=>(window as unknown as {dock:Element}).dock=e);
     await page.locator('[data-design-name="TabBarItem"]').filter({hasText:'Forms'}).click();
     await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
-    await expect(page.locator('[data-layout-role="nav"]')).toHaveCSS('opacity','1');
-    const animation=await page.locator('[data-layout-role="body"] > *').first().evaluate(e=>getComputedStyle(e).animationName);
-    expect(animation).toBe(reduced?'none':'content-arrive');
+    expect(await page.locator('[data-layout-role="nav"]').evaluate(e=>(window as unknown as {dock:Element}).dock===e)).toBe(true);
+    expect(await page.locator('.design-dock').evaluate(e=>e.getAnimations({subtree:true}).length)).toBe(0);
+    if(!reduced)await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','forward');
   }
 });
 
@@ -296,12 +298,69 @@ test('dialogs have a blurred backdrop and clear foreground', async ({page}) => {
   await expect(page.getByRole('dialog')).toHaveCSS('filter','none');
 });
 
-test('lead Settings exposes promotion and assignment labels share a right edge', async ({page}) => {
+test('Members exposes promotion and assignment labels share a right edge', async ({page}) => {
   await page.goto('/settings');
+  await expect(page.getByRole('button',{name:'Promote Analysts',exact:true})).toHaveCount(0);
+  await page.goto('/design/5775-15010');
   await page.getByRole('button',{name:'Promote Analysts',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14879');
   await page.goto('/design/5775-10200');
   const labels=page.locator('[data-figma-node="5775:10236"], [data-figma-node="5775:10249"], [data-figma-node="5775:10262"]');
   const edges=await labels.evaluateAll(elements=>elements.map(e=>e.getBoundingClientRect().right));
   expect(Math.max(...edges)-Math.min(...edges)).toBeLessThan(1);
+});
+
+
+test('Back skips all form tab changes and reverses the page swipe', async ({page}) => {
+  await page.goto('/forms');
+  await page.getByRole('button',{name:'DCMP Pit Scouting Created by Collin C · 45 responses'}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10144');
+  await page.getByRole('button',{name:'Assignments',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10200');
+  await page.getByRole('button',{name:'Responses',exact:true}).click();
+  await expect(page.getByText('45 responses',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Questions',exact:true}).click();
+  await page.getByRole('button',{name:'Back',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','back');
+});
+
+test('closing search restores all rows and selected values', async ({page}) => {
+  await page.goto('/design/5775-15945');
+  await expect(page.getByRole('checkbox').first()).toBeVisible();
+  const total=await page.getByRole('checkbox').count();
+  await page.getByRole('checkbox',{name:'Team 5940',exact:true}).check();
+  await page.getByRole('button',{name:'search',exact:true}).click();
+  const search=page.getByRole('textbox',{name:'Search teams'});
+  await search.fill('5940');
+  await expect(page.getByRole('checkbox',{name:'Team 5940',exact:true})).toBeChecked();
+  const field=await search.boundingBox();expect(field!.x+field!.width).toBeLessThan(393);
+  await page.getByRole('button',{name:'x',exact:true}).click();
+  await expect(page.getByRole('checkbox')).toHaveCount(total);
+  await expect(page.getByRole('checkbox',{name:'Team 5940',exact:true})).toBeChecked();
+});
+
+test('profile bar has equal controls and preserves the gradient behind them', async ({page}) => {
+  await page.goto('/design/5775-15116');
+  const bar=page.locator('.design-profile-bar');
+  await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+  const back=await page.getByRole('button',{name:'Back',exact:true}).boundingBox();
+  const edit=await page.getByRole('button',{name:'Edit profile',exact:true}).boundingBox();
+  expect(back!.height).toBe(44);expect(edit!.height).toBe(44);expect(back!.y).toBe(edit!.y);
+});
+
+
+test('Save stays painted while switching question tabs', async ({page}) => {
+  await page.goto('/design/5775-14183');
+  await page.getByRole('radio',{name:'Photo',exact:true}).click();
+  await page.evaluate(()=>{
+    const state={running:true,missing:0};(window as unknown as {footerProbe:typeof state}).footerProbe=state;
+    function sample(){const button=[...document.querySelectorAll('.design-dock button')].find(e=>e.textContent?.trim()==='Save changes');if(!button || getComputedStyle(button).opacity!=='1')state.missing++;if(state.running)requestAnimationFrame(sample);}
+    requestAnimationFrame(sample);
+  });
+  await page.getByRole('button',{name:'Options',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
+  await page.waitForTimeout(180);
+  const missing=await page.evaluate(()=>{const state=(window as unknown as {footerProbe:{running:boolean;missing:number}}).footerProbe;state.running=false;return state.missing;});
+  expect(missing).toBe(0);
 });

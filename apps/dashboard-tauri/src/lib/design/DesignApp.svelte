@@ -10,7 +10,9 @@
 	import { textOf, type DesignNode } from './model.ts';
 	import { DesignRuntime, DESIGN_RUNTIME, prepareScene, optionScreens } from './runtime.svelte.ts';
 	import { destination } from './actions.ts';
-	import './design.css';
+	import { presentation, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
+	import { PageMotion } from './pageMotion.ts';
+		import './design.css';
 
 	const runtime=new DesignRuntime();
 	setContext(DESIGN_RUNTIME,runtime);
@@ -42,6 +44,10 @@
 		if(cached)return cached;
 		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=isReference?source:prepareScene(source,target,runtime);cache.set(key,node);return node;});
 	}
+	const presentations=new WeakMap<DesignNode,Presentation>();
+	function parts(node:DesignNode, frameId:string){let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}return value;}
+	let docks=$state<Dock[]>([]);
+	$effect(()=>{const current=scene,frameId=id;if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId)docks=parts(node,frameId).docks;});});});
 	const scene = $derived(frame ? load(id) : undefined);
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
@@ -86,11 +92,20 @@
 	);
 
 	let navigation = 0;
+	let canvas=$state<HTMLElement>();
+	let motionHost=$state<HTMLElement>();
+	let animateNext=true;
+	let nextDirection:'forward'|'back'='forward';
+	const motion=new PageMotion();
 	runtime.onSelectionChange=(scope)=>{if(scope==='api-keys'){const count=runtime.count(scope);void open(count===0?'5775:15322':count===1?'5775:15503':'5775:15604',false);}};
-	async function open(target: string, remember=true) {
+	async function open(target: string, remember=true, direction:'forward'|'back'='forward') {
 		if(target===id && !catalog)return;
+		if(isSearchChange(id,target))remember=false;
+		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
 		const request=++navigation;
-		if(target!=='catalog')await load(target);
+		const targetNode=target!=='catalog'?await load(target):undefined;
+		nextDirection=direction;
+		animateNext=(remember || direction==='back') && target!=='catalog' && !targetNode?.children.some(child=>typeof child!=='string' && child.dialogSurface);
 		if(request!==navigation)return;
 		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
 		if(optionType)runtime.questionType=optionType;
@@ -98,19 +113,28 @@
 		await goto(url,{replace:!remember,state:{designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[])}});
 		await tick();
 	}
-	beforeNavigate(()=>{if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}});
-	afterNavigate(()=>{void tick().then(()=>requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;}));});
+	beforeNavigate((navigation)=>{
+		if(navigation.type==='popstate' && searchBase[id])runtime.values[`search:${runtime.scope(id)}`]='';
+		if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}
+		const allowed=!reference && !catalog && !viewport?.querySelector('[role="dialog"]') && (navigation.type==='popstate' || animateNext);
+		if(allowed)motion.prepare(canvas,motionHost,navigation.type==='popstate' && navigation.delta<0?'back':nextDirection);else motion.finish();
+	});
+	afterNavigate(()=>{void tick().then(()=>{
+		motion.play(canvas);
+		requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;});
+	});});
 	function activate(node: DesignNode) {
+		if(node.formTabValue){runtime.formTab=node.formTabValue;void open(node.formTabValue==='Assignments'?'5775:10200':'5775:10144',false);return true;}
 		if(node.collapseKey){runtime.collapsed[node.collapseKey]=!runtime.collapsed[node.collapseKey];return true;}
 		if(node.filter){runtime.filters[node.filter.group]=node.filter.value;return true;}
-		if(node.backAction){if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false);}return true;}
-		if(node.step){const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
+		if(node.backAction){if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false,'back');}return true;}
+		if(node.step){runtime.formDirty=true;const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
 		const scope=runtime.scope(id);
 		if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
-		if(node.typeSave)runtime.typeDirty=false;
-		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType]);return true;}
+
+		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
 		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
 		if(label==='Select all'){runtime.selectAll(scope);return true;}
 		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
@@ -122,7 +146,7 @@
 			return true;
 		}
 		const target = destination(id, node);
-		if (target) open(target);
+		if (target){if(target==='5775:10144')runtime.formTab='Questions';void open(target,node.name!=='Tab' && node.name!=='Segment');}
 		return !!target;
 	}
 	onMount(() => {
@@ -137,6 +161,7 @@
 		document.addEventListener('focusout',measure);
 		window.visualViewport?.addEventListener('resize', measure);
 		return () => {
+			motion.finish();
 			screen.orientation?.removeEventListener('change',orientation);
 			window.removeEventListener('keydown', keyboard);
 			window.removeEventListener('resize', measure);
@@ -188,17 +213,19 @@
 				style={`width:393px;height:${displayHeight}px;transform:scale(${scale});transform-origin:top left`}
 			>
 				{#await scene}<div class="design-loading" role="status">Loading…</div>
-				{:then node}{#key id}<NodeView
-							{node}
+				{:then node}{@const view=parts(node,id)}<div class="design-page" bind:this={canvas}>{#key id}<NodeView
+							node={view.page}
 							{reference}
 							layout={layouts[id as keyof typeof layouts] as ScreenLayout}
 							{activate}
 							{heightDelta}
 							{choices}
 							{choose}
-						/>{/key}
+						/>{/key}</div>
 				{:catch}<p role="alert">Could not open this screen.</p>
 					<Button onclick={() => open('catalog')}>Screens</Button>{/await}
+				<div class="design-motion-host" bind:this={motionHost} aria-hidden="true"></div>
+				<div class="design-dock" class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={layouts[id as keyof typeof layouts] as ScreenLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
 			</div>
 		</div>
 	</main>

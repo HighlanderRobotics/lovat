@@ -44,11 +44,12 @@ and tab bars; their positions stay independent of the reference frame height.
 served on port 1430. Add `?reference=1` to retain the original Figma dimensions
 for visual comparisons, including the Forms status-bar placeholder.
 
-Navigation preloads the destination and lightly animates incoming content. The
-header and bottom controls remain visible; full-screen View Transitions were
-removed because their separate snapshots caused flicker on the phone. Choosing
-a value in place does not navigate or remount the screen. Reduced-motion
-preferences disable the content animation. Mobile viewport and gesture handling keep the app at 1x zoom while
+Navigation preloads the destination and uses a fast 170ms horizontal page swipe.
+`pageMotion.ts` animates the incoming content and an inert outgoing content copy;
+Back reverses the direction. `presentation.ts` extracts bottom actions and the
+navbar into a persistent dock, so those controls are neither remounted nor
+animated with the page. Reduced-motion preferences skip the swipe.
+Mobile viewport and gesture handling keep the app at 1x zoom while
 allowing ordinary scrolling; mobile inputs use a 16px font to prevent focus zoom.
 
 
@@ -107,7 +108,8 @@ reference JSON. `?reference=1` loads the unmodified reference scene; the runtime
 adapter supplies the interactive layout.
 
 Back uses SvelteKit history state to return to the actual preceding route,
-including browser back gestures. It restores each screen's body scroll and
+including browser back gestures. Top tabs, ranking segments, and search views
+replace the current entry, so Back skips those view changes. It restores each screen's body scroll and
 retains the session's field values. Internal API-key selection state changes
 replace the current history entry, so Back does not replay each checkbox click.
 Cancel returns to the previous screen when a dialog was opened through the app.
@@ -133,3 +135,22 @@ On the shared `theodoreei/dashboard-tauri-svelte` branch, fetch before each
 verified batch, integrate remote commits, and push without force. Build output,
 signing material, and device artifacts remain untracked. These refinements are
 mock behavior only and do not change the production Flutter/API contracts.
+
+
+## Navigation and search follow-up
+
+The three form tabs share one page-history entry. Responses currently shows the
+fixture response count; response-detail API integration is still pending. The
+question Type/Options tabs also share one entry. Draft values and per-screen
+scroll positions remain in session state when returning to a page.
+
+Search filters rows rather than nested controls. Live inputs use flexible input
+sizing instead of copying fixed Figma text-layer sizing. Closing search clears
+its filter while retaining checkbox/radio values. This avoids leaving hidden
+rows behind after dismissing the search bar.
+
+Profile bars use equal 44px Back/Edit controls on a transparent background, with
+the gradient visible behind them. Promote Analysts is exposed on Members and
+Manage Team, not the Settings homepage. New tests check history across all form
+tabs, dock element identity, frame-by-frame Save-button visibility, search
+restoration, and profile control alignment.

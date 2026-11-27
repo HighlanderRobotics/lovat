@@ -21,6 +21,13 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       }
     }
   }
+  for(const list of all.filter(node=>node.name==='TabList' && /Questions Assignments Responses/.test(textOf(node)))) {
+    for(const tab of list.children)if(typeof tab!=='string'){tab.formTabValue=textOf(tab);for(const child of nodes(tab).slice(1))child.passive=true;}
+    const body=all.find(node=>node.children.includes(list));
+    if(body){for(const child of body.children)if(typeof child!=='string' && child!==list)child.hideForResponses=true;
+      body.children.push({tag:'div',name:'ResponsesSummary',style:'padding:24px 12px;display:flex;flex-direction:column;gap:8px;width:100%;color:#e6e6e6',responseSummary:true,children:[{tag:'p',name:'',style:'font:500 20px/28px Roboto,sans-serif',children:['Responses']},{tag:'p',name:'',style:'font:400 15px/22px Roboto,sans-serif;color:#b7b7b7',children:['45 responses']}]});
+    }
+  }
   // Collapse each heading's following siblings up to the next heading.
   for(const parent of all) {
     let section:string|undefined;
@@ -43,6 +50,11 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       }
     }
   }
+  if(frame==='5775:16149'){
+    const body=all.find(node=>node.name==='Body');if(body)body.style+=';padding-top:12px;gap:12px';
+    const container=all.find(node=>node.id==='5775:16153');if(container)container.style+=';flex:0 0 auto;height:auto';
+    const action=all.find(node=>node.id==='5775:16166');if(action){action.control='button';action.label='Promote Analysts';action.variant='secondary';action.style+=';justify-content:flex-start;opacity:1';}
+  }
   if(frame==='5775:10200')for(const node of all) {
     if(node.style.includes('height:39px') && node.style.includes('align-items:flex-end'))node.style+=';margin-left:auto;padding-right:0;min-width:96px;width:96px';
   }
@@ -62,6 +74,10 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       target.children=[card];card.passive=true;
     }
   }
+  if(['5775:15010','5775:15033','5775:15059','5775:15083'].includes(frame))tree.children.push({
+    tag:'div',id:'runtime:members-promote',name:'Button',control:'button',variant:'primary',label:'Promote Analysts',
+    style:'height:44px;width:341px;border-radius:8px;background:#b59aff;color:#1f1f1f',children:['Promote Analysts'],
+  });
   // Put dialogs above a real backdrop rather than blurring their own ancestors.
   const dialogs=all.filter(node=>node.name==='Dialog');
   if(dialogs.length) {
@@ -70,14 +86,10 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     for(const dialog of dialogs){dialog.dialogSurface=true;dialog.style+=';position:fixed;left:50%;top:calc((100% - var(--keyboard-inset,0px))/2);transform:translate(-50%,-50%);width:358px;max-height:calc(100% - var(--keyboard-inset,0px) - 48px);overflow-y:auto;z-index:50';tree.children.push(dialog);}
   }
   if(/^5775:15(?:1\d\d|2[0-5]\d)$/.test(frame)) {
+    for(const node of all)if(node.name==='TopBar'){node.profileBar=true;node.profileEdit=nodes(node).find(child=>child.name==='lucide/square-pen');node.style+=';width:393px;height:44px;left:0;padding:0 4px;box-sizing:border-box';for(const child of node.children)if(typeof child!=='string' && child.name==='Bar')child.style+=';width:100%;height:44px;align-items:center';}
     for(const child of tree.children)if(typeof child!=='string') {
       if(child.tag==='p'){child.style=child.style.replace(/top:(\d+)px/,(_,top)=>`top:${Number(top)+34}px`);child.style+=';left:50%;transform:translateX(-50%);text-align:center;z-index:2';}
       if(child.name==='Avatar')child.style+=';left:calc(50% - 50px);top:72px;z-index:2';
     }
-  }
-  if(frame==='5775:14720') {
-    const team=all.find(node=>node.id==='5775:14737');
-    const source=all.find(node=>node.id==='5775:14740');
-    if(team && source)team.children.push({tag:'div',id:'runtime:promote-analysts',name:'ListItem',style:source.style,children:[{tag:'p',name:'',style:'margin:0;font:inherit;color:#e6e6e6',children:['Promote Analysts']}]});
   }
 }
