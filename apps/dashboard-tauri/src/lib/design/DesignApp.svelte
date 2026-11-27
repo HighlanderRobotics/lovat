@@ -11,6 +11,7 @@
 	import { DesignRuntime, DESIGN_RUNTIME, prepareScene, optionScreens } from './runtime.svelte.ts';
 	import { destination } from './actions.ts';
 	import { presentation, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
+	import { nodes } from './behaviors.ts';
 	import { PageMotion } from './pageMotion.ts';
 		import './design.css';
 
@@ -45,9 +46,18 @@
 		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=isReference?source:prepareScene(source,target,runtime);cache.set(key,node);return node;});
 	}
 	const presentations=new WeakMap<DesignNode,Presentation>();
-	function parts(node:DesignNode, frameId:string){let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}return value;}
+	function parts(node:DesignNode, frameId:string):Presentation {
+		const origin=page.state.designReturn;
+		const base=origin?cache.get(`${reference?'reference:':''}${origin}`):undefined;
+		if(base && base!==node && node.children.some(child=>typeof child!=='string'&&child.dialogSurface)){
+			const background=parts(base,origin!);
+			return {page:{...background.page,children:[...background.page.children,...node.children.filter(child=>typeof child!=='string'&&(child.dialogSurface||child.name==='DialogBackdrop'))]},docks:background.docks,layout:{...background.layout,...(layouts[frameId as keyof typeof layouts] as ScreenLayout)}};
+		}
+		let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}return value;
+	}
 	let docks=$state<Dock[]>([]);
-	$effect(()=>{const current=scene,frameId=id;if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId)docks=parts(node,frameId).docks;});});});
+	let dockLayout=$state<ScreenLayout>({});
+	$effect(()=>{const current=scene,frameId=id;if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId){const value=parts(node,frameId);docks=value.docks;dockLayout=value.layout;}});});});
 	const scene = $derived(frame ? load(id) : undefined);
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
@@ -104,16 +114,20 @@
 		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
 		const request=++navigation;
 		const targetNode=target!=='catalog'?await load(target):undefined;
+		const modal=!!targetNode?.children.some(child=>typeof child!=='string'&&child.dialogSurface);
+		const origin=page.state.designReturn;
+		if(modal || origin)remember=false;
 		nextDirection=direction;
 		animateNext=(remember || direction==='back') && target!=='catalog' && !targetNode?.children.some(child=>typeof child!=='string' && child.dialogSurface);
 		if(request!==navigation)return;
 		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
 		if(optionType)runtime.questionType=optionType;
 		const url=(target==='catalog'?'/design':`/design/${target.replace(':','-')}`)+(reference?'?reference=1':'');
-		await goto(url,{replace:!remember,state:{designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[])}});
+		await goto(url,{replace:!remember,state:{designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[]),designReturn:modal?(origin??id):undefined}});
 		await tick();
 	}
 	beforeNavigate((navigation)=>{
+		if(navigation.type==='popstate' && page.state.designReturn){navigation.cancel();void open(page.state.designReturn,false);return;}
 		if(navigation.type==='popstate' && searchBase[id])runtime.values[`search:${runtime.scope(id)}`]='';
 		if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}
 		const allowed=!reference && !catalog && !viewport?.querySelector('[role="dialog"]') && (navigation.type==='popstate' || animateNext);
@@ -127,14 +141,16 @@
 		if(node.formTabValue){runtime.formTab=node.formTabValue;void open(node.formTabValue==='Assignments'?'5775:10200':'5775:10144',false);return true;}
 		if(node.collapseKey){runtime.collapsed[node.collapseKey]=!runtime.collapsed[node.collapseKey];return true;}
 		if(node.filter){runtime.filters[node.filter.group]=node.filter.value;return true;}
-		if(node.backAction){if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false,'back');}return true;}
+		if(node.backAction){if(page.state.designReturn){void open(page.state.designReturn,false);return true;}if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false,'back');}return true;}
 		if(node.step){runtime.formDirty=true;const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
+		if(node.name==='lucide/search'){const scope=runtime.scope(id);runtime.values[`search:${scope}`] ??= '';runtime.searchOpen[scope]=true;return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
 		const scope=runtime.scope(id);
 		if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
+		if(label==='Cancel' && page.state.designReturn){void open(page.state.designReturn,false);return true;}
 		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
 		if(label==='Select all'){runtime.selectAll(scope);return true;}
 		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
@@ -198,6 +214,7 @@
 	<main
 		class="design-viewport"
 		class:reference-mode={reference}
+		class:profile-page={/^5775:15(?:1\d\d|2[0-5]\d)$/.test(id)}
 		class:keyboard-open={keyboardInset>80}
 		style={`--keyboard-inset:${keyboardInset / scale}px`}
 		bind:this={viewport}
@@ -216,7 +233,7 @@
 				{:then node}{@const view=parts(node,id)}<div class="design-page" bind:this={canvas}>{#key id}<NodeView
 							node={view.page}
 							{reference}
-							layout={layouts[id as keyof typeof layouts] as ScreenLayout}
+							layout={view.layout}
 							{activate}
 							{heightDelta}
 							{choices}
@@ -225,7 +242,7 @@
 				{:catch}<p role="alert">Could not open this screen.</p>
 					<Button onclick={() => open('catalog')}>Screens</Button>{/await}
 				<div class="design-motion-host" bind:this={motionHost} aria-hidden="true"></div>
-				<div class="design-dock" class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={layouts[id as keyof typeof layouts] as ScreenLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
+				<div class="design-dock" class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={dockLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
 			</div>
 		</div>
 	</main>

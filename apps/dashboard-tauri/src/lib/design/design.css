@@ -191,3 +191,11 @@ body { touch-action:pan-x pan-y; }
 .design-profile-action img, .design-profile-action svg {width:20px;height:20px;flex:none;}
 .responses-dock {visibility:hidden;pointer-events:none;}
 .design-profile-bar {background:transparent !important;}
+.design-viewport.profile-page {background:linear-gradient(180deg,#2d2638 0%,#1f1f1f 100%);}
+.design-profile-action img {width:24px;height:24px;max-width:none;}
+.design-profile-action .mg2-button-content {width:24px;height:24px;}
+.design-left-action .mg2-button-content {justify-content:flex-start;text-align:left;}
+.design-live-search {display:flex;gap:8px;align-items:center;width:100%;height:44px;padding:0 8px;}
+.design-live-search input {flex:1;min-width:0;height:40px;padding:8px 12px;background:#0003;color:#fff;border:1px solid #666;border-radius:8px;font:400 16px/22px Roboto,sans-serif;outline:none;}
+.design-live-search button {width:36px;height:44px;background:transparent;color:#e6e6e6;font:400 28px/28px Roboto,sans-serif;cursor:pointer;}
+.design-profile-action {padding:10px !important;}

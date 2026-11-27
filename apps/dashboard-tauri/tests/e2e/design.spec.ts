@@ -335,7 +335,7 @@ test('closing search restores all rows and selected values', async ({page}) => {
   await search.fill('5940');
   await expect(page.getByRole('checkbox',{name:'Team 5940',exact:true})).toBeChecked();
   const field=await search.boundingBox();expect(field!.x+field!.width).toBeLessThan(393);
-  await page.getByRole('button',{name:'x',exact:true}).click();
+  await page.getByRole('button',{name:'Close search',exact:true}).click();
   await expect(page.getByRole('checkbox')).toHaveCount(total);
   await expect(page.getByRole('checkbox',{name:'Team 5940',exact:true})).toBeChecked();
 });
@@ -363,4 +363,43 @@ test('Save stays painted while switching question tabs', async ({page}) => {
   await page.waitForTimeout(180);
   const missing=await page.evaluate(()=>{const state=(window as unknown as {footerProbe:{running:boolean;missing:number}}).footerProbe;state.running=false;return state.missing;});
   expect(missing).toBe(0);
+});
+
+
+test('Official Rank search opens in place and filters complete rows', async ({page}) => {
+  await page.goto('/design/5775-17119');
+  await page.getByRole('button',{name:'search',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:17119');
+  await page.getByRole('textbox',{name:'Search teams'}).fill('8033');
+  await expect(page.getByText('8033 - Highlander Robotics',{exact:true})).toBeVisible();
+  await expect(page.getByText('114 ⁃ Eaglestrike',{exact:true})).toBeHidden();
+});
+
+test('rename dialog stays within the profile viewport', async ({page}) => {
+  await page.goto('/design/5775-15180');
+  await page.getByRole('button',{name:'Edit profile',exact:true}).click();
+  const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+  const bounds=await dialog.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(15);expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(378);
+  expect(bounds!.height).toBeLessThan(350);expect(bounds!.y).toBeGreaterThan(0);expect(bounds!.y+bounds!.height).toBeLessThan(852);
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15180');
+});
+
+test('successful key creation does not leave dialog entries in Back history', async ({page}) => {
+  await page.goto('/settings');
+  await page.getByRole('button',{name:/^Lovat API/}).click();
+  await page.getByRole('button',{name:'Create a new key',exact:true}).click();
+  await page.getByRole('textbox',{name:'Name',exact:true}).fill('Test key');
+  await page.getByRole('button',{name:'Create',exact:true}).click();
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await page.getByRole('button',{name:'Back',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14720');
+});
+
+test('data source summary reports a count for multiple selected teams', async ({page}) => {
+  await page.goto('/design/5775-15945');
+  await page.getByRole('checkbox',{name:'Team 5940',exact:true}).check();
+  await page.getByRole('button',{name:'Apply changes',exact:true}).click();
+  await expect(page.getByText('2 teams',{exact:true})).toBeVisible();
 });

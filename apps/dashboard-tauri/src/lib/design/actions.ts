@@ -38,32 +38,6 @@ export function destination(
   if (label === "Lovat") return "catalog";
   if (node.name === "Avatar" || (node.name === "Action" && label === "CC"))
     return to(14720);
-  if (node.name === "lucide/search")
-    return to(
-      id === "9807"
-        ? 9936
-        : Number(id) >= 17119
-          ? 17528
-          : id === "14810"
-            ? 16335
-            : id === "15277"
-              ? 16407
-              : id === "15945"
-                ? 16455
-                : 9936,
-    );
-  if (node.name === "lucide/x")
-    return to(
-      id === "9936"
-        ? 9807
-        : Number(id) >= 17119
-          ? 17119
-          : id === "16335"
-            ? 14810
-            : id === "16407"
-              ? 15277
-              : 15945,
-    );
   if (node.name === "lucide/refresh-ccw")
     return to(
       (

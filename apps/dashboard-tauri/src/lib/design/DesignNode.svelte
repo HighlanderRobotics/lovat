@@ -2,6 +2,7 @@
 	import { getContext, onMount } from 'svelte';
 	import { DESIGN_RUNTIME, type DesignRuntime } from './runtime.svelte.ts';
 	import { Button, TextField, Checkbox, Radio, Switch } from '@highlanderrobotics/magnolia-svelte/v2';
+	import SearchBar from './SearchBar.svelte';
 	import SwipeOption from './SwipeOption.svelte';
 	import FilterPills from './FilterPills.svelte';
 	import NodeView from './DesignNode.svelte';
@@ -30,6 +31,7 @@
 	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,1500);return ()=>clearTimeout(timer);}});
 	function isHidden(node:DesignNode) {
 		if(reference)return false;
+		if(node.searchTrigger && runtime.searchOpen[node.searchScope??''])return true;
 		if(node.hideForResponses && runtime.formTab==='Responses' || node.responseSummary && runtime.formTab!=='Responses')return true;
 		if(node.collapseGroup && runtime.collapsed[node.collapseGroup])return true;
 		if(node.swipeKey && runtime.deleted[node.swipeKey])return true;
@@ -38,7 +40,7 @@
 		return !!(node.searchable && runtime.values[`search:${node.searchScope}`] && !textOf(node).toLowerCase().includes(runtime.values[`search:${node.searchScope}`].toLowerCase()));
 	}
 	const hidden=$derived(typeof node!=='string' && isHidden(node));
-	const anchor = $derived(typeof node === 'string' ? undefined : node.inlineFlex && layout[node.id??'']?.kind==='flow'?undefined:layout[node.id ?? '']);
+	const anchor = $derived(typeof node === 'string' ? undefined : node.dialogSurface || node.inlineFlex && layout[node.id??'']?.kind==='flow'?undefined:layout[node.id ?? '']);
 	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && (node.label==='Save changes' && (runtime.typeDirty || runtime.formDirty))?';opacity:1':''));
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
@@ -78,10 +80,12 @@
 {#if typeof node === 'string'}{node}
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.searchBar && runtime.searchOpen[node.searchScope??''] && !reference}
+	<div style={style} data-layout-role="header" data-design-name="TopBar"><SearchBar placeholder={node.searchPlaceholder??'Search'} bind:value={runtime.values[`search:${node.searchScope}`]} onclose={()=>{if(typeof node!=='string'){runtime.searchOpen[node.searchScope??'']=false;runtime.values[`search:${node.searchScope}`]='';}}}/></div>
 {:else if node.profileBar && !reference}
 	<div class="design-profile-bar" data-design-name="TopBar" data-layout-role="header" data-figma-node={node.id} style={style+';display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:0 4px'}>
 		<Button variant="tertiary" class="design-profile-action" aria-label="Back" onclick={()=>activate({...node as DesignNode,backAction:true})}><img src="/design-assets/0ccbb.svg" alt=""/></Button>
-		{#if node.profileEdit}<Button variant="tertiary" class="design-profile-action" aria-label="Edit profile" onclick={()=>activate((node as DesignNode).profileEdit!)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-7M16 3l5 5M10 14l-1 4 4-1L22 8a2 2 0 0 0-5-5z"/></svg></Button>{:else}<span style="width:44px"></span>{/if}
+		{#if node.profileEdit}<Button variant="tertiary" class="design-profile-action" aria-label="Edit profile" onclick={()=>activate((node as DesignNode).profileEdit!)}><img src={node.profileEditIcon} alt=""/></Button>{:else}<span style="width:44px"></span>{/if}
 	</div>
 {:else if node.swipeKey && hidden}
 	<!-- A deleted option releases its row space. -->
@@ -114,7 +118,7 @@
 	/>
 {:else if node.control === 'button'}
 	<Button
-		class="design-button"
+		class={node.leftAction?"design-button design-left-action":"design-button"}
 		variant={node.variant}
 		style={style}
 		aria-label={runtime.buttonLabel(node) || 'Add'}

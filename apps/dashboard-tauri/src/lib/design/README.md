@@ -154,3 +154,14 @@ the gradient visible behind them. Promote Analysts is exposed on Members and
 Manage Team, not the Settings homepage. New tests check history across all form
 tabs, dock element identity, frame-by-frame Save-button visibility, search
 restoration, and profile control alignment.
+
+Search now opens in the current top bar rather than switching to another Figma
+fixture route. Rank/search icons remain above the header background. Checkbox
+search filters the complete row wrapper, so hidden grid wrappers do not leave
+empty gaps. The query clears on close and selections remain independent.
+
+Modal routes replace the current browser entry and retain `designReturn` for
+their origin. Their background is composed from the live origin presentation;
+confirmation and dismissal replace the modal entry, so Back cannot replay a
+completed dialog. Modal surfaces ignore page-body layout anchors and clear
+Figma translation properties before centering within the usable viewport.

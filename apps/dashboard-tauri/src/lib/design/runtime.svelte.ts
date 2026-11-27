@@ -4,6 +4,8 @@ import { textOf, type DesignNode } from './model.ts';
 export const DESIGN_RUNTIME = Symbol('design-runtime');
 export type Choice = { kind: 'checkbox' | 'radio' | 'switch'; key: string; group: string; initial: boolean; label: string; all?: boolean };
 const selectorScopes: Record<string, string> = {
+  '17119':'rankings','17404':'rankings','17466':'rankings','17528':'rankings','17593':'rankings','17658':'rankings',
+  '15010':'members','15033':'members','15059':'members','15083':'members',
   '14810':'at', '15990':'at', '16335':'at',
   '15277':'tournaments', '16059':'tournaments', '16407':'tournaments',
   '15945':'teams', '16104':'teams', '16455':'teams',
@@ -16,6 +18,7 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  searchOpen = $state<Record<string,boolean>>({});
   collapsed = $state<Record<string,boolean>>({});
   filters = $state<Record<string,string>>({});
   deleted = $state<Record<string,boolean>>({});
@@ -31,7 +34,7 @@ export class DesignRuntime {
   questionType = $state('Rating');
   typeDirty = $state(false);
   // Scene IDs differ across search/confirmation states; semantic keys retain edits.
-  choices: Record<string, {key:string; label:string; initial:boolean}[]> = {};
+  choices = $state<Record<string, {key:string; label:string; initial:boolean}[]>>({});
   scope(frame:string) { return selectorScopes[frame.split(':').at(-1)!] ?? frame; }
   onSelectionChange?: (scope:string)=>void;
   count(scope:string) { return (this.choices[scope]??[]).filter(item=>this.checks[item.key]??item.initial).length; }
@@ -50,7 +53,7 @@ export class DesignRuntime {
   apply(scope:string) {
     const items=this.choices[scope]??[];
     const selected=scope==='at'?items.filter(item=>item.key===this.groups.at):items.filter(item=>this.checks[item.key]??item.initial);
-    this.summaries[scope]=selected.length===items.length && scope!=='at'?'All':selected.map(item=>item.label).join(', ') || 'None';
+    this.summaries[scope]=selected.length===items.length && scope!=='at'?'All':selected.length===1?selected[0].label:selected.length?`${selected.length} ${scope==='teams'?'teams':'tournaments'}`:'None';
   }
 }
 
@@ -88,7 +91,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       if(kind==='radio' && initial)runtime.groups[scope] ??= key;
     }
     node.searchScope=scope;
-    node.searchable=['ListItem','TableRow','SelectableCard'].includes(node.name) || node.id==='5494:3064' || node.name==='Checkbox' && !table && !!label || node.name.startsWith('Qualification ');
+    node.searchable=!!node.searchRow || !!node.rankRow || ['ListItem','TableRow','SelectableCard'].includes(node.name) || node.id==='5494:3064' || node.name==='Checkbox' && !table && !parent?.searchRow && !!label || node.name.startsWith('Qualification ');
     if(frame==='5775:14183' && node.name==='SelectableCard')node.typeValue=label;
     if(frame==='5775:14183' && node.label==='Save changes')node.typeSave=true;
     if(parent?.name==='ListItem' && ['At tournament','Team Source','Tournament Source'].some(prefix=>textOf(parent).startsWith(prefix))) {
@@ -104,6 +107,6 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
     for(const child of node.children)if(typeof child!=='string')visit(child,node,table);
   }
   visit(tree);
-  if(choices.length)runtime.choices[scope]=choices;
+  if(choices.length && !runtime.choices[scope]){runtime.choices[scope]=choices;for(const item of choices)runtime.checks[item.key] ??= item.initial;}
   return tree;
 }

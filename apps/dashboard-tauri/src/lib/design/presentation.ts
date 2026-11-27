@@ -1,11 +1,11 @@
 import type { DesignNode } from './model.ts';
 import type { ScreenLayout } from './layout.ts';
 export interface Dock { key:string;node:DesignNode }
-export interface Presentation { page:DesignNode;docks:Dock[] }
+export interface Presentation { page:DesignNode;docks:Dock[];layout:ScreenLayout }
 
 /** Docked controls stay outside page remounts and page animations. */
 export function presentation(scene:DesignNode, layout:ScreenLayout, reference=false):Presentation {
-  if(reference)return {page:scene,docks:[]};
+  if(reference)return {page:scene,docks:[],layout};
   const page=structuredClone(scene),docks:Dock[]=[];
   const counts={footer:0,nav:0};
   function extract(node:DesignNode){
@@ -16,7 +16,7 @@ export function presentation(scene:DesignNode, layout:ScreenLayout, reference=fa
       extract(child);return true;
     });
   }
-  extract(page);return {page,docks};
+  extract(page);return {page,docks,layout};
 }
 
 export const searchBase:Record<string,string>={
