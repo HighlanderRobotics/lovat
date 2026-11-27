@@ -1,7 +1,7 @@
 import type { Choice } from './runtime.svelte.ts';
 
 export interface DesignNode {
-	teamAssignments?:boolean; scouterSelect?:boolean; optionTextKey?:string; editOption?:{key:string;label:string}; searchRow?:boolean; searchTrigger?:boolean; rankRow?:boolean; searchBar?:boolean; searchPlaceholder?:string; profileEditIcon?:string; leftAction?:boolean; formTabValue?:string; hideForResponses?:boolean; responseSummary?:boolean; profileBar?:boolean; profileEdit?:DesignNode; inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
+	apiTable?:boolean; inert?:boolean; teamAssignments?:boolean; scouterSelect?:boolean; optionTextKey?:string; editOption?:{key:string;label:string}; searchRow?:boolean; searchTrigger?:boolean; rankRow?:boolean; searchBar?:boolean; searchPlaceholder?:string; profileEditIcon?:string; leftAction?:boolean; formTabValue?:string; hideForResponses?:boolean; responseSummary?:boolean; profileBar?:boolean; profileEdit?:DesignNode; inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
   filter?: {group:string;value:string}; filterItem?:{group:string;status:string};
   filterSelect?:boolean; matchLevel?:string; filterEmpty?:boolean;
   swipeKey?:string; swipeLabel?:string; dialogSurface?:boolean;

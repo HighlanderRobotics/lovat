@@ -2,6 +2,7 @@
 	import { getContext, onMount } from 'svelte';
 	import { DESIGN_RUNTIME, type DesignRuntime } from './runtime.svelte.ts';
 	import { Button, TextField, Checkbox, Radio, Switch } from '@highlanderrobotics/magnolia-svelte/v2';
+	import ApiKeysTable from './ApiKeysTable.svelte';
 	import TeamAssignments from './TeamAssignments.svelte';
 	import ScouterPicker from './ScouterPicker.svelte';
 	import SearchBar from './SearchBar.svelte';
@@ -31,6 +32,7 @@
 	const runtime=getContext<DesignRuntime>(DESIGN_RUNTIME);
 	let expired=$state(false);
 	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,1500);return ()=>clearTimeout(timer);}});
+	function apiText(node:DesignNode){return !reference && node.searchScope==='api-keys'?textOf(node).replace(/\b\d+(?= keys\b)/g,String(/Deleted/.test(textOf(node))?runtime.apiLastAffected:(runtime.count('api-keys')||runtime.apiLastAffected))):textOf(node);}
 	function isHidden(node:DesignNode) {
 		if(reference)return false;
 		if(node.searchTrigger && runtime.searchOpen[node.searchScope??''])return true;
@@ -82,6 +84,8 @@
 {#if typeof node === 'string'}{node}
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.apiTable && !reference}
+	<div style={style}><ApiKeysTable records={runtime.apiRecords??[]} selected={runtime.apiSelected} query={runtime.values['search:api-keys']??''} onselect={(id,checked)=>runtime.selectKey(id,checked)} onall={(checked)=>runtime.selectAllKeys(checked)}/></div>
 {:else if node.teamAssignments && !reference}
 	<div style={style}><TeamAssignments teams={runtime.assignmentItems} people={runtime.selectedScouters} onmove={(id,assignee)=>runtime.moveTeam(id,assignee)} onadd={()=>activate({tag:'div',name:'lucide/wand',style:'',children:[]})}/></div>
 {:else if node.scouterSelect && !reference}
@@ -160,6 +164,7 @@
 		['Lovat', 'Teams', 'Matches'].includes(textOf(node)))}
 	<svelte:element
 		this={node.tag}
+		inert={node.inert || undefined}
 		style={style + (node.formTabValue?`;background:${runtime.formTab===node.formTabValue?'#3c3c3c':'transparent'}`:'') +
 			(node.typeValue ? (runtime.questionType===node.typeValue ? ';background-image:none;background-color:#34323c;outline:1px solid #b59aff;outline-offset:-1px' : ';background-image:none;background-color:#262626;outline:1px solid #424242;outline-offset:-1px') : '') +
 			(node.choiceGroup && choices[node.choiceGroup]
@@ -184,7 +189,7 @@
 			? (choices[node.choiceGroup] ?? node.choiceDefault) ===
 				(node.choiceValue ?? node.id)
 			: undefined}
-		aria-label={node.dialogSurface ? textOf(node) : active
+		aria-label={node.dialogSurface ? apiText(node) : active
 			? node.actionLabel || (node.backAction?'Back':textOf(node)) || node.name.replace('lucide/', '')
 			: undefined}
 		onclick={active
@@ -210,6 +215,6 @@
 				}
 			: undefined}
 	>
-		{#if node.optionTextKey}{runtime.optionLabels[node.optionTextKey]??textOf(node)}{:else if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
+		{#if !reference && node.searchScope==='api-keys' && node.children.length===1 && typeof node.children[0]==='string' && /\b\d+ keys\b/.test(node.children[0])}{apiText(node)}{:else if node.optionTextKey}{runtime.optionLabels[node.optionTextKey]??textOf(node)}{:else if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
 	</svelte:element>
 {/if}

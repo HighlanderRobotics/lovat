@@ -184,3 +184,11 @@ steppers, and all five reference choices. Editing an option uses the same modal
 surface with the current option value and returns to its originating type.
 These are local interactions; assignment and option persistence still requires
 server integration.
+
+API-key rows now use `ApiKeysTable.svelte` with stable session record IDs rather
+than navigating between selected-row snapshots. Create, rename, delete, search,
+and the toolbar operate on that same local record list, including a newly
+created fourth key. Selection counts remain correct when names or row positions
+change. The generated key shown by the mock remains fixture content; this does
+not provision real server credentials. Modal backgrounds and docks are inert so
+a search input behind a dialog cannot steal focus or reopen the keyboard.

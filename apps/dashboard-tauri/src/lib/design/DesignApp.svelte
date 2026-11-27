@@ -10,7 +10,7 @@
 	import { textOf, type DesignNode } from './model.ts';
 	import { DesignRuntime, DESIGN_RUNTIME, prepareScene, optionScreens } from './runtime.svelte.ts';
 	import { destination } from './actions.ts';
-	import { presentation, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
+	import { presentation, apiToolbar, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
 	import { nodes } from './behaviors.ts';
 	import { PageMotion } from './pageMotion.ts';
 		import './design.css';
@@ -51,13 +51,13 @@
 		const base=origin?cache.get(`${reference?'reference:':''}${origin}`):undefined;
 		if(base && base!==node && node.children.some(child=>typeof child!=='string'&&child.dialogSurface)){
 			const background=parts(base,origin!);
-			return {page:{...background.page,children:[...background.page.children,...node.children.filter(child=>typeof child!=='string'&&(child.dialogSurface||child.name==='DialogBackdrop'))]},docks:background.docks,layout:{...background.layout,...(layouts[frameId as keyof typeof layouts] as ScreenLayout)}};
+			return {page:{...background.page,children:[{tag:'div',name:'ModalBackground',style:'display:contents',inert:true,children:background.page.children},...node.children.filter(child=>typeof child!=='string'&&(child.dialogSurface||child.name==='DialogBackdrop'))]},docks:background.docks,layout:{...background.layout,...(layouts[frameId as keyof typeof layouts] as ScreenLayout)}};
 		}
 		let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}return value;
 	}
 	let docks=$state<Dock[]>([]);
 	let dockLayout=$state<ScreenLayout>({});
-	$effect(()=>{const current=scene,frameId=id;if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId){const value=parts(node,frameId);docks=value.docks;dockLayout=value.layout;}});});});
+	$effect(()=>{const current=scene,frameId=id,keyCount=runtime.count('api-keys');if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId){const value=parts(node,frameId);if(!reference && runtime.scope(frameId)==='api-keys'){docks=apiToolbar(keyCount);dockLayout={...value.layout,'runtime:api-toolbar':{kind:'footer',x:26,y:0,w:341,h:keyCount===1?98:44,bottom:26,blockX:0,blockY:0}};}else{docks=value.docks;dockLayout=value.layout;}}});});});
 	const scene = $derived(frame ? load(id) : undefined);
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
@@ -107,13 +107,14 @@
 	let animateNext=true;
 	let nextDirection:'forward'|'back'='forward';
 	const motion=new PageMotion();
-	runtime.onSelectionChange=(scope)=>{if(scope==='api-keys'){const count=runtime.count(scope);void open(count===0?'5775:15322':count===1?'5775:15503':'5775:15604',false);}};
+	runtime.onSelectionChange=undefined;
 	async function open(target: string, remember=true, direction:'forward'|'back'='forward') {
 		if(target===id && !catalog)return;
 		if(isSearchChange(id,target))remember=false;
 		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
 		const request=++navigation;
 		const targetNode=target!=='catalog'?await load(target):undefined;
+		if(target==='5775:15753'){const field=targetNode?nodes(targetNode).find(node=>node.control==='input'):undefined;const record=runtime.apiRecords?.find(record=>runtime.apiSelected[record.id]);if(field?.inputKey&&record)runtime.values[field.inputKey]=record.name;}
 		if(target==='5775:14350' && runtime.editingOption)runtime.values['field:5775:14381']=runtime.optionLabels[runtime.editingOption.key]??runtime.editingOption.label;
 		const modal=!!targetNode?.children.some(child=>typeof child!=='string'&&child.dialogSurface);
 		const origin=page.state.designReturn;
@@ -157,10 +158,14 @@
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
+		if(label==='Create' && id==='5775:15386'){const field=nodes(cache.get(id)!).find(node=>node.control==='input'&&node.label==='Name');runtime.createKey(field?.inputKey?runtime.values[field.inputKey]:'');}
+		if(label==='Rename' && id==='5775:15753'){const field=nodes(cache.get(id)!).find(node=>node.control==='input');runtime.renameKey(field?.inputKey?runtime.values[field.inputKey]:'');}
+		if(label==='Delete' && ['5775:15553','5775:15895'].includes(id))runtime.deleteKeys();
 		if(label==='Save' && id==='5775:14350' && runtime.editingOption){runtime.optionLabels[runtime.editingOption.key]=runtime.values['field:5775:14381'];runtime.formDirty=true;void open(page.state.designReturn??'5775:14305',false);return true;}
 		if(label==='Assign' && id==='5775:11203'){runtime.autoAssign();void open(page.state.designReturn??'5775:10287',false);return true;}
 		if(label==='Cancel' && page.state.designReturn){void open(page.state.designReturn,false);return true;}
 		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
+		if(/^Delete \d+ keys$/.test(label)){void open('5775:15895');return true;}
 		if(label==='Select all'){runtime.selectAll(scope);return true;}
 		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
 		if(label==='Apply changes')runtime.apply(scope);
@@ -251,7 +256,7 @@
 				{:catch}<p role="alert">Could not open this screen.</p>
 					<Button onclick={() => open('catalog')}>Screens</Button>{/await}
 				<div class="design-motion-host" bind:this={motionHost} aria-hidden="true"></div>
-				<div class="design-dock" class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={dockLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
+				<div class="design-dock" inert={!!page.state.designReturn} class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={dockLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
 			</div>
 		</div>
 	</main>

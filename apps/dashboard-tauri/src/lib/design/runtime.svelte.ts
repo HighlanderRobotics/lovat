@@ -1,3 +1,4 @@
+import { apiKeysFromScene, type ApiKeyRecord } from './apiKeys.ts';
 import { teamsFromScene, type AssignmentTeam } from './assignments.ts';
 import { enhanceScene, nodes } from './behaviors.ts';
 import { textOf, type DesignNode } from './model.ts';
@@ -19,6 +20,10 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  apiRecords = $state<ApiKeyRecord[]>();
+  apiSelected = $state<Record<string,boolean>>({});
+  apiLastAffected = $state(0);
+  private apiSequence=0;
   assignmentItems = $state<AssignmentTeam[]>([]);
   selectedScouters = $state<string[]>(['Jack S','Collin C']);
   optionLabels = $state<Record<string,string>>({});
@@ -42,7 +47,7 @@ export class DesignRuntime {
   choices = $state<Record<string, {key:string; label:string; initial:boolean}[]>>({});
   scope(frame:string) { return selectorScopes[frame.split(':').at(-1)!] ?? frame; }
   onSelectionChange?: (scope:string)=>void;
-  count(scope:string) { return (this.choices[scope]??[]).filter(item=>this.checks[item.key]??item.initial).length; }
+  count(scope:string) { if(scope==='api-keys' && this.apiRecords)return this.apiRecords.filter(record=>this.apiSelected[record.id]).length;return (this.choices[scope]??[]).filter(item=>this.checks[item.key]??item.initial).length; }
   checked(choice:Choice):boolean { return choice.all ? this.count(choice.group)===(this.choices[choice.group]?.length??0) : this.checks[choice.key] ?? choice.initial; }
   setChecked(choice:Choice, checked:boolean) { if(choice.kind==='switch')this.formDirty=true; if(choice.all)this.selectAll(choice.group,false,checked);else this.checks[choice.key]=checked;this.onSelectionChange?.(choice.group); }
   selectAll(scope:string, onlyFirst=false, checked=true) {
@@ -55,6 +60,11 @@ export class DesignRuntime {
     if(node.searchScope==='api-keys' && /^Delete (key|\d+ keys)$/.test(label))return count===1?'Delete key':`Delete ${count} keys`;
     return label;
   }
+  selectKey(id:string,checked:boolean){this.apiSelected[id]=checked;}
+  selectAllKeys(checked:boolean){for(const record of this.apiRecords??[])this.apiSelected[record.id]=checked;}
+  createKey(name:string){this.apiRecords=[...(this.apiRecords??[]),{id:`local:${++this.apiSequence}`,name:name.trim()||'New key',lastUsed:'Never',requests:'0'}];this.apiSelected={};this.values['search:api-keys']='';this.searchOpen['api-keys']=false;}
+  renameKey(name:string){this.apiRecords=(this.apiRecords??[]).map(record=>this.apiSelected[record.id]?{...record,name:name.trim()||record.name}:record);}
+  deleteKeys(){this.apiLastAffected=this.count('api-keys');this.apiRecords=(this.apiRecords??[]).filter(record=>!this.apiSelected[record.id]);this.apiSelected={};}
   moveTeam(id:string,assignee:string){this.assignmentItems=this.assignmentItems.map(team=>team.id===id?{...team,assignee}:team);this.formDirty=true;}
   autoAssign(){
     const limit=Math.max(1,Number(this.values['field:5775:11380']??10));
@@ -74,11 +84,13 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   const optionType=Object.entries(optionScreens).find(([,screen])=>screen===frame)?.[0];
   if(optionType)runtime.questionType=optionType;
   if(['5775:10287','5775:11203'].includes(frame) && !runtime.assignmentItems.length)runtime.assignmentItems=teamsFromScene(source);
+  if(runtime.scope(frame)==='api-keys' && !runtime.apiRecords){runtime.apiRecords=apiKeysFromScene(source);for(const record of runtime.apiRecords)runtime.apiSelected[record.id]=!!record.initialSelected;}
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
   if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':'Assignments';
   for(const node of nodes(tree)){if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));if(node.filter)runtime.filters[node.filter.group] ??= node.filter.value;}
   const scope=runtime.scope(frame);
+  if(scope==='api-keys')for(const node of nodes(tree))if(node.name==='Table'){node.apiTable=true;node.style+=';width:100%;max-width:100%';}
   let index=0;
   const choices: {key:string;label:string;initial:boolean}[]=[];
   function visit(node:DesignNode, parent?:DesignNode, table?:DesignNode) {
@@ -96,7 +108,8 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       const markup=JSON.stringify(node);
       const kind=node.name==='Checkbox'?(scope==='at'?'radio':'checkbox'):'switch';
       const all=scope==='api-keys' && table?.name==='TableHeader';
-      const key=all?`${scope}:all`:kind==='switch'?'question:required':`${scope}:${index++}`;
+      const rowName=table?textOf(nodes(table).find(child=>child.name==='Name cell')??table):'';
+      const key=all?`${scope}:all`:scope==='api-keys'?`${scope}:${rowName}`:kind==='switch'?'question:required':`${scope}:${index++}`;
       const initial=kind==='switch'?markup.includes('/893af.svg'):markup.includes('/554ed.svg') || markup.includes('/2e4a4.svg');
       node.choice={kind,key,group:scope,initial,all,label:label || (all?'Select all keys':`Select ${textOf(table??node)}`)};
       if(!all)choices.push({key,label,initial});
@@ -121,6 +134,6 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
     for(const child of node.children)if(typeof child!=='string')visit(child,node,table);
   }
   visit(tree);
-  if(choices.length && !runtime.choices[scope]){runtime.choices[scope]=choices;for(const item of choices)runtime.checks[item.key] ??= item.initial;}
+  if(choices.length && (!runtime.choices[scope] || scope==='api-keys' && !nodes(tree).some(node=>node.dialogSurface))){runtime.choices[scope]=choices;for(const item of choices)runtime.checks[item.key] ??= item.initial;}
   return tree;
 }

@@ -214,12 +214,12 @@ test('keyboard resizes the scrollable area without squeezing the screen', async 
 test('API-key checkboxes control selection actions', async ({page}) => {
   await page.goto('/design/5775-15322');
   await page.getByRole('checkbox',{name:/^Select Pit Display/}).check();
-  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15503');
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15322');
   await expect(page.getByRole('button',{name:'Rename key',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Delete key',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Delete 0 keys',exact:true})).toHaveCount(0);
   await page.getByRole('checkbox',{name:/^Select Picklists/}).check();
-  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15604');
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15322');
   await expect(page.getByRole('button',{name:'Delete 2 keys',exact:true})).toBeVisible();
 });
 
@@ -453,6 +453,7 @@ test('autoassign picker opens only with the arrow and assignments apply', async 
 test('Home banner fills its container and source footers have clearance', async ({page}) => {
   await page.goto('/');
   const image=page.locator('[data-figma-node="5775:9819"]');await expect(image).toBeVisible();
+  await image.locator('img').evaluate(e=>(e as HTMLImageElement).decode());
   const fill=await image.evaluate(e=>({image:e.getBoundingClientRect().width,parent:e.parentElement!.getBoundingClientRect().width}));
   expect(fill.image).toBeCloseTo(fill.parent,0);
   const crop=await image.locator('img').evaluate(e=>{const r=e.getBoundingClientRect(),p=e.parentElement!.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,clipLeft:p.left,clipRight:p.right,clipTop:p.top,clipBottom:p.bottom};});
@@ -461,4 +462,45 @@ test('Home banner fills its container and source footers have clearance', async 
   const body=page.locator('[data-layout-role="body"]');await expect(body).toBeVisible();
   const content=await body.boundingBox(),footer=await page.locator('[data-layout-role="footer"]').boundingBox();
   expect(footer!.y-content!.y-content!.height).toBeGreaterThanOrEqual(15);
+});
+
+
+test('opening a dialog from search prevents background focus', async ({page}) => {
+  await page.goto('/design/5775-15322');
+  await page.getByRole('button',{name:'search',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search API keys',exact:true}).fill('Pit');
+  await page.getByRole('button',{name:'Create a new key',exact:true}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.locator('.design-dock')).toHaveAttribute('inert','');
+  expect(await page.evaluate(()=>!!document.activeElement?.closest('[inert]'))).toBe(false);
+  await page.getByRole('textbox',{name:'Name',exact:true}).fill('Focused modal');
+  await expect(page.getByRole('textbox',{name:'Name',exact:true})).toBeFocused();
+});
+
+
+test('new API keys retain identity through selection, deletion, and renaming', async ({page}) => {
+  await page.goto('/design/5775-15322');
+  await page.getByRole('button',{name:'Create a new key',exact:true}).click();
+  await page.getByRole('textbox',{name:'Name',exact:true}).fill('Fourth test key');
+  await page.getByRole('button',{name:'Create',exact:true}).click();
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15653');
+  const rows=page.locator('.design-page [data-design-name="TableRow"]');await expect(rows).toHaveCount(4);
+  await expect(rows.last().getByText('Fourth test key',{exact:true})).toBeVisible();
+  await rows.last().getByRole('checkbox').check();
+  await expect(rows).toHaveCount(4);
+  await expect(page.getByRole('button',{name:'Delete key',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Delete 0 keys',exact:true})).toHaveCount(0);
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15653');
+  await page.getByRole('button',{name:'Delete key',exact:true}).click();
+  await page.getByRole('button',{name:'Delete',exact:true}).click();
+  await expect(page.locator('.design-page [data-design-name="TableRow"]')).toHaveCount(3);
+  await expect(page.getByText('Fourth test key',{exact:true})).toBeHidden();
+  await page.getByRole('checkbox',{name:'Select Pit Display',exact:true}).check();
+  await page.getByRole('button',{name:'Rename key',exact:true}).click();
+  await page.getByRole('textbox',{name:'Pit Display',exact:true}).fill('Pit tools');
+  await page.getByRole('button',{name:'Rename',exact:true}).click();
+  await expect(page.getByText('Pit tools',{exact:true})).toBeVisible();
+  await expect(page.getByRole('checkbox',{name:'Select Pit tools',exact:true})).toBeChecked();
+  await expect(page.getByRole('button',{name:'Delete key',exact:true})).toBeVisible();
 });
