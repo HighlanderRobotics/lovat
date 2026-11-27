@@ -1,7 +1,11 @@
 import type { Choice } from './runtime.svelte.ts';
 
 export interface DesignNode {
-	passive?: boolean; backAction?: boolean; step?: {key:string;delta:number}; stepperKey?:string; numberKey?:string; actionLabel?:string; typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
+	inlineFlex?: boolean; collapseKey?:string; collapseGroup?:string;
+  filter?: {group:string;value:string}; filterItem?:{group:string;status:string};
+  filterSelect?:boolean; matchLevel?:string; filterEmpty?:boolean;
+  swipeKey?:string; swipeLabel?:string; dialogSurface?:boolean;
+  passive?: boolean; backAction?: boolean; step?: {key:string;delta:number}; stepperKey?:string; numberKey?:string; actionLabel?:string; typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
 	tag: string;
 	id?: string;
 	name: string;

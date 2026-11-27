@@ -152,6 +152,7 @@ export function destination(
               : 10457,
     );
   if (label === "Edit") return to(14235);
+  if (label === "Promote Analysts") return to(14879);
   if (label.startsWith("Promote ") && label.includes("Analyst"))
     return to(14968);
   if (label === "Manage assignments")

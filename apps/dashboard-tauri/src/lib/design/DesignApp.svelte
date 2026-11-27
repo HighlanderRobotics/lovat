@@ -36,9 +36,11 @@
 	const frame = $derived(manifest.find((item) => item.id === id));
 	const cache = new Map<string,DesignNode>();
 	function load(target:string): DesignNode | Promise<DesignNode> {
-		const cached=cache.get(target);
+		const key=`${reference?'reference:':''}${target}`;
+		const isReference=reference;
+		const cached=cache.get(key);
 		if(cached)return cached;
-		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=prepareScene(source,target,runtime);cache.set(target,node);return node;});
+		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=isReference?source:prepareScene(source,target,runtime);cache.set(key,node);return node;});
 	}
 	const scene = $derived(frame ? load(id) : undefined);
 	let width = $state(393);
@@ -99,6 +101,8 @@
 	beforeNavigate(()=>{if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}});
 	afterNavigate(()=>{void tick().then(()=>requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;}));});
 	function activate(node: DesignNode) {
+		if(node.collapseKey){runtime.collapsed[node.collapseKey]=!runtime.collapsed[node.collapseKey];return true;}
+		if(node.filter){runtime.filters[node.filter.group]=node.filter.value;return true;}
 		if(node.backAction){if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false);}return true;}
 		if(node.step){const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
@@ -107,6 +111,7 @@
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 		if(node.typeSave)runtime.typeDirty=false;
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType]);return true;}
+		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
 		if(label==='Select all'){runtime.selectAll(scope);return true;}
 		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
 		if(label==='Apply changes')runtime.apply(scope);

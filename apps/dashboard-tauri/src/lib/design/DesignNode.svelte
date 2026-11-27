@@ -2,6 +2,8 @@
 	import { getContext, onMount } from 'svelte';
 	import { DESIGN_RUNTIME, type DesignRuntime } from './runtime.svelte.ts';
 	import { Button, TextField, Checkbox, Radio, Switch } from '@highlanderrobotics/magnolia-svelte/v2';
+	import SwipeOption from './SwipeOption.svelte';
+	import FilterPills from './FilterPills.svelte';
 	import NodeView from './DesignNode.svelte';
 	import type { DesignNode } from './model.ts';
 	import { textOf } from './model.ts';
@@ -26,9 +28,17 @@
 	const runtime=getContext<DesignRuntime>(DESIGN_RUNTIME);
 	let expired=$state(false);
 	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,1500);return ()=>clearTimeout(timer);}});
-	const hidden=$derived(typeof node!=='string' && node.searchable && runtime.values[`search:${node.searchScope}`] && !textOf(node).toLowerCase().includes(runtime.values[`search:${node.searchScope}`].toLowerCase()));
-	const anchor = $derived(typeof node === 'string' ? undefined : layout[node.id ?? '']);
-	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && node.typeSave && runtime.typeDirty?';opacity:1':''));
+	function isHidden(node:DesignNode) {
+		if(reference)return false;
+		if(node.collapseGroup && runtime.collapsed[node.collapseGroup])return true;
+		if(node.swipeKey && runtime.deleted[node.swipeKey])return true;
+		if(node.matchLevel && runtime.matchLevels.length && !runtime.matchLevels.includes(node.matchLevel))return true;
+		if(node.filterItem){const value=runtime.filters[node.filterItem.group]??'All';const status=node.filterItem.status;if(!['All','Assigned','Submitted','Unassigned','Missing Submission'].includes(value) && value!==status)return true;if(value==='Assigned' && status==='Unassigned' || value==='Submitted' && status!=='Submitted' || value==='Unassigned' && status!=='Unassigned' || value==='Missing Submission' && status==='Submitted')return true;}
+		return !!(node.searchable && runtime.values[`search:${node.searchScope}`] && !textOf(node).toLowerCase().includes(runtime.values[`search:${node.searchScope}`].toLowerCase()));
+	}
+	const hidden=$derived(typeof node!=='string' && isHidden(node));
+	const anchor = $derived(typeof node === 'string' ? undefined : node.inlineFlex && layout[node.id??'']?.kind==='flow'?undefined:layout[node.id ?? '']);
+	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && ((node.typeSave && runtime.typeDirty) || node.label==='Save changes' && runtime.formDirty)?';opacity:1':''));
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
 	let selected = $state(false);
@@ -67,6 +77,12 @@
 {#if typeof node === 'string'}{node}
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.swipeKey && hidden}
+	<!-- A deleted option releases its row space. -->
+{:else if node.swipeKey && !reference}
+	<div style={style} data-swipe-option={node.swipeKey}><SwipeOption label={node.swipeLabel??'Option'} ondelete={()=>{if(typeof node!=='string' && node.swipeKey){runtime.deleted[node.swipeKey]=true;runtime.formDirty=true;}}}>{@render children(node.children)}</SwipeOption></div>
+{:else if node.filterSelect && !reference}
+	<FilterPills selected={runtime.matchLevels} onchange={(values)=>runtime.matchLevels=values}/>
 {:else if node.choice && !reference}
 	<div style={style} class="design-choice-row" class:compact={!textOf(node)} data-choice-kind={node.choice.kind} onclick={(event)=>event.stopPropagation()} onkeydown={(event)=>event.stopPropagation()} role="presentation" data-design-name={node.name} data-figma-node={node.id}>
 		{#if node.choice.kind==='checkbox'}
@@ -120,7 +136,7 @@
 	/>
 {:else}
 	{@const active =
-		!node.passive && (!!node.step || !!node.backAction || interactiveNames.test(node.name) ||
+		!node.passive && (!!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
 		/^lucide\//.test(node.name) ||
 		node.name === 'Icon' ||
 		node.name === 'Action' ||
@@ -138,16 +154,21 @@
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		data-design-name={node.name}
+		data-filter-active={node.filter ? (runtime.filters[node.filter.group]??'All')===node.filter.value : undefined}
+		data-collapse-open={node.collapseKey ? !runtime.collapsed[node.collapseKey] : undefined}
 		data-stepper={node.stepperKey}
 		data-toast={node.name==='Toast' || undefined}
 		data-mock-selected={selected || undefined}
-		role={node.typeValue ? 'radio' : node.choiceGroup ? 'radio' : active ? 'button' : undefined}
+		aria-expanded={node.collapseKey ? !runtime.collapsed[node.collapseKey] : undefined}
+		aria-pressed={node.filter ? (runtime.filters[node.filter.group]??'All')===node.filter.value : undefined}
+		aria-modal={node.dialogSurface || undefined}
+		role={node.dialogSurface ? 'dialog' : node.typeValue ? 'radio' : node.choiceGroup ? 'radio' : active ? 'button' : undefined}
 		tabindex={active ? 0 : undefined}
 		aria-checked={node.typeValue ? runtime.questionType===node.typeValue : node.choiceGroup
 			? (choices[node.choiceGroup] ?? node.choiceDefault) ===
 				(node.choiceValue ?? node.id)
 			: undefined}
-		aria-label={active
+		aria-label={node.dialogSurface ? textOf(node) : active
 			? node.actionLabel || (node.backAction?'Back':textOf(node)) || node.name.replace('lucide/', '')
 			: undefined}
 		onclick={active

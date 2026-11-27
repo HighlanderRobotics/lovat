@@ -244,8 +244,64 @@ test('profile text is centered and entered search text is white', async ({page})
   await page.goto('/design/5775-15116');
   const title=await page.getByText('Collin C',{exact:true}).boundingBox();
   expect(title!.x+title!.width/2).toBeCloseTo(196.5,0);
+  const avatar=await page.locator('[data-design-name="Avatar"]').boundingBox();
+  const header=await page.locator('[data-layout-role="header"]').boundingBox();
+  expect(avatar!.y).toBeGreaterThan(header!.y+header!.height);
+  expect(title!.y).toBeGreaterThan(avatar!.y+avatar!.height);
   await page.goto('/forms');
   const search=page.getByRole('textbox',{name:'Search forms'});
   await search.fill('Scouting');
   await expect(search).toHaveCSS('color','rgb(255, 255, 255)');
+});
+
+test('assignment headings collapse and schedule pills filter rows', async ({page}) => {
+  await page.goto('/design/5775-10200');
+  const coverage=page.getByRole('button',{name:'Coverage',exact:true});
+  const card=page.getByRole('button',{name:'4/20 teams scouted 16/20 teams assigned',exact:true});
+  await coverage.click();await expect(card).toBeHidden();await expect(coverage).toHaveAttribute('aria-expanded','false');
+  await coverage.click();await expect(card).toBeVisible();
+  await page.getByRole('button',{name:'Unassigned',exact:true}).click();
+  await expect(page.getByText('Highlander Robotics',{exact:true})).toBeVisible();
+  await expect(page.getByText('Eaglestrike',{exact:true})).toBeHidden();
+  await page.getByRole('button',{name:'All',exact:true}).click();
+  await expect(page.getByText('Eaglestrike',{exact:true})).toBeVisible();
+});
+
+test('match filter tags remove and restore the qualification list', async ({page}) => {
+  await page.goto('/design/5775-16503');
+  await page.getByRole('button',{name:'Remove Quals filter',exact:true}).click();
+  await expect(page.locator('[data-design-name="Qualification 57"]')).toBeHidden();
+  await page.getByRole('button',{name:'Choose match filters',exact:true}).click();
+  await page.getByRole('checkbox',{name:'Quals',exact:true}).check();
+  await expect(page.locator('[data-design-name="Qualification 57"]')).toBeVisible();
+});
+
+test('options reveal Delete on a horizontal swipe and delete in place', async ({page}) => {
+  await page.goto('/design/5775-14305');
+  const row=page.getByRole('group',{name:'No option',exact:true});
+  const action=page.getByRole('button',{name:'Delete No option',exact:true});
+  await expect(action).toHaveAttribute('tabindex','-1');
+  const box=await row.boundingBox();
+  await page.mouse.move(box!.x+box!.width/2,box!.y+box!.height/2);
+  await page.mouse.down();await page.mouse.move(box!.x+box!.width/2-110,box!.y+box!.height/2,{steps:8});await page.mouse.up();
+  await expect(action).toHaveAttribute('tabindex','0');
+  await action.click();await expect(row).toBeHidden();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14305');
+});
+
+test('dialogs have a blurred backdrop and clear foreground', async ({page}) => {
+  await page.goto('/design/5775-15386');
+  await expect(page.locator('[data-design-name="DialogBackdrop"]')).toHaveCSS('backdrop-filter','blur(5px)');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCSS('filter','none');
+});
+
+test('lead Settings exposes promotion and assignment labels share a right edge', async ({page}) => {
+  await page.goto('/settings');
+  await page.getByRole('button',{name:'Promote Analysts',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14879');
+  await page.goto('/design/5775-10200');
+  const labels=page.locator('[data-figma-node="5775:10236"], [data-figma-node="5775:10249"], [data-figma-node="5775:10262"]');
+  const edges=await labels.evaluateAll(elements=>elements.map(e=>e.getBoundingClientRect().right));
+  expect(Math.max(...edges)-Math.min(...edges)).toBeLessThan(1);
 });

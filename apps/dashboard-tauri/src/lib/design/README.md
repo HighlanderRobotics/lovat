@@ -73,7 +73,7 @@ independent destinations.
   mock list. Existing names and edited question text remain editable values.
 - A question type changes the selected card on the Type tab. Options explicitly
   opens that type's options screen. Required is a working switch.
-- Success toasts dismiss after 3 seconds without leaving the current screen.
+- Success toasts fade during their final 200ms and dismiss after 1.5 seconds without leaving the current screen.
   Confirmation dialogs continue to require their explicit action.
 - The Forms header, search field, scrolling list, and bottom navigation occupy
   separate regions. Its decorative Figma status bar is hidden at runtime.
@@ -96,3 +96,40 @@ The local iPhone build uses the existing bundle ID
 `com.frc8033.lovatdashboard` and development signing. Cable installation is
 separate from TestFlight: TestFlight still needs an available build number and
 an App Store distribution export. No TestFlight upload has been performed.
+
+
+## Mobile interaction refinements
+
+`behaviors.ts` annotates translated nodes for rating steppers, real navigation
+back actions, collapsible Coverage/Schedule headings, schedule status pills,
+swipe option rows, and modal surfaces. Keep these behaviors separate from the
+reference JSON. `?reference=1` loads the unmodified reference scene; the runtime
+adapter supplies the interactive layout.
+
+Back uses SvelteKit history state to return to the actual preceding route,
+including browser back gestures. It restores each screen's body scroll and
+retains the session's field values. Internal API-key selection state changes
+replace the current history entry, so Back does not replay each checkbox click.
+Cancel returns to the previous screen when a dialog was opened through the app.
+
+Rating minimum/maximum controls update independent values and cannot cross one
+another. Assignment labels retain their row's flexible sizing and a common
+right edge. The layout adapter must not replace inline flex columns with
+vertical page-flow sizing.
+
+Schedule status pills filter the fixture rows; Coverage and Schedule headers
+hide or restore their own content. Match-level tags can be removed or selected
+from their menu. Match cards use 16px outer gutters. Option rows reveal Delete
+with a horizontal swipe, then remove the option in place. A keyboard-accessible
+Show delete action provides the same operation without a pointer gesture.
+
+Dialogs are placed above a dedicated blurred backdrop. The background blocks
+pointer input and the dialog foreground remains sharp. Modal positioning also
+accounts for the on-screen keyboard. Checkboxes paint hover/selection across
+their entire card, while compact API-key checkboxes limit feedback to their
+20px control. Switch rows use the full row as their hover target.
+
+On the shared `theodoreei/dashboard-tauri-svelte` branch, fetch before each
+verified batch, integrate remote commits, and push without force. Build output,
+signing material, and device artifacts remain untracked. These refinements are
+mock behavior only and do not change the production Flutter/API contracts.

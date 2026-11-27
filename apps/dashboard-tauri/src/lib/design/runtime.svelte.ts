@@ -16,6 +16,11 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  collapsed = $state<Record<string,boolean>>({});
+  filters = $state<Record<string,string>>({});
+  deleted = $state<Record<string,boolean>>({});
+  matchLevels = $state<string[]>(['Quals','Elims']);
+  formDirty = $state(false);
   numbers = $state<Record<string,number>>({});
   scrolls:Record<string,number>={};
   values = $state<Record<string,string>>({});
@@ -54,11 +59,12 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   if(optionType)runtime.questionType=optionType;
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
-  for(const node of nodes(tree))if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));
+  for(const node of nodes(tree)){if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));if(node.filter)runtime.filters[node.filter.group] ??= node.filter.value;}
   const scope=runtime.scope(frame);
   let index=0;
   const choices: {key:string;label:string;initial:boolean}[]=[];
   function visit(node:DesignNode, parent?:DesignNode, table?:DesignNode) {
+    if(parent && !parent.style.includes('flex-direction:column') && node.style.includes('flex:1 0 0'))node.inlineFlex=true;
     const label=textOf(node);
     if(node.name==='TableRow' || node.name==='TableHeader')table=node;
     if(node.control==='input') {
