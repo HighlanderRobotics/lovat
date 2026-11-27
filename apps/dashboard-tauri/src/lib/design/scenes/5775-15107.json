@@ -1,0 +1,121 @@
+{
+  "tag": "div",
+  "id": "5775:15107",
+  "name": "User (viewer)",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "p",
+      "id": "5775:15108",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-lg-lh,36px);left:149px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-lg,28px);top:150px;letter-spacing:-0.28px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "Collin C"
+      ]
+    },
+    {
+      "tag": "p",
+      "id": "5775:15109",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);left:159px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-sm,17px);top:192px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "FRC 8033"
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5495:4475",
+      "name": "",
+      "style": "position:absolute;display:flex;height:852px;align-items:center;justify-content:center;left:0;top:0;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5495:4477",
+          "name": "Wash",
+          "style": "position:absolute;background-color:var(--color-wash-accent,#2b2534);inset:0;mask-mode:alpha;mask-composite:intersect;mask-clip:no-clip;mask-repeat:no-repeat;mask-size:100% 100%;mask-image:url(\"/design-assets/11e8d.svg\")",
+          "children": []
+        }
+      ]
+    },
+    {
+      "tag": "p",
+      "id": "5775:15111",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);left:169px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);top:222px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "Analyst"
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15112",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15113",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;justify-content:space-between;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15114",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15114;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:15114;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/fdd76.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15115",
+      "name": "Avatar",
+      "style": "position:absolute;background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;left:147px;overflow:clip;border-radius:9999px;width:100px;height:100px;top:44px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "I5775:15115;49:65",
+          "name": "",
+          "style": "word-break:break-word;display:flex;flex:1 0 0;flex-direction:column;font-family:Roboto;font-weight:500;height:100%;justify-content:center;line-height:0;min-width:1px;position:relative;font-size:40px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;font-variation-settings:\"wdth\" 100",
+          "children": [
+            {
+              "tag": "p",
+              "name": "",
+              "style": "line-height:1",
+              "children": [
+                "CC"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

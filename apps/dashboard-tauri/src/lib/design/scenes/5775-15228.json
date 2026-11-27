@@ -1,0 +1,342 @@
+{
+  "tag": "div",
+  "id": "5775:15228",
+  "name": "User rename (own)",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "p",
+      "id": "5775:15229",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;filter:blur(2px);font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-lg-lh,36px);left:149px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-lg,28px);top:150px;letter-spacing:-0.28px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "Collin C"
+      ]
+    },
+    {
+      "tag": "p",
+      "id": "5775:15230",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;filter:blur(2px);font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);left:159px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-sm,17px);top:192px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "FRC 8033"
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15231",
+      "name": "",
+      "style": "position:absolute;display:flex;height:852px;align-items:center;justify-content:center;left:0;top:0;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "name": "",
+          "style": "flex:none;rotate:180deg",
+          "children": [
+            {
+              "tag": "div",
+              "name": "AmbientWash",
+              "style": "filter:blur(2px);height:852px;overflow:clip;position:relative;width:393px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15231;131:1948",
+                  "name": "Wash",
+                  "style": "position:absolute;background-color:var(--color-wash-accent,#2b2534);inset:0;mask-mode:alpha;mask-composite:intersect;mask-clip:no-clip;mask-repeat:no-repeat;mask-size:100% 100%;mask-image:url(\"/design-assets/7fe23.svg\")",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "p",
+      "id": "5775:15232",
+      "name": "",
+      "style": "word-break:break-word;position:absolute;filter:blur(2px);font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);left:169px;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);top:222px;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+      "children": [
+        "Analyst"
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15233",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);filter:blur(2px);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15234",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;justify-content:space-between;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15235",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15235;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:15235;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/fdd76.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15236",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15237",
+                  "name": "lucide/square-pen",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/6a88c.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15239",
+      "name": "Avatar",
+      "style": "position:absolute;background-color:var(--mg-avatar,#353535);filter:blur(2px);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;left:147px;overflow:clip;border-radius:9999px;width:100px;height:100px;top:44px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "I5775:15239;49:65",
+          "name": "",
+          "style": "word-break:break-word;display:flex;flex:1 0 0;flex-direction:column;font-family:Roboto;font-weight:500;height:100%;justify-content:center;line-height:0;min-width:1px;position:relative;font-size:40px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;font-variation-settings:\"wdth\" 100",
+          "children": [
+            {
+              "tag": "p",
+              "name": "",
+              "style": "line-height:1",
+              "children": [
+                "CC"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15240",
+      "name": "",
+      "style": "position:absolute;filter:blur(2px);height:104px;left:24px;top:713px;width:341px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15241",
+          "name": "Button",
+          "style": "position:absolute;background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:var(--mg-size-control,44px);align-items:center;justify-content:center;left:0;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);right:0;border-radius:var(--mg-radius-control,8px);top:7px",
+          "children": [
+            {
+              "tag": "p",
+              "id": "I5775:15241;43:19",
+              "name": "",
+              "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Log out"
+              ]
+            }
+          ],
+          "control": "button",
+          "label": "Log out",
+          "variant": "primary"
+        },
+        {
+          "tag": "div",
+          "id": "5775:15242",
+          "name": "Button",
+          "style": "position:absolute;background-color:#a8302e;align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:var(--mg-size-control,44px);align-items:center;justify-content:center;left:0;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);right:0;border-radius:var(--mg-radius-control,8px);top:60px",
+          "children": [
+            {
+              "tag": "p",
+              "id": "I5775:15242;43:19",
+              "name": "",
+              "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:#e6e6e6;font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Delete my Account"
+              ]
+            }
+          ],
+          "control": "button",
+          "label": "Delete my Account",
+          "variant": "secondary"
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15243",
+      "name": "Button",
+      "style": "position:absolute;background-color:rgba(168,48,46,0.5);filter:blur(2px);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:var(--mg-size-control,44px);align-items:center;justify-content:center;left:24px;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);right:28px;border-radius:var(--mg-radius-control,8px);top:773px",
+      "children": [
+        {
+          "tag": "p",
+          "id": "I5775:15243;43:19",
+          "name": "",
+          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;font-size:var(--mg-text-label,15px);color:rgba(230,230,230,0.5);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+          "children": [
+            "Delete my Account"
+          ]
+        }
+      ],
+      "control": "button",
+      "label": "Delete my Account",
+      "variant": "secondary"
+    },
+    {
+      "tag": "div",
+      "id": "5775:15244",
+      "name": "Dialog",
+      "style": "position:absolute;background-color:var(--mg-overlay,#292929);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--space-3,12px);align-items:flex-start;left:16px;overflow:clip;padding:var(--space-6,24px);border-radius:var(--radius-xl,16px);box-shadow:0px 1px 2px 0px rgba(0,0,0,0.2),0px 8px 20px 0px rgba(0,0,0,0.3);top:320px;width:358px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+      "children": [
+        {
+          "tag": "p",
+          "id": "5775:15245",
+          "name": "",
+          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-md-lh,28px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-md,20px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+          "children": [
+            "Rename Collin C"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:15246",
+          "name": "Field",
+          "style": "border-width:1px;border-color:var(--mg-line-accent,#b59aff);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);box-shadow:0px 0px 0px 3px var(--mg-tint-accent-18,rgba(181,154,255,0.18));flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-accent,#b59aff);outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "name": "",
+              "style": "position:absolute;background-color:var(--mg-field,rgba(0,0,0,0.3));inset:0;pointer-events:none;border-radius:var(--mg-radius-control,8px)",
+              "children": []
+            },
+            {
+              "tag": "div",
+              "id": "5775:15247",
+              "name": "Value wrap",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;overflow:clip;position:relative",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "5775:15248",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Collin C"
+                  ],
+                  "control": "input",
+                  "label": "Collin C",
+                  "value": "Collin C",
+                  "inputType": "text"
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15249",
+                  "name": "Caret",
+                  "style": "--scene-ty:-50%;translate:var(--scene-tx,0) var(--scene-ty,0);position:absolute;background-color:var(--mg-line-accent,#b59aff);height:17px;left:-1px;top:50%;width:1px",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "name": "",
+              "style": "position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0px 0px 0px 1px var(--mg-line-accent,#b59aff)",
+              "children": []
+            }
+          ],
+          "label": "Collin C",
+          "value": "Collin C",
+          "inputType": "text"
+        },
+        {
+          "tag": "div",
+          "id": "5775:15250",
+          "name": "Actions",
+          "style": "align-content:stretch;display:flex;gap:var(--space-2,8px);align-items:center;justify-content:flex-end;overflow:clip;padding-top:12px;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15251",
+              "name": "Button",
+              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:15251;43:52",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Cancel"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Cancel",
+              "variant": "secondary"
+            },
+            {
+              "tag": "div",
+              "id": "5775:15252",
+              "name": "Button",
+              "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:15252;43:19",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Rename"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Rename",
+              "variant": "primary"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

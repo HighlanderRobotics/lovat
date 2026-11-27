@@ -1,0 +1,488 @@
+{
+  "tag": "div",
+  "id": "5775:14350",
+  "name": "View question (options) single edit option",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:14351",
+      "name": "",
+      "style": "position:absolute;filter:blur(2px);height:787px;left:0;top:65px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14352",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;right:0;top:0",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14353",
+              "name": "TabList",
+              "style": "align-content:stretch;display:flex;gap:var(--space-1,4px);align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14353;5708:5425",
+                  "name": "Tab",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14353;5708:5425;54:56",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Type"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "I5775:14353;5708:5426",
+                  "name": "Tab",
+                  "style": "background-color:var(--mg-selected,rgba(255,255,255,0.16));align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14353;5708:5426;54:72",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Options"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14354",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:10px;align-items:flex-start;min-height:1px;padding-top:20px;padding-bottom:20px;position:relative;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14355",
+                  "name": "TextField",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;gap:4px;align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14355;44:179",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Title"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "I5775:14355;44:176",
+                      "name": "Field",
+                      "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-default,#666);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5775:14355;44:177",
+                          "name": "",
+                          "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Have they broke so far?"
+                          ],
+                          "control": "input",
+                          "label": "Have they broke so far?",
+                          "value": "Have they broke so far?",
+                          "inputType": "text"
+                        }
+                      ],
+                      "label": "Have they broke so far?",
+                      "value": "Have they broke so far?",
+                      "inputType": "text"
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14356",
+                  "name": "Radio",
+                  "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:44px;align-items:center;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5733:8460",
+                      "name": "",
+                      "style": "height:24px;position:relative;flex-shrink:0;width:44px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/7a05c.svg"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5775:14358",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Required"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14359",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:73px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14360",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14361",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14362",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14363",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Yes"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:14365",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Parts fell off, disconnects, etc"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14366",
+                          "name": "lucide/pencil",
+                          "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/e1b60.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14368",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:53px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14369",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14370",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14371",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14372",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "No"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14374",
+                          "name": "lucide/pencil",
+                          "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/e1b60.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14376",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14377",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;opacity:0.4;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14377;43:40",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Save changes"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Save changes",
+                  "variant": "primary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14378",
+      "name": "Dialog",
+      "style": "position:absolute;background-color:var(--mg-overlay,#292929);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--space-3,12px);align-items:flex-start;left:16px;overflow:clip;padding:var(--space-6,24px);border-radius:var(--radius-xl,16px);top:318px;width:358px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+      "children": [
+        {
+          "tag": "p",
+          "id": "5775:14379",
+          "name": "",
+          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-md-lh,28px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-md,20px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+          "children": [
+            "Edit Option"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:14380",
+          "name": "Field",
+          "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-default,#666);outline-offset:-1px",
+          "children": [
+            {
+              "tag": "p",
+              "id": "5775:14381",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Yes"
+              ],
+              "control": "input",
+              "label": "Yes",
+              "value": "Yes",
+              "inputType": "text"
+            }
+          ],
+          "label": "Yes",
+          "value": "Yes",
+          "inputType": "text"
+        },
+        {
+          "tag": "div",
+          "id": "5775:14382",
+          "name": "Field",
+          "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-default,#666);outline-offset:-1px",
+          "children": [
+            {
+              "tag": "p",
+              "id": "5775:14383",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Placeholder"
+              ],
+              "control": "input",
+              "label": "Placeholder",
+              "value": "",
+              "inputType": "text"
+            }
+          ],
+          "label": "Placeholder",
+          "value": "Placeholder",
+          "inputType": "text"
+        },
+        {
+          "tag": "div",
+          "id": "5775:14384",
+          "name": "Actions",
+          "style": "align-content:stretch;display:flex;gap:var(--space-2,8px);align-items:center;justify-content:flex-end;overflow:clip;padding-top:12px;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14385",
+              "name": "Button",
+              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:14385;43:52",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Cancel"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Cancel",
+              "variant": "secondary"
+            },
+            {
+              "tag": "div",
+              "id": "5775:14386",
+              "name": "Button",
+              "style": "background-color:#b59aff;align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:14386;43:118",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:#171717;font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Save"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Save",
+              "variant": "secondary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14387",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);filter:blur(2px);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14388",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14389",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14389;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:14389;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:14390",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "DCMP Pit Scouting - Questions"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14391",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14392",
+                  "name": "lucide/eye",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/87068.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

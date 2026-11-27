@@ -1,5 +1,12 @@
 <script lang="ts">
 	import '../app.css';
+	import { MagnoliaUIRoot } from '@highlanderrobotics/magnolia-svelte/v2';
+	import '@fontsource/roboto/400.css';
+	import '@fontsource/roboto/500.css';
+	import '@fontsource/heebo/400.css';
+	import '@fontsource/heebo/500.css';
+	import DesignApp from '#lib/design/DesignApp.svelte';
+	import '#lib/magnolia.css';
 	import { page } from '$app/state';
 	import { initializeApi } from '#lib/api/client.ts';
 	import NavDrawer from '#lib/components/NavDrawer.svelte';
@@ -10,20 +17,35 @@
 	let { children } = $props();
 
 	// Runs once before any page loads data, like the Flutter InitialLoaderPage.
-	initializeApi();
-	ensureDefaultPicklists();
-	sanitizeStoredFlags();
+	if (import.meta.env.VITE_DASHBOARD_MOCK !== 'true') {
+		initializeApi();
+		ensureDefaultPicklists();
+		sanitizeStoredFlags();
+	}
 
-	const bare = $derived(['/', '/onboarding', '/set-url'].includes(page.url.pathname));
+	const bare = $derived(
+		['/', '/onboarding', '/set-url'].includes(page.url.pathname),
+	);
+	const designMode = $derived(
+		import.meta.env.VITE_DASHBOARD_MOCK === 'true' ||
+			page.url.pathname.startsWith('/design') ||
+			page.url.pathname.startsWith('/forms'),
+	);
 </script>
 
-{#if bare}
-	{@render children()}
-{:else}
-	<NavDrawer />
-	<main class="shell">{@render children()}</main>
-{/if}
-<ToastHost />
+<MagnoliaUIRoot theme="dark">
+	{#if designMode}
+		<DesignApp />
+	{:else}
+		{#if bare}
+			{@render children()}
+		{:else}
+			<NavDrawer />
+			<main class="shell">{@render children()}</main>
+		{/if}
+		<ToastHost />
+	{/if}
+</MagnoliaUIRoot>
 
 <style>
 	.shell {

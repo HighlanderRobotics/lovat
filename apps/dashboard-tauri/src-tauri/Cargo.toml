@@ -40,3 +40,8 @@ objc2 = "0.6"
 block2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSError", "NSString", "NSURL"] }
 objc2-authentication-services = { version = "0.3", default-features = false, features = ["std", "ASWebAuthenticationSession", "ASFoundation", "block2"] }
+
+# Keep local development and simulator builds within typical laptop disk limits.
+[profile.dev]
+debug = 0
+incremental = false

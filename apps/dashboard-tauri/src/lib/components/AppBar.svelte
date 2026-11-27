@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { TopBar } from '@highlanderrobotics/magnolia-svelte/v2';
 	import { goBack, ui } from '#lib/ui.svelte.ts';
-	import Icon from './Icon.svelte';
 	import LinearProgress from './LinearProgress.svelte';
 
 	let {
@@ -10,7 +10,7 @@
 		backFallback = '/home',
 		loading = false,
 		actions,
-		bottom
+		bottom,
 	}: {
 		title: string;
 		/** Show a back arrow instead of the navigation menu button. */
@@ -27,15 +27,15 @@
 </script>
 
 <header class="app-bar">
-	<div class="bar">
-		{#if back}
-			<button class="icon-btn" aria-label="Back" onclick={() => goBack(backFallback)}><Icon name="arrow_back" /></button>
-		{:else}
-			<button class="icon-btn menu" aria-label="Open navigation" onclick={() => (ui.drawerOpen = true)}><Icon name="menu" /></button>
-		{/if}
-		<h1 class="title">{title}</h1>
-		<div class="actions">{@render actions?.()}</div>
-	</div>
+	<TopBar
+		{title}
+		onback={back ? () => goBack(backFallback) : () => (ui.drawerOpen = true)}
+		backLabel={back ? 'Back' : 'Open navigation'}
+	>
+		{#snippet action()}<div class="actions">
+				{@render actions?.()}
+			</div>{/snippet}
+	</TopBar>
 	{@render bottom?.()}
 	<LinearProgress active={loading} />
 </header>
@@ -48,32 +48,9 @@
 		background: var(--surface);
 		padding-top: var(--safe-top);
 	}
-	.bar {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		height: 64px;
-		padding: 0 8px;
-	}
-	.title {
-		flex: 1;
-		min-width: 0;
-		font-size: 22px;
-		font-weight: 400;
-		margin-left: 8px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
 	.actions {
 		display: flex;
 		align-items: center;
 		gap: 4px;
-	}
-	@media (min-width: 1100px) {
-		.menu {
-			visibility: hidden;
-			width: 0;
-		}
 	}
 </style>

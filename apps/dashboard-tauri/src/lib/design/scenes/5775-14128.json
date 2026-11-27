@@ -1,0 +1,440 @@
+{
+  "tag": "div",
+  "id": "5775:14128",
+  "name": "Find template view",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:14129",
+      "name": "",
+      "style": "position:absolute;height:787px;left:0;top:65px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14130",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;right:0;top:0",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14131",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:10px;align-items:flex-start;min-height:1px;padding-top:20px;padding-bottom:20px;position:relative;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14132",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:73px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14133",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14134",
+                          "name": "lucide/numbers",
+                          "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/525a5.svg"
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14136",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14137",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14138",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Rate their electrical reliability"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:14140",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Rating 1-10"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14141",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:73px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14142",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14143",
+                          "name": "lucide/camera",
+                          "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/9d7f9.svg"
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14145",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14146",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14147",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Photo of their electrical"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:14149",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Photo"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14150",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14151",
+                      "name": "lucide/circle-check",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/1e9b7.svg"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14153",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14154",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:14155",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Have they broken so far?"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14157",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Single select"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14158",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14159",
+                      "name": "lucide/square-check",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/f2888.svg"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14161",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14162",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:14163",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "What parts of their robot have broken?"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14165",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Multiple Select"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14166",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14167",
+                      "name": "lucide/square-pen",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/d943f.svg"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14169",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14170",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:14171",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Notes"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14173",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-choice-desc,13px);width:100%;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Short answer text"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14174",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14175",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14175;43:19",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Use template"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Use template",
+                  "variant": "primary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14176",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14177",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14178",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14178;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:14178;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:14179",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Pit Scouting - By 8033"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14180",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14181",
+                  "name": "lucide/settings",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/f1391.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

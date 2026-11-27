@@ -1,0 +1,618 @@
+{
+  "tag": "div",
+  "id": "5775:17404",
+  "name": "Team Rankings",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:17405",
+      "name": "Body",
+      "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;gap:10px;height:806px;align-items:flex-start;left:0;padding-bottom:26px;padding-top:16px;padding-left:26px;padding-right:26px;top:44px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:17406",
+          "name": "SegmentedControl",
+          "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;gap:var(--space-half,2px);height:36px;align-items:center;overflow:clip;padding:3px;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:341px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "I5775:17406;5563:3054",
+              "name": "Segment",
+              "style": "align-content:stretch;display:flex;height:100%;align-items:center;justify-content:center;min-width:44px;padding-left:var(--mg-pad-segment-x,12px);padding-right:var(--mg-pad-segment-x,12px);position:relative;border-radius:var(--mg-radius-control-inner,6px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:17406;5563:3054;47:547",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:22px;position:relative;flex-shrink:0;font-size:15px;color:var(--mg-fg-secondary,#b7b7b7);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Official Rank"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "I5775:17406;5563:3055",
+              "name": "Segment",
+              "style": "align-content:stretch;display:flex;height:100%;align-items:center;justify-content:center;min-width:44px;padding-left:var(--mg-pad-segment-x,12px);padding-right:var(--mg-pad-segment-x,12px);position:relative;border-radius:var(--mg-radius-control-inner,6px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:17406;5563:3055;47:547",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:20px;position:relative;flex-shrink:0;font-size:15px;color:var(--mg-fg-secondary,#b7b7b7);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Average Score"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "I5775:17406;5565:3265",
+              "name": "Segment",
+              "style": "align-content:stretch;filter:drop-shadow(0px 1px 0.5px rgba(0,0,0,0.4));display:flex;flex:1 0 0;height:100%;align-items:center;justify-content:center;min-width:44px;padding-left:var(--mg-pad-segment-x,12px);padding-right:var(--mg-pad-segment-x,12px);position:relative;border-radius:var(--mg-radius-control-inner,6px)",
+              "children": [
+                {
+                  "tag": "div",
+                  "name": "",
+                  "style": "position:absolute;background-color:var(--mg-control-selected,#373737);inset:0;pointer-events:none;border-radius:var(--mg-radius-control-inner,6px)",
+                  "children": []
+                },
+                {
+                  "tag": "p",
+                  "id": "I5775:17406;5565:3265;47:563",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Record"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "name": "",
+                  "style": "position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0px 1px 0px 0px rgba(255,255,255,0.07)",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:17407",
+          "name": "",
+          "style": "border-width:1px;border-color:#404040;border-style:solid;align-content:stretch;display:flex;align-items:center;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;background-image:linear-gradient(90deg, rgba(2, 1, 255, 0.25) 0%, rgba(2, 1, 255, 0) 100%), linear-gradient(90deg, rgb(41, 41, 41) 0%, rgb(41, 41, 41) 100%);border-width:0;outline:1px solid #404040;outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:17408",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:17409",
+                  "name": "",
+                  "style": "background-color:#0201ff;align-content:stretch;display:flex;align-items:center;justify-content:center;padding:7px;position:relative;border-radius:4px;align-self:stretch;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17410",
+                      "name": "image 1",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;inset:0;max-width:none;object-fit:cover;pointer-events:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/c77fc.png"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:17411",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17412",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:2px;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:17413",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;gap:5px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:17414",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                              "children": [
+                                "114 \u2043 Eaglestrike"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:17415",
+                              "name": "lucide/chevron-right",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/a620f.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:17417",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Heebo;font-weight:400;line-height:normal;position:relative;flex-shrink:0;color:#e0e0e0;font-size:10px;white-space:nowrap",
+                          "children": [
+                            "#1 / 31 RP / 6 QM"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:17418",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;height:39px;align-items:flex-end;justify-content:center;overflow:clip;padding-left:10px;padding-right:10px;position:relative;border-radius:4px;flex-shrink:0;width:73px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:17419",
+                          "name": "",
+                          "style": "text-box-edge:cap alphabetic;text-box-trim:trim-both;word-break:break-word;font-family:Heebo;font-weight:500;line-height:32px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:24px;text-align:center;white-space:nowrap",
+                          "children": [
+                            "5-1-0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:17420",
+          "name": "",
+          "style": "border-width:1px;border-color:#404040;border-style:solid;align-content:stretch;display:flex;align-items:center;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;background-image:linear-gradient(90deg, rgba(255, 224, 187, 0.25) 0%, rgba(255, 224, 187, 0) 100%), linear-gradient(90deg, rgb(41, 41, 41) 0%, rgb(41, 41, 41) 100%);border-width:0;outline:1px solid #404040;outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:17421",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:17422",
+                  "name": "",
+                  "style": "background-color:#ffe0bb;align-content:stretch;display:flex;align-items:center;justify-content:center;padding:7px;position:relative;border-radius:4px;align-self:stretch;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17423",
+                      "name": "image 1",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;inset:0;max-width:none;object-fit:cover;pointer-events:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/1fb01.png"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:17424",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;justify-content:space-between;min-width:1px;position:relative;align-self:stretch",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17425",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:2px;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:17426",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;gap:5px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:17427",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                              "children": [
+                                "5940 - BREAD"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:17428",
+                              "name": "lucide/chevron-right",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/a620f.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:17430",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Heebo;font-weight:400;line-height:normal;position:relative;flex-shrink:0;color:#e0e0e0;font-size:10px;white-space:nowrap",
+                          "children": [
+                            "#2 / 30 RP / 6 QM"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:17431",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;height:39px;align-items:flex-end;justify-content:center;overflow:clip;padding-left:10px;padding-right:10px;position:relative;border-radius:4px;flex-shrink:0;width:70px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:17432",
+                          "name": "",
+                          "style": "text-box-edge:cap alphabetic;text-box-trim:trim-both;word-break:break-word;font-family:Heebo;font-weight:500;line-height:32px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:24px;text-align:center;white-space:nowrap",
+                          "children": [
+                            "5-1-0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:17433",
+          "name": "",
+          "style": "border-width:1px;border-color:#404040;border-style:solid;align-content:stretch;display:flex;align-items:center;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;background-image:linear-gradient(90deg, rgba(53, 8, 104, 0.25) 0%, rgba(53, 8, 104, 0) 100%), linear-gradient(90deg, rgb(41, 41, 41) 0%, rgb(41, 41, 41) 100%);border-width:0;outline:1px solid #404040;outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:17434",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:17435",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;padding:7px;position:relative;border-radius:4px;align-self:stretch;flex-shrink:0;background-image:linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%), linear-gradient(90deg, rgb(53, 8, 104) 0%, rgb(53, 8, 104) 100%)",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17436",
+                      "name": "image 1",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;inset:0;max-width:none;object-fit:cover;pointer-events:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/3249a.png"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:17437",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17438",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:2px;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:17439",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;gap:5px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:17440",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                              "children": [
+                                "8033 - Highlander Robotics"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:17441",
+                              "name": "lucide/chevron-right",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/a620f.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:17443",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Heebo;font-weight:400;line-height:normal;position:relative;flex-shrink:0;color:#e0e0e0;font-size:10px;white-space:nowrap",
+                          "children": [
+                            "#3 / 27 RP / 6 QM"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:17444",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;height:39px;align-items:flex-end;justify-content:center;overflow:clip;padding-left:10px;padding-right:10px;position:relative;border-radius:4px;flex-shrink:0;width:70px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:17445",
+                          "name": "",
+                          "style": "text-box-edge:cap alphabetic;text-box-trim:trim-both;word-break:break-word;font-family:Heebo;font-weight:500;line-height:32px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:24px;text-align:center;white-space:nowrap",
+                          "children": [
+                            "4-2-0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "5775:17446",
+          "name": "",
+          "style": "border-width:1px;border-color:#404040;border-style:solid;align-content:stretch;display:flex;align-items:center;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;background-image:linear-gradient(90deg, rgba(220, 171, 38, 0.25) 0%, rgba(220, 171, 38, 0) 100%), linear-gradient(90deg, rgb(41, 41, 41) 0%, rgb(41, 41, 41) 100%);border-width:0;outline:1px solid #404040;outline-offset:-1px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:17447",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:17448",
+                  "name": "",
+                  "style": "background-color:#dcab26;align-content:stretch;display:flex;align-items:center;justify-content:center;padding:7px;position:relative;border-radius:4px;align-self:stretch;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17449",
+                      "name": "image 1",
+                      "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;inset:0;max-width:none;object-fit:cover;pointer-events:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/a4eeb.png"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:17450",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:17451",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:2px;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:17452",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;gap:5px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:17453",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;overflow:hidden;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;text-overflow:ellipsis;width:193px;white-space:nowrap",
+                              "children": [
+                                "7426 - PAIR OF DICE ROBOTICS"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:17454",
+                              "name": "lucide/chevron-right",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/a620f.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:17456",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Heebo;font-weight:400;line-height:normal;position:relative;flex-shrink:0;color:#e0e0e0;font-size:10px;white-space:nowrap",
+                          "children": [
+                            "#4 / 26 RP / 6 QM"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:17457",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;height:39px;align-items:flex-end;justify-content:center;overflow:clip;padding-left:10px;padding-right:10px;position:relative;border-radius:4px;flex-shrink:0;width:70px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:17458",
+                          "name": "",
+                          "style": "text-box-edge:cap alphabetic;text-box-trim:trim-both;word-break:break-word;font-family:Heebo;font-weight:500;line-height:32px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:24px;text-align:center;white-space:nowrap",
+                          "children": [
+                            "4-2-0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:17459",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:17460",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:17461",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:17461;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:17461;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:17462",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Teams"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:17463",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:17464",
+                  "name": "lucide/search",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/cc651.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

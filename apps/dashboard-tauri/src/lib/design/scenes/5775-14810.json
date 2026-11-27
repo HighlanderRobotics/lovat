@@ -1,0 +1,587 @@
+{
+  "tag": "div",
+  "id": "5775:14810",
+  "name": "Choose Tournament At",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:14811",
+      "name": "Settings",
+      "style": "position:absolute;display:contents;left:0;top:65px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14812",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;top:65px;width:393px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14813",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:5px;align-items:flex-start;line-height:0;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14814",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14815",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14816",
+                          "name": "Box",
+                          "style": "position:relative;flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/2e4a4.svg"
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14818",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14819",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14820",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14821",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14822",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14823",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14824",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14825",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14826",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14827",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14828",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14829",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14830",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14831",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14832",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14833",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14834",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14835",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14836",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14837",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14838",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14839",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14840",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14841",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14842",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14843",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14844",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14845",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14846",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14847",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14848",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14849",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14850",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14851",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14852",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14853",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14854",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14855",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14856",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14857",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14858",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14859",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14860",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14861",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14862",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14863",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14864",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14865",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14866",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14867",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14868",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14869",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-full,999px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14870",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14871",
+              "name": "Button",
+              "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:14871;43:19",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Apply changes"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Apply changes",
+              "variant": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14872",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14873",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14874",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14874;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:14874;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:14875",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "At Tournament"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14876",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14877",
+                  "name": "lucide/search",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/cc651.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

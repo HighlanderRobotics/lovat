@@ -17,17 +17,54 @@
 	}
 
 	const utilities: Destination[] = $derived([
-		{ label: 'Match Schedule', href: '/match_schedule', icon: 'today', show: !!tournament },
+		{
+			label: 'Match Schedule',
+			href: '/match_schedule',
+			icon: 'today',
+			show: !!tournament,
+		},
 		{ label: 'Home', href: '/home', icon: 'home', show: true },
-		{ label: 'Scouters', href: '/scouters', icon: 'supervised_user_circle', show: isLead },
-		{ label: 'Scan QR Codes', href: '/scan_qr_codes', icon: 'qr_code_scanner', show: !!tournament }
+		{ label: 'Forms', href: '/forms', icon: 'assignment', show: true },
+		{
+			label: 'Design screens',
+			href: '/design',
+			icon: 'grid_view',
+			show: import.meta.env.DEV,
+		},
+		{
+			label: 'Scouters',
+			href: '/scouters',
+			icon: 'supervised_user_circle',
+			show: isLead,
+		},
+		{
+			label: 'Scan QR Codes',
+			href: '/scan_qr_codes',
+			icon: 'qr_code_scanner',
+			show: !!tournament,
+		},
 	]);
 
 	const analysis: Destination[] = $derived([
 		{ label: 'Team Lookup', href: '/team_lookup', icon: 'search', show: true },
-		{ label: 'Picklist', href: '/picklists', icon: 'format_list_numbered', show: !!tournament },
-		{ label: 'Match Predictor', href: '/match_predictor_opener', icon: 'psychology', show: true },
-		{ label: 'My Alliance', href: '/my_alliance', icon: 'group_work', show: true }
+		{
+			label: 'Picklist',
+			href: '/picklists',
+			icon: 'format_list_numbered',
+			show: !!tournament,
+		},
+		{
+			label: 'Match Predictor',
+			href: '/match_predictor_opener',
+			icon: 'psychology',
+			show: true,
+		},
+		{
+			label: 'My Alliance',
+			href: '/my_alliance',
+			icon: 'group_work',
+			show: true,
+		},
 	]);
 
 	$effect(() => {
@@ -42,25 +79,46 @@
 
 {#snippet destination(d: Destination)}
 	{@const selected = page.url.pathname === d.href}
-	<a class="destination" class:selected href={d.href} onclick={close} aria-current={selected ? 'page' : undefined}>
+	<a
+		class="destination"
+		class:selected
+		href={d.href}
+		onclick={close}
+		aria-current={selected ? 'page' : undefined}
+	>
 		<Icon name={d.icon} fill={selected} />
 		<span>{d.label}</span>
 	</a>
 {/snippet}
 
-<div class="scrim" class:open={ui.drawerOpen} onclick={close} aria-hidden="true"></div>
+<div
+	class="scrim"
+	class:open={ui.drawerOpen}
+	onclick={close}
+	aria-hidden="true"
+></div>
 <nav class="drawer" class:open={ui.drawerOpen} aria-label="Main">
 	<div class="header">
 		<span class="section">Lovat Dashboard</span>
-		<a class="icon-btn" href="/settings" onclick={close} aria-label="Settings" title="Settings"><Icon name="settings" /></a>
+		<a
+			class="icon-btn"
+			href="/settings"
+			onclick={close}
+			aria-label="Settings"
+			title="Settings"><Icon name="settings" /></a
+		>
 	</div>
 	<hr class="divider" />
 	<div class="section">{tournament?.name ?? 'No tournament selected'}</div>
 	<hr class="divider" />
 	{#if tournament || isLead}<div class="section">Data &amp; Utilities</div>{/if}
-	{#each utilities.filter((d) => d.show) as d (d.href)}{@render destination(d)}{/each}
+	{#each utilities.filter((d) => d.show) as d (d.href)}{@render destination(
+			d,
+		)}{/each}
 	<div class="section">Analysis &amp; Strategy</div>
-	{#each analysis.filter((d) => d.show) as d (d.href)}{@render destination(d)}{/each}
+	{#each analysis.filter((d) => d.show) as d (d.href)}{@render destination(
+			d,
+		)}{/each}
 </nav>
 
 <style>

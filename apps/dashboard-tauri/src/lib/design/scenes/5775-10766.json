@@ -1,0 +1,1331 @@
+{
+  "tag": "div",
+  "id": "5775:10766",
+  "name": "View form (Assignments) team",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:10767",
+      "name": "",
+      "style": "position:absolute;height:787px;left:0;top:65px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:10768",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;right:0;top:0",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:10769",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-bottom:-35px;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:10770",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;padding-left:16px;padding-right:16px;position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:343px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:10773",
+                      "name": "Action",
+                      "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:10773;124:1704",
+                          "name": "Icon slot",
+                          "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:10773;43:192",
+                              "name": "Icon",
+                              "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/6a11d.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:10774",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;overflow:clip;position:relative;flex-shrink:0",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10775",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:10776",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-choice-title,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Add a shift"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:10778",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:343px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:10781",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10782",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:10783",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Shift 1"
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:10784",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-choice-desc,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Q1-Q10"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10785",
+                              "name": "lucide/pencil",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/5cc93.svg"
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10787",
+                              "name": "lucide/copy",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/f7bfb.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:10790",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;gap:11px;align-items:flex-start;position:relative;flex-shrink:0",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10791",
+                          "name": "",
+                          "style": "background-color:#292929;border-width:1px;border-color:#793f3e;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:150px;border-width:0;outline:1px solid #793f3e;outline-offset:-1px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10792",
+                              "name": "",
+                              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10793",
+                                  "name": "Avatar",
+                                  "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                  "children": [
+                                    {
+                                      "tag": "p",
+                                      "id": "I5775:10793;49:62",
+                                      "name": "",
+                                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                      "children": [
+                                        "CC"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10794",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10795",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10796",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                          "children": [
+                                            {
+                                              "tag": "p",
+                                              "id": "5775:10797",
+                                              "name": "",
+                                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                              "children": [
+                                                "Collin C"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:10798",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:150px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10799",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10800",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10801",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10801;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10802",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10803",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10804",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10805",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10806",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10807",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10808",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10808;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10809",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10810",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10811",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10812",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:10813",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:343px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:10816",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10817",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:10818",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Shift 2"
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:10819",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-choice-desc,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Q11-Q20"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10820",
+                              "name": "lucide/pencil",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/5cc93.svg"
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10822",
+                              "name": "lucide/copy",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/f7bfb.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:10825",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;gap:11px;align-items:flex-start;position:relative;flex-shrink:0",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10826",
+                          "name": "",
+                          "style": "background-color:#292929;border-width:1px;border-color:#793f3e;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:150px;border-width:0;outline:1px solid #793f3e;outline-offset:-1px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10827",
+                              "name": "",
+                              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10828",
+                                  "name": "Avatar",
+                                  "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                  "children": [
+                                    {
+                                      "tag": "p",
+                                      "id": "I5775:10828;49:62",
+                                      "name": "",
+                                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                      "children": [
+                                        "CC"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10829",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10830",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10831",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                          "children": [
+                                            {
+                                              "tag": "p",
+                                              "id": "5775:10832",
+                                              "name": "",
+                                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                              "children": [
+                                                "Collin C"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:10833",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:150px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10834",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10835",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10836",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10836;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10837",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10838",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10839",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10840",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10841",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10842",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10843",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10843;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10844",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10845",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10846",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10847",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:10848",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:343px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:10851",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10852",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:10853",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Shift 3"
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:10854",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-choice-desc,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Q21-Q30"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10855",
+                              "name": "lucide/pencil",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/5cc93.svg"
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10857",
+                              "name": "lucide/copy",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/f7bfb.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:10860",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;gap:11px;align-items:flex-start;position:relative;flex-shrink:0",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10861",
+                          "name": "",
+                          "style": "background-color:#292929;border-width:1px;border-color:#793f3e;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:150px;border-width:0;outline:1px solid #793f3e;outline-offset:-1px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10862",
+                              "name": "",
+                              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10863",
+                                  "name": "Avatar",
+                                  "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                  "children": [
+                                    {
+                                      "tag": "p",
+                                      "id": "I5775:10863;49:62",
+                                      "name": "",
+                                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                      "children": [
+                                        "CC"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10864",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10865",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10866",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                          "children": [
+                                            {
+                                              "tag": "p",
+                                              "id": "5775:10867",
+                                              "name": "",
+                                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                              "children": [
+                                                "Collin C"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:10868",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:150px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10869",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10870",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10871",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10871;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10872",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10873",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10874",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10875",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10876",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10877",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10878",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10878;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10879",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10880",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10881",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10882",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:10883",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:343px;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:10886",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10887",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:10888",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Shift 4"
+                              ]
+                            },
+                            {
+                              "tag": "p",
+                              "id": "5775:10889",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-choice-desc-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-choice-desc,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Q31-Q40"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10890",
+                              "name": "lucide/pencil",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/5cc93.svg"
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10892",
+                              "name": "lucide/copy",
+                              "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/f7bfb.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:10895",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;gap:11px;align-items:flex-start;position:relative;flex-shrink:0",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:10896",
+                          "name": "",
+                          "style": "background-color:#292929;border-width:1px;border-color:#793f3e;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:150px;border-width:0;outline:1px solid #793f3e;outline-offset:-1px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10897",
+                              "name": "",
+                              "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10898",
+                                  "name": "Avatar",
+                                  "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                  "children": [
+                                    {
+                                      "tag": "p",
+                                      "id": "I5775:10898;49:62",
+                                      "name": "",
+                                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                      "children": [
+                                        "CC"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10899",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10900",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10901",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                          "children": [
+                                            {
+                                              "tag": "p",
+                                              "id": "5775:10902",
+                                              "name": "",
+                                              "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                              "children": [
+                                                "Collin C"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:10903",
+                          "name": "",
+                          "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:150px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:10904",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10905",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10906",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10906;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10907",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10908",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10909",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10910",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:10911",
+                              "name": "",
+                              "style": "background-color:#292929;border-width:1px;border-color:#364077;border-style:solid;align-content:stretch;display:flex;align-items:flex-start;justify-content:flex-end;overflow:clip;padding:7px;position:relative;border-radius:7px;flex-shrink:0;width:100%;border-width:0;outline:1px solid #364077;outline-offset:-1px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:10912",
+                                  "name": "",
+                                  "style": "align-content:stretch;display:flex;flex:1 0 0;gap:7px;align-items:flex-start;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10913",
+                                      "name": "Avatar",
+                                      "style": "background-color:var(--mg-avatar,#353535);border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                                      "children": [
+                                        {
+                                          "tag": "p",
+                                          "id": "I5775:10913;49:62",
+                                          "name": "",
+                                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:1;position:relative;flex-shrink:0;font-size:12px;color:var(--mg-fg-primary,#e6e6e6);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                          "children": [
+                                            "JS"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "tag": "div",
+                                      "id": "5775:10914",
+                                      "name": "",
+                                      "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;position:relative;align-self:stretch",
+                                      "children": [
+                                        {
+                                          "tag": "div",
+                                          "id": "5775:10915",
+                                          "name": "",
+                                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:center;min-width:1px;position:relative",
+                                          "children": [
+                                            {
+                                              "tag": "div",
+                                              "id": "5775:10916",
+                                              "name": "",
+                                              "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:100%",
+                                              "children": [
+                                                {
+                                                  "tag": "p",
+                                                  "id": "5775:10917",
+                                                  "name": "",
+                                                  "style": "word-break:break-word;font-family:Heebo;font-weight:500;line-height:18px;position:relative;flex-shrink:0;color:#e0e0e0;font-size:16px;white-space:nowrap",
+                                                  "children": [
+                                                    "Jack S"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:10918",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:10919",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:10919;43:19",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Save assignments"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Save assignments",
+                  "variant": "primary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:10920",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:10921",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:10922",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:10922;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:10922;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:10923",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Manage assignments"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:10924",
+              "name": "Action",
+              "style": "position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

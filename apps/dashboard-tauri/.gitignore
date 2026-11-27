@@ -6,3 +6,8 @@ node_modules
 .env
 .env.*
 !.env.example
+
+.design-reference/
+/artifacts/
+/test-results/
+/playwright-report/
