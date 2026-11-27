@@ -151,3 +151,16 @@ body { touch-action:pan-x pan-y; }
 .design-choice-row input:not(:checked) + .mg2-choice-box {
   border:1px solid var(--mg-v2-color-fg-disabled,#7c7c7c);
 }
+
+/* Keep native control hover/focus paint within its intended hit target. */
+.design-choice-row:not(.compact):hover,
+.design-choice-row:not(.compact):has(input:focus-visible) { background-color:#353535 !important; }
+.design-choice-row:not(.compact) .mg2-choice { background:transparent !important; }
+.design-choice-row.compact { width:20px !important;height:20px !important;min-height:20px; }
+.design-choice-row.compact .mg2-choice-field,
+.design-choice-row.compact .mg2-choice { width:20px;min-height:20px;height:20px;padding:0;border-radius:4px; }
+.design-choice-row.compact .mg2-choice input { inset-inline-start:0; }
+.design-frame .design-field-input input:not(:placeholder-shown) { color:#fff !important;-webkit-text-fill-color:#fff; }
+.design-frame .design-field-input input::placeholder { -webkit-text-fill-color:#9a9a9a; }
+.design-viewport:not(.reference-mode) [data-toast] { animation:notice-fade 200ms ease-in 1300ms forwards; }
+@keyframes notice-fade { to {opacity:0;transform:translateY(4px);} }

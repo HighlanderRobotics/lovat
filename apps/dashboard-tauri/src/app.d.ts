@@ -9,7 +9,7 @@ declare global {
 		readonly LOVAT_SANDBOX_AUTH0_WEB_CLIENT_ID?: string;
 		readonly LOVAT_SANDBOX_AUTH0_AUDIENCE?: string;
 	}
-	namespace App {}
+	namespace App { interface PageState { designHistory?: string[]; } }
 }
 
 export {};

@@ -25,7 +25,7 @@
 	} = $props();
 	const runtime=getContext<DesignRuntime>(DESIGN_RUNTIME);
 	let expired=$state(false);
-	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,3000);return ()=>clearTimeout(timer);}});
+	onMount(()=>{if(typeof node!=='string' && node.name==='Toast' && !reference){const timer=setTimeout(()=>expired=true,1500);return ()=>clearTimeout(timer);}});
 	const hidden=$derived(typeof node!=='string' && node.searchable && runtime.values[`search:${node.searchScope}`] && !textOf(node).toLowerCase().includes(runtime.values[`search:${node.searchScope}`].toLowerCase()));
 	const anchor = $derived(typeof node === 'string' ? undefined : layout[node.id ?? '']);
 	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter)+(hidden?';display:none':'')+(typeof node!=='string' && node.typeSave && runtime.typeDirty?';opacity:1':''));
@@ -68,7 +68,7 @@
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
 {:else if node.choice && !reference}
-	<div style={style} class="design-choice-row" class:compact={!textOf(node)} onclick={(event)=>event.stopPropagation()} onkeydown={(event)=>event.stopPropagation()} role="presentation" data-design-name={node.name} data-figma-node={node.id}>
+	<div style={style} class="design-choice-row" class:compact={!textOf(node)} data-choice-kind={node.choice.kind} onclick={(event)=>event.stopPropagation()} onkeydown={(event)=>event.stopPropagation()} role="presentation" data-design-name={node.name} data-figma-node={node.id}>
 		{#if node.choice.kind==='checkbox'}
 			<Checkbox label={node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
 		{:else if node.choice.kind==='radio'}
@@ -120,12 +120,12 @@
 	/>
 {:else}
 	{@const active =
-		interactiveNames.test(node.name) ||
+		!node.passive && (!!node.step || !!node.backAction || interactiveNames.test(node.name) ||
 		/^lucide\//.test(node.name) ||
 		node.name === 'Icon' ||
 		node.name === 'Action' ||
 		node.name.startsWith('Qualification ') ||
-		['Lovat', 'Teams', 'Matches'].includes(textOf(node))}
+		['Lovat', 'Teams', 'Matches'].includes(textOf(node)))}
 	<svelte:element
 		this={node.tag}
 		style={style +
@@ -138,6 +138,7 @@
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		data-design-name={node.name}
+		data-stepper={node.stepperKey}
 		data-toast={node.name==='Toast' || undefined}
 		data-mock-selected={selected || undefined}
 		role={node.typeValue ? 'radio' : node.choiceGroup ? 'radio' : active ? 'button' : undefined}
@@ -147,7 +148,7 @@
 				(node.choiceValue ?? node.id)
 			: undefined}
 		aria-label={active
-			? textOf(node) || node.name.replace('lucide/', '')
+			? node.actionLabel || (node.backAction?'Back':textOf(node)) || node.name.replace('lucide/', '')
 			: undefined}
 		onclick={active
 			? (event: MouseEvent) => click(event, node as DesignNode)
@@ -172,6 +173,6 @@
 				}
 			: undefined}
 	>
-		{#if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
+		{#if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
 	</svelte:element>
 {/if}

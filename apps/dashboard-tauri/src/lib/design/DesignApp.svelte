@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
+	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount, untrack, tick, setContext } from 'svelte';
 	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte/v2';
 	import manifest from './manifest.json';
@@ -84,8 +84,8 @@
 	);
 
 	let navigation = 0;
-	runtime.onSelectionChange=(scope)=>{if(scope==='api-keys'){const count=runtime.count(scope);void open(count===0?'5775:15322':count===1?'5775:15503':'5775:15604');}};
-	async function open(target: string) {
+	runtime.onSelectionChange=(scope)=>{if(scope==='api-keys'){const count=runtime.count(scope);void open(count===0?'5775:15322':count===1?'5775:15503':'5775:15604',false);}};
+	async function open(target: string, remember=true) {
 		if(target===id && !catalog)return;
 		const request=++navigation;
 		if(target!=='catalog')await load(target);
@@ -93,10 +93,14 @@
 		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
 		if(optionType)runtime.questionType=optionType;
 		const url=(target==='catalog'?'/design':`/design/${target.replace(':','-')}`)+(reference?'?reference=1':'');
-		await goto(url);
+		await goto(url,{replace:!remember,state:{designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[])}});
 		await tick();
 	}
+	beforeNavigate(()=>{if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}});
+	afterNavigate(()=>{void tick().then(()=>requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;}));});
 	function activate(node: DesignNode) {
+		if(node.backAction){if(page.state.designHistory?.length)history.back();else {const target=destination(id,{...node,name:'lucide/arrow-left'});if(target)void open(target,false);}return true;}
+		if(node.step){const next=(runtime.numbers[node.step.key]??0)+node.step.delta;runtime.numbers[node.step.key]=node.step.key==='step:5775:14246'?Math.min(next,runtime.numbers['step:5775:14252']):node.step.key==='step:5775:14252'?Math.max(next,runtime.numbers['step:5775:14246']):Math.max(0,next);return true;}
 		const label=node.label || node.children.filter(c=>typeof c==='string').join(' ');
 		const scope=runtime.scope(id);
 		if(node.rowChoiceKey){runtime.checks[node.rowChoiceKey]=!runtime.checks[node.rowChoiceKey];runtime.onSelectionChange?.(scope);return true;}

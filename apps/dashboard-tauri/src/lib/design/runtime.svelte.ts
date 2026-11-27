@@ -1,3 +1,4 @@
+import { enhanceScene, nodes } from './behaviors.ts';
 import { textOf, type DesignNode } from './model.ts';
 
 export const DESIGN_RUNTIME = Symbol('design-runtime');
@@ -15,6 +16,8 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  numbers = $state<Record<string,number>>({});
+  scrolls:Record<string,number>={};
   values = $state<Record<string,string>>({});
   checks = $state<Record<string,boolean>>({});
   groups = $state<Record<string,string>>({});
@@ -50,6 +53,8 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   const optionType=Object.entries(optionScreens).find(([,screen])=>screen===frame)?.[0];
   if(optionType)runtime.questionType=optionType;
   const tree=structuredClone(source);
+  enhanceScene(tree,frame);
+  for(const node of nodes(tree))if(node.numberKey)runtime.numbers[node.numberKey] ??= Number(textOf(node));
   const scope=runtime.scope(frame);
   let index=0;
   const choices: {key:string;label:string;initial:boolean}[]=[];

@@ -179,13 +179,13 @@ test('checkboxes and required switches update without navigating or remounting',
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
 });
 
-test('confirmation messages disappear after three seconds', async ({page}) => {
+test('confirmation messages disappear after 1.5 seconds', async ({page}) => {
   const now=new Date('2026-11-26T12:00:00Z');
   await page.clock.install({time:now});
   await page.clock.pauseAt(now);
   await page.goto('/design/5775-14514');
   await expect(page.getByText('Updated question',{exact:true})).toBeVisible();
-  await page.clock.fastForward(2999);
+  await page.clock.fastForward(1499);
   await expect(page.getByText('Updated question',{exact:true})).toBeVisible();
   await page.clock.fastForward(1);
   await expect(page.getByText('Updated question',{exact:true})).toBeHidden();
@@ -217,4 +217,35 @@ test('API-key checkboxes control selection actions', async ({page}) => {
   await page.getByRole('checkbox',{name:/^Select Picklists/}).check();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15604');
   await expect(page.getByRole('button',{name:'Delete 2 keys',exact:true})).toBeVisible();
+});
+
+test('Back returns to the actual prior screen and retains input', async ({page}) => {
+  await page.goto('/forms');
+  await page.locator('[data-figma-node="I5775:10088;54:171"]').click();
+  await page.getByRole('textbox',{name:'Name',exact:true}).fill('Remember this form');
+  await page.getByRole('button',{name:'Create form',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14699');
+  await page.getByRole('button',{name:'Back',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10120');
+  await expect(page.getByRole('textbox',{name:'Name',exact:true})).toHaveValue('Remember this form');
+});
+
+test('rating buttons update minimum and maximum values', async ({page}) => {
+  await page.goto('/design/5775-14235');
+  await page.getByRole('button',{name:'Increase minimum value',exact:true}).click();
+  await expect(page.locator('[data-stepper="step:5775:14246"]')).toHaveText('2');
+  await page.getByRole('button',{name:'Decrease minimum value',exact:true}).click();
+  await expect(page.locator('[data-stepper="step:5775:14246"]')).toHaveText('1');
+  await page.getByRole('button',{name:'Decrease maximum value',exact:true}).click();
+  await expect(page.locator('[data-stepper="step:5775:14252"]')).toHaveText('9');
+});
+
+test('profile text is centered and entered search text is white', async ({page}) => {
+  await page.goto('/design/5775-15116');
+  const title=await page.getByText('Collin C',{exact:true}).boundingBox();
+  expect(title!.x+title!.width/2).toBeCloseTo(196.5,0);
+  await page.goto('/forms');
+  const search=page.getByRole('textbox',{name:'Search forms'});
+  await search.fill('Scouting');
+  await expect(search).toHaveCSS('color','rgb(255, 255, 255)');
 });

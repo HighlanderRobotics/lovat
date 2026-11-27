@@ -1,7 +1,7 @@
 import type { Choice } from './runtime.svelte.ts';
 
 export interface DesignNode {
-	typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
+	passive?: boolean; backAction?: boolean; step?: {key:string;delta:number}; stepperKey?:string; numberKey?:string; actionLabel?:string; typeSave?: boolean; rowChoiceKey?: string; choice?: Choice; inputKey?: string; placeholder?: string; searchScope?: string; searchable?: boolean; typeValue?: string; summaryScope?: string;
 	tag: string;
 	id?: string;
 	name: string;
