@@ -1,6 +1,17 @@
 import { test, expect } from '@playwright/test';
 import manifest from '../../src/lib/design/manifest.json' with {type:'json'};
 
+test('native index entry opens Home and status-bar insets preserve the form footer', async ({page}) => {
+  await page.goto('/index.html');
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:9807');
+  await page.goto('/design/5775-10120');
+  await page.addStyleTag({content:'.design-viewport {padding-top:64px !important}'});
+  await page.evaluate(()=>window.dispatchEvent(new Event('resize')));
+  await expect(page.locator('.design-frame')).toHaveCSS('height','788px');
+  const footer = await page.getByRole('button',{name:'Create form',exact:true}).boundingBox();
+  expect(footer!.y + footer!.height).toBeLessThanOrEqual(852);
+});
+
 test('all Figma states render with local, loaded images and no browser errors', async ({page}) => {
   const errors: string[] = [];
   const remoteRequests: string[] = [];
@@ -19,7 +30,7 @@ test('all Figma states render with local, loaded images and no browser errors', 
     const broken = await page.locator('.design-frame img').evaluateAll(images => images.filter(image => {
       const img = image as HTMLImageElement;
       const rect = img.getBoundingClientRect();
-      return !img.naturalWidth || !rect.width || !rect.height || !img.src.includes('/design-assets/');
+      return !img.naturalWidth || (!img.closest('[data-layout-role="system"]') && (!rect.width || !rect.height)) || !img.src.includes('/design-assets/');
     }).length);
     expect(broken, frame.id).toBe(0);
   }
@@ -72,4 +83,54 @@ test('API key create, rename, and delete confirmations navigate to their success
   await page.getByRole('button',{name:'Delete key',exact:true}).click();
   await page.getByRole('button',{name:'Delete',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15712');
+});
+
+test('mobile footers and navbar stay anchored while content scrolls', async ({page}) => {
+  for(const height of [667,844,932]) {
+    await page.setViewportSize({width:393,height});
+    for(const id of ['5775-9807','5775-10120','5775-10069','5775-14720']) {
+      await page.goto(`/design/${id}`);
+      const anchors=page.locator('[data-layout-role="nav"], [data-layout-role="footer"]');
+      await expect(anchors.first()).toBeVisible();
+      const before=await anchors.evaluateAll(elements=>elements.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));
+      for(const box of before) {expect(box.bottom).toBeLessThanOrEqual(height+.5);expect(box.bottom).toBeGreaterThan(height-125);}
+      await page.locator('[data-layout-role="body"]').evaluate(e=>{e.scrollTop=10000;});
+      const after=await anchors.evaluateAll(elements=>elements.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));
+      expect(after).toEqual(before);
+    }
+  }
+});
+
+test('mobile zoom gestures are blocked and ordinary touch scrolling is preserved', async ({page}) => {
+  await page.goto('/');
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content',/maximum-scale=1.*user-scalable=no/);
+  const result=await page.evaluate(()=>{
+    const gesture=new Event('gesturestart',{cancelable:true,bubbles:true});
+    document.dispatchEvent(gesture);
+    function touch(count:number){
+      const event=new Event('touchmove',{cancelable:true,bubbles:true});
+      Object.defineProperty(event,'touches',{value:Array(count).fill({})});
+      document.dispatchEvent(event);return event.defaultPrevented;
+    }
+    return [gesture.defaultPrevented,touch(2),touch(1)];
+  });
+  expect(result).toEqual([true,true,false]);
+});
+
+test('screen navigation animates and respects reduced motion', async ({page}) => {
+  for(const reduced of [false,true]) {
+    await page.emulateMedia({reducedMotion:reduced?'reduce':'no-preference'});
+    await page.goto('/');
+    await page.evaluate(()=>{
+      const original=document.startViewTransition.bind(document);
+      (window as unknown as {transitions:number}).transitions=0;
+      document.startViewTransition=((update:()=>Promise<void>)=>{
+        (window as unknown as {transitions:number}).transitions++;
+        return original(update);
+      }) as typeof document.startViewTransition;
+    });
+    await page.locator('[data-design-name="TabBarItem"]').filter({hasText:'Forms'}).click();
+    await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
+    expect(await page.evaluate(()=>(window as unknown as {transitions:number}).transitions)).toBe(reduced?0:1);
+  }
 });

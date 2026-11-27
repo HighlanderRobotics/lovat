@@ -32,3 +32,17 @@ Figma's layout box, and coverage grids use centered half-pixel stroke coverage.
 `--config src-tauri/tauri.mock.conf.json`; this uses the same native app and bundle
 identifier as the branch, with the mock frontend. Do not upload a mock build as a
 production release.
+
+## Mobile layout and motion
+
+Runtime screens fill the usable viewport, including iOS safe areas and keyboard
+resizing. `layouts.json` identifies headers, scrolling bodies, bottom actions,
+and tab bars; their positions stay independent of the reference frame height.
+`tool/audit-design-layout.cjs` regenerates this metadata against a mock build
+served on port 1430. Add `?reference=1` to retain the original Figma dimensions
+for visual comparisons, including the Forms status-bar placeholder.
+
+Navigation preloads the destination and uses short native View Transitions with
+separate content/header/footer snapshots. Reduced-motion preferences skip these
+animations. Mobile viewport and gesture handling keep the app at 1x zoom while
+allowing ordinary scrolling; mobile inputs use a 16px font to prevent focus zoom.

@@ -3,6 +3,7 @@
   max-width: 393px;
   margin: 0 auto;
   background: #1f1f1f;
+  padding-top: env(safe-area-inset-top,0px);
 }
 .design-frame {
   position: relative;
@@ -13,6 +14,7 @@
   isolation: isolate;
   -webkit-font-smoothing: antialiased;
 }
+.design-viewport.reference-mode { padding:0; }
 .design-frame *,
 .design-frame *::before,
 .design-frame *::after {
@@ -52,12 +54,26 @@
   width: 100%;
   height: 100%;
 }
-.design-frame .design-input {
+.design-frame .design-field-input {
+  display: contents;
+}
+.design-frame .design-field-input > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.design-frame .design-field-input input {
   display: block;
   width: 100%;
   min-width: 0;
   border: 0;
+  border-radius: 0;
+  height: auto;
+  min-height: 0;
   outline: 0;
+  box-shadow: none;
   padding: 0;
   background: transparent;
   color: #e6e6e6;
@@ -65,14 +81,14 @@
     400 15px/22px Roboto,
     sans-serif;
 }
-.design-frame .design-input::placeholder {
+.design-frame .design-field-input input::placeholder {
   color: #9a9a9a;
   opacity: 1;
 }
 .design-catalog {
   max-width: 440px;
   margin: auto;
-  padding: 26px;
+  padding: calc(26px + env(safe-area-inset-top,0px)) 26px 26px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -102,4 +118,28 @@
 }
 .design-loading {
   padding: 26px;
+}
+
+html { touch-action: pan-x pan-y; -webkit-text-size-adjust:100%; }
+body { touch-action:pan-x pan-y; }
+.design-viewport { padding-bottom:env(safe-area-inset-bottom,0px); }
+.design-frame { overflow:hidden; }
+.design-frame [data-layout-role="body"]::-webkit-scrollbar { display:none; }
+@media (pointer:coarse) {
+  .design-frame .design-field-input input { font-size:16px; }
+}
+::view-transition-old(root) { animation:screen-out 160ms ease both; }
+::view-transition-new(root) { animation:screen-in 220ms cubic-bezier(.2,.8,.2,1) both; }
+::view-transition-old(page-content) { animation:content-out 160ms ease both; }
+::view-transition-new(page-content) { animation:content-in 220ms cubic-bezier(.2,.8,.2,1) both; }
+::view-transition-group(bottom-navigation),
+::view-transition-group(page-header),
+::view-transition-group(footer-0),
+::view-transition-group(footer-1) { animation-duration:220ms; animation-timing-function:cubic-bezier(.2,.8,.2,1); }
+@keyframes screen-out { to { opacity:0; } }
+@keyframes screen-in { from { opacity:0; } }
+@keyframes content-out { to { opacity:0; transform:translateX(-8px); } }
+@keyframes content-in { from { opacity:0; transform:translateX(8px); } }
+@media (prefers-reduced-motion:reduce) {
+  ::view-transition-group(*) { animation:none !important; }
 }

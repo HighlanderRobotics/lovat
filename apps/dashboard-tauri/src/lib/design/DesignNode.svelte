@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Button } from '@highlanderrobotics/magnolia-svelte/v2';
+	import { Button, TextField } from '@highlanderrobotics/magnolia-svelte/v2';
 	import NodeView from './DesignNode.svelte';
 	import type { DesignNode } from './model.ts';
 	import { textOf } from './model.ts';
+	import { anchoredStyle, bodyFilter, type ScreenLayout } from './layout.ts';
 	let {
 		node,
 		activate,
@@ -10,6 +11,7 @@
 		choices,
 		choose,
 		radioSelected,
+		heightDelta = 0, layout = {}, reference = false, root = true, extraFilter,
 	}: {
 		node: DesignNode | string;
 		activate: (node: DesignNode) => boolean;
@@ -17,7 +19,10 @@
 		choices: Record<string, string>;
 		choose: (group: string, value: string) => void;
 		radioSelected?: boolean;
+		heightDelta?: number; layout?: ScreenLayout; reference?: boolean; root?: boolean; extraFilter?: string;
 	} = $props();
+	const anchor = $derived(typeof node === 'string' ? undefined : layout[node.id ?? '']);
+	const style = $derived(typeof node === 'string' ? '' : anchoredStyle(node.style, anchor, heightDelta, reference, root, extraFilter));
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
 	let selected = $state(false);
@@ -42,6 +47,9 @@
 			{editable}
 			{choices}
 			{choose}
+			{heightDelta}
+			{layout} {reference} root={false}
+			extraFilter={!reference && anchor?.kind === 'body' && typeof node !== 'string' ? bodyFilter(node.style) : undefined}
 			radioSelected={typeof node !== 'string' &&
 			node.choiceGroup &&
 			choices[node.choiceGroup]
@@ -60,16 +68,18 @@
 				? '/design-assets/83187.svg'
 				: '/design-assets/4a61c.svg'}
 		alt=""
-		style={node.style}
+		style={style}
 		data-figma-node={node.id}
+		data-layout-role={anchor?.kind}
 	/>
 {:else if node.control === 'button'}
 	<Button
 		class="design-button"
 		variant={node.variant}
-		style={node.style}
+		style={style}
 		aria-label={node.label || 'Add'}
 		data-figma-node={node.id}
+		data-layout-role={anchor?.kind}
 		onclick={(event) => {
 			if (activate(node as DesignNode)) event.stopPropagation();
 		}}
@@ -77,10 +87,12 @@
 		{@render children(node.children)}
 	</Button>
 {:else if node.control === 'input' && editable}
-	<input
-		class="design-input"
-		style={node.style}
+	<TextField
+		class="design-field-input"
+		label={node.label ?? 'Value'}
+		style={style}
 		data-figma-node={node.id}
+		data-layout-role={anchor?.kind}
 		type={node.inputType || 'text'}
 		aria-label={node.label}
 		placeholder={node.children
@@ -98,13 +110,14 @@
 		['Lovat', 'Teams', 'Matches'].includes(textOf(node))}
 	<svelte:element
 		this={node.tag}
-		style={node.style +
+		style={style +
 			(node.choiceGroup && choices[node.choiceGroup]
 				? choices[node.choiceGroup] === (node.choiceValue ?? node.id)
 					? ';background-image:none;background-color:#34323c;outline:1px solid #b59aff;outline-offset:-1px'
 					: ';background-image:none;background-color:#262626;outline:1px solid #424242;outline-offset:-1px'
 				: '')}
 		data-figma-node={node.id}
+		data-layout-role={anchor?.kind}
 		data-design-name={node.name}
 		data-mock-selected={selected || undefined}
 		role={node.choiceGroup ? 'radio' : active ? 'button' : undefined}

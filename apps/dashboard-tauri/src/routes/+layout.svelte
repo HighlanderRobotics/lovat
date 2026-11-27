@@ -8,6 +8,8 @@
 	import DesignApp from '#lib/design/DesignApp.svelte';
 	import '#lib/magnolia.css';
 	import { page } from '$app/state';
+	import { onMount } from 'svelte';
+	import { lockMobileZoom } from '#lib/mobileZoom.ts';
 	import { initializeApi } from '#lib/api/client.ts';
 	import NavDrawer from '#lib/components/NavDrawer.svelte';
 	import ToastHost from '#lib/components/ToastHost.svelte';
@@ -15,6 +17,7 @@
 	import { ensureDefaultPicklists } from '#lib/picklists.ts';
 
 	let { children } = $props();
+	onMount(()=>lockMobileZoom(document));
 
 	// Runs once before any page loads data, like the Flutter InitialLoaderPage.
 	if (import.meta.env.VITE_DASHBOARD_MOCK !== 'true') {
