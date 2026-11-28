@@ -10,6 +10,7 @@
 	import FilterPills from './FilterPills.svelte';
 	import NodeView from './DesignNode.svelte';
 	import type { DesignNode } from './model.ts';
+	import {questionSubtitle,questionIcons,type QuestionType} from './questions.ts';
 	import { textOf } from './model.ts';
 	import { anchoredStyle, bodyFilter, type ScreenLayout } from './layout.ts';
 	let {
@@ -92,10 +93,12 @@
 {:else if node.memberRole && node.memberName && runtime.promoted[node.memberName]}<p style={style}>Scouting Lead</p>
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.savedQuestions && !reference}
+ <div class="saved-question-list" style={style}>{#each runtime.savedQuestions as question(question.id)}<button class="saved-question-card" onclick={()=>activate({tag:'div',name:'SavedQuestion',style:'',children:[],draftQuestionId:question.id})}>{#if question.kind}<img src={questionIcons[question.kind as QuestionType]} alt=""/>{/if}<span><strong>{question.title}</strong><small>{questionSubtitle(question.kind,question.required)}</small></span></button>{/each}</div>
 {:else if node.name==='Text' && node.questionHeadingFor && !reference}
  <div style={style} class="design-question-heading">{@render children(node.children)}
   {#if runtime.values[`hint:${node.questionHeadingFor}`]}<p class="design-question-hint">{runtime.values[`hint:${node.questionHeadingFor}`]}</p>{/if}
-  {#if !runtime.required(node.questionHeadingFor)}<p class="design-question-optional">Optional</p>{/if}
+  <p class="design-question-optional">{questionSubtitle(node.questionHeadingFor,runtime.required(node.questionHeadingFor))}</p>
  </div>
 {:else if node.apiTable && !reference}
 	<div style={style}><ApiKeysTable records={runtime.apiRecords??[]} selected={runtime.apiSelected} query={runtime.values['search:api-keys']??''} onselect={(id,checked)=>runtime.selectKey(id,checked)} onall={(checked)=>runtime.selectAllKeys(checked)}/></div>
@@ -154,7 +157,7 @@
 		variant={node.variant}
 		style={style}
 		aria-label={runtime.buttonLabel(node) || 'Add'}
-		disabled={node.disabled || node.label==='Assign' && !runtime.selectedScouters.length || (node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
+		disabled={runtime.submission.status==='pending' || node.disabled || node.label==='Assign' && !runtime.selectedScouters.length || (node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		onclick={(event) => {
@@ -174,9 +177,10 @@
 		data-layout-role={anchor?.kind}
 		type={node.inputType || 'text'}
 		aria-label={node.label}
+        error={node.inputKey?runtime.submission.errors[node.inputKey]:undefined}
 		placeholder={node.placeholder ?? node.label}
 		value={node.inputKey ? runtime.values[node.inputKey] : node.value}
-		oninput={(event)=>{if(typeof node!=='string' && node.inputKey){runtime.values[node.inputKey]=(event.currentTarget as HTMLInputElement).value;if(node.inputKey.startsWith('field:'))runtime.formDirty=true;}}}
+		oninput={(event)=>{if(typeof node!=='string' && node.inputKey){runtime.values[node.inputKey]=(event.currentTarget as HTMLInputElement).value;runtime.submission.reset();if(node.inputKey.startsWith('field:'))runtime.formDirty=true;}}}
 	/>
 {:else}
 	{@const active =
@@ -189,7 +193,7 @@
 	<svelte:element
 		this={node.tag}
 		inert={node.inert || undefined}
-		aria-disabled={node.disabled || undefined}
+		aria-disabled={runtime.submission.status==='pending' || node.disabled || undefined}
 		style={style + (node.navLabel?`;color:${runtime.currentTab===node.navLabel?'#b59aff':'#b7b7b7'}`:'') + (node.formTabValue?`;background:${runtime.formTab===node.formTabValue?'#3c3c3c':'transparent'}`:'') +
 			(node.typeValue ? (runtime.questionType===node.typeValue ? ';background-image:none;background-color:#34323c;outline:1px solid #b59aff;outline-offset:-1px' : ';background-image:none;background-color:#262626;outline:1px solid #424242;outline-offset:-1px') : '') +
 			(node.choiceGroup && choices[node.choiceGroup]

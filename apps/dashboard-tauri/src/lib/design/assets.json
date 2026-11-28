@@ -7465,5 +7465,16 @@
         "kind": "image"
       }
     ]
+  },
+  {
+    "path": "static/design-assets/166a7.svg",
+    "bytes": 3942,
+    "slots": [
+      {
+        "frame": "1864-486",
+        "node": "1864:486",
+        "kind": "image"
+      }
+    ]
   }
 ]

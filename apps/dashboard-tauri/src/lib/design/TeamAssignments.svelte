@@ -4,6 +4,7 @@
  import type { AssignmentTeam } from './assignments.ts';
  let {teams,people,onmove,onadd}:{people:string[];teams:AssignmentTeam[];onmove:(id:string,assignee:string)=>void;onadd:(name:string)=>void}=$props();
  const scouters=$derived([...new Set(['Jack S','Collin C',...people,...teams.map(team=>team.assignee).filter(name=>name!=='Unassigned')]),'Unassigned']);
+ let query=$state('');
  let adding=$state(false),hovering=$state<string>(),nativeDragging=$state(false);
  function clear(){dragging=undefined;point=undefined;hovering=undefined;nativeDragging=false;}
  function hover(event:PointerEvent){hovering=document.elementFromPoint(event.clientX,event.clientY)?.closest<HTMLElement>('[data-assignee]')?.dataset.assignee;}
@@ -34,7 +35,7 @@
 {/snippet}
 <div class="assignment-board" class:is-dragging={!!dragging || nativeDragging}>
  <button class="assignment-add" aria-expanded={adding} onclick={()=>adding=!adding}>＋ Add scouter</button>
- {#if adding}<div class="assignment-scouter-options" role="group" aria-label="Add scouter">{#each ['Jack S','Collin C','Leo K','Ted E','Cassie C'].filter(name=>!scouters.includes(name)) as name}<button onclick={()=>{onadd(name);adding=false;}}>{name}</button>{/each}</div>{/if}
+ {#if adding}<div class="assignment-scouter-options" role="group" aria-label="Add scouter"><input class="scouter-search" aria-label="Search scouters" placeholder="Search scouters" bind:value={query}/>{#each ['Jack S','Collin C','Leo K','Ted E','Cassie C'].filter(name=>!scouters.includes(name) && name.toLowerCase().includes(query.trim().toLowerCase())) as name}<button onclick={()=>{onadd(name);adding=false;query='';}}>{name}</button>{/each}</div>{/if}
  {#each scouters as assignee}
   <section class="assignment-zone" class:drop-target={hovering===assignee && dragging?.assignee!==assignee} data-assignee={assignee} aria-label={`${assignee} assignments`} ondragover={(event)=>{event.preventDefault();hovering=assignee;}} ondragleave={(event)=>{if(!event.currentTarget.contains(event.relatedTarget as Node))hovering=undefined;}} ondrop={(event)=>drop(event,assignee)}>
    <header><strong>{assignee}</strong><span>{teams.filter(team=>team.assignee===assignee).length} teams{assignee==='Unassigned'?'':' assigned'}</span></header>

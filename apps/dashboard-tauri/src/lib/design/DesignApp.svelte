@@ -13,6 +13,11 @@
 	import { presentation, apiToolbar, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
 	import { nodes } from './behaviors.ts';
 	import { navbarDirection, navbarLabel, revisitDelta } from './navigation.ts';
+	import LoadingView from './LoadingView.svelte';
+	import QuestionEditor from './QuestionEditor.svelte';
+	import SubmissionNotice from './SubmissionNotice.svelte';
+	import {preloadSceneAssets} from './sceneAssets.ts';
+	import {submitMock} from './submission.svelte.ts';
 	import { PageMotion } from './pageMotion.ts';
 		import './design.css';
 
@@ -39,12 +44,25 @@
 	const reference = $derived(page.url.searchParams.has('reference'));
 	const frame = $derived(manifest.find((item) => item.id === id));
 	const cache = new Map<string,DesignNode>();
+	const pendingScenes=new Map<string,Promise<DesignNode>>();
+	let hasEntered=$state(false),loadRevision=$state(0),pendingTarget=$state<string>();
+	let loadFailure=$state<{target:string;message:string}>();
+	let retrySubmission:(()=>void)|undefined;
+	const questionEditorIds=['5775:14183',...Object.values(optionScreens)];
+	const newQuestionPage=$derived(runtime.creatingQuestion && questionEditorIds.includes(id));
 	function load(target:string): DesignNode | Promise<DesignNode> {
 		const key=`${reference?'reference:':''}${target}`;
 		const isReference=reference;
 		const cached=cache.get(key);
 		if(cached)return cached;
-		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=isReference?source:prepareScene(source,target,runtime);cache.set(key,node);return node;});
+		const inFlight=pendingScenes.get(key);if(inFlight)return inFlight;
+        const source=sources[`./scenes/${target.replace(':','-')}.json`];
+        if(!source)return Promise.reject(new Error('This page is unavailable.'));
+        const loading=(source() as Promise<DesignNode>).then(async source=>{
+          const node=isReference?source:prepareScene(source,target,runtime);
+          await preloadSceneAssets(node);cache.set(key,node);return node;
+        }).finally(()=>pendingScenes.delete(key));
+        pendingScenes.set(key,loading);return loading;
 	}
 	let navbarTemplate:DesignNode|undefined;
 	$effect(()=>{const current=page.state.designTab??id;untrack(()=>{runtime.currentTab=navbarLabel(current)??runtime.currentTab;});});
@@ -67,8 +85,9 @@
 	}
 	let docks=$state<Dock[]>([]);
 	let dockLayout=$state<ScreenLayout>({});
-	$effect(()=>{const current=scene,frameId=id,keyCount=runtime.count('api-keys');if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId){const value=parts(node,frameId);if(!reference && runtime.scope(frameId)==='api-keys'){docks=apiToolbar(keyCount);dockLayout={...value.layout,'runtime:api-toolbar':{kind:'footer',x:26,y:0,w:341,h:keyCount===1?98:44,bottom:26,blockX:0,blockY:0}};}else{docks=value.docks;dockLayout=value.layout;}}});});});
-	const scene = $derived(frame ? load(id) : undefined);
+	$effect(()=>{const current=scene,frameId=id,keyCount=runtime.count('api-keys');if(current)untrack(()=>{void Promise.resolve(current).then(node=>{if(id===frameId){const value=parts(node,frameId);if(!reference && runtime.scope(frameId)==='api-keys'){docks=apiToolbar(keyCount);dockLayout={...value.layout,'runtime:api-toolbar':{kind:'footer',x:26,y:0,w:341,h:keyCount===1?98:44,bottom:26,blockX:0,blockY:0}};}else{docks=value.docks;dockLayout=value.layout;}}}).catch(()=>{});});});
+	const scene = $derived.by(()=>{loadRevision;return frame?load(id):undefined;});
+	$effect(()=>{const current=scene,currentId=id;if(current)untrack(()=>{void Promise.resolve(current).then(()=>{if(id===currentId)hasEntered=true;}).catch(()=>{});});});
 	let width = $state(393);
 	let viewport = $state<HTMLElement>();
 	let safeTop = $state(0);
@@ -113,7 +132,7 @@
 		),
 	);
 
-	let navigation = 0;
+	let navigationRequest = 0;
 	let canvas=$state<HTMLElement>();
 	let motionHost=$state<HTMLElement>();
 	let animateNext=true;
@@ -123,10 +142,16 @@
 	runtime.onSelectionChange=undefined;
 	async function open(target: string, remember=true, direction:'forward'|'back'='forward',navbar=false) {
 		if(target===id && !catalog)return;
+        runtime.submission.reset();retrySubmission=undefined;
 		if(isSearchChange(id,target))remember=false;
 		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
-		const request=++navigation;
-		const targetNode=target!=='catalog'?await load(target):undefined;
+		const request=++navigationRequest;
+		loadFailure=undefined;
+        if(target!=='catalog' && !cache.has(`${reference?'reference:':''}${target}`))pendingTarget=target;
+        let targetNode:DesignNode|undefined;
+        try{targetNode=target!=='catalog'?await load(target):undefined;}
+        catch(error){if(request===navigationRequest){pendingTarget=undefined;loadFailure={target,message:error instanceof Error?error.message:'Try loading this page again.'};}return;}
+
 		if(target==='5775:15753'){const field=targetNode?nodes(targetNode).find(node=>node.control==='input'):undefined;const record=runtime.apiRecords?.find(record=>runtime.apiSelected[record.id]);if(field?.inputKey&&record)runtime.values[field.inputKey]=record.name;}
 		if(target==='5775:14350' && runtime.editingOption){runtime.values['field:5775:14381']=runtime.optionLabels[runtime.editingOption.key]??runtime.editingOption.label;runtime.values['field:5775:14383']=runtime.optionHints[runtime.editingOption.key]??runtime.editingOption.hint??'';}
 		const modal=!!targetNode?.children.some(child=>typeof child!=='string'&&child.dialogSurface);
@@ -134,16 +159,17 @@
 		if(modal || origin)remember=false;
 		nextDirection=direction;
 		animateNext=(remember || direction==='back') && target!=='catalog' && !targetNode?.children.some(child=>typeof child!=='string' && child.dialogSurface);
-		if(request!==navigation)return;
+		if(request!==navigationRequest)return;
 		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
 		if(optionType)runtime.questionType=optionType;
 		const delta=remember?revisitDelta(page.state.designHistory??[],target):0;
-		if(delta){traversalDirection=navbar?direction:'back';history.go(delta);return;}
+		if(delta){pendingTarget=undefined;traversalDirection=navbar?direction:'back';history.go(delta);return;}
 		const url=(target==='catalog'?'/design':`/design/${target.replace(':','-')}`)+(reference?'?reference=1':'');
 		await goto(url,{replace:!remember,state:{designTab:navbar?target:undefined,designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[]),designReturn:modal?(origin??id):undefined}});
-		await tick();
+		await tick();if(request===navigationRequest)pendingTarget=undefined;
 	}
 	beforeNavigate((navigation)=>{
+        if(navigation.type==='popstate'){navigationRequest++;pendingTarget=undefined;loadFailure=undefined;runtime.submission.reset();retrySubmission=undefined;}
 		if(navigation.type==='popstate' && page.state.designReturn){navigation.cancel();void open(page.state.designReturn,false);return;}
 		if(navigation.type==='popstate' && searchBase[id])runtime.values[`search:${runtime.scope(id)}`]='';
 		if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}
@@ -156,7 +182,16 @@
 		motion.play(canvas);
 		requestAnimationFrame(()=>{const body=viewport?.querySelector('[data-layout-role="body"]');if(body)body.scrollTop=runtime.scrolls[id]??0;});
 	});});
-	function activate(node: DesignNode) {
+	async function submitAction(node:DesignNode,fieldKey:string,value:string,mutation:()=>void,target:string){
+      retrySubmission=()=>void submitAction(node,fieldKey,runtime.values[fieldKey]??value,mutation,target);
+      const saved=await runtime.submission.run(()=>value.trim()?{}:{[fieldKey]:'Enter a name.'},()=>submitMock(mutation));
+      if(saved){runtime.submission.reset();void open(target);}
+    }
+    function activate(node: DesignNode) {
+        if(node.label==='Add new question'){runtime.startQuestion();void open('5775:14183');return true;}
+        if(node.name==='SelectableCard' && id==='5775:10144')runtime.creatingQuestion=false;
+        if(node.draftQuestionId){runtime.editQuestion(node.draftQuestionId);void open(optionScreens[runtime.draft.kind]??'5775:14183');return true;}
+
         if(node.memberName && node.name==='ListItem')runtime.activeMember=node.memberName;
         if(node.name==='ListItem' && /^(DCMP|SF Pit|\[WIP\])/.test(textOf(node)))runtime.formKind=/Superscout/i.test(textOf(node))?'match':/Break/i.test(textOf(node))?'alliance':'team';
 		if(node.editOption){runtime.editingOption=node.editOption;void open('5775:14350');return true;}
@@ -187,8 +222,8 @@
 		if(id==='5775:14183' && node.typeValue){if(runtime.questionType!==node.typeValue)runtime.typeDirty=true;runtime.questionType=node.typeValue;return true;}
 
 		if(textOf(node)==='Options') {void open(optionScreens[runtime.questionType],false);return true;}
-		if(label==='Create' && id==='5775:15386'){const field=nodes(cache.get(id)!).find(node=>node.control==='input'&&node.label==='Name');runtime.createKey(field?.inputKey?runtime.values[field.inputKey]:'');}
-		if(label==='Rename' && id==='5775:15753'){const field=nodes(cache.get(id)!).find(node=>node.control==='input');runtime.renameKey(field?.inputKey?runtime.values[field.inputKey]:'');}
+		if(label==='Create' && id==='5775:15386'){const field=nodes(cache.get(id)!).find(node=>node.control==='input'&&node.label==='Name');const key=field?.inputKey??'';void submitAction(node,key,runtime.values[key]??'',()=>runtime.createKey(runtime.values[key]??''),'5775:15445');return true;}
+		if(label==='Rename' && id==='5775:15753'){const field=nodes(cache.get(id)!).find(node=>node.control==='input');const key=field?.inputKey??'';void submitAction(node,key,runtime.values[key]??'',()=>runtime.renameKey(runtime.values[key]??''),'5775:15812');return true;}
 		if(label==='Delete' && ['5775:15553','5775:15895'].includes(id))runtime.deleteKeys();
 		if(label==='Save' && id==='5775:14350' && runtime.editingOption){runtime.optionLabels[runtime.editingOption.key]=runtime.values['field:5775:14381'];runtime.optionHints[runtime.editingOption.key]=runtime.values['field:5775:14383']??'';runtime.formDirty=true;void open(page.state.designReturn??'5775:14305',false);return true;}
 		if(label==='Assign' && id==='5775:11203'){runtime.autoAssign();void open(page.state.designReturn??'5775:10287',false);return true;}
@@ -210,6 +245,8 @@
 		return !!target;
 	}
 	onMount(() => {
+		let focusMeasure=0;
+        const scheduleFocusMeasure=()=>{cancelAnimationFrame(focusMeasure);focusMeasure=requestAnimationFrame(()=>untrack(measure));};
 		const orientation=()=>{stableHeight=0;keyboardInset=0;measure();};
 		screen.orientation?.addEventListener('change',orientation);
 		const keyboard = (event: KeyboardEvent) => {
@@ -217,16 +254,17 @@
 		};
 		window.addEventListener('keydown', keyboard);
 		window.addEventListener('resize', measure);
-		document.addEventListener('focusin',measure);
-		document.addEventListener('focusout',measure);
+		document.addEventListener('focusin',scheduleFocusMeasure);
+		document.addEventListener('focusout',scheduleFocusMeasure);
 		window.visualViewport?.addEventListener('resize', measure);
 		return () => {
 			motion.finish();
 			screen.orientation?.removeEventListener('change',orientation);
 			window.removeEventListener('keydown', keyboard);
 			window.removeEventListener('resize', measure);
-			document.removeEventListener('focusin',measure);
-			document.removeEventListener('focusout',measure);
+			cancelAnimationFrame(focusMeasure);
+			document.removeEventListener('focusin',scheduleFocusMeasure);
+			document.removeEventListener('focusout',scheduleFocusMeasure);
 			window.visualViewport?.removeEventListener('resize', measure);
 		};
 	});
@@ -260,6 +298,7 @@
 		class:reference-mode={reference}
 		class:profile-page={/^5775:15(?:1\d\d|2[0-5]\d)$/.test(id)}
 		class:keyboard-open={keyboardInset>80}
+		class:creating-question={newQuestionPage}
 		class:home-page={['5775:9807','5775:9936'].includes(id)}
 		style={`--keyboard-inset:${Math.max(0,keyboardInset-safeBottom) / scale}px`}
 		bind:this={viewport}
@@ -274,8 +313,10 @@
 				data-frame={frame.id}
 				style={`width:393px;height:${displayHeight}px;transform:scale(${scale});transform-origin:top left`}
 			>
-				{#await scene}<div class="design-loading" role="status">Loading…</div>
-				{:then node}{@const view=parts(node,id)}<div class="design-page" bind:this={canvas}>{#key id}<NodeView
+				{#await scene}<LoadingView splash={!hasEntered} label={`Loading ${frame.name}`}/>
+				{:then node}{@const view=parts(node,id)}<div class="design-page" bind:this={canvas}>
+                    {#if newQuestionPage}<QuestionEditor {runtime} phase={id==='5775:14183'?'Type':'Options'} onphase={(phase)=>void open(phase==='Type'?'5775:14183':optionScreens[runtime.draft.kind],false)} onback={()=>activate({tag:'div',name:'Back',style:'',children:[],backAction:true})} onsave={()=>{runtime.promotionNotice='Question saved';setTimeout(()=>runtime.promotionNotice='',1500);void open('5775:10144');}}/>
+                    {:else}{#key id}<NodeView
 							node={view.page}
 							{reference}
 							layout={view.layout}
@@ -283,9 +324,8 @@
 							{heightDelta}
 							{choices}
 							{choose}
-						/>{/key}</div>
-				{:catch}<p role="alert">Could not open this screen.</p>
-					<Button onclick={() => open('catalog')}>Screens</Button>{/await}
+						/>{/key}{/if}</div>
+				{:catch error}<LoadingView error={error instanceof Error?error.message:'Please try again.'} onretry={()=>loadRevision++} oncancel={()=>void open('catalog')}/>{/await}
 				{#if runtime.promotionNotice}<div class="design-notice" role="status">{runtime.promotionNotice}</div>{/if}
 				<div class="design-motion-host" bind:this={motionHost} aria-hidden="true"></div>
 				<div class="design-dock" inert={!!page.state.designReturn} class:responses-dock={runtime.formTab==='Responses' && ['5775:10144','5775:10200'].includes(id)}>{#each docks as dock(dock.key)}<NodeView node={dock.node} {reference} root={false} layout={dockLayout} {activate} {heightDelta} {choices} {choose}/>{/each}</div>
@@ -298,3 +338,7 @@
 		<Button onclick={() => open('catalog')}>Screens</Button>
 	</main>
 {/if}
+
+{#if pendingTarget}<LoadingView label={`Loading ${manifest.find(item=>item.id===pendingTarget)?.name??'page'}`}/>{/if}
+{#if loadFailure}<LoadingView error={loadFailure.message} onretry={()=>void open(loadFailure!.target)} oncancel={()=>loadFailure=undefined}/>{/if}
+{#if !newQuestionPage && ['invalid','failed'].includes(runtime.submission.status)}<div class="design-submission-layer"><SubmissionNotice submission={runtime.submission} onretry={()=>retrySubmission?.()}/></div>{/if}

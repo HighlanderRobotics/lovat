@@ -64,10 +64,12 @@ test('Home opens Forms, a template, and question options', async ({page}) => {
   await page.getByRole('radio',{name:'Photo',exact:true}).click();
   await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeEnabled();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14183');
-  await page.getByRole('button',{name:'Options',exact:true}).click();
+  await page.getByRole('tab',{name:'Options',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14284');
+  await expect(page.getByRole('textbox',{name:'Title',exact:true})).toHaveValue('');
+  await page.getByRole('textbox',{name:'Title',exact:true}).fill('Electrical photo');
   await page.getByRole('button',{name:'Save changes',exact:true}).click();
-  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:14514');
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10144');
 });
 
 test('API key create, rename, and delete confirmations navigate to their success states', async ({page}) => {
@@ -596,7 +598,7 @@ test('option hints persist for single and multiple select and appear in previews
   const required=page.getByRole('switch',{name:'Required',exact:true});await required.uncheck();
   await page.getByRole('button',{name:'eye',exact:true}).click();
   await expect(page.locator('.design-frame')).toHaveAttribute('data-frame',preview);
-  await expect(page.getByRole('dialog').getByText('Optional',{exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog').getByText(/ · Optional$/)).toBeVisible();
   await expect(page.getByRole('dialog').getByText('Choose the best answer',{exact:true})).toBeVisible();
   await expect(page.getByRole('dialog').getByText('Use observations from this tournament',{exact:true})).toBeVisible();
  }
@@ -606,7 +608,7 @@ test('every optional question type has an Optional preview subtitle',async({page
  for(const screen of ['5775-14235','5775-14265','5775-14284']){
   await page.goto('/design/'+screen);await page.getByRole('switch',{name:'Required',exact:true}).uncheck();
   await page.getByRole('button',{name:'eye',exact:true}).click();
-  await expect(page.getByRole('dialog').getByText('Optional',{exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog').getByText(/ · Optional$/)).toBeVisible();
  }
 });
 
@@ -655,4 +657,112 @@ test('promotion actions use centered primary text even after selecting several u
  const action=page.getByRole('button',{name:/^Promote \d+ Analysts?$/});
  await expect(action).toHaveCSS('color','rgb(23, 23, 23)');
  await expect(action.locator('.mg2-button-content')).toHaveCSS('justify-content','center');
+});
+
+test('Add scouter searches the available people without changing selections',async({page})=>{
+ await page.goto('/design/5775-10287');await page.getByRole('button',{name:'＋ Add scouter',exact:true}).click();
+ const picker=page.getByRole('group',{name:'Add scouter',exact:true});
+ await picker.getByRole('textbox',{name:'Search scouters',exact:true}).fill('leo');
+ await expect(picker.getByRole('button',{name:'Leo K',exact:true})).toBeVisible();
+ await expect(picker.getByRole('button',{name:'Ted E',exact:true})).toHaveCount(0);
+ await picker.getByRole('button',{name:'Leo K',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Leo K assignments',exact:true})).toBeVisible();
+});
+
+test('response list and header share the standard page gutters',async({page})=>{
+ for(const id of ['5787-14528','5787-14547','5787-14566']){
+  await page.goto('/design/'+id);
+  const body=await page.locator('[data-layout-role="body"]').boundingBox();const header=await page.locator('[data-layout-role="header"]').boundingBox();
+  expect(body!.x).toBe(0);expect(header!.x).toBe(0);expect(header!.width).toBe(393);
+  expect((await page.getByRole('textbox',{name:'Search responses',exact:true}).boundingBox())!.x).toBeGreaterThanOrEqual(26);
+ }
+});
+
+test('new question drafts are blank and invalid submissions keep entered values',async({page})=>{
+ await page.goto('/design/5775-10144');await page.getByRole('button',{name:'Add new question',exact:true}).click();
+ await expect(page.getByRole('radio',{checked:true})).toHaveCount(0);
+ await page.getByRole('radio',{name:'Single select',exact:true}).click();await page.getByRole('tab',{name:'Options',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Title',exact:true})).toHaveValue('');
+ await expect(page.getByRole('textbox',{name:'Hint',exact:true})).toHaveValue('');
+ await expect(page.getByRole('textbox',{name:/^Option \d+$/})).toHaveCount(0);
+ await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Title',exact:true})).toHaveAttribute('aria-invalid','true');
+ await expect(page.getByRole('alert').filter({hasText:'Check the highlighted fields'})).toBeVisible();
+ await page.getByRole('textbox',{name:'Title',exact:true}).fill('Did they break?');
+ await page.getByRole('button',{name:'Add option',exact:true}).click();await page.getByRole('textbox',{name:'Option 1',exact:true}).fill('Yes');
+ await page.getByRole('button',{name:'Add option',exact:true}).click();await page.getByRole('textbox',{name:'Option 2',exact:true}).fill('No');
+ await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page.locator('.saved-question-card')).toContainText('Did they break?');
+ await page.locator('.saved-question-card').click();await expect(page.getByRole('textbox',{name:'Title',exact:true})).toHaveValue('Did they break?');
+});
+
+test('failed question submissions preserve drafts and can be retried',async({page,context})=>{
+ await page.goto('/design/5775-10144');await page.getByRole('button',{name:'Add new question',exact:true}).click();
+ await page.getByRole('radio',{name:'Photo',exact:true}).click();await page.getByRole('tab',{name:'Options',exact:true}).click();
+ await page.getByRole('textbox',{name:'Title',exact:true}).fill('Robot photo');
+ await context.setOffline(true);await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page.getByRole('alert')).toContainText('offline');await expect(page.getByRole('textbox',{name:'Title',exact:true})).toHaveValue('Robot photo');
+ await context.setOffline(false);await page.getByRole('button',{name:'Try again',exact:true}).click();
+ await expect(page.locator('.saved-question-card')).toContainText('Robot photo');
+});
+
+test('API submission validation does not create unnamed keys',async({page})=>{
+ await page.goto('/design/5775-15322');await page.getByRole('button',{name:'Create a new key',exact:true}).click();
+ await page.getByRole('button',{name:'Create',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Name',exact:true})).toHaveAttribute('aria-invalid','true');
+ await expect(page.getByRole('alert')).toContainText('Check the highlighted fields');
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:15386');
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('Figma splash stays visible until the first page assets are decoded',async({page})=>{
+ let release=()=>{};const gate=new Promise<void>(resolve=>release=resolve);
+ await page.route('**/design-assets/dfc39.png',async route=>{await gate;await route.continue();});
+ try{
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await expect(page.getByRole('status',{name:'Starting Lovat Dashboard',exact:true})).toBeVisible();
+  await expect(page.getByRole('img',{name:'Lovat',exact:true})).toHaveAttribute('src','/design-assets/166a7.svg');
+  await expect(page.locator('.design-page [data-figma-node]')).toHaveCount(0);
+ }finally{release();}
+ await expect(page.locator('[data-design-name="image 7"]')).toBeVisible();
+ await expect(page.getByRole('status',{name:'Starting Lovat Dashboard',exact:true})).toHaveCount(0);
+});
+
+test('cold navigation uses a skeleton instead of showing a partly loaded page',async({page})=>{
+ await page.goto('/');await expect(page.locator('[data-design-name="image 7"]')).toBeVisible();
+ let release=()=>{},held=false;const gate=new Promise<void>(resolve=>release=resolve);
+ await page.route('**/_app/immutable/chunks/*.js',async route=>{if(!held){held=true;await gate;}await route.continue();});
+ try{await page.getByRole('button',{name:'Forms',exact:true}).click();await expect(page.getByRole('status',{name:'Loading Forms',exact:true})).toBeVisible();await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:9807');}finally{release();}
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
+ await expect(page.getByRole('status',{name:'Loading Forms',exact:true})).toHaveCount(0);
+});
+
+test('favicon fallback is present and served as an icon',async({page,request})=>{
+ await page.goto('/');await expect(page.locator('link[rel="shortcut icon"]')).toHaveAttribute('href','/favicon.ico');
+ const response=await request.get('/favicon.ico');expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/x-icon');expect((await response.body()).length).toBeGreaterThan(100);
+});
+
+test('asset loading failures offer retry without revealing incomplete content',async({page})=>{
+ let fail=true;const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.route('**/design-assets/dfc39.png',async route=>{if(fail)await route.abort();else await route.continue();});
+ await page.goto('/');await expect(page.getByRole('alert',{name:'Page could not be loaded',exact:true})).toBeVisible();
+ await expect(page.locator('.design-page [data-figma-node]')).toHaveCount(0);
+ fail=false;await page.getByRole('button',{name:'Try again',exact:true}).click();
+ await expect(page.locator('[data-design-name="image 7"]')).toBeVisible();expect(errors).toEqual([]);
+});
+
+test('Back cancels pending navigation before a cold page can replace it',async({page})=>{
+ await page.goto('/');await page.getByRole('button',{name:'Forms',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
+ let release=()=>{},held=false;const gate=new Promise<void>(resolve=>release=resolve);
+ await page.route('**/_app/immutable/chunks/*.js',async route=>{if(!held){held=true;await gate;}await route.continue();});
+ try{
+  await page.getByRole('button',{name:'DCMP Pit Scouting Created by Collin C · 45 responses',exact:true}).click();
+  await expect(page.getByRole('status',{name:'Loading View form (Questions)',exact:true})).toBeVisible();
+  await page.evaluate(()=>history.back());await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:9807');
+ }finally{release();}
+ await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:9807');
+ await expect(page.locator('.design-loading-layer')).toHaveCount(0);
 });

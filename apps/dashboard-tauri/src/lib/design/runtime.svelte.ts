@@ -1,3 +1,5 @@
+import {emptyQuestion,type QuestionDraft} from './questions.ts';
+import {Submission} from './submission.svelte.ts';
 import { apiKeysFromScene, type ApiKeyRecord } from './apiKeys.ts';
 import { teamsFromScene, type AssignmentTeam } from './assignments.ts';
 import { enhanceScene, nodes } from './behaviors.ts';
@@ -20,6 +22,16 @@ export const optionScreens: Record<string,string> = {
 };
 
 export class DesignRuntime {
+  creatingQuestion=$state(false);
+  draft=$state<QuestionDraft>(emptyQuestion());
+  editingQuestionId=$state<string>();
+  savedQuestions=$state<(QuestionDraft&{id:string})[]>([]);
+  submission=new Submission();
+  private questionSequence=0;
+  startQuestion(){this.creatingQuestion=true;this.editingQuestionId=undefined;this.draft=emptyQuestion();this.questionType='';this.typeDirty=false;this.submission.reset();}
+  editQuestion(id:string){const saved=this.savedQuestions.find(question=>question.id===id);if(saved){this.creatingQuestion=true;this.editingQuestionId=id;this.draft=JSON.parse(JSON.stringify(saved));this.questionType=saved.kind;}}
+  saveDraft(){const question={...JSON.parse(JSON.stringify(this.draft)),id:this.editingQuestionId??`question:${++this.questionSequence}`};this.savedQuestions=[...this.savedQuestions.filter(item=>item.id!==question.id),question];this.editingQuestionId=question.id;}
+
   formKind = $state<'team'|'match'|'alliance'>('team');
   activeMember = $state('Collin C');
   promoted = $state<Record<string,boolean>>({});

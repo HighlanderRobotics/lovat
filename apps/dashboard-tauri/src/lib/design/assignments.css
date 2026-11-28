@@ -36,3 +36,5 @@
 .assignment-scouter-options button {background:transparent;color:#e6e6e6;text-align:left;padding:10px;font:inherit;border-radius:6px;}
 .assignment-scouter-options button:hover {background:#40356a;}
 @media(prefers-reduced-motion:reduce){.assignment-zone{transition:none}.assignment-landing{animation:none}}
+
+.scouter-search{width:100%;min-height:40px;border-radius:6px;padding:8px 10px;background:#1f1f1f;color:#fff;font:400 16px/22px Roboto,sans-serif;outline:1px solid #666;}

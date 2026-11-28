@@ -163,11 +163,10 @@ export function enhanceScene(tree:DesignNode, frame:string) {
   }
 
 
-  if(['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630','5787:14646','5787:14704','5787:14760'].includes(frame))for(const card of all.filter(node=>node.name==='SelectableCard')){
-    const text=nodes(card).find(node=>node.name==='Text');if(!text)continue;
-    const title=textOf(text.children[0]??'');
-    const kind=/^Rate/.test(title)?'Rating':/^Photo/.test(title)?'Photo':/^Have/.test(title)?'Single select':/^What/.test(title)?'Multiple Select':/^Notes/.test(title)?'Short Answer Text':undefined;
-    if(kind)text.children.splice(1,0,{tag:'p',name:'OptionalSubtitle',questionOptionalFor:kind,style:'font:400 13px/18px Roboto,sans-serif;color:#b7b7b7',children:['Optional']});
+
+  if(['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)){
+    const first=all.find(node=>node.name==='SelectableCard');const wrapper=first?all.find(node=>node.children.includes(first)):undefined;const parent=wrapper && /height:\d+px/.test(wrapper.style)?all.find(node=>node.children.includes(wrapper)):wrapper;
+    if(parent)parent.children.push({tag:'div',name:'SavedQuestions',savedQuestions:true,style:'width:100%;display:flex;flex-direction:column;gap:12px',children:[]});
   }
   const questionKinds:Record<string,string>={'5787:17005':'Rating','5787:17054':'Short Answer Text','5787:17082':'Photo','5787:17116':'Single select','5787:17179':'Multiple Select'};
   const previewKind=questionKinds[frame];

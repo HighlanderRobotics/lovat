@@ -229,3 +229,13 @@ body { touch-action:pan-x pan-y; }
 .preview-option-row:has(.preview-option-hint) {min-height:54px;height:auto !important;}
 .preview-option-hint {position:absolute;left:39px;right:8px;top:27px;color:#b7b7b7;font:400 13px/18px Roboto,sans-serif;}
 .preview-option-row:has(.preview-option-hint) .mg2-choice {align-items:flex-start;padding-top:3px;}
+
+.design-viewport.creating-question .design-dock {display:none;}
+.design-submission-layer {position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(341px,calc(100% - 52px));z-index:90;}
+.saved-question-list:empty {display:none;}
+.saved-question-card {width:100%;display:flex;gap:12px;align-items:flex-start;padding:16px;border-radius:12px;background:#262626;outline:1px solid #424242;color:#e6e6e6;text-align:left;font:400 15px/22px Roboto,sans-serif;}
+.saved-question-card img {flex:none;}.saved-question-card span{display:flex;flex-direction:column;gap:2px;}.saved-question-card strong{font-weight:500;}.saved-question-card small{color:#b7b7b7;font:400 13px/18px Roboto,sans-serif;}
+
+.design-frame [data-design-name="Field"]:has(input[aria-invalid="true"]) {outline:1px solid #d69089 !important;}
+
+.design-viewport.keyboard-open .question-editor footer {display:none;}

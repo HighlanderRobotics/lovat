@@ -246,3 +246,26 @@ Forward still use their own traversal direction.
 The navbar occupies its visible 52px height. Home uses a flexible banner and
 smaller bottom padding to fit its matches and teams above the bar. Its content
 region does not scroll, while other pages retain independent scrolling bodies.
+
+## Loading and form-state boundaries
+
+The splash is the existing Figma `Splash` frame `1864:486`, rendered from its
+unmodified local SVG export (`166a7.svg`). `sceneAssets.ts` awaits required image
+loads/decodes and fonts before a destination becomes visible. Cold navigation
+shows a skeleton; asset failures show a retryable error instead of partial UI.
+
+Optional preview subtitles use `Type · Optional`; required previews show the
+type alone. Form-list type descriptions remain compact. Responses use standard
+26px content gutters and zero-offset headers. Add scouter includes a search
+input for available people.
+
+New-question creation uses `QuestionEditor.svelte` with a blank typed draft from
+`questions.ts`; existing reference screens keep their fixture content. Required,
+choices, title, and hints start empty/off. Numeric controls keep structural
+limits. Validation, pending saves, offline failures, and retry use the shared
+`Submission` lifecycle. Successful questions appear in the local form and can
+be reopened. API-key create/rename also validates empty names and preserves
+fields when offline. These are mock-session mutations, not new server APIs.
+
+See [feature structure](../../../FEATURE_STRUCTURE.md) for ownership, extension
+patterns, current standardization, and the remaining coupling to Figma IDs.
