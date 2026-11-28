@@ -139,3 +139,24 @@ The root structure checker can report nested `.git` directories inside ignored
 Tauri `target/**/swift-rs/**/checkouts` dependencies after native builds. These
 are generated checkouts, not tracked nested apps; this refactor does not remove
 them or change that repository-wide checker.
+
+## Motion conventions
+
+`shared/motion/tabFocus.ts` owns one highlight per tab group. The bottom navbar
+keeps its DOM identity during page navigation; form, question, and ranking tab
+groups retain their last highlight position when a page remounts. Geometry uses
+local layout coordinates, so viewport scaling does not shift the highlight.
+Selection, focus, and keyboard outlines remain separate from navigation actions.
+
+Use `tabFocus` with a stable group key, selected value, and `nav` or `tabs` variant;
+mark each tab with `data-motion-tab`. It measures the real controls and responds
+to resizing rather than assuming equal tab widths. The reference adapter adds
+these annotations to existing fixtures. Native question tabs use the same helper.
+
+`shared/motion/collapse.ts` animates existing section boxes without adding layout
+wrappers. It cancels interrupted animations and restores their normal geometry.
+`shared/motion/motion.css` provides short dialog/menu entrances, selection colour
+transitions, and press feedback. Preserve dock visibility and avoid animating
+whole bottom bars. Reduced-motion preferences disable decorative transitions and
+make section changes immediate; the existing directional page swipe also respects
+that preference. These UI refinements apply to the Svelte rewrite.

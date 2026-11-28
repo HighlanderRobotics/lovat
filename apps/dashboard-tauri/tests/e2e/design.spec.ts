@@ -131,7 +131,9 @@ test('page swipes keep the dock mounted and respect reduced motion', async ({pag
     await page.locator('[data-design-name="TabBarItem"]').filter({hasText:'Forms'}).click();
     await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
     expect(await page.locator('[data-layout-role="nav"]').evaluate(e=>(window as unknown as {dock:Element}).dock===e)).toBe(true);
-    expect(await page.locator('.design-dock').evaluate(e=>e.getAnimations({subtree:true}).length)).toBe(0);
+    expect(await page.locator('.design-dock').evaluate(e=>e.getAnimations().length)).toBe(0);
+    if(reduced)expect(await page.locator('.design-dock').evaluate(e=>e.getAnimations({subtree:true}).length)).toBe(0);
+    await expect(page.locator('[data-layout-role="nav"]')).toHaveCSS('opacity','1');
     if(!reduced)await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','forward');
   }
 });
@@ -739,7 +741,7 @@ test('cold navigation uses a skeleton instead of showing a partly loaded page',a
 });
 
 test('favicon fallback is present and served as an icon',async({page,request})=>{
- await page.goto('/');await expect(page.locator('link[rel="shortcut icon"]')).toHaveAttribute('href','/favicon.ico');
+ await page.goto('/');expect(await page.locator('link[rel="shortcut icon"]').evaluate(element=>new URL((element as HTMLLinkElement).href).pathname)).toBe('/favicon.ico');
  const response=await request.get('/favicon.ico');expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/x-icon');expect((await response.body()).length).toBeGreaterThan(100);
 });
 

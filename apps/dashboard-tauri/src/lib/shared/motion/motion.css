@@ -1,0 +1,160 @@
+/* Geometry comes from tabFocus; the highlight never participates in layout. */
+[data-motion-group] {
+	position: relative;
+	isolation: isolate;
+}
+[data-motion-group]::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	pointer-events: none;
+	z-index: 0;
+	width: var(--tab-width, 0px);
+	height: var(--tab-height, 0px);
+	transform: translate(var(--tab-x, 0px), var(--tab-y, 0px));
+	border-radius: 8px;
+	background: #3c3c3c;
+	opacity: 0;
+}
+[data-motion-group][data-motion-ready]::before {
+	transition:
+		transform 190ms cubic-bezier(0.2, 0.8, 0.2, 1),
+		width 190ms cubic-bezier(0.2, 0.8, 0.2, 1),
+		height 190ms cubic-bezier(0.2, 0.8, 0.2, 1),
+		opacity 120ms ease;
+}
+[data-motion-group][data-motion-visible='true']::before {
+	opacity: 1;
+}
+[data-motion-group='nav']::before {
+	background: #b59aff14;
+	border-radius: 10px;
+	box-shadow: inset 0 1px 0 #b59aff32;
+}
+[data-motion-group] [data-motion-tab] {
+	position: relative;
+	z-index: 1;
+	background: transparent !important;
+	transition: color 160ms ease;
+}
+[data-motion-group] [data-motion-tab]:focus-visible {
+	outline: 2px solid #b59aff;
+	outline-offset: -2px;
+}
+.design-viewport:not(.reference-mode) [data-nav-icon] {
+	transition: background-color 160ms ease;
+}
+.design-viewport:not(.reference-mode)
+	:is(
+		[data-type-card],
+		.question-type-card,
+		.design-choice-row,
+		[data-filter-active],
+		.saved-question-card
+	) {
+	transition:
+		background-color 150ms ease,
+		outline-color 150ms ease,
+		border-color 150ms ease;
+}
+.design-viewport:not(.reference-mode)
+	:is(
+		.design-button,
+		.question-type-card,
+		.saved-question-card,
+		.design-filter-token
+	) {
+	transition:
+		background-color 150ms ease,
+		color 150ms ease,
+		scale 100ms ease;
+}
+.design-viewport:not(.reference-mode)
+	:is(
+		.design-button,
+		.question-type-card,
+		.saved-question-card,
+		.design-filter-token
+	):not(:disabled):active {
+	scale: 0.98;
+}
+.design-viewport:not(.reference-mode) [data-dialog-surface],
+.question-preview-card {
+	animation: dialog-enter 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.design-viewport:not(.reference-mode) [data-design-name='DialogBackdrop'],
+.question-preview-backdrop {
+	animation: overlay-enter 140ms ease-out;
+}
+.design-filter-menu,
+.scouter-options,
+.assignment-scouter-options {
+	animation: menu-enter 130ms cubic-bezier(0.2, 0.8, 0.2, 1);
+	transform-origin: top center;
+}
+.submission-notice {
+	animation: menu-enter 150ms ease-out;
+}
+@keyframes dialog-enter {
+	from {
+		opacity: 0;
+		scale: 0.96;
+	}
+	to {
+		opacity: 1;
+		scale: 1;
+	}
+}
+@keyframes overlay-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes menu-enter {
+	from {
+		opacity: 0;
+		translate: 0 -4px;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	[data-motion-group]::before,
+	.design-viewport:not(.reference-mode)
+		:is(
+			[data-motion-tab],
+			[data-nav-icon],
+			[data-type-card],
+			.question-type-card,
+			.design-choice-row,
+			[data-filter-active],
+			.saved-question-card,
+			.design-button,
+			.design-filter-token
+		) {
+		transition: none !important;
+	}
+	.design-viewport:not(.reference-mode) [data-dialog-surface],
+	.question-preview-card,
+	.design-viewport:not(.reference-mode) [data-design-name='DialogBackdrop'],
+	.question-preview-backdrop,
+	.design-filter-menu,
+	.scouter-options,
+	.assignment-scouter-options,
+	.submission-notice {
+		animation: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.design-type-icon,
+	.question-type-glyph {
+		transition: none !important;
+	}
+}

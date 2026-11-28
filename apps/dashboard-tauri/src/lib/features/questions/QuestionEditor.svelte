@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tabFocus } from '#lib/shared/motion/tabFocus.ts';
 	import {
 		Button,
 		TextField,
@@ -85,17 +86,20 @@
 	<div class="question-editor-scroll" data-layout-role="body">
 		<div
 			class="question-editor-tabs"
+			use:tabFocus={{ key: 'question', active: phase, variant: 'tabs' }}
 			role="tablist"
 			aria-label="Question editor"
 		>
 			<Button
 				variant="tertiary"
 				role="tab"
+				data-motion-tab="Type"
 				aria-selected={phase === 'Type'}
 				onclick={() => onphase('Type')}>Type</Button
 			><Button
 				variant="tertiary"
 				role="tab"
+				data-motion-tab="Options"
 				aria-selected={phase === 'Options'}
 				disabled={!draft.kind}
 				onclick={() => onphase('Options')}>Options</Button

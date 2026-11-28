@@ -48,6 +48,7 @@
 	import { submitMock } from '#lib/shared/forms/submission.svelte.ts';
 	import { PageMotion } from '#lib/app/routing/pageMotion.ts';
 	import '#lib/design/design.css';
+	import '#lib/shared/motion/motion.css';
 
 	const runtime = new DashboardSession();
 	setContext(DASHBOARD_SESSION, runtime);
@@ -124,8 +125,10 @@
 	let navbarTemplate: DesignNode | undefined;
 	$effect(() => {
 		const current = page.state.activeTab ?? id;
+		const route = id;
 		untrack(() => {
 			runtime.currentTab = navbarLabel(current) ?? runtime.currentTab;
+			runtime.currentRoute = route;
 		});
 	});
 	const presentations = new WeakMap<DesignNode, Presentation>();

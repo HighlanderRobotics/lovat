@@ -1,0 +1,50 @@
+import {test,expect} from '@playwright/test';
+const navbar='.design-dock [data-motion-group="nav"]';
+test('navbar focus glides on the persistent bar and follows Back',async({page})=>{
+ await page.goto('/dashboard/home');
+ await expect(page.locator(navbar)).toHaveAttribute('data-motion-active','Home');
+ await page.locator(navbar).evaluate(element=>{element.dataset.focusMoves='0';element.addEventListener('transitionrun',event=>{if((event as TransitionEvent).propertyName==='transform')element.dataset.focusMoves=String(Number(element.dataset.focusMoves)+1);});});
+ await page.getByRole('button',{name:'Forms',exact:true}).click();
+ await expect(page.locator(navbar)).toHaveAttribute('data-motion-active','Forms');
+ await expect.poll(()=>page.locator(navbar).getAttribute('data-focus-moves')).not.toBe('0');
+ await expect(page.getByRole('button',{name:'Forms',exact:true})).toHaveAttribute('aria-current','page');
+ await page.goBack();
+ await expect(page.locator(navbar)).toHaveAttribute('data-motion-active','Home');
+ await page.screenshot({path:'artifacts/motion-navbar.png'});
+});
+test('form and question tab highlights track their selected tab across page remounts',async({page})=>{
+ await page.goto('/dashboard/forms/questions');
+ await page.getByRole('button',{name:'Assignments',exact:true}).click();
+ const formTabs=page.locator('[data-motion-group="tabs"][data-motion-active="Assignments"]');
+ await expect(formTabs).toBeVisible();
+ await expect(page.getByRole('button',{name:'Assignments',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Responses',exact:true}).click();
+ await expect(page.locator('[data-motion-group="tabs"][data-motion-active="Responses"]')).toBeVisible();
+ await page.goto('/dashboard/forms/questions');
+ await page.getByRole('button',{name:'Add new question',exact:true}).click();
+ await expect(page.getByRole('tablist',{name:'Question editor'})).toHaveAttribute('data-motion-active','Type');
+ await page.getByRole('radio',{name:'Photo',exact:true}).click();
+ await page.getByRole('tab',{name:'Options',exact:true}).click();
+ await expect(page.getByRole('tablist',{name:'Question editor'})).toHaveAttribute('data-motion-active','Options');
+});
+test('collapse can be reversed rapidly without leaving stale hidden content',async({page})=>{
+ await page.goto('/dashboard/forms/assignments/team');
+ const heading=page.getByRole('button',{name:'Coverage',exact:true});
+ const card=page.getByRole('button',{name:'4/20 teams scouted 16/20 teams assigned',exact:true});
+ await heading.click();await heading.click();
+ await expect(heading).toHaveAttribute('aria-expanded','true');
+ await expect(card).toBeVisible();
+ await expect.poll(()=>card.evaluate(element=>element.getAnimations().length)).toBe(0);
+ await heading.click();await expect(card).toBeHidden();
+});
+test('reduced motion retains tab focus and disables animated highlights and dialogs',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/dashboard/home');
+ await page.getByRole('button',{name:'Forms',exact:true}).click();
+ await expect(page.locator(navbar)).toHaveAttribute('data-motion-active','Forms');
+ expect(await page.locator(navbar).evaluate(element=>getComputedStyle(element,'::before').transitionDuration)).toBe('0s');
+ await page.goto('/dashboard/api-keys');
+ await page.getByRole('button',{name:'Create a new key',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await expect(page.getByRole('dialog')).toHaveCSS('animation-name','none');
+});

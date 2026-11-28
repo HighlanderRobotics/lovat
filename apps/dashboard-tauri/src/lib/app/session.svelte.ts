@@ -37,6 +37,7 @@ export class DashboardSession {
 		this.members.promotionNotice = `Promoted ${selected.length} analyst${selected.length === 1 ? '' : 's'}`;
 	}
 	currentTab = $state('Home');
+	currentRoute = $state<RouteName>('home');
 	required(kind: string) {
 		return (
 			this.checks[`question:${kind}:required`] ??

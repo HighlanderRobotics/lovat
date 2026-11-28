@@ -3,6 +3,9 @@ import type { RouteName } from '#lib/app/routing/routes.ts';
 import type { Choice } from '#lib/app/session.svelte.ts';
 
 export interface DesignNode {
+	motionGroup?: 'nav' | 'tabs';
+	motionScope?: 'navbar' | 'form' | 'route' | 'question';
+	motionValue?: string;
 	action?: AppAction;
 	questionCard?: boolean;
 	savedQuestions?: boolean;

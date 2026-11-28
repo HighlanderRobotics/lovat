@@ -246,5 +246,37 @@ export function prepareScene(
 	}
 	for (const node of nodes(tree))
 		node.action = actionForNode(frame, node, scope);
+	for (const group of nodes(tree)) {
+		const items = group.children.filter(
+			(child): child is DesignNode => typeof child !== 'string',
+		);
+		if (group.name === 'TabBar') {
+			group.motionGroup = 'nav';
+			group.motionScope = 'navbar';
+			for (const item of items) item.motionValue = item.navLabel;
+		} else if (items.some((item) => item.formTabValue)) {
+			group.motionGroup = 'tabs';
+			group.motionScope = 'form';
+			for (const item of items) item.motionValue = item.formTabValue;
+		} else if (items.some((item) => item.name === 'Segment')) {
+			group.motionGroup = 'tabs';
+			group.motionScope = 'route';
+			for (const item of items)
+				if (item.action?.type === 'navigation.open')
+					item.motionValue = item.action.route;
+		} else if (
+			items.some((item) => item.name === 'Tab' && textOf(item) === 'Options')
+		) {
+			group.motionGroup = 'tabs';
+			group.motionScope = 'question';
+			for (const item of items) item.motionValue = textOf(item);
+		}
+	}
+
+	for (const group of nodes(tree))
+		if (group.motionGroup)
+			for (const item of group.children)
+				if (typeof item !== 'string' && item.motionValue)
+					item.motionScope = group.motionScope;
 	return tree;
 }

@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
+	import { tabFocus } from '#lib/shared/motion/tabFocus.ts';
+	import { collapse } from '#lib/shared/motion/collapse.ts';
+	import { viewBase } from '#lib/app/routing/routes.ts';
 	import {
 		DASHBOARD_SESSION,
 		type DashboardSession,
@@ -96,8 +99,6 @@
 			(node.responseSummary && runtime.forms.formTab !== 'Responses')
 		)
 			return true;
-		if (node.collapseGroup && runtime.collapsed[node.collapseGroup])
-			return true;
 		if (node.swipeKey && runtime.questions.deleted[node.swipeKey]) return true;
 		if (
 			node.matchLevel &&
@@ -166,6 +167,19 @@
 	);
 	const interactiveNames =
 		/^(Tab|Chip|SelectableCard|ListItem|TableRow|MenuItem|SheetAction|ComboOption|NavItem|TabBarItem|Avatar|Checkbox|Radio|Segment|Toggle|Destination)$/;
+	const motionActive = $derived(
+		typeof node === 'string' || !node.motionScope
+			? ''
+			: node.motionScope === 'navbar'
+				? runtime.currentTab
+				: node.motionScope === 'form'
+					? (runtime.forms.formTab ?? 'Questions')
+					: node.motionScope === 'question'
+						? runtime.currentRoute === 'questions.type'
+							? 'Type'
+							: 'Options'
+						: viewBase(runtime.currentRoute),
+	);
 	let selected = $state(false);
 	function click(event: MouseEvent | KeyboardEvent, current: DesignNode) {
 		if (current.name === 'DialogBackdrop') {
@@ -278,6 +292,7 @@
 	</div>
 {:else if node.navIcon && !reference}
 	<span
+		data-nav-icon
 		style={style +
 			`;background-color:${runtime.currentTab === node.navIcon ? '#b59aff' : '#b7b7b7'};mask-image:url('${node.src}');mask-size:100% 100%;mask-repeat:no-repeat`}
 		aria-hidden="true"
@@ -557,6 +572,22 @@
 			['Lovat', 'Teams', 'Matches'].includes(textOf(node)))}
 	<svelte:element
 		this={node.tag}
+		use:tabFocus={!reference && node.motionGroup
+			? {
+					key: node.motionScope!,
+					active: motionActive,
+					variant: node.motionGroup,
+				}
+			: undefined}
+		use:collapse={!reference && node.collapseGroup
+			? !!runtime.collapsed[node.collapseGroup]
+			: undefined}
+		data-motion-tab={!reference ? node.motionValue : undefined}
+		data-dialog-surface={(!reference && node.dialogSurface) || undefined}
+		data-type-card={(!reference && node.typeValue) || undefined}
+		aria-current={node.navLabel && runtime.currentTab === node.navLabel
+			? 'page'
+			: undefined}
 		inert={node.inert || undefined}
 		aria-disabled={runtime.submission.status === 'pending' ||
 			node.disabled ||
@@ -594,10 +625,12 @@
 		aria-expanded={node.collapseKey
 			? !runtime.collapsed[node.collapseKey]
 			: undefined}
-		aria-pressed={node.filter
-			? (runtime.scouting.filters[node.filter.group] ?? 'All') ===
-				node.filter.value
-			: undefined}
+		aria-pressed={node.motionValue && !node.navLabel
+			? node.motionValue === motionActive
+			: node.filter
+				? (runtime.scouting.filters[node.filter.group] ?? 'All') ===
+					node.filter.value
+				: undefined}
 		aria-modal={node.dialogSurface || undefined}
 		role={node.dialogSurface
 			? 'dialog'
