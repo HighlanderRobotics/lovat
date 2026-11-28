@@ -1,0 +1,59 @@
+name: Dashboard (Tauri)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/dashboard-tauri/**
+      - .github/workflows/dashboard-tauri.yml
+  pull_request:
+    paths:
+      - apps/dashboard-tauri/**
+      - .github/workflows/dashboard-tauri.yml
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: apps/dashboard-tauri
+
+jobs:
+  web:
+    name: Svelte checks, tests, and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/dashboard-tauri/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/dashboard-tauri/package-lock.json
+      - run: npm ci
+      - run: npm run format:rewrite:check
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+        env:
+          LOVAT_API_BASE: https://api.lovat.app
+          LOVAT_WEBSITE_URL: https://lovat.app
+
+      - name: Install Chromium for dashboard journeys
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  native:
+    name: Tauri shell compiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install WebKitGTK and build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      # tauri::generate_context! embeds the frontend, so the folder must exist.
+      - run: mkdir -p build
+      - run: cargo check --locked
+        working-directory: apps/dashboard-tauri/src-tauri

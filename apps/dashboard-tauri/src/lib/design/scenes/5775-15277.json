@@ -1,0 +1,619 @@
+{
+  "tag": "div",
+  "id": "5775:15277",
+  "name": "Choose Tournament Source",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:15278",
+      "name": "Settings",
+      "style": "position:absolute;display:contents;left:0;top:65px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15279",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;top:65px;width:393px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15280",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:5px;align-items:flex-start;line-height:0;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15281",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15282",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15283",
+                          "name": "Box",
+                          "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:15284",
+                              "name": "Icon",
+                              "style": "position:relative;flex-shrink:0;width:12px;height:12px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/554ed.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:15285",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15286",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15287",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15287;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15287;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15288",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15289",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15289;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15289;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15290",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15291",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15291;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15291;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15292",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15293",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15293;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15293;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15294",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15295",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15295;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15295;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15296",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15297",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15297;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15297;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15298",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15299",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15299;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15299;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15300",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15301",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15301;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15301;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15302",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15303",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15303;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15303;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15304",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15305",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15305;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15305;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15306",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15307",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15307;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15307;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 San Francisco District Event"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15308",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15309",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:15309;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:15309;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "2026 Chezy Champs"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15310",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15311",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;gap:10px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15312",
+                      "name": "Button",
+                      "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;flex:1 0 0;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;min-width:1px;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px)",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5775:15312;43:52",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Just this tournament"
+                          ]
+                        }
+                      ],
+                      "control": "button",
+                      "label": "Just this tournament",
+                      "variant": "secondary"
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15313",
+                      "name": "Button",
+                      "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;flex:1 0 0;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;min-width:1px;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px)",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5775:15313;43:52",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Select all"
+                          ]
+                        }
+                      ],
+                      "control": "button",
+                      "label": "Select all",
+                      "variant": "secondary"
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15314",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:15314;43:19",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Apply changes"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Apply changes",
+                  "variant": "primary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15315",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15316",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15317",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15317;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:15317;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:15318",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Use Data From Tournaments"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15319",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15320",
+                  "name": "lucide/search",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/cc651.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

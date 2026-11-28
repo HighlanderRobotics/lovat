@@ -1,0 +1,1203 @@
+{
+  "tag": "div",
+  "id": "5775:15010",
+  "name": "View users",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:15011",
+      "name": "Settings",
+      "style": "position:absolute;display:contents;left:0;top:65px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15012",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:center;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;top:65px;width:393px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15013",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:5px;align-items:flex-start;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Scouting Lead"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Scouting Lead"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Scouting Lead"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5494:3064",
+                  "name": "",
+                  "style": "background-color:var(--mg-list-hover,rgba(255,255,255,0.06));align-content:stretch;display:flex;gap:var(--space-3,12px);align-items:center;min-height:48px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);padding-top:var(--mg-gap-inline,8px);padding-bottom:var(--mg-gap-inline,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5494:3065",
+                      "name": "Avatar",
+                      "style": "background-color:var(--mg-avatar-translucent,rgba(255,255,255,0.1));border-width:1px;border-color:var(--mg-line-edge,rgba(255,255,255,0.08));border-style:solid;align-content:stretch;display:flex;align-items:center;justify-content:center;overflow:clip;position:relative;border-radius:9999px;flex-shrink:0;width:32px;height:32px;border-width:0;outline:1px solid var(--mg-line-edge,rgba(255,255,255,0.08));outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5494:3065;49:62",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-avatar-row-lh,12px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-avatar-row,12px);text-align:center;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "AB"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3066",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;min-width:1px;padding-left:4px;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3067",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:6px;align-items:center;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5494:3069",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;overflow:hidden;position:relative;font-size:15px;color:var(--mg-fg-primary,#e6e6e6);text-overflow:ellipsis;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Title"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5494:3070",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);overflow:hidden;position:relative;flex-shrink:0;font-size:13px;color:var(--mg-fg-secondary,#b7b7b7);text-overflow:ellipsis;width:100%;white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5494:3071",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-list-meta-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-list-meta,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Analyst"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5494:3072",
+                      "name": "Icon slot",
+                      "style": "height:16px;position:relative;flex-shrink:0;width:6px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5494:3073",
+                          "name": "Chevron",
+                          "style": "position:absolute;left:-4px;width:16px;height:16px;top:0",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/111c6.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15026",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15027",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15028",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15028;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:15028;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:15029",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Members"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15030",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15031",
+                  "name": "lucide/search",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/cc651.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

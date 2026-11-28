@@ -1,0 +1,13 @@
+node_modules
+/build
+/.svelte-kit
+/src-tauri/target
+/src-tauri/gen/schemas
+.env
+.env.*
+!.env.example
+
+.design-reference/
+/artifacts/
+/test-results/
+/playwright-report/

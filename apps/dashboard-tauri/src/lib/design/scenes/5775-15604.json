@@ -1,0 +1,546 @@
+{
+  "tag": "div",
+  "id": "5775:15604",
+  "name": "Manage API Keys multiple select",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:15605",
+      "name": "Settings",
+      "style": "position:absolute;display:contents;left:0;top:65px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15606",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;top:65px;width:393px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15607",
+              "name": "Table",
+              "style": "align-content:stretch;display:flex;flex-direction:column;height:761px;align-items:center;margin-bottom:-58px;position:relative;flex-shrink:0",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15608",
+                  "name": "TableHeader",
+                  "style": "align-content:stretch;display:flex;align-items:center;position:relative;flex-shrink:0;width:341px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15609",
+                      "name": "Select",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:48px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15610",
+                          "name": "Checkbox",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);align-items:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:15610;47:434",
+                              "name": "Box",
+                              "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:15610;47:435",
+                                  "name": "Icon",
+                                  "style": "position:relative;flex-shrink:0;width:12px;height:12px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/c8d26.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15611",
+                      "name": "TableHeaderCell",
+                      "style": "border-color:var(--mg-line-subtle,#424242);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;flex:1 0 0;gap:var(--space-1,4px);height:44px;align-items:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15612",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Name"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15613",
+                      "name": "TableHeaderCell",
+                      "style": "border-color:var(--mg-line-subtle,#424242);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:92px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15614",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Last used"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:15615",
+                          "name": "Sort",
+                          "style": "position:relative;flex-shrink:0;width:14px;height:14px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/4d704.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15616",
+                      "name": "TableHeaderCell",
+                      "style": "border-color:var(--mg-line-subtle,#424242);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;flex:1 0 0;gap:var(--space-1,4px);height:44px;align-items:center;justify-content:flex-end;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15617",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Requests"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15618",
+                  "name": "TableRow",
+                  "style": "align-content:stretch;display:flex;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15619",
+                      "name": "Select",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:48px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15620",
+                          "name": "Checkbox",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);align-items:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:15620;47:403",
+                              "name": "Box",
+                              "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:15620;47:404",
+                                  "name": "Icon",
+                                  "style": "position:relative;flex-shrink:0;width:12px;height:12px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/554ed.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15621",
+                      "name": "Name cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:102px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15622",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Pit Display"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15623",
+                      "name": "Status cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:93px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15624",
+                          "name": "StatusIndicator",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-status,7px);align-items:center;overflow:clip;position:relative;flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5775:15624;49:35",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "1 minute ago"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15625",
+                      "name": "Value cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;justify-content:flex-end;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:98px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15626",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "12,325"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15627",
+                  "name": "TableRow",
+                  "style": "align-content:stretch;display:flex;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15628",
+                      "name": "Select",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:48px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15629",
+                          "name": "Checkbox",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);align-items:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:15629;47:403",
+                              "name": "Box",
+                              "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:15629;47:404",
+                                  "name": "Icon",
+                                  "style": "position:relative;flex-shrink:0;width:12px;height:12px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/554ed.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15630",
+                      "name": "Name cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:102px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15631",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Scouting Hub"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15632",
+                      "name": "Status cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:93px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15633",
+                          "name": "StatusIndicator",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-status,7px);align-items:center;overflow:clip;position:relative;flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5775:15633;49:35",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "3 hours ago"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15634",
+                      "name": "Value cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;justify-content:flex-end;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:98px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15635",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "1,284"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:15636",
+                  "name": "TableRow",
+                  "style": "align-content:stretch;display:flex;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:15637",
+                      "name": "Select",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:48px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15638",
+                          "name": "Checkbox",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);align-items:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:15638;47:382",
+                              "name": "Box",
+                              "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15639",
+                      "name": "Name cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:102px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15640",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Picklists"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15641",
+                      "name": "Status cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:93px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:15642",
+                          "name": "StatusIndicator",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-status,7px);align-items:center;overflow:clip;position:relative;flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5775:15642;49:35",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "45 days ago"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:15643",
+                      "name": "Value cell",
+                      "style": "border-color:var(--mg-line-row,#373737);border-bottom-width:1px;border-style:solid;align-content:stretch;display:flex;gap:var(--space-1,4px);height:44px;align-items:center;justify-content:flex-end;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;flex-shrink:0;width:98px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:15644",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-sm-lh,18px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "234"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15645",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;padding-top:7px;padding-bottom:7px;position:relative;flex-shrink:0",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15646",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-danger-strong,#a8302e);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:341px",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:15646;43:118",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-danger,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Delete 2 keys"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Delete 2 keys",
+                  "variant": "danger"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:15647",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:15648",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:15649",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:15649;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:15649;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:15650",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "Manage API Keys"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:15651",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:15652",
+                  "name": "lucide/search",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

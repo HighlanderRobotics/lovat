@@ -1,0 +1,7480 @@
+[
+  {
+    "path": "static/design-assets/0026c.svg",
+    "bytes": 628,
+    "slots": [
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/0343f.svg",
+    "bytes": 258,
+    "slots": [
+      {
+        "frame": "5775-15371",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15371",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/089b3.svg",
+    "bytes": 325,
+    "slots": [
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/0ccbb.svg",
+    "bytes": 302,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15604",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15653",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14350",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15812",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15445",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16455",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15371",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17384",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14879",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14265",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17054",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14615",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14585",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15863",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16104",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16407",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15712",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15895",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14284",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15753",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15322",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15990",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14968",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15945",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15553",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14922",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16335",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14810",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15386",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17374",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15277",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/111c6.svg",
+    "bytes": 318,
+    "slots": [
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/11e8d.svg",
+    "bytes": 435,
+    "slots": [
+      {
+        "frame": "5775-15107",
+        "node": "5495:4477",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15116",
+        "node": "5495:4477",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15195",
+        "node": "5495:4477",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15180",
+        "node": "5495:4477",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15211",
+        "node": "5495:4477",
+        "kind": "mask"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/1ad18.svg",
+    "bytes": 1274,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/1afff.svg",
+    "bytes": 327,
+    "slots": [
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/1e9b7.svg",
+    "bytes": 446,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/1f35c.svg",
+    "bytes": 438,
+    "slots": [
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/1fb01.png",
+    "bytes": 1669,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/23808.svg",
+    "bytes": 618,
+    "slots": [
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/27a90.svg",
+    "bytes": 494,
+    "slots": [
+      {
+        "frame": "5787-14615",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14585",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/2a13a.svg",
+    "bytes": 780,
+    "slots": [
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/2e4a4.svg",
+    "bytes": 400,
+    "slots": [
+      {
+        "frame": "5775-15990",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16335",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14810",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/2f645.svg",
+    "bytes": 584,
+    "slots": [
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3036c.svg",
+    "bytes": 1648,
+    "slots": [
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3249a.png",
+    "bytes": 2862,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3324a.svg",
+    "bytes": 575,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3589c.svg",
+    "bytes": 494,
+    "slots": [
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3f77d.svg",
+    "bytes": 1099,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/3fcc5.svg",
+    "bytes": 892,
+    "slots": [
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/40f43.svg",
+    "bytes": 1555,
+    "slots": [
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/41f9b.svg",
+    "bytes": 403,
+    "slots": [
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/427e3.svg",
+    "bytes": 321,
+    "slots": [
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/447d5.svg",
+    "bytes": 1075,
+    "slots": [
+      {
+        "frame": "5787-17054",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/49229.svg",
+    "bytes": 327,
+    "slots": [
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/4a41a.svg",
+    "bytes": 322,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16455",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15033",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16407",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14922",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16335",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/4a61c.svg",
+    "bytes": 258,
+    "slots": [
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/4aa19.svg",
+    "bytes": 551,
+    "slots": [
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/4ac69.svg",
+    "bytes": 1159,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/4d704.svg",
+    "bytes": 347,
+    "slots": [
+      {
+        "frame": "5775-15604",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15653",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15812",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15445",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15863",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15712",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15895",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15753",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15322",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15553",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15386",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/525a5.svg",
+    "bytes": 1159,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/534ef.svg",
+    "bytes": 808,
+    "slots": [
+      {
+        "frame": "5787-14615",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14585",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/53bd1.svg",
+    "bytes": 452,
+    "slots": [
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/5442b.svg",
+    "bytes": 3561,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/55171.svg",
+    "bytes": 343,
+    "slots": [
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/554ed.svg",
+    "bytes": 314,
+    "slots": [
+      {
+        "frame": "5775-15604",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15604",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15812",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16455",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14879",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16104",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16407",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15895",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15895",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15753",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15945",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15553",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14922",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15277",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/5cc93.svg",
+    "bytes": 870,
+    "slots": [
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/5ee9c.svg",
+    "bytes": 363,
+    "slots": [
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/5f1fd.svg",
+    "bytes": 319,
+    "slots": [
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/5ff63.svg",
+    "bytes": 679,
+    "slots": [
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/62d5a.svg",
+    "bytes": 277,
+    "slots": [
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/6a11d.svg",
+    "bytes": 338,
+    "slots": [
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/6a88c.svg",
+    "bytes": 1075,
+    "slots": [
+      {
+        "frame": "5775-15147",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15131",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15228",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15195",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15211",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15163",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/6dba2.svg",
+    "bytes": 326,
+    "slots": [
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/6fef1.svg",
+    "bytes": 741,
+    "slots": [
+      {
+        "frame": "5787-14615",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14585",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/70eca.svg",
+    "bytes": 446,
+    "slots": [
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/78a1d.svg",
+    "bytes": 493,
+    "slots": [
+      {
+        "frame": "5775-15445",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/7a05c.svg",
+    "bytes": 405,
+    "slots": [
+      {
+        "frame": "5775-14350",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14265",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17054",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14615",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14585",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14284",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/7bac0.svg",
+    "bytes": 336,
+    "slots": [
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/7dc75.svg",
+    "bytes": 994,
+    "slots": [
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/7f261.svg",
+    "bytes": 582,
+    "slots": [
+      {
+        "frame": "5775-17394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17384",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17374",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/7fe23.svg",
+    "bytes": 439,
+    "slots": [
+      {
+        "frame": "5775-15147",
+        "node": "I5775:15150;131:1948",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15131",
+        "node": "I5775:15134;131:1948",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15228",
+        "node": "I5775:15231;131:1948",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15253",
+        "node": "I5775:15256;131:1948",
+        "kind": "mask"
+      },
+      {
+        "frame": "5775-15163",
+        "node": "I5775:15166;131:1948",
+        "kind": "mask"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/83187.svg",
+    "bytes": 313,
+    "slots": [
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/87068.svg",
+    "bytes": 877,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14350",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14265",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17054",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14284",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/8862c.svg",
+    "bytes": 1046,
+    "slots": [
+      {
+        "frame": "5775-16149",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16220",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16257",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16294",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16180",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/893af.svg",
+    "bytes": 405,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/8a4bb.svg",
+    "bytes": 919,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/8dc48.svg",
+    "bytes": 1159,
+    "slots": [
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/91317.svg",
+    "bytes": 553,
+    "slots": [
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/99e03.svg",
+    "bytes": 293,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14284",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/9d1a2.svg",
+    "bytes": 659,
+    "slots": [
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/9d7f9.svg",
+    "bytes": 1138,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/9dbf8.svg",
+    "bytes": 676,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a461c.svg",
+    "bytes": 814,
+    "slots": [
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a4c5c.svg",
+    "bytes": 812,
+    "slots": [
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11060",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10624",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a4eeb.png",
+    "bytes": 2716,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a620f.svg",
+    "bytes": 326,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a82d2.svg",
+    "bytes": 934,
+    "slots": [
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/a8497.svg",
+    "bytes": 313,
+    "slots": [
+      {
+        "frame": "5775-15371",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10120",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/acb0f.svg",
+    "bytes": 306,
+    "slots": [
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17005",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14235",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14284",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/afeb0.svg",
+    "bytes": 1113,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/baed9.png",
+    "bytes": 16143391,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/be8aa.svg",
+    "bytes": 869,
+    "slots": [
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/c0cb7.svg",
+    "bytes": 520,
+    "slots": [
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15653",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15812",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15863",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15195",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15712",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15211",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/c77fc.png",
+    "bytes": 1884,
+    "slots": [
+      {
+        "frame": "5775-17658",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17593",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17278",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10287",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17119",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17181",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/c8d26.svg",
+    "bytes": 304,
+    "slots": [
+      {
+        "frame": "5775-15604",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15895",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/cc651.svg",
+    "bytes": 438,
+    "slots": [
+      {
+        "frame": "5775-15059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17404",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14879",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16059",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16104",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15010",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-17466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15990",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14968",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15945",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14810",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15083",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15277",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d0c1e.svg",
+    "bytes": 1096,
+    "slots": [
+      {
+        "frame": "5775-15253",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d17d3.svg",
+    "bytes": 1104,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d1c24.svg",
+    "bytes": 1648,
+    "slots": [
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16503",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-16811",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d5f5b.svg",
+    "bytes": 780,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d6a53.svg",
+    "bytes": 919,
+    "slots": [
+      {
+        "frame": "5775-14720",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14769",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10069",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/d943f.svg",
+    "bytes": 1075,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/dfc39.png",
+    "bytes": 8934635,
+    "slots": [
+      {
+        "frame": "5775-9936",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-9807",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/e1b60.svg",
+    "bytes": 993,
+    "slots": [
+      {
+        "frame": "5775-14350",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14350",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14394",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-17179",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/e1d2e.svg",
+    "bytes": 333,
+    "slots": [
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14699",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/e258b.svg",
+    "bytes": 1138,
+    "slots": [
+      {
+        "frame": "5787-17082",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/e97bd.svg",
+    "bytes": 405,
+    "slots": [
+      {
+        "frame": "5775-11203",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/e99db.svg",
+    "bytes": 912,
+    "slots": [
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/ef193.svg",
+    "bytes": 342,
+    "slots": [
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/f1391.svg",
+    "bytes": 2664,
+    "slots": [
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10200",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11390",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12283",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14547",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13164",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14566",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-11985",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14528",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-12872",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-13803",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/f2888.svg",
+    "bytes": 452,
+    "slots": [
+      {
+        "frame": "5787-14760",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10144",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14183",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14704",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5787-14646",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14514",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14128",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14630",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14466",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14562",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/f2e8a.svg",
+    "bytes": 319,
+    "slots": [
+      {
+        "frame": "5787-17116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-14305",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/f7bfb.svg",
+    "bytes": 852,
+    "slots": [
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10457",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10925",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-10766",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/fdd76.svg",
+    "bytes": 302,
+    "slots": [
+      {
+        "frame": "5775-15147",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15107",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15131",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15116",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15228",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15195",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15253",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15180",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15211",
+        "node": null,
+        "kind": "image"
+      },
+      {
+        "frame": "5775-15163",
+        "node": null,
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "path": "static/design-assets/166a7.svg",
+    "bytes": 3942,
+    "slots": [
+      {
+        "frame": "1864-486",
+        "node": "1864:486",
+        "kind": "image"
+      }
+    ]
+  }
+]

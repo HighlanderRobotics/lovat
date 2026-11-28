@@ -1,0 +1,107 @@
+import type { AppAction } from '#lib/app/actions.ts';
+import type { RouteName } from '#lib/app/routing/routes.ts';
+import type { Choice } from '#lib/app/session.svelte.ts';
+
+export interface DesignNode {
+	motionGroup?: 'nav' | 'tabs';
+	motionScope?: 'navbar' | 'form' | 'route' | 'question';
+	motionValue?: string;
+	action?: AppAction;
+	questionCard?: boolean;
+	savedQuestions?: boolean;
+	draftQuestionId?: string;
+	navLabel?: string;
+	navIcon?: string;
+	previewOption?: { key: string; label: string; hint: string };
+	disabled?: boolean;
+	questionHeadingFor?: string;
+	questionOptionalFor?: string;
+	questionHintFor?: string;
+	optionHintKey?: string;
+	swipeHint?: string;
+	profileCopy?: string;
+	profileRole?: boolean;
+	multiline?: boolean;
+	previewRadio?: boolean;
+	typeIcon?: string;
+	memberName?: string;
+	memberRole?: boolean;
+	promotionUser?: string;
+	responseDetail?: RouteName;
+	apiTable?: boolean;
+	inert?: boolean;
+	teamAssignments?: boolean;
+	scouterSelect?: boolean;
+	optionTextKey?: string;
+	editOption?: { key: string; label: string; hint?: string };
+	searchRow?: boolean;
+	searchTrigger?: boolean;
+	rankRow?: boolean;
+	searchBar?: boolean;
+	searchPlaceholder?: string;
+	profileEditIcon?: string;
+	leftAction?: boolean;
+	formTabValue?: string;
+	hideForResponses?: boolean;
+	responseSummary?: boolean;
+	profileBar?: boolean;
+	profileEdit?: DesignNode;
+	inlineFlex?: boolean;
+	collapseKey?: string;
+	collapseGroup?: string;
+	filter?: { group: string; value: string };
+	filterItem?: { group: string; status: string };
+	filterSelect?: boolean;
+	matchLevel?: string;
+	filterEmpty?: boolean;
+	swipeKey?: string;
+	swipeLabel?: string;
+	dialogSurface?: boolean;
+	passive?: boolean;
+	backAction?: boolean;
+	step?: { key: string; delta: number; minKey?: string; maxKey?: string };
+	stepperKey?: string;
+	numberKey?: string;
+	actionLabel?: string;
+	typeSave?: boolean;
+	rowChoiceKey?: string;
+	choice?: Choice;
+	inputKey?: string;
+	placeholder?: string;
+	searchScope?: string;
+	searchable?: boolean;
+	typeValue?: string;
+	summaryScope?: string;
+	tag: string;
+	id?: string;
+	name: string;
+	style: string;
+	children: (DesignNode | string)[];
+	src?: string;
+	control?: 'button' | 'field' | 'input';
+	label?: string;
+	variant?: 'primary' | 'secondary' | 'tertiary' | 'danger';
+	value?: string;
+	inputType?: string;
+	choiceGroup?: string;
+	choiceDefault?: string;
+	choiceValue?: string;
+}
+
+export function textOf(node: DesignNode | string): string {
+	return typeof node === 'string'
+		? node
+		: node.children.map(textOf).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Fit full-page containers below the native status bar; keep control sizes. */
+export function frameStyle(style: string, delta: number): string {
+	if (!delta) return style;
+	return style.replace(
+		/(^|;)(height|top):(\d+(?:\.\d+)?)px(?=;|$)/g,
+		(match, separator, property, value) =>
+			Number(value) >= 650
+				? `${separator}${property}:${Math.max(0, Number(value) - delta)}px`
+				: match,
+	);
+}

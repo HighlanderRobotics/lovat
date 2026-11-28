@@ -1,0 +1,53 @@
+/* Existing feature styles consume the same Magnolia v2 tokens as new screens. */
+.mg-v2 {
+  --primary: var(--mg-v2-color-fg-accent);
+  --on-primary: var(--mg-v2-color-fg-on-accent);
+  --primary-container: var(--mg-v2-color-bg-accent-subtle);
+  --on-primary-container: var(--mg-v2-color-fg-accent);
+  --surface: var(--mg-v2-color-bg-base);
+  --surface-high: var(--mg-v2-color-bg-raised);
+  --surface-higher: var(--mg-v2-color-bg-overlay);
+  --on-surface: var(--mg-v2-color-fg-primary);
+  --on-surface-variant: var(--mg-v2-color-fg-secondary);
+  --body-text: var(--mg-v2-color-fg-secondary);
+  --outline: var(--mg-v2-gray-600);
+  --outline-variant: var(--mg-v2-gray-700);
+  --error: var(--mg-v2-color-fg-danger);
+  --error-container: var(--mg-v2-color-bg-danger-subtle);
+  --on-error-container: var(--mg-v2-color-fg-danger);
+  min-height: 100dvh;
+}
+.mg-v2 .btn {
+  border-radius: 8px;
+  min-height: 44px;
+  font:
+    500 15px/20px Roboto,
+    sans-serif;
+}
+.mg-v2 .btn-filled {
+  background: var(--mg-v2-color-bg-accent-strong);
+  color: var(--mg-v2-color-fg-on-accent);
+}
+.mg-v2 .btn-tonal {
+  background: var(--mg-v2-color-bg-control);
+  color: var(--mg-v2-color-fg-primary);
+}
+.mg-v2 .field input,
+.mg-v2 .field select,
+.mg-v2 .field textarea {
+  border-radius: 8px;
+  font:
+    400 15px/22px Roboto,
+    sans-serif;
+}
+.mg-v2 .field > span {
+  font:
+    500 13px/16px Roboto,
+    sans-serif;
+}
+.mg-v2 .mg2-top-bar {
+  width: 100%;
+}
+.mg-v2 .mg2-top-bar-row {
+  width: 100%;
+}

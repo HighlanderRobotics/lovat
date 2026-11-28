@@ -1,0 +1,500 @@
+{
+  "tag": "div",
+  "id": "5787:14615",
+  "name": "View form (Assignments) alliance",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5787:14616",
+      "name": "",
+      "style": "position:absolute;filter:blur(2px);height:787px;left:0;top:65px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5787:14617",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:center;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;right:0;top:0",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5787:14618",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;align-items:flex-start;justify-content:space-between;min-height:1px;padding-top:5px;position:relative;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5787:14619",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5787:14620",
+                      "name": "TextField",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:4px;align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5787:14620;44:179",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Name"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "I5787:14620;44:176",
+                          "name": "Field",
+                          "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14620;44:177",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "DCMP Break Scouting"
+                              ],
+                              "control": "input",
+                              "label": "Name",
+                              "value": "DCMP Break Scouting",
+                              "inputType": "text"
+                            }
+                          ],
+                          "label": "DCMP Break Scouting",
+                          "value": "DCMP Break Scouting",
+                          "inputType": "text"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5787:14621",
+                      "name": "TextArea",
+                      "style": "align-content:stretch;display:flex;flex-direction:column;gap:4px;align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5787:14621;44:213",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Description"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "I5787:14621;44:210",
+                          "name": "Field",
+                          "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--space-2,8px);align-items:flex-start;min-height:88px;overflow:clip;padding-bottom:10px;padding-top:var(--mg-pad-textarea-top,9px);padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14621;44:211",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Lorem ipsum dolor sit amet consectetur adipiscing elit. Libero lorem est accusamus omnis quas dignissimos. Adipiscing placeat voluptas consequatur illum in ducimus eos deserunt dolores est. Molestias accusamus quo nulla cillum dolorem eu aliqua quas sed nulla maxime."
+                              ],
+                              "control": "input",
+                              "label": "Description",
+                              "value": "Lorem ipsum dolor sit amet consectetur adipiscing elit. Libero lorem est accusamus omnis quas dignissimos. Adipiscing placeat voluptas consequatur illum in ducimus eos deserunt dolores est. Molestias accusamus quo nulla cillum dolorem eu aliqua quas sed nulla maxime.",
+                              "inputType": "text",
+                              "multiline": true
+                            }
+                          ],
+                          "label": "Lorem ipsum dolor sit amet consectetur adipiscing elit. Libero lorem est accusamus omnis quas dignissimos. Adipiscing placeat voluptas consequatur illum in ducimus eos deserunt dolores est. Molestias accusamus quo nulla cillum dolorem eu aliqua quas sed nulla maxime.",
+                          "value": "Lorem ipsum dolor sit amet consectetur adipiscing elit. Libero lorem est accusamus omnis quas dignissimos. Adipiscing placeat voluptas consequatur illum in ducimus eos deserunt dolores est. Molestias accusamus quo nulla cillum dolorem eu aliqua quas sed nulla maxime.",
+                          "inputType": "text"
+                        },
+                        {
+                          "tag": "div",
+                          "id": "I5787:14621;44:214",
+                          "name": "Footer",
+                          "style": "align-content:stretch;display:flex;align-items:center;justify-content:flex-end;overflow:clip;padding-top:3px;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14621;44:215",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-field-help-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-field-help,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "68 / 280"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5787:14622",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Target"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5787:14623",
+                      "name": "TabList",
+                      "style": "align-content:stretch;display:flex;gap:var(--space-1,4px);align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5787:14623;5708:5425",
+                          "name": "Tab",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14623;5708:5425;54:56",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Team"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "I5787:14623;5708:5426",
+                          "name": "Tab",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14623;5708:5426;54:56",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Match"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "I5787:14623;5708:5427",
+                          "name": "Tab",
+                          "style": "background-color:var(--mg-disabled,#282828);align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "I5787:14623;5708:5427;54:85",
+                              "name": "",
+                              "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-disabled,#7c7c7c);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Alliance"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5787:14624",
+                      "name": "Radio",
+                      "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:44px;align-items:center;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5733:8460",
+                          "name": "",
+                          "style": "height:24px;position:relative;flex-shrink:0;width:44px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/7a05c.svg"
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5787:14626",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Accept responses"
+                          ]
+                        }
+                      ],
+                      "previewRadio": true
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5787:14627",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5787:14628",
+                      "name": "Button",
+                      "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5787:14628;43:52",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Export form data"
+                          ]
+                        }
+                      ],
+                      "control": "button",
+                      "label": "Export form data",
+                      "variant": "secondary"
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5787:14629",
+                      "name": "Button",
+                      "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5787:14630",
+                          "name": "Icon slot",
+                          "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5787:14631",
+                              "name": "lucide/book-plus",
+                              "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/6fef1.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5787:14633",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Publish form as a template"
+                          ]
+                        }
+                      ],
+                      "control": "button",
+                      "label": "Publish form as a template",
+                      "variant": "secondary"
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5787:14634",
+                      "name": "Button",
+                      "style": "background-color:#a8302e;align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5787:14635",
+                          "name": "lucide/trash",
+                          "style": "position:relative;flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/534ef.svg"
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5787:14637",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:#e6e6e6;font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Delete form"
+                          ]
+                        }
+                      ],
+                      "control": "button",
+                      "label": "Delete form",
+                      "variant": "secondary"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5787:14638",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);filter:blur(2px);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5787:14639",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5787:14640",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5787:14640;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5787:14640;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5787:14641",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "DCMP Break Scouting"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5787:14642",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5787:14643",
+                  "name": "lucide/copy",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/27a90.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5787:14645",
+      "name": "Dialog",
+      "style": "position:absolute;background-color:var(--mg-overlay,#292929);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex-direction:column;gap:var(--space-3,12px);align-items:flex-start;left:16px;overflow:clip;padding:var(--space-6,24px);border-radius:var(--radius-xl,16px);box-shadow:0px 1px 2px 0px rgba(0,0,0,0.2),0px 8px 20px 0px rgba(0,0,0,0.3);top:253px;width:358px",
+      "children": [
+        {
+          "tag": "p",
+          "id": "I5787:14645;5495:4963",
+          "name": "",
+          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-md-lh,28px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-title-md,20px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+          "children": [
+            "Delete DCMP Break Scouting?"
+          ]
+        },
+        {
+          "tag": "p",
+          "id": "I5787:14645;5495:4964",
+          "name": "",
+          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:100%;position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body,15px);width:min-content;font-variation-settings:\"wdth\" 100",
+          "children": [
+            "This will permanently delete the form. It can\u2019t be undone"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "I5787:14645;5510:5507",
+          "name": "Actions",
+          "style": "align-content:stretch;display:flex;gap:var(--space-2,8px);align-items:center;justify-content:flex-end;overflow:clip;padding-top:12px;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "I5787:14645;5510:5508",
+              "name": "Button",
+              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5787:14645;5510:5508;43:52",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Cancel"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Cancel",
+              "variant": "secondary"
+            },
+            {
+              "tag": "div",
+              "id": "I5787:14645;5510:5516",
+              "name": "Button",
+              "style": "background-color:#a8302e;align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5787:14645;5510:5516;43:118",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-danger,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Delete"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Delete",
+              "variant": "secondary"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

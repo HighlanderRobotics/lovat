@@ -1,0 +1,770 @@
+{
+  "tag": "div",
+  "id": "5775:14394",
+  "name": "View question (options) multi",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:14395",
+      "name": "",
+      "style": "position:absolute;height:787px;left:0;top:65px;width:393px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14396",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;right:0;top:0",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14397",
+              "name": "TabList",
+              "style": "align-content:stretch;display:flex;gap:var(--space-1,4px);align-items:center;overflow:clip;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14397;5708:5425",
+                  "name": "Tab",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14397;5708:5425;54:56",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-secondary,#b7b7b7);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Type"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "I5775:14397;5708:5426",
+                  "name": "Tab",
+                  "style": "background-color:var(--mg-selected,rgba(255,255,255,0.16));align-content:stretch;display:flex;flex:1 0 0;height:36px;align-items:center;justify-content:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:8px",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14397;5708:5426;54:72",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Options"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14398",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:10px;align-items:flex-start;min-height:1px;padding-top:20px;padding-bottom:20px;position:relative;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14399",
+                  "name": "TextField",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;gap:4px;align-items:flex-start;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14399;44:179",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Title"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "I5775:14399;44:176",
+                      "name": "Field",
+                      "style": "background-color:var(--mg-field,rgba(0,0,0,0.3));border-width:1px;border-color:var(--mg-line-default,#666);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-default,#666);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "I5775:14399;44:177",
+                          "name": "",
+                          "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-body,15px);font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Have they broke so far?"
+                          ],
+                          "control": "input",
+                          "label": "Have they broke so far?",
+                          "value": "Have they broke so far?",
+                          "inputType": "text"
+                        }
+                      ],
+                      "label": "Have they broke so far?",
+                      "value": "Have they broke so far?",
+                      "inputType": "text"
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14400",
+                  "name": "Radio",
+                  "style": "align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:44px;align-items:center;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5733:8460",
+                      "name": "",
+                      "style": "height:24px;position:relative;flex-shrink:0;width:44px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/7a05c.svg"
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "p",
+                      "id": "5775:14402",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Required"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14403",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;gap:10px;align-items:flex-start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "5775:14404",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Selection limits"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14405",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;align-items:center;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:14406",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Minimum selections"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14407",
+                          "name": "Stepper",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:center;position:relative;border-radius:var(--radius-md,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:14407;44:309",
+                              "name": "minus",
+                              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:14407;124:1742",
+                                  "name": "Icon slot",
+                                  "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/99e03.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "I5775:14407;44:312",
+                              "name": "Value",
+                              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:34px",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "I5775:14407;44:313",
+                                  "name": "",
+                                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-step-value-lh,24px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-step-value,20px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "I5775:14407;44:314",
+                              "name": "plus",
+                              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:14407;124:1743",
+                                  "name": "Icon slot",
+                                  "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/acb0f.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14408",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;align-items:center;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "p",
+                          "id": "5775:14409",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Maximum selections"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14410",
+                          "name": "Stepper",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:center;position:relative;border-radius:var(--radius-md,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "I5775:14410;44:309",
+                              "name": "minus",
+                              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:14410;124:1742",
+                                  "name": "Icon slot",
+                                  "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/99e03.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "I5775:14410;44:312",
+                              "name": "Value",
+                              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:34px",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "I5775:14410;44:313",
+                                  "name": "",
+                                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-step-value-lh,24px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-step-value,20px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "5"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "I5775:14410;44:314",
+                              "name": "plus",
+                              "style": "background-color:var(--mg-control,#3c3c3c);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "I5775:14410;124:1743",
+                                  "name": "Icon slot",
+                                  "style": "position:relative;flex-shrink:0;width:16px;height:16px",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/acb0f.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "p",
+                  "id": "5775:14411",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-sm-lh,16px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-label-sm,13px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Options"
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14412",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:53px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14413",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14414",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14415",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14416",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Shooter"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14418",
+                          "name": "lucide/pencil",
+                          "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/e1b60.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14420",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:53px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14421",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14422",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14423",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14424",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Drivetrain"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14426",
+                          "name": "lucide/pencil",
+                          "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/e1b60.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14428",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:53px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14429",
+                      "name": "SelectableCard",
+                      "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14430",
+                          "name": "Text",
+                          "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14431",
+                              "name": "Title row",
+                              "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                              "children": [
+                                {
+                                  "tag": "p",
+                                  "id": "5775:14432",
+                                  "name": "",
+                                  "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                  "children": [
+                                    "Intake"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14434",
+                          "name": "lucide/pencil",
+                          "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                          "children": [
+                            {
+                              "tag": "img",
+                              "name": "",
+                              "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                              "children": [],
+                              "src": "/design-assets/e1b60.svg"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14436",
+                  "name": "SelectableCard",
+                  "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:flex-start;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);flex-shrink:0;width:100%;border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14437",
+                      "name": "Text",
+                      "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14438",
+                          "name": "Title row",
+                          "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                          "children": [
+                            {
+                              "tag": "p",
+                              "id": "5775:14439",
+                              "name": "",
+                              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                              "children": [
+                                "Hopper"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14441",
+                      "name": "lucide/pencil",
+                      "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/e1b60.svg"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14443",
+                  "name": "",
+                  "style": "align-content:stretch;display:flex;flex-direction:column;height:53px;align-items:flex-start;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14444",
+                      "name": "",
+                      "style": "align-content:stretch;display:flex;align-items:center;justify-content:space-between;position:relative;flex-shrink:0;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14445",
+                          "name": "SelectableCard",
+                          "style": "background-color:var(--mg-raised,#262626);border-width:1px;border-color:var(--mg-line-subtle,#424242);border-style:solid;align-content:stretch;display:flex;flex:1 0 0;gap:var(--mg-gap-group,12px);align-items:flex-start;min-width:1px;padding-bottom:15px;padding-top:var(--mg-pad-choice-card-y,16px);padding-left:var(--mg-pad-choice-card-x,16px);padding-right:var(--mg-pad-choice-card-x,16px);position:relative;border-radius:var(--mg-radius-control-ring,12px);border-width:0;outline:1px solid var(--mg-line-subtle,#424242);outline-offset:-1px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14446",
+                              "name": "Text",
+                              "style": "align-content:stretch;display:flex;flex:1 0 0;flex-direction:column;gap:var(--mg-gap-choice-card-text,2px);align-items:flex-start;min-width:1px;overflow:clip;position:relative",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:14447",
+                                  "name": "Title row",
+                                  "style": "align-content:stretch;display:flex;gap:var(--mg-gap-group,12px);align-items:baseline;overflow:clip;position:relative;flex-shrink:0;width:100%",
+                                  "children": [
+                                    {
+                                      "tag": "p",
+                                      "id": "5775:14448",
+                                      "name": "",
+                                      "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-choice-title-lh,22px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-choice-title,15px);font-variation-settings:\"wdth\" 100",
+                                      "children": [
+                                        "Other"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "id": "5775:14450",
+                              "name": "lucide/pencil",
+                              "style": "position:relative;flex-shrink:0;width:18px;height:18px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/e1b60.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "id": "5775:14452",
+                          "name": "Button",
+                          "style": "background-color:var(--mg-danger-strong,#a8302e);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:53px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14455",
+                              "name": "Icon slot",
+                              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                              "children": [
+                                {
+                                  "tag": "div",
+                                  "id": "5775:14456",
+                                  "name": "Icon",
+                                  "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                                  "children": [
+                                    {
+                                      "tag": "img",
+                                      "name": "",
+                                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                      "children": [],
+                                      "src": "/design-assets/a4c5c.svg"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "control": "button",
+                          "label": "",
+                          "variant": "danger"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14457",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;position:relative;flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14458",
+                  "name": "Button",
+                  "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;opacity:0.4;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "I5775:14458;43:40",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Save changes"
+                      ]
+                    }
+                  ],
+                  "control": "button",
+                  "label": "Save changes",
+                  "variant": "primary"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14459",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14460",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14461",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14461;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:14461;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "id": "5775:14462",
+              "name": "",
+              "style": "word-break:break-word;flex:1 0 0;font-family:Roboto;font-weight:500;line-height:var(--mg-text-title-sm-lh,24px);min-width:1px;position:relative;color:#e6e6e6;font-size:var(--mg-text-title-sm,17px);text-align:center;font-variation-settings:\"wdth\" 100",
+              "children": [
+                "DCMP Pit Scouting - Questions"
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14463",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14464",
+                  "name": "lucide/eye",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/87068.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,637 @@
+{
+  "tag": "div",
+  "id": "5775:14922",
+  "name": "Promote Analysts",
+  "style": "background-color:#1f1f1f;overflow:clip;position:relative;border-radius:10px;width:100%;height:100%",
+  "children": [
+    {
+      "tag": "div",
+      "id": "5775:14923",
+      "name": "Settings",
+      "style": "position:absolute;display:contents;left:0;top:65px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14924",
+          "name": "Body",
+          "style": "position:absolute;align-content:stretch;display:flex;flex-direction:column;height:787px;align-items:flex-start;justify-content:space-between;left:0;padding-bottom:26px;padding-left:26px;padding-right:26px;top:65px;width:393px",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14925",
+              "name": "",
+              "style": "align-content:stretch;display:flex;flex-direction:column;gap:5px;align-items:flex-start;line-height:0;position:relative;flex-shrink:0;width:100%",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14926",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14927",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "5775:14928",
+                          "name": "Box",
+                          "style": "background-color:var(--mg-accent-strong,#b59aff);align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px",
+                          "children": [
+                            {
+                              "tag": "div",
+                              "id": "5775:14929",
+                              "name": "Icon",
+                              "style": "position:relative;flex-shrink:0;width:12px;height:12px",
+                              "children": [
+                                {
+                                  "tag": "img",
+                                  "name": "",
+                                  "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                                  "children": [],
+                                  "src": "/design-assets/554ed.svg"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "p",
+                          "id": "5775:14930",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Collin C"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14931",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14932",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14932;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14932;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Leo K"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14933",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14934",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14934;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14934;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Jack S"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14935",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14936",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14936;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14936;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Cassie C"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14937",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14938",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14938;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14938;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Ted E"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14939",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14940",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14940;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14940;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Rohan S"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14941",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14942",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14942;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14942;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Gabi S"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14943",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14944",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14944;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14944;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Theo C"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14945",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14946",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14946;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14946;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Ronan S"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14947",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14948",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14948;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14948;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Sam C"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14949",
+                  "name": "",
+                  "style": "grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0;width:100%",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14950",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:100%",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14950;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14950;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Ryan M"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14951",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14952",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14952;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14952;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Kevin C"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14953",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14954",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14954;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14954;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Ed B"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14955",
+                  "name": "",
+                  "style": "grid-template-columns:max-content;grid-template-rows:max-content;display:inline-grid;place-items:start;position:relative;flex-shrink:0",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "5775:14956",
+                      "name": "Checkbox",
+                      "style": "background-color:#292929;grid-column-start:1;align-content:stretch;display:flex;gap:var(--mg-gap-choice,11px);height:var(--mg-size-choice-row,44px);align-items:center;margin-left:0;margin-top:0;padding-left:var(--space-2,8px);padding-right:var(--space-2,8px);position:relative;border-radius:var(--mg-radius-control,8px);grid-row-start:1;width:341px",
+                      "children": [
+                        {
+                          "tag": "div",
+                          "id": "I5775:14956;47:382",
+                          "name": "Box",
+                          "style": "border-width:1px;border-color:var(--mg-fg-disabled,#7c7c7c);border-style:solid;position:relative;border-radius:var(--radius-sm,4px);flex-shrink:0;width:20px;height:20px;border-width:0;outline:1px solid var(--mg-fg-disabled,#7c7c7c);outline-offset:-1px",
+                          "children": []
+                        },
+                        {
+                          "tag": "p",
+                          "id": "I5775:14956;47:383",
+                          "name": "",
+                          "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-primary,#e6e6e6);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                          "children": [
+                            "Jacob K"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14957",
+              "name": "Button",
+              "style": "background-color:#b59aff;align-content:stretch;display:flex;gap:var(--mg-gap-button-icon,6px);height:44px;align-items:center;justify-content:center;padding-left:var(--mg-pad-control-x,16px);padding-right:var(--mg-pad-control-x,16px);position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:341px",
+              "children": [
+                {
+                  "tag": "p",
+                  "id": "I5775:14957;43:19",
+                  "name": "",
+                  "style": "word-break:break-word;font-family:Roboto;font-weight:500;line-height:var(--mg-text-label-lh,20px);position:relative;flex-shrink:0;color:var(--mg-fg-on-accent,#171717);font-size:var(--mg-text-label,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                  "children": [
+                    "Promote 1 Analyst"
+                  ]
+                }
+              ],
+              "control": "button",
+              "label": "Promote 1 Analyst",
+              "variant": "secondary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "5775:14958",
+      "name": "TopBar",
+      "style": "position:absolute;background-color:var(--mg-base,#1f1f1f);align-content:stretch;display:flex;flex-direction:column;align-items:flex-start;left:0;overflow:clip;padding-left:4px;padding-right:4px;top:12px;width:390px",
+      "children": [
+        {
+          "tag": "div",
+          "id": "5775:14959",
+          "name": "Bar",
+          "style": "align-content:stretch;display:flex;height:44px;align-items:center;overflow:clip;position:relative;flex-shrink:0;width:100%",
+          "children": [
+            {
+              "tag": "div",
+              "id": "5775:14960",
+              "name": "Back",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "I5775:14960;124:1704",
+                  "name": "Icon slot",
+                  "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;width:20px;height:20px",
+                  "children": [
+                    {
+                      "tag": "div",
+                      "id": "I5775:14960;43:192",
+                      "name": "Icon",
+                      "style": "flex:1 0 0;height:100%;min-width:1px;position:relative",
+                      "children": [
+                        {
+                          "tag": "img",
+                          "name": "",
+                          "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                          "children": [],
+                          "src": "/design-assets/0ccbb.svg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "id": "5775:14961",
+              "name": "Field",
+              "style": "border-width:1px;border-color:var(--mg-line-accent,#b59aff);border-style:solid;align-content:stretch;display:flex;flex:1 0 0;gap:var(--mg-gap-inline,8px);height:44px;align-items:center;min-width:1px;overflow:clip;padding-left:var(--space-3,12px);padding-right:var(--space-3,12px);position:relative;border-radius:var(--mg-radius-control,8px);box-shadow:0px 0px 0px 3px var(--mg-tint-accent-18,rgba(181,154,255,0.18));border-width:0;outline:1px solid var(--mg-line-accent,#b59aff);outline-offset:-1px",
+              "children": [
+                {
+                  "tag": "div",
+                  "name": "",
+                  "style": "position:absolute;background-color:var(--mg-field,rgba(0,0,0,0.3));inset:0;pointer-events:none;border-radius:var(--mg-radius-control,8px)",
+                  "children": []
+                },
+                {
+                  "tag": "div",
+                  "id": "5775:14962",
+                  "name": "Value wrap",
+                  "style": "align-content:stretch;display:flex;flex:1 0 0;align-items:center;min-width:1px;overflow:clip;position:relative",
+                  "children": [
+                    {
+                      "tag": "p",
+                      "id": "5775:14963",
+                      "name": "",
+                      "style": "word-break:break-word;font-family:Roboto;font-weight:400;line-height:var(--mg-text-body-lh,22px);position:relative;flex-shrink:0;color:var(--mg-fg-tertiary,#9a9a9a);font-size:var(--mg-text-body,15px);white-space:nowrap;font-variation-settings:\"wdth\" 100",
+                      "children": [
+                        "Search users"
+                      ],
+                      "control": "input",
+                      "label": "Search users",
+                      "value": "Search users",
+                      "inputType": "text"
+                    },
+                    {
+                      "tag": "div",
+                      "id": "5775:14964",
+                      "name": "Caret",
+                      "style": "--scene-ty:-50%;translate:var(--scene-tx,0) var(--scene-ty,0);position:absolute;background-color:var(--mg-line-accent,#b59aff);height:17px;left:-1px;top:50%;width:1px",
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "name": "",
+                  "style": "position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0px 0px 0px 1px var(--mg-line-accent,#b59aff)",
+                  "children": []
+                }
+              ],
+              "label": "Search users",
+              "value": "",
+              "inputType": "text"
+            },
+            {
+              "tag": "div",
+              "id": "5775:14965",
+              "name": "Action",
+              "style": "align-content:stretch;display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--mg-radius-control,8px);flex-shrink:0;width:44px;height:44px",
+              "children": [
+                {
+                  "tag": "div",
+                  "id": "5775:14966",
+                  "name": "lucide/x",
+                  "style": "position:relative;flex-shrink:0;width:24px;height:24px",
+                  "children": [
+                    {
+                      "tag": "img",
+                      "name": "",
+                      "style": "position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%",
+                      "children": [],
+                      "src": "/design-assets/4a41a.svg"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

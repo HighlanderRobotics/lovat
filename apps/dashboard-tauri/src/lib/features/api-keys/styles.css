@@ -1,0 +1,71 @@
+.api-key-table {
+	width: 100%;
+	font:
+		400 12px/18px Roboto,
+		sans-serif;
+}
+.api-key-row {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	border-bottom: 1px solid #373737 !important;
+	color: #e6e6e6;
+}
+.api-key-row:first-child {
+	font-weight: 500;
+	color: #b7b7b7;
+}
+.api-check-cell {
+	display: flex;
+	align-items: center;
+	flex: 0 0 48px;
+	padding-left: 12px;
+}
+.api-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.api-last {
+	flex: 0 0 93px;
+	padding: 0 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.api-requests {
+	flex: 0 0 84px;
+	padding: 0 12px 0 4px;
+	text-align: right;
+}
+.api-check {
+	width: 20px;
+	height: 20px;
+}
+.api-check .mg2-choice {
+	width: 20px;
+	height: 20px;
+	min-height: 20px;
+	padding: 0;
+	gap: 0;
+	border-radius: 4px;
+}
+.api-check .mg2-choice input {
+	inset-inline-start: 0;
+}
+.api-check .mg2-choice-box {
+	border-width: 1px;
+}
+.api-check .mg2-choice > span:last-child {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	clip-path: inset(50%);
+	overflow: hidden;
+}
+.api-empty {
+	padding: 16px 12px;
+	color: #9a9a9a;
+}
