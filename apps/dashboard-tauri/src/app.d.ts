@@ -1,3 +1,4 @@
+import type { RouteName } from '#lib/app/routing/routes.ts';
 declare global {
 	const __APP_VERSION__: string;
 	const __BUILD_NUMBER__: string;
@@ -9,7 +10,13 @@ declare global {
 		readonly LOVAT_SANDBOX_AUTH0_WEB_CLIENT_ID?: string;
 		readonly LOVAT_SANDBOX_AUTH0_AUDIENCE?: string;
 	}
-	namespace App { interface PageState { designTab?:string; designHistory?: string[]; designReturn?:string; } }
+	namespace App {
+		interface PageState {
+			activeTab?: RouteName;
+			dashboardHistory?: RouteName[];
+			modalOrigin?: RouteName;
+		}
+	}
 }
 
 export {};

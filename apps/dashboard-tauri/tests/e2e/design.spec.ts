@@ -243,11 +243,11 @@ test('Back returns to the actual prior screen and retains input', async ({page})
 test('rating buttons update minimum and maximum values', async ({page}) => {
   await page.goto('/design/5775-14235');
   await page.getByRole('button',{name:'Increase minimum value',exact:true}).click();
-  await expect(page.locator('[data-stepper="step:5775:14246"]')).toHaveText('2');
+  await expect(page.locator('[data-stepper="questions.options.rating:limit:0"]')).toHaveText('2');
   await page.getByRole('button',{name:'Decrease minimum value',exact:true}).click();
-  await expect(page.locator('[data-stepper="step:5775:14246"]')).toHaveText('1');
+  await expect(page.locator('[data-stepper="questions.options.rating:limit:0"]')).toHaveText('1');
   await page.getByRole('button',{name:'Decrease maximum value',exact:true}).click();
-  await expect(page.locator('[data-stepper="step:5775:14252"]')).toHaveText('9');
+  await expect(page.locator('[data-stepper="questions.options.rating:limit:1"]')).toHaveText('9');
 });
 
 test('profile text is centered and entered search text is white', async ({page}) => {
@@ -417,7 +417,7 @@ test('multiple-select options retain the title, limits, and every choice', async
   await expect(page.getByRole('textbox',{name:'Question title',exact:true})).toHaveValue('What parts of their robot have broken?');
   for(const label of ['Shooter','Drivetrain','Intake','Hopper','Other'])await expect(page.getByRole('group',{name:`${label} option`,exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Increase minimum selections',exact:true}).click();
-  await expect(page.locator('[data-stepper="step:5775:14407"]')).toHaveText('1');
+  await expect(page.locator('[data-stepper="questions.options.multiple:limit:0"]')).toHaveText('1');
   await page.getByRole('group',{name:'Shooter option',exact:true}).getByRole('button',{name:'pencil',exact:true}).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByRole('textbox',{name:'Yes',exact:true})).toHaveValue('Shooter');

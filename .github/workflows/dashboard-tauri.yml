@@ -31,12 +31,17 @@ jobs:
           cache: npm
           cache-dependency-path: apps/dashboard-tauri/package-lock.json
       - run: npm ci
+      - run: npm run format:rewrite:check
       - run: npm run check
       - run: npm test
       - run: npm run build
         env:
           LOVAT_API_BASE: https://api.lovat.app
           LOVAT_WEBSITE_URL: https://lovat.app
+
+      - name: Install Chromium for dashboard journeys
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
 
   native:
     name: Tauri shell compiles

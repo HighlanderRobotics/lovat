@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { frameStyle } from './model.ts';
+import { frameStyle } from '#lib/design/model.ts';
 
 describe('native reference frame fitting', () => {
 	it('keeps the browser reference and individual controls unchanged', () => {

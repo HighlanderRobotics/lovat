@@ -7,8 +7,9 @@ These 104 screen states reproduce the visible 393px Dashboard frames on the
 translated Svelte view data, including nested flex/grid layouts, typography,
 spacing, and asset slots. These are DOM views, not screenshots. Each state loads
 as its own chunk. `DesignNode.svelte` supplies editable inputs, keyboard actions,
-Magnolia buttons, and selection behavior. `actions.ts` connects the reference
-states into mock journeys. `assets.json` records local image call sites.
+Magnolia buttons, and selection behavior. `actions.ts` translates reference controls into typed feature actions.
+Named route definitions and history live in `../app/routing`, and feature-owned
+state and handlers live in `../features`. `assets.json` records local image call sites.
 
 Open `/design` for the complete catalog, or click the Lovat title on Home. Escape
 also opens the catalog. The primary flows include Home, search, Forms, templates,
@@ -45,7 +46,7 @@ served on port 1430. Add `?reference=1` to retain the original Figma dimensions
 for visual comparisons, including the Forms status-bar placeholder.
 
 Navigation preloads the destination and uses a fast 170ms horizontal page swipe.
-`pageMotion.ts` animates the incoming content and an inert outgoing content copy;
+`../app/routing/pageMotion.ts` animates the incoming content and an inert outgoing content copy;
 Back reverses the direction. `presentation.ts` extracts bottom actions and the
 navbar into a persistent dock, so those controls are neither remounted nor
 animated with the page. Reduced-motion preferences skip the swipe.
@@ -197,8 +198,8 @@ a search input behind a dialog cannot steal focus or reopen the keyboard.
 
 The refreshed Figma set uses `5787` IDs. Thirteen new states cover the three
 response lists, their detail views, form settings/deletion, and five interactive
-question previews. Existing routes keep their original IDs so shared links and
-other contributors’ work remain usable. Responses tabs replace the current form
+question previews. Legacy `/design/<frame>` review links remain usable; internal navigation uses
+canonical `/dashboard/...` paths and typed route names. Responses tabs replace the current form
 history entry; response details push an entry. Form settings actions stay docked
 above the bottom safe area. Preview cards use the same blurred modal layer and
 return to the live editor on backdrop click or Back.
@@ -235,7 +236,7 @@ selector is disabled because an existing form’s target cannot be changed.
 Assignment drag previews render the same card snippet, width, height, logo,
 text, and colours as their source card, with hover landing feedback retained.
 
-`navigation.ts` derives navbar animation direction from tab order and finds
+`../app/routing/history.ts` derives navbar animation direction from tab order and finds
 existing browser entries before pushing a destination. Revisiting a page
 traverses to its existing entry, so Back does not replay A → B → A loops; a
 navbar traversal retains the direction of the clicked tab. Screens opened as a
@@ -250,7 +251,7 @@ region does not scroll, while other pages retain independent scrolling bodies.
 ## Loading and form-state boundaries
 
 The splash is the existing Figma `Splash` frame `1864:486`, rendered from its
-unmodified local SVG export (`166a7.svg`). `sceneAssets.ts` awaits required image
+unmodified local SVG export (`166a7.svg`). `../shared/loading/sceneAssets.ts` awaits required image
 loads/decodes and fonts before a destination becomes visible. Cold navigation
 shows a skeleton; asset failures show a retryable error instead of partial UI.
 
@@ -259,8 +260,8 @@ type alone. Form-list type descriptions remain compact. Responses use standard
 26px content gutters and zero-offset headers. Add scouter includes a search
 input for available people.
 
-New-question creation uses `QuestionEditor.svelte` with a blank typed draft from
-`questions.ts`; existing reference screens keep their fixture content. Required,
+New-question creation uses `../features/questions/QuestionEditor.svelte` with a blank typed draft from
+`../features/questions/model.ts`; existing reference screens keep their fixture content. Required,
 choices, title, and hints start empty/off. Numeric controls keep structural
 limits. Validation, pending saves, offline failures, and retry use the shared
 `Submission` lifecycle. Successful questions appear in the local form and can
@@ -268,4 +269,4 @@ be reopened. API-key create/rename also validates empty names and preserves
 fields when offline. These are mock-session mutations, not new server APIs.
 
 See [feature structure](../../../FEATURE_STRUCTURE.md) for ownership, extension
-patterns, current standardization, and the remaining coupling to Figma IDs.
+patterns, named routes/actions, native-page registration, and the reference adapter boundary.

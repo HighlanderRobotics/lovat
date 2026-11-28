@@ -14,7 +14,9 @@
 		"tauri:build": "tauri build",
 		"postinstall": "node scripts/patch-magnolia.mjs",
 		"build:mock": "node scripts/build-mock.mjs",
-		"test:e2e": "npm run build:mock && playwright test"
+		"test:e2e": "npm run build:mock && playwright test",
+		"format:rewrite": "prettier --write \"src/lib/{app,features,shared}/**/*.{ts,svelte,css}\" \"src/lib/design/*.{ts,svelte}\" \"src/routes/dashboard/**/*.svelte\" FEATURE_STRUCTURE.md",
+		"format:rewrite:check": "prettier --check \"src/lib/{app,features,shared}/**/*.{ts,svelte,css}\" \"src/lib/design/*.{ts,svelte}\" \"src/routes/dashboard/**/*.svelte\" FEATURE_STRUCTURE.md"
 	},
 	"dependencies": {
 		"@auth0/auth0-spa-js": "^2.30.0",
@@ -40,6 +42,8 @@
 		"@sveltejs/vite-plugin-svelte": "^7.3.2",
 		"@tauri-apps/cli": "^2.12.6",
 		"@types/qrcode": "^1.5.6",
+		"prettier": "3.10.1",
+		"prettier-plugin-svelte": "3.5.2",
 		"svelte": "^5.59.2",
 		"svelte-check": "^4.7.8",
 		"typescript": "^6.0.3",

@@ -5,7 +5,7 @@
 	import '@fontsource/roboto/500.css';
 	import '@fontsource/heebo/400.css';
 	import '@fontsource/heebo/500.css';
-	import DesignApp from '#lib/design/DesignApp.svelte';
+	import DashboardApp from '#lib/app/DashboardApp.svelte';
 	import '#lib/magnolia.css';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
@@ -17,7 +17,7 @@
 	import { ensureDefaultPicklists } from '#lib/picklists.ts';
 
 	let { children } = $props();
-	onMount(()=>lockMobileZoom(document));
+	onMount(() => lockMobileZoom(document));
 
 	// Runs once before any page loads data, like the Flutter InitialLoaderPage.
 	if (import.meta.env.VITE_DASHBOARD_MOCK !== 'true') {
@@ -31,6 +31,7 @@
 	);
 	const designMode = $derived(
 		import.meta.env.VITE_DASHBOARD_MOCK === 'true' ||
+			page.url.pathname.startsWith('/dashboard') ||
 			page.url.pathname.startsWith('/design') ||
 			page.url.pathname.startsWith('/forms'),
 	);
@@ -38,7 +39,7 @@
 
 <MagnoliaUIRoot theme="dark">
 	{#if designMode}
-		<DesignApp />
+		<DashboardApp />
 	{:else}
 		{#if bare}
 			{@render children()}
