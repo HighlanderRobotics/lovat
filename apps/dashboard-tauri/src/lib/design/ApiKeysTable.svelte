@@ -7,7 +7,7 @@
 </script>
 <div class="api-key-table" role="table" aria-label="API keys">
  <div class="api-key-row" role="row">
-  <div class="api-check-cell" role="columnheader"><div class="api-check"><Checkbox label="Select all keys" disabled={!records.length} checked={!!records.length&&records.every(record=>selected[record.id])} onchange={(event)=>onall((event.currentTarget as HTMLInputElement).checked)}/></div></div>
+  <div class="api-check-cell" role="columnheader"><div class="api-check"><Checkbox label={records.length && records.every(record=>selected[record.id])?"Deselect all keys":"Select all keys"} disabled={!records.length} checked={!!records.length&&records.every(record=>selected[record.id])} onchange={(event)=>onall((event.currentTarget as HTMLInputElement).checked)}/></div></div>
   <div class="api-name" role="columnheader">Name</div><div class="api-last" role="columnheader">Last used ↓</div><div class="api-requests" role="columnheader">Requests</div>
  </div>
  {#each filtered as record(record.id)}

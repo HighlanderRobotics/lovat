@@ -68,7 +68,7 @@ export function enhanceScene(tree:DesignNode, frame:string) {
   if(frame==='5775:16149'){
     const body=all.find(node=>node.name==='Body');if(body)body.style+=';padding-top:12px;gap:12px';
     const container=all.find(node=>node.id==='5775:16153');if(container)container.style+=';flex:0 0 auto;height:auto';
-    const action=all.find(node=>node.id==='5775:16166');if(action){action.leftAction=true;action.control='button';action.label='Promote Analysts';action.variant='secondary';action.style+=';justify-content:flex-start;opacity:1';}
+    const action=all.find(node=>node.id==='5775:16166');if(action){action.leftAction=false;action.control='button';action.label='Promote Analysts';action.variant='secondary';action.style+=';justify-content:center;text-align:center;opacity:1';}
   }
   if(frame==='5775:10200')for(const node of all) {
     if(node.style.includes('height:39px') && node.style.includes('align-items:flex-end'))node.style+=';margin-left:auto;padding-right:0;min-width:96px;width:96px';
@@ -80,8 +80,9 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     if(node.name.startsWith('Qualification ')){node.matchLevel='Quals';node.style+=';width:100%';}
     if(node.name.startsWith('Break '))node.style+=';width:100%';
   }
-  if(['5775:9807','5775:9936'].includes(frame)){const hero=all.find(node=>node.name==='image 7');if(hero){hero.style+=';width:100%;height:100%';}}
+  if(['5775:9807','5775:9936'].includes(frame)){const hero=all.find(node=>node.name==='image 7');if(hero){hero.style+=';width:100%;height:100%';}const banner=all.find(n=>n.children.includes(hero!));if(banner){banner.style+=';flex:1 1 186px;min-height:80px;max-height:186px;height:auto';for(const title of banner.children)if(typeof title!=='string' && title.tag==='p')title.style+=';top:auto;bottom:7px';}}
   if(['5775:14305','5775:14394'].includes(frame)) {
+    let optionIndex=0;
     for(const card of all.filter(node=>node.name==='SelectableCard' && nodes(node).some(child=>child.name==='lucide/pencil'))) {
       const parent=all.find(node=>node.children.includes(card));if(!parent)continue;
       let target:DesignNode;
@@ -93,17 +94,17 @@ export function enhanceScene(tree:DesignNode, frame:string) {
         parent.children.splice(parent.children.indexOf(card),1,target);
       }
       const title=nodes(card).find(child=>child.tag==='p');const label=textOf(title??card);
-      target.swipeKey=`option:${frame}:${card.id}`;target.swipeLabel=label;target.children=[card];card.passive=true;
+      target.swipeKey=`option:${frame==='5775:14305'?'Single select':'Multiple Select'}:${optionIndex++}`;target.swipeLabel=label;const description=nodes(card).filter(child=>child.tag==='p')[1];target.swipeHint=description?textOf(description):'';if(description)description.optionHintKey=target.swipeKey;else nodes(card).find(n=>n.name==='Text')?.children.push({tag:'p',name:'OptionHint',style:'font:400 13px/18px Roboto,sans-serif;color:#b7b7b7;width:100%',optionHintKey:target.swipeKey,children:[]});target.style+=';height:auto;min-height:53px';for(const row of nodes(target))if(/height:53px/.test(row.style))row.style+=';height:auto;min-height:53px';target.children=[card];card.passive=true;
       if(title)title.optionTextKey=target.swipeKey;
-      for(const child of nodes(card))if(child.name==='lucide/pencil')child.editOption={key:target.swipeKey,label};
+      for(const child of nodes(card))if(child.name==='lucide/pencil')child.editOption={key:target.swipeKey,label,hint:target.swipeHint};
     }
   }
   if(frame==='5775:14350')for(const field of all.filter(n=>textOf(n)==='Placeholder' && n.tag==='p')){field.control='input';field.label='Hint';field.placeholder='Hint';field.value='';field.children=[];}
   if(frame==='5775:14394')for(const field of all.filter(n=>n.control==='input' && n.value==='Multiple Select')){field.value='';field.label='Hint';field.placeholder='Hint';field.children=[];}
   if(frame==='5775:14394'){const title=all.find(node=>node.control==='input' && node.value?.startsWith('Have they'));if(title){title.value='What parts of their robot have broken?';title.label='Question title';title.children=[title.value];}}
   if(['5775:15010','5775:15033','5775:15059','5775:15083'].includes(frame))tree.children.push({
-    tag:'div',id:'runtime:members-promote',name:'Button',control:'button',variant:'primary',label:'Promote Analysts',leftAction:true,
-    style:'height:44px;width:341px;border-radius:8px;background:#b59aff;color:#1f1f1f',children:['Promote Analysts'],
+    tag:'div',id:'runtime:members-promote',name:'Button',control:'button',variant:'primary',label:'Promote Analysts',leftAction:false,
+    style:'height:44px;width:341px;border-radius:8px;background:#b59aff;color:#171717;font:500 15px/20px Roboto,sans-serif;text-align:center;justify-content:center',children:['Promote Analysts'],
   });
 
   if(frame.startsWith('5787:')) {
@@ -111,7 +112,7 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       if(node.id==='5494:10967')node.name='Checkbox';
       if(node.name==='Body')node.style+=';left:0;width:393px;padding-left:26px;padding-right:26px';
       if(node.name==='TopBar')node.style+=';width:393px';
-      if(node.name==='Tab' && ['Team','Match','Alliance'].includes(textOf(node))){node.choiceGroup='form:target';node.choiceValue=textOf(node);node.choiceDefault='Alliance';}
+      if(node.name==='Tab' && ['Team','Match','Alliance'].includes(textOf(node))){node.disabled=true;node.passive=true;node.style+=';opacity:.5;pointer-events:none';for(const child of nodes(node).slice(1))child.passive=true;}
       if(node.name==='TextArea')node.style+=';height:auto';
       if(node.previewRadio && ['Accept responses','Required'].includes(textOf(node))){node.previewRadio=false;node.name='Toggle';}
       if(node.previewRadio){node.choice={kind:'radio',key:textOf(node),group:'preview:single',initial:false,label:textOf(node)};}
@@ -142,6 +143,12 @@ export function enhanceScene(tree:DesignNode, frame:string) {
     const label=textOf(row);const name=['Collin C','Leo K','Jack S','Cassie C','Ted E','Rohan S','Gabi S','Theo C','Ronan S','Sam C','Ryan M','Kevin C','Ed B','Jacob K'].find(name=>label.includes(name));
     if(name){row.memberName=name;if(row.name==='Checkbox')row.promotionUser=name;else for(const child of nodes(row))if(child.tag==='p' && /^(Analyst|Admin|Lead|Scouter)$/.test(textOf(child))){child.memberRole=true;child.memberName=name;}}
   }
+
+  for(const action of all.filter(node=>node.control==='button' && /^Promote(?: (?:\d+ )?Analysts?)?$/.test(node.label??''))){
+    action.leftAction=false;action.style+=';justify-content:center;text-align:center;font:500 15px/20px Roboto,sans-serif;color:#171717';
+    for(const child of nodes(action).slice(1))child.style+=';color:inherit;font:inherit;text-align:center';
+  }
+  if(frame==='5775:16149')for(const action of all.filter(node=>node.label==='Promote Analysts')){action.leftAction=false;action.style+=';justify-content:center;text-align:center';}
   // Put dialogs above a real backdrop rather than blurring their own ancestors.
   const dialogs=all.filter(node=>node.name==='Dialog');
   if(dialogs.length) {
@@ -153,6 +160,38 @@ export function enhanceScene(tree:DesignNode, frame:string) {
       dialog.dialogSurface=true;dialog.style+=';translate:none;rotate:none;scale:none;right:auto;bottom:auto;margin:0;box-sizing:border-box';dialog.style+=';position:fixed;left:50%;top:calc((100% - var(--keyboard-inset,0px))/2);transform:translate(-50%,-50%);width:min(358px,calc(100% - 32px));max-height:calc(100% - var(--keyboard-inset,0px) - 48px);overflow-y:auto;z-index:50';
       if(preview)dialog.style+=`;width:min(341px,calc(100% - 52px));top:clamp(12px,${previewTop??206}px,calc(100% - var(--keyboard-inset,0px) - ${frame==='5787:17179'?354:frame==='5787:17005'?112:185}px - 12px));transform:translateX(-50%)`;
       tree.children.push(dialog);}
+  }
+
+
+  if(['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630','5787:14646','5787:14704','5787:14760'].includes(frame))for(const card of all.filter(node=>node.name==='SelectableCard')){
+    const text=nodes(card).find(node=>node.name==='Text');if(!text)continue;
+    const title=textOf(text.children[0]??'');
+    const kind=/^Rate/.test(title)?'Rating':/^Photo/.test(title)?'Photo':/^Have/.test(title)?'Single select':/^What/.test(title)?'Multiple Select':/^Notes/.test(title)?'Short Answer Text':undefined;
+    if(kind)text.children.splice(1,0,{tag:'p',name:'OptionalSubtitle',questionOptionalFor:kind,style:'font:400 13px/18px Roboto,sans-serif;color:#b7b7b7',children:['Optional']});
+  }
+  const questionKinds:Record<string,string>={'5787:17005':'Rating','5787:17054':'Short Answer Text','5787:17082':'Photo','5787:17116':'Single select','5787:17179':'Multiple Select'};
+  const previewKind=questionKinds[frame];
+  if(previewKind){
+    const card=tree.children.find(child=>typeof child!=='string' && child.dialogSurface) as DesignNode|undefined;
+    const header=card?.children[0];
+    if(header && typeof header!=='string'){
+      const heading=nodes(header).find(node=>node.name==='Text');
+      if(heading){heading.questionHeadingFor=previewKind;heading.children=heading.children.slice(0,1);heading.style+=';position:relative;left:0;top:0;width:100%;height:auto;overflow:visible';header.style+=';height:auto;min-height:24px;display:flex;padding-left:36px';}
+      if(card && ['Single select','Multiple Select'].includes(previewKind)){
+        let index=0;for(const option of nodes(card).filter(n=>n.name==='Radio'||n.name==='Checkbox')){
+          const labels=nodes(option).filter(n=>n.tag==='p').map(textOf);const key=`option:${previewKind}:${index++}`;
+          option.previewOption={key,label:labels[0]??'',hint:labels[1]??''};
+          option.previewRadio=true;option.choice={kind:previewKind==='Single select'?'radio':'checkbox',key:`answer:${key}`,group:`preview:${previewKind}`,label:labels[0]??'',initial:false};
+        }
+      }
+
+    }
+  }
+  if(['5775:14305','5775:14394'].includes(frame)){
+    const kind=frame==='5775:14305'?'Single select':'Multiple Select';
+    const required=all.find(node=>node.name==='Radio' && textOf(node)==='Required');
+    const parent=required?all.find(node=>node.children.includes(required)):undefined;
+    if(parent && required)parent.children.splice(parent.children.indexOf(required)+1,0,{tag:'div',name:'QuestionHint',style:'width:100%;display:flex;flex-direction:column;gap:6px',children:[{tag:'p',name:'',style:'font:500 13px/18px Roboto,sans-serif',children:['Hint']},{tag:'div',name:'Field',style:'width:100%;min-height:44px;border-radius:8px;outline:1px solid #666;background:#0003;display:flex;align-items:center;padding:0 12px',children:[{tag:'p',id:`hint:${kind}`,name:'',style:'',control:'input',label:'Question hint',questionHintFor:kind,placeholder:'Hint',value:'',children:[]}]}]});
   }
   if(/^5775:15(?:1\d\d|2[0-5]\d)$/.test(frame)) {
     for(const node of all)if(node.tag==='p'){if(textOf(node).includes('Collin C'))node.profileCopy=textOf(node);if(textOf(node)==='Analyst')node.profileRole=true;}

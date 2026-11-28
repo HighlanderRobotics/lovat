@@ -11,7 +11,7 @@
 .assignment-team-name > span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 10px/14px Roboto,sans-serif;color:#c3c3c3;}
 .assignment-grip {width:24px;height:36px;flex:none;background:transparent;color:#b7b7b7;font-size:22px;cursor:grab;touch-action:none;}
 .assignment-team.dragging {opacity:.4;}
-.assignment-ghost {position:fixed;z-index:100;pointer-events:none;max-width:190px;padding:10px;background:#40356a;color:#fff;border-radius:8px;box-shadow:0 4px 16px #0008;font:500 13px/20px Roboto,sans-serif;}
+.assignment-team.assignment-ghost {position:fixed;z-index:100;pointer-events:none;box-shadow:0 4px 16px #0008;}
 .assignment-empty {grid-column:1/-1;padding:12px;text-align:center;color:#9a9a9a;font-size:13px;}
 .assignment-move {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
 .assignment-move:focus-within {inset:auto 0 0;width:auto;height:36px;clip-path:none;z-index:2;background:#292929;}

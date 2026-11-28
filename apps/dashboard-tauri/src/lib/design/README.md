@@ -216,3 +216,33 @@ above the software keyboard. Frontend keyboard geometry subtracts the frame’s 
 from the keyboard inset, preventing a second blank strip above the keyboard. Actual iPhone keyboard
 appearance still requires a device check; Chromium viewport tests cannot prove
 native keyboard rendering.
+
+## Selection, question hints, and navigation refinements
+
+Selection actions switch between Select all and Deselect all from the complete
+selection state, including while filtering. Promotion actions use a centered
+15px medium label and primary foreground colour for every selected count.
+
+Question option names and hints have stable per-type keys. The edit dialog
+loads both values and saves them back to the option row and its preview. Single
+and multiple-select editors also provide a separate question hint. Preview
+headings show that hint and an Optional subtitle when Required is off. Required
+state belongs to each question type rather than leaking between all five demo
+questions.
+
+Form settings uses the same 26px gutters as the other screens. Its Target
+selector is disabled because an existing form’s target cannot be changed.
+Assignment drag previews render the same card snippet, width, height, logo,
+text, and colours as their source card, with hover landing feedback retained.
+
+`navigation.ts` derives navbar animation direction from tab order and finds
+existing browser entries before pushing a destination. Revisiting a page
+traverses to its existing entry, so Back does not replay A → B → A loops; a
+navbar traversal retains the direction of the clicked tab. Screens opened as a
+main tab retain the navbar even when their reference scene is also used as a
+standalone detail page. Browser Back and
+Forward still use their own traversal direction.
+
+The navbar occupies its visible 52px height. Home uses a flexible banner and
+smaller bottom padding to fit its matches and teams above the bar. Its content
+region does not scroll, while other pages retain independent scrolling bodies.

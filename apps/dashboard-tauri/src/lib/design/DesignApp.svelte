@@ -12,6 +12,7 @@
 	import { destination } from './actions.ts';
 	import { presentation, apiToolbar, isSearchChange, searchBase, type Presentation, type Dock } from './presentation.ts';
 	import { nodes } from './behaviors.ts';
+	import { navbarDirection, navbarLabel, revisitDelta } from './navigation.ts';
 	import { PageMotion } from './pageMotion.ts';
 		import './design.css';
 
@@ -45,6 +46,8 @@
 		if(cached)return cached;
 		return (sources[`./scenes/${target.replace(':','-')}.json`]() as Promise<DesignNode>).then(source=>{const node=isReference?source:prepareScene(source,target,runtime);cache.set(key,node);return node;});
 	}
+	let navbarTemplate:DesignNode|undefined;
+	$effect(()=>{const current=page.state.designTab??id;untrack(()=>{runtime.currentTab=navbarLabel(current)??runtime.currentTab;});});
 	const presentations=new WeakMap<DesignNode,Presentation>();
 	function parts(node:DesignNode, frameId:string):Presentation {
 		const origin=page.state.designReturn;
@@ -53,7 +56,14 @@
 			const background=parts(base,origin!);
 			return {page:{...background.page,children:[{tag:'div',name:'ModalBackground',style:'display:contents',inert:true,children:background.page.children},...node.children.filter(child=>typeof child!=='string'&&(child.dialogSurface||child.name==='DialogBackdrop'))]},docks:background.docks,layout:{...background.layout,...(layouts[frameId as keyof typeof layouts] as ScreenLayout)}};
 		}
-		let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}return value;
+		let value=presentations.get(node);if(!value){value=presentation(node,layouts[frameId as keyof typeof layouts] as ScreenLayout,reference);presentations.set(node,value);}
+        const nav=value.docks.find(dock=>dock.key.startsWith('nav:'));if(nav)navbarTemplate=nav.node;
+        if(page.state.designTab && !nav && navbarTemplate){
+          const layout:ScreenLayout={...value.layout,'runtime:navbar':{kind:'nav' as const,x:0,y:0,w:393,h:52}};
+          for(const [key,anchor] of Object.entries(layout))if(anchor.kind==='body')layout[key]={...anchor,bottom:Math.max(anchor.bottom??0,52)};
+          return {...value,layout,docks:[...value.docks,{key:'nav:0',node:{...navbarTemplate,id:'runtime:navbar'}}]};
+        }
+        return value;
 	}
 	let docks=$state<Dock[]>([]);
 	let dockLayout=$state<ScreenLayout>({});
@@ -108,16 +118,17 @@
 	let motionHost=$state<HTMLElement>();
 	let animateNext=true;
 	let nextDirection:'forward'|'back'='forward';
+	let traversalDirection:'forward'|'back'|undefined;
 	const motion=new PageMotion();
 	runtime.onSelectionChange=undefined;
-	async function open(target: string, remember=true, direction:'forward'|'back'='forward') {
+	async function open(target: string, remember=true, direction:'forward'|'back'='forward',navbar=false) {
 		if(target===id && !catalog)return;
 		if(isSearchChange(id,target))remember=false;
 		if(searchBase[id] && !searchBase[target])runtime.values[`search:${runtime.scope(id)}`]='';
 		const request=++navigation;
 		const targetNode=target!=='catalog'?await load(target):undefined;
 		if(target==='5775:15753'){const field=targetNode?nodes(targetNode).find(node=>node.control==='input'):undefined;const record=runtime.apiRecords?.find(record=>runtime.apiSelected[record.id]);if(field?.inputKey&&record)runtime.values[field.inputKey]=record.name;}
-		if(target==='5775:14350' && runtime.editingOption)runtime.values['field:5775:14381']=runtime.optionLabels[runtime.editingOption.key]??runtime.editingOption.label;
+		if(target==='5775:14350' && runtime.editingOption){runtime.values['field:5775:14381']=runtime.optionLabels[runtime.editingOption.key]??runtime.editingOption.label;runtime.values['field:5775:14383']=runtime.optionHints[runtime.editingOption.key]??runtime.editingOption.hint??'';}
 		const modal=!!targetNode?.children.some(child=>typeof child!=='string'&&child.dialogSurface);
 		const origin=page.state.designReturn;
 		if(modal || origin)remember=false;
@@ -126,8 +137,10 @@
 		if(request!==navigation)return;
 		const optionType=Object.entries(optionScreens).find(([,screen])=>screen===target)?.[0];
 		if(optionType)runtime.questionType=optionType;
+		const delta=remember?revisitDelta(page.state.designHistory??[],target):0;
+		if(delta){traversalDirection=navbar?direction:'back';history.go(delta);return;}
 		const url=(target==='catalog'?'/design':`/design/${target.replace(':','-')}`)+(reference?'?reference=1':'');
-		await goto(url,{replace:!remember,state:{designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[]),designReturn:modal?(origin??id):undefined}});
+		await goto(url,{replace:!remember,state:{designTab:navbar?target:undefined,designHistory:remember?[...(page.state.designHistory??[]),id]:(page.state.designHistory??[]),designReturn:modal?(origin??id):undefined}});
 		await tick();
 	}
 	beforeNavigate((navigation)=>{
@@ -135,7 +148,9 @@
 		if(navigation.type==='popstate' && searchBase[id])runtime.values[`search:${runtime.scope(id)}`]='';
 		if(viewport){const body=viewport.querySelector('[data-layout-role="body"]');if(body)runtime.scrolls[id]=body.scrollTop;}
 		const allowed=!reference && !catalog && !viewport?.querySelector('[role="dialog"]') && (navigation.type==='popstate' || animateNext);
-		if(allowed)motion.prepare(canvas,motionHost,navigation.type==='popstate' && navigation.delta<0?'back':nextDirection);else motion.finish();
+		const direction=navigation.type==='popstate'?(traversalDirection??(navigation.delta<0?'back':'forward')):nextDirection;
+		traversalDirection=undefined;
+		if(allowed)motion.prepare(canvas,motionHost,direction);else motion.finish();
 	});
 	afterNavigate(()=>{void tick().then(()=>{
 		motion.play(canvas);
@@ -175,12 +190,12 @@
 		if(label==='Create' && id==='5775:15386'){const field=nodes(cache.get(id)!).find(node=>node.control==='input'&&node.label==='Name');runtime.createKey(field?.inputKey?runtime.values[field.inputKey]:'');}
 		if(label==='Rename' && id==='5775:15753'){const field=nodes(cache.get(id)!).find(node=>node.control==='input');runtime.renameKey(field?.inputKey?runtime.values[field.inputKey]:'');}
 		if(label==='Delete' && ['5775:15553','5775:15895'].includes(id))runtime.deleteKeys();
-		if(label==='Save' && id==='5775:14350' && runtime.editingOption){runtime.optionLabels[runtime.editingOption.key]=runtime.values['field:5775:14381'];runtime.formDirty=true;void open(page.state.designReturn??'5775:14305',false);return true;}
+		if(label==='Save' && id==='5775:14350' && runtime.editingOption){runtime.optionLabels[runtime.editingOption.key]=runtime.values['field:5775:14381'];runtime.optionHints[runtime.editingOption.key]=runtime.values['field:5775:14383']??'';runtime.formDirty=true;void open(page.state.designReturn??'5775:14305',false);return true;}
 		if(label==='Assign' && id==='5775:11203'){runtime.autoAssign();void open(page.state.designReturn??'5775:10287',false);return true;}
 		if(label==='Cancel' && page.state.designReturn){void open(page.state.designReturn,false);return true;}
 		if(label==='Cancel' && page.state.designHistory?.length){history.back();return true;}
 		if(/^Delete \d+ keys$/.test(label)){void open('5775:15895');return true;}
-		if(label==='Select all'){runtime.selectAll(scope);return true;}
+		if(label==='Select all'){runtime.selectAll(scope,false,!runtime.allSelected(scope));return true;}
 		if(label==='Just my team' || label==='Just this tournament'){runtime.selectAll(scope,true);return true;}
 		if(label==='Apply changes')runtime.apply(scope);
 		if (id === '5775:10120' && node.control === 'button') {
@@ -190,6 +205,7 @@
 			return true;
 		}
 		const target = destination(id, node);
+		if(target && node.name==='TabBarItem'){void open(target,true,navbarDirection(id,target),true);return true;}
 		if (target){if(target==='5775:10144')runtime.formTab='Questions';void open(target,node.name!=='Tab' && node.name!=='Segment');}
 		return !!target;
 	}
@@ -244,6 +260,7 @@
 		class:reference-mode={reference}
 		class:profile-page={/^5775:15(?:1\d\d|2[0-5]\d)$/.test(id)}
 		class:keyboard-open={keyboardInset>80}
+		class:home-page={['5775:9807','5775:9936'].includes(id)}
 		style={`--keyboard-inset:${Math.max(0,keyboardInset-safeBottom) / scale}px`}
 		bind:this={viewport}
 		bind:clientWidth={width}

@@ -35,6 +35,8 @@
 	function apiText(node:DesignNode){return !reference && node.searchScope==='api-keys'?textOf(node).replace(/\b\d+(?= keys\b)/g,String(/Deleted/.test(textOf(node))?runtime.apiLastAffected:(runtime.count('api-keys')||runtime.apiLastAffected))):textOf(node);}
 	function isHidden(node:DesignNode) {
 		if(reference)return false;
+		if(node.questionOptionalFor && runtime.required(node.questionOptionalFor))return true;
+		if(node.optionHintKey && !(runtime.optionHints[node.optionHintKey]??textOf(node)))return true;
 		if(node.promotionUser && runtime.promoted[node.promotionUser])return true;
 		if(node.searchTrigger && runtime.searchOpen[node.searchScope??''])return true;
 		if(node.hideForResponses && runtime.formTab==='Responses' || node.responseSummary && runtime.formTab!=='Responses')return true;
@@ -52,6 +54,7 @@
 	let selected = $state(false);
 	function click(event: MouseEvent | KeyboardEvent, current: DesignNode) {
         if(current.name==='DialogBackdrop'){activate({...current,label:'Cancel'});event.stopPropagation();return;}
+		if(current.disabled)return;
 		if (current.choiceGroup && current.id) {
 			choose(current.choiceGroup, current.choiceValue ?? current.id);
 			event.stopPropagation();
@@ -89,8 +92,15 @@
 {:else if node.memberRole && node.memberName && runtime.promoted[node.memberName]}<p style={style}>Scouting Lead</p>
 {:else if node.name==='Toast' && expired}
 	<!-- Timed confirmations leave the current screen in place. -->
+{:else if node.name==='Text' && node.questionHeadingFor && !reference}
+ <div style={style} class="design-question-heading">{@render children(node.children)}
+  {#if runtime.values[`hint:${node.questionHeadingFor}`]}<p class="design-question-hint">{runtime.values[`hint:${node.questionHeadingFor}`]}</p>{/if}
+  {#if !runtime.required(node.questionHeadingFor)}<p class="design-question-optional">Optional</p>{/if}
+ </div>
 {:else if node.apiTable && !reference}
 	<div style={style}><ApiKeysTable records={runtime.apiRecords??[]} selected={runtime.apiSelected} query={runtime.values['search:api-keys']??''} onselect={(id,checked)=>runtime.selectKey(id,checked)} onall={(checked)=>runtime.selectAllKeys(checked)}/></div>
+{:else if node.navIcon && !reference}
+ <span style={style+`;background-color:${runtime.currentTab===node.navIcon?'#b59aff':'#b7b7b7'};mask-image:url('${node.src}');mask-size:100% 100%;mask-repeat:no-repeat`} aria-hidden="true"></span>
 {:else if node.typeIcon && !reference}
 	<span data-icon={node.typeIcon} style={style+';display:block;width:24px;height:24px'}><span class="design-type-icon" style={`background-color:${radioSelected?'#b59aff':'#e6e6e6'};mask-image:url('${typeof node.children[0]!=='string' ? node.children[0]?.src : ''}')`}></span></span>
 {:else if node.name==='Slider' && !reference}
@@ -115,14 +125,15 @@
 {:else if node.filterSelect && !reference}
 	<FilterPills selected={runtime.matchLevels} onchange={(values)=>runtime.matchLevels=values}/>
 {:else if node.choice && !reference}
-	<div style={style} class="design-choice-row" class:compact={!textOf(node)} data-choice-kind={node.choice.kind} onclick={(event)=>event.stopPropagation()} onkeydown={(event)=>event.stopPropagation()} role="presentation" data-design-name={node.name} data-figma-node={node.id}>
+	<div style={style} class="design-choice-row" class:preview-option-row={!!node.previewOption} class:compact={!textOf(node)} data-choice-kind={node.choice.kind} onclick={(event)=>event.stopPropagation()} onkeydown={(event)=>event.stopPropagation()} role="presentation" data-design-name={node.name} data-figma-node={node.id}>
 		{#if node.choice.kind==='checkbox'}
-			<Checkbox label={node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
+			<Checkbox label={node.previewOption?(runtime.optionLabels[node.previewOption.key]??node.previewOption.label):node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
 		{:else if node.choice.kind==='radio'}
-			<Radio label={node.choice.label} value={node.choice.key} name={node.choice.group} group={runtime.groups[node.choice.group]??null} onchange={()=>{if(typeof node!=='string' && node.choice)runtime.groups[node.choice.group]=node.choice.key;}} />
+			<Radio label={node.previewOption?(runtime.optionLabels[node.previewOption.key]??node.previewOption.label):node.choice.label} value={node.choice.key} name={node.choice.group} group={runtime.groups[node.choice.group]??null} onchange={()=>{if(typeof node!=='string' && node.choice)runtime.groups[node.choice.group]=node.choice.key;}} />
 		{:else}
-			<Switch label={node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
+			<Switch label={node.previewOption?(runtime.optionLabels[node.previewOption.key]??node.previewOption.label):node.choice.label} checked={runtime.checked(node.choice)} onchange={(event)=>runtime.setChecked((node as DesignNode).choice!, (event.currentTarget as HTMLInputElement).checked)} />
 		{/if}
+        {#if node.previewOption && (runtime.optionHints[node.previewOption.key]??node.previewOption.hint)}<p class="preview-option-hint">{runtime.optionHints[node.previewOption.key]??node.previewOption.hint}</p>{/if}
 	</div>
 {:else if node.tag === 'img'}
 	<img
@@ -143,7 +154,7 @@
 		variant={node.variant}
 		style={style}
 		aria-label={runtime.buttonLabel(node) || 'Add'}
-		disabled={node.label==='Assign' && !runtime.selectedScouters.length || (node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
+		disabled={node.disabled || node.label==='Assign' && !runtime.selectedScouters.length || (node.typeSave && !runtime.typeDirty) || /^Promote \d+ Analysts?$/.test(node.label??'') && runtime.count(node.searchScope??'')===0}
 		data-figma-node={node.id}
 		data-layout-role={anchor?.kind}
 		onclick={(event) => {
@@ -169,7 +180,7 @@
 	/>
 {:else}
 	{@const active =
-		!node.passive && (node.name==='DialogBackdrop' || !!node.formTabValue || !!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
+		!node.disabled && !node.passive && (node.name==='DialogBackdrop' || !!node.formTabValue || !!node.collapseKey || !!node.filter || !!node.step || !!node.backAction || interactiveNames.test(node.name) ||
 		/^lucide\//.test(node.name) ||
 		node.name === 'Icon' ||
 		node.name === 'Action' ||
@@ -178,7 +189,8 @@
 	<svelte:element
 		this={node.tag}
 		inert={node.inert || undefined}
-		style={style + (node.formTabValue?`;background:${runtime.formTab===node.formTabValue?'#3c3c3c':'transparent'}`:'') +
+		aria-disabled={node.disabled || undefined}
+		style={style + (node.navLabel?`;color:${runtime.currentTab===node.navLabel?'#b59aff':'#b7b7b7'}`:'') + (node.formTabValue?`;background:${runtime.formTab===node.formTabValue?'#3c3c3c':'transparent'}`:'') +
 			(node.typeValue ? (runtime.questionType===node.typeValue ? ';background-image:none;background-color:#34323c;outline:1px solid #b59aff;outline-offset:-1px' : ';background-image:none;background-color:#262626;outline:1px solid #424242;outline-offset:-1px') : '') +
 			(node.choiceGroup && choices[node.choiceGroup]
 				? choices[node.choiceGroup] === (node.choiceValue ?? node.id)
@@ -228,6 +240,6 @@
 				}
 			: undefined}
 	>
-		{#if !reference && node.searchScope==='api-keys' && node.children.length===1 && typeof node.children[0]==='string' && /\b\d+ keys\b/.test(node.children[0])}{apiText(node)}{:else if node.optionTextKey}{runtime.optionLabels[node.optionTextKey]??textOf(node)}{:else if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
+		{#if !reference && node.searchScope==='api-keys' && node.children.length===1 && typeof node.children[0]==='string' && /\b\d+ keys\b/.test(node.children[0])}{apiText(node)}{:else if node.optionHintKey}{runtime.optionHints[node.optionHintKey]??textOf(node)}{:else if node.optionTextKey}{runtime.optionLabels[node.optionTextKey]??textOf(node)}{:else if node.numberKey}{runtime.numbers[node.numberKey]}{:else if node.summaryScope && runtime.summaries[node.summaryScope]}{runtime.summaries[node.summaryScope]}{:else}{@render children(node.children)}{/if}
 	</svelte:element>
 {/if}

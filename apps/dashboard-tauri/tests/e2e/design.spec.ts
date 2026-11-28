@@ -564,3 +564,95 @@ test('new response, form settings, and question previews are reachable', async (
  await page.getByRole('slider').fill('8');
  await expect(page.getByRole('slider')).toHaveValue('8');
 });
+
+test('select all toggles to deselect all and clears the same selection',async({page})=>{
+ await page.goto('/design/5775-15945');
+ await page.getByRole('button',{name:'Select all',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Deselect all',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Deselect all',exact:true}).click();
+ expect(await page.getByRole('checkbox').evaluateAll(inputs=>inputs.every(input=>!(input as HTMLInputElement).checked))).toBe(true);
+ await expect(page.getByRole('button',{name:'Select all',exact:true})).toBeVisible();
+});
+
+test('form settings aligns with the viewport and target cannot change',async({page})=>{
+ await page.goto('/design/5787-14585');
+ const name=await page.getByRole('textbox',{name:'Name',exact:true}).boundingBox();
+ const action=await page.getByRole('button',{name:'Export form data',exact:true}).boundingBox();
+ expect(name!.x).toBeGreaterThanOrEqual(26);expect(action!.x).toBe(26);
+ const target=page.locator('[aria-disabled="true"]');await expect(target).toHaveCount(3);
+ await expect(page.getByRole('radio',{name:'Team',exact:true})).toHaveCount(0);
+});
+
+test('option hints persist for single and multiple select and appear in previews',async({page})=>{
+ for(const [screen,preview] of [['5775-14305','5787:17116'],['5775-14394','5787:17179']]){
+  await page.goto('/design/'+screen);
+  await page.getByRole('textbox',{name:'Question hint',exact:true}).fill('Choose the best answer');
+  await page.locator('[data-design-name="lucide/pencil"]').first().click();
+  const hint=page.getByRole('textbox',{name:'Hint',exact:true});
+  if(screen==='5775-14305')await expect(hint).toHaveValue('Parts fell off, disconnects, etc');
+  await hint.fill('Use observations from this tournament');
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await expect(page.getByText('Use observations from this tournament',{exact:true})).toBeVisible();
+  const required=page.getByRole('switch',{name:'Required',exact:true});await required.uncheck();
+  await page.getByRole('button',{name:'eye',exact:true}).click();
+  await expect(page.locator('.design-frame')).toHaveAttribute('data-frame',preview);
+  await expect(page.getByRole('dialog').getByText('Optional',{exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Choose the best answer',{exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Use observations from this tournament',{exact:true})).toBeVisible();
+ }
+});
+
+test('every optional question type has an Optional preview subtitle',async({page})=>{
+ for(const screen of ['5775-14235','5775-14265','5775-14284']){
+  await page.goto('/design/'+screen);await page.getByRole('switch',{name:'Required',exact:true}).uncheck();
+  await page.getByRole('button',{name:'eye',exact:true}).click();
+  await expect(page.getByRole('dialog').getByText('Optional',{exact:true})).toBeVisible();
+ }
+});
+
+test('navbar direction follows tab order and revisits do not create history loops',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'Forms',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','forward');
+ await page.getByRole('button',{name:'Scouting',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','back');
+ await page.getByRole('button',{name:'Forms',exact:true}).click();
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:10069');
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-navigation-direction','forward');
+ await page.evaluate(()=>history.back());
+ await expect(page.locator('.design-frame')).toHaveAttribute('data-frame','5775:9807');
+});
+
+test('Home fits above the lowered navbar without a scrolling region',async({page})=>{
+ await page.goto('/');
+ await page.addStyleTag({content:'.design-viewport{padding-top:64px!important;padding-bottom:34px!important}'});
+ await page.evaluate(()=>window.dispatchEvent(new Event('resize')));
+ const body=page.locator('[data-layout-role="body"]');
+ expect(await body.evaluate(element=>element.scrollHeight-element.clientHeight)).toBeLessThanOrEqual(1);
+ await expect(body).toHaveCSS('overflow-y','hidden');
+ const nav=await page.locator('[data-layout-role="nav"]').boundingBox();
+ expect(nav!.height).toBe(52);expect(nav!.y+nav!.height).toBe(818);
+});
+
+test('dragging retains the source card content, size, and colours',async({page})=>{
+ await page.goto('/design/5775-10287');
+ const card=page.locator('.assignment-team').first();
+ const before=await card.evaluate(element=>({width:element.getBoundingClientRect().width,height:element.getBoundingClientRect().height,bg:getComputedStyle(element).backgroundColor,text:element.textContent}));
+ const handle=card.getByRole('button',{name:/^Drag /});const box=await handle.boundingBox();
+ await page.mouse.move(box!.x+10,box!.y+15);await page.mouse.down();await page.mouse.move(box!.x+30,box!.y+20);
+ const ghost=page.locator('.assignment-ghost');await expect(ghost).toBeVisible();
+ await expect(ghost).toHaveCSS('background-color',before.bg);
+ const after=await ghost.boundingBox();expect(after!.width).toBe(before.width);expect(after!.height).toBe(before.height);
+ await expect(ghost.locator('img')).toHaveAttribute('src',await card.locator('img').getAttribute('src') as string);
+ await page.mouse.up();
+});
+
+test('promotion actions use centered primary text even after selecting several users',async({page})=>{
+ await page.goto('/design/5775-15010');
+ const entry=page.getByRole('button',{name:'Promote Analysts',exact:true});
+ await expect(entry.locator('.mg2-button-content')).toHaveCSS('justify-content','center');
+ await entry.click();await page.getByRole('checkbox',{name:'Leo K',exact:true}).check();
+ const action=page.getByRole('button',{name:/^Promote \d+ Analysts?$/});
+ await expect(action).toHaveCSS('color','rgb(23, 23, 23)');
+ await expect(action.locator('.mg2-button-content')).toHaveCSS('justify-content','center');
+});

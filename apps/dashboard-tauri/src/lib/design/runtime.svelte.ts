@@ -31,8 +31,12 @@ export class DesignRuntime {
   private apiSequence=0;
   assignmentItems = $state<AssignmentTeam[]>([]);
   selectedScouters = $state<string[]>(['Jack S','Collin C']);
+  currentTab = $state('Home');
+  optionHints = $state<Record<string,string>>({});
+  required(kind:string){return this.checks[`question:${kind}:required`]??['Rating','Single select'].includes(kind);}
+  allSelected(scope:string){const total=scope==='api-keys'?(this.apiRecords?.length??0):(this.choices[scope]?.length??0);return total>0 && this.count(scope)===total;}
   optionLabels = $state<Record<string,string>>({});
-  editingOption = $state<{key:string;label:string}>();
+  editingOption = $state<{key:string;label:string;hint?:string}>();
   searchOpen = $state<Record<string,boolean>>({});
   collapsed = $state<Record<string,boolean>>({});
   filters = $state<Record<string,string>>({});
@@ -61,6 +65,7 @@ export class DesignRuntime {
   buttonLabel(node:DesignNode) {
     const label=node.label ?? '';
     const count=this.count(node.searchScope??'');
+    if(label==='Select all')return this.allSelected(node.searchScope??'')?'Deselect all':'Select all';
     if(/^Promote \d+ Analysts?$/.test(label))return `Promote ${count} Analyst${count===1?'':'s'}`;
     if(node.searchScope==='api-keys' && /^Delete (key|\d+ keys)$/.test(label))return count===1?'Delete key':`Delete ${count} keys`;
     return label;
@@ -90,6 +95,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   if(optionType)runtime.questionType=optionType;
   if(['5775:10287','5775:11203'].includes(frame) && !runtime.assignmentItems.length)runtime.assignmentItems=teamsFromScene(source);
   if(runtime.scope(frame)==='api-keys' && !runtime.apiRecords){runtime.apiRecords=apiKeysFromScene(source);for(const record of runtime.apiRecords)runtime.apiSelected[record.id]=!!record.initialSelected;}
+  const questionKind=optionType??({'5787:17005':'Rating','5787:17054':'Short Answer Text','5787:17082':'Photo','5787:17116':'Single select','5787:17179':'Multiple Select'} as Record<string,string>)[frame]??runtime.questionType;
   const tree=structuredClone(source);
   enhanceScene(tree,frame);
   if(nodes(tree).some(node=>node.formTabValue))runtime.formTab ??= ['5775:10144','5775:14466','5775:14514','5775:14562','5775:14630'].includes(frame)?'Questions':['5787:14528','5787:14547','5787:14566'].includes(frame)?'Responses':'Assignments';
@@ -101,11 +107,12 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
   function visit(node:DesignNode, parent?:DesignNode, table?:DesignNode) {
     if(parent && !parent.style.includes('flex-direction:column') && node.style.includes('flex:1 0 0'))node.inlineFlex=true;
     const label=textOf(node);
+    if(node.name==='TabBarItem'){node.navLabel=label;for(const child of nodes(node)){if(child.tag==='p')child.style+=';color:inherit';if(child.tag==='img')child.navIcon=label;}}
     if(node.name==='TableRow' || node.name==='TableHeader')table=node;
     if(node.name==='Input' && nodes(node).some(child=>child.control==='input'))node.style+=';flex:1 1 70px;min-width:70px';
     if(node.control==='input') {
       const placeholder=/^(Search\b|Filter by\b|Enter new\b|Add scout$)/i.test(node.label??'');
-      node.inputKey=/^(Search\b|Filter by\b)/i.test(node.label??'')?`search:${scope}`:`field:${node.id}`;
+      node.inputKey=node.questionHintFor?`hint:${node.questionHintFor}`:/^(Search\b|Filter by\b)/i.test(node.label??'')?`search:${scope}`:`field:${node.id}`;
       node.placeholder ??= placeholder?node.label:textOf(node);
       runtime.values[node.inputKey] ??= placeholder?'':node.value??'';
     }
@@ -114,7 +121,7 @@ export function prepareScene(source:DesignNode, frame:string, runtime:DesignRunt
       const kind=node.name==='Checkbox'?(scope==='at'?'radio':'checkbox'):'switch';
       const all=scope==='api-keys' && table?.name==='TableHeader';
       const rowName=table?textOf(nodes(table).find(child=>child.name==='Name cell')??table):'';
-      const key=all?`${scope}:all`:scope==='api-keys'?`${scope}:${rowName}`:kind==='switch'?(label==='Accept responses'?'form:accept':'question:required'):`${scope}:${index++}`;
+      const key=all?`${scope}:all`:scope==='api-keys'?`${scope}:${rowName}`:kind==='switch'?(label==='Accept responses'?'form:accept':`question:${questionKind}:required`):`${scope}:${index++}`;
       const initial=kind==='switch'?markup.includes('/893af.svg'):markup.includes('/554ed.svg') || markup.includes('/2e4a4.svg');
       node.choice={kind,key,group:scope,initial,all,label:label || (all?'Select all keys':`Select ${textOf(table??node)}`)};
       if(!all)choices.push({key,label,initial});
